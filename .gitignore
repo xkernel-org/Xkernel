@@ -1,4 +1,13 @@
 *.o
 *.txt
-bpf/vmlinux.h
-kprobe_loader
+*.ko
+*.mod
+*.mod.c
+*.order
+*.symvers
+*.cmd
+*.ko.unsigned
+
+userspace/bpf/vmlinux.h
+
+userspace/kprobe_loader

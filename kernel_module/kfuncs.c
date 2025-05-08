@@ -1,0 +1,50 @@
+#include <linux/module.h>
+#include <linux/init.h>
+#include <linux/bpf.h>
+#include <linux/btf.h>
+#include <linux/btf_ids.h>
+#include <linux/kernel.h>
+
+MODULE_LICENSE("GPL");
+MODULE_AUTHOR("Zhongjie");
+MODULE_DESCRIPTION("A kernel module for kfuncs");
+
+__bpf_kfunc_start_defs();
+// __bpf_kfunc int kfuncs_probe_write_kernel(void *dst, __u32 dst_sz, const void *src, __u32 src_sz)
+__bpf_kfunc int kfuncs_probe_write_kernel(void)
+{
+    return 0;
+}
+__bpf_kfunc_end_defs();
+
+BTF_SET8_START(bpf_kfunc_example_ids_set)
+BTF_ID_FLAGS(func, kfuncs_probe_write_kernel)
+BTF_SET8_END(bpf_kfunc_example_ids_set)
+
+static const struct btf_kfunc_id_set bpf_kfunc_set = {
+    .owner = THIS_MODULE,
+    .set = &bpf_kfunc_example_ids_set,
+};
+
+static int __init kfuncs_init(void)
+{
+	int ret;
+
+	ret = register_btf_kfunc_id_set(BPF_PROG_TYPE_UNSPEC, &bpf_kfunc_set);
+	if (ret < 0) {
+		pr_err("Failed to register kfunc: %d\n", ret);
+		return ret;
+	}
+
+	pr_info("kfuncs module loaded\n");
+	return 0;
+}
+
+static void __exit kfuncs_exit(void)
+{
+	pr_info("kfuncs module unloaded\n");
+}
+
+module_init(kfuncs_init);
+module_exit(kfuncs_exit);
+

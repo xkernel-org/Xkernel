@@ -5,11 +5,12 @@
 #include <bpf/bpf_tracing.h>
 
 #include "util.bpf.h"
+#include "kfuncs.bpf.h"
 
 char LICENSE[] SEC("license") = "GPL";
 
 SEC("kprobe/blk_alloc_queue+0x1be")
-int BPF_KPROBE(assign_nr_requests) 
+int BPF_KPROBE(assign_nr_requests)
 {
     unsigned long pc = PT_REGS_IP(ctx);
     bpf_printk("current pc: %lx", pc);
@@ -43,6 +44,10 @@ int BPF_KRETPROBE(read_nr_requests)
     } else {
         bpf_printk("Failed to read nr_requests");
     }
+
+    // u32 new_value = 256;
+    // kfuncs_probe_write_kernel((void *)(ctx->bx + 0x148), sizeof(new_value), &new_value, sizeof(new_value));
+    kfuncs_probe_write_kernel();
 
     return 0;
 }
