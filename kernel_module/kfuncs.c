@@ -10,9 +10,9 @@ MODULE_AUTHOR("Zhongjie");
 MODULE_DESCRIPTION("A kernel module for kfuncs");
 
 __bpf_kfunc_start_defs();
-// __bpf_kfunc int kfuncs_probe_write_kernel(void *dst, __u32 dst_sz, const void *src, __u32 src_sz)
-__bpf_kfunc int kfuncs_probe_write_kernel(void)
+__bpf_kfunc int kfuncs_probe_write_kernel(void *dst__ign, __u32 dst_sz, const void *src__ign, __u32 src_sz)
 {
+    memcpy(dst__ign, src__ign, dst_sz);
     return 0;
 }
 __bpf_kfunc_end_defs();

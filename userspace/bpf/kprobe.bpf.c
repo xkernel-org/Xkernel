@@ -40,14 +40,20 @@ int BPF_KRETPROBE(read_nr_requests)
     }
 
     if (bpf_probe_read_kernel(&nr_requests, sizeof(nr_requests), &q->nr_requests) == 0) {
-        bpf_printk("nr_requests: %u", nr_requests);
+        bpf_printk("Before hacking: nr_requests: %u", nr_requests);
     } else {
         bpf_printk("Failed to read nr_requests");
     }
 
-    // u32 new_value = 256;
-    // kfuncs_probe_write_kernel((void *)(ctx->bx + 0x148), sizeof(new_value), &new_value, sizeof(new_value));
-    kfuncs_probe_write_kernel();
+    u32 new_value = 256;
+    kfuncs_probe_write_kernel(&q->nr_requests, sizeof(new_value), &new_value, sizeof(new_value));
+
+    if (bpf_probe_read_kernel(&nr_requests, sizeof(nr_requests), &q->nr_requests) == 0) {
+        bpf_printk("After hacking: nr_requests: %u", nr_requests);
+    } else {
+        bpf_printk("Failed to read nr_requests");
+    }
+
 
     return 0;
 }
