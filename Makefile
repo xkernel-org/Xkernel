@@ -1,19 +1,19 @@
-# Name of the BPF program
-BPF_PROG = bpf_prog
-KERNEL_DIR = /lib/modules/$(shell uname -r)/build
+.PHONY: all clean
 
-CLANG = clang
+BPF_CLANG=clang
+BPF_CFLAGS=-g -O2 -target bpf -D__TARGET_ARCH_x86
+LIBBPF_DIR=/usr/include/bpf
 
-# sudo ln -s /usr/include/x86_64-linux-gnu/asm /usr/include/asm
+all: kprobe_loader bpf/kprobe.bpf.o
 
-CFLAGS = -O2 -g -Wall -target bpf -D__TARGET_ARCH_x86 \
-	-I/usr/include/bpf \
-	-I/usr/src/linux-headers-6.8.0-53-generic/tools/bpf/resolve_btfids/libbpf/include
+bpf/kprobe.bpf.o: bpf/kprobe.bpf.c vmlinux.h
+	$(BPF_CLANG) $(BPF_CFLAGS) -I$(LIBBPF_DIR) -c $< -o $@
 
-all: $(BPF_PROG).o
+vmlinux.h:
+	sudo bpftool btf dump file /sys/kernel/btf/vmlinux format c > bpf/vmlinux.h
 
-$(BPF_PROG).o: $(BPF_PROG).c
-	$(CLANG) $(CFLAGS) -c $< -o $@
+kprobe_loader: kprobe_loader.c
+	gcc -g -O2 -Wall -I$(LIBBPF_DIR) -o $@ $< -lbpf -lelf -lz
 
 clean:
-	rm -f $(BPF_PROG).o
+	rm -f kprobe_loader bpf/*.o
