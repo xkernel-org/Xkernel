@@ -43,6 +43,24 @@ struct xkernel_prog_params progs[] = {
         .event_name = "blk_mq_tag_update_depth",
         .offset = 0xa1,
     },
+    {
+        .func_name = "xkernel_test_func1_0x5e",
+        .is_kretprobe = false,
+        .event_name = "xkernel_test_func1",
+        .offset = 0x5e,
+    },
+    {
+        .func_name = "xkernel_test_func1_0x91",
+        .is_kretprobe = false,
+        .event_name = "xkernel_test_func1",
+        .offset = 0x91,
+    },
+    {
+        .func_name = "xkernel_test_func1_0x63",
+        .is_kretprobe = false,
+        .event_name = "xkernel_test_func1",
+        .offset = 0x63,
+    },
 };
 
 static int attach_prog(struct bpf_object *obj, struct xkernel_prog_params *params) {

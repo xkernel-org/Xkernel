@@ -9,8 +9,8 @@
 
 char LICENSE[] SEC("license") = "GPL";
 
-const static int OLD_VALUE = 128;
-const static int NEW_VALUE = 256;
+const static int OLD_VALUE = 16;
+const static int NEW_VALUE = 257;
 
 SEC("kprobe/blk_alloc_queue+0x1be")
 int BPF_KPROBE(assign_nr_requests)
@@ -143,5 +143,63 @@ int BPF_KPROBE(jump_check_MAX_SCHED_RQ)
     u32 *ptr = (u32 *)(ctx->bx);
     kfuncs_probe_write_kernel(ptr, sizeof(*ptr), restore_v, sizeof(*restore_v));
     
+    return 0;
+}
+
+// 0x140
+// check
+SEC("kprobe/xkernel_test_func1+0x5e")
+int BPF_KPROBE(xkernel_test_func1_0x5e)
+{
+    unsigned long pc = PT_REGS_IP(ctx);
+    bpf_printk("current pc: %lx", pc);
+
+    u32 diff = 0;
+    // extract the lower 32 bits of ctx->ax
+    u32 eax = (u64)(ctx->ax) & 0xffffffff;
+    
+    u32 key = 0;
+    u32 *restore_v = bpf_map_lookup_elem(&restore_map, &key);
+    if (!restore_v) {
+        bpf_printk("failed to lookup restore_v");
+        return 0;
+    }
+
+    *restore_v = eax;
+    
+    if (OLD_VALUE < NEW_VALUE) {
+        diff = NEW_VALUE - OLD_VALUE;
+        if (eax > diff) {
+            u64 t = eax - diff;
+            kfuncs_probe_write_kernel(&ctx->ax, sizeof(t), &t, sizeof(t));
+            bpf_printk("check1 t: %u", t);
+        } else {
+            u64 t = 0;
+            kfuncs_probe_write_kernel(&ctx->ax, sizeof(t), &t, sizeof(t));
+            bpf_printk("check2 t: %u", t);
+        }
+    } else {
+        diff = OLD_VALUE - NEW_VALUE;
+        u64 t = eax + diff;
+        kfuncs_probe_write_kernel(&ctx->ax, sizeof(t), &t, sizeof(t));
+        bpf_printk("check3 t: %u", t);
+    }
+
+    return 0;
+}
+
+// jump
+SEC("kprobe/xkernel_test_func1+0x91")
+int BPF_KPROBE(xkernel_test_func1_0x91)
+{
+    // No need to restore as we only modify the register value.
+    return 0;
+}
+
+// continue
+SEC("kprobe/xkernel_test_func1+0x63")
+int BPF_KPROBE(xkernel_test_func1_0x63)
+{
+    // No need to restore as we only modify the register value.
     return 0;
 }

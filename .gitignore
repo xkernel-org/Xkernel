@@ -7,6 +7,7 @@
 *.symvers
 *.cmd
 *.ko.unsigned
+*.o.d
 
 userspace/bpf/vmlinux.h
 
