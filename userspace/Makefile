@@ -12,8 +12,14 @@ bpf/kprobe.bpf.o: bpf/kprobe.bpf.c vmlinux.h
 vmlinux.h:
 	sudo bpftool btf dump file /sys/kernel/btf/vmlinux format c > bpf/vmlinux.h
 
-kprobe_loader: kprobe_loader.c
-	gcc -g -O2 -Wall -I$(LIBBPF_DIR) -o $@ $< -lbpf -lelf -lz
+SRCS := $(wildcard *.cc)
+OBJS := $(SRCS:.cc=.o)
+
+kprobe_loader: $(OBJS)
+	g++ -g -O3 -Wall -I$(LIBBPF_DIR) -o $@ $^ -lbpf -lelf -lz
+
+%.o: %.cc
+	g++ -g -O3 -Wall -I$(LIBBPF_DIR) -c $< -o $@
 
 clean:
 	rm -f kprobe_loader bpf/*.o
