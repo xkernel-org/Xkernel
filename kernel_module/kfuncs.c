@@ -4,22 +4,30 @@
 #include <linux/btf.h>
 #include <linux/btf_ids.h>
 #include <linux/kernel.h>
+#include <linux/version.h>
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Zhongjie");
 MODULE_DESCRIPTION("A kernel module for kfuncs");
 
 __bpf_kfunc_start_defs();
-__bpf_kfunc int kfuncs_probe_write_kernel(void *dst__ign, __u32 dst_sz, const void *src__ign, __u32 src_sz)
+__bpf_kfunc int 
+kfuncs_probe_write_kernel(void *dst__ign, __u32 dst__sz, const void *src__ign, __u32 src__sz)
 {
-    memcpy(dst__ign, src__ign, dst_sz);
+    memcpy(dst__ign, src__ign, dst__sz);
     return 0;
 }
 __bpf_kfunc_end_defs();
 
+#if LINUX_VERSION_CODE <= KERNEL_VERSION(6,9,0)
 BTF_SET8_START(bpf_kfunc_example_ids_set)
 BTF_ID_FLAGS(func, kfuncs_probe_write_kernel)
 BTF_SET8_END(bpf_kfunc_example_ids_set)
+#else
+BTF_KFUNCS_START(bpf_kfunc_example_ids_set)
+BTF_ID_FLAGS(func, kfuncs_probe_write_kernel)
+BTF_KFUNCS_END(bpf_kfunc_example_ids_set)
+#endif
 
 static const struct btf_kfunc_id_set bpf_kfunc_set = {
     .owner = THIS_MODULE,
