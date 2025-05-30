@@ -12,52 +12,64 @@ using namespace xkernel;
 
 struct xkernel_prog_params progs[] = {
     {
-        .bpf_func_name = "assign_nr_requests",
+        .bpf_func_name = "hystart_update_0xcc",
         .is_kretprobe = false,
-        .kernel_func_name = "blk_alloc_queue",
-        .offset = 0x1be,
+        .kernel_func_name = "hystart_update",
+        .offset = 0xcc,
     },
     {
-        .bpf_func_name = "read_nr_requests",
-        .is_kretprobe = true,
-        .kernel_func_name = "blk_alloc_queue",
-    },
-    {
-        .bpf_func_name = "check_MAX_SCHED_RQ",
+        .bpf_func_name = "hystart_update_0xd9",
         .is_kretprobe = false,
-        .kernel_func_name = "blk_mq_tag_update_depth",
-        .offset = 0x34,
+        .kernel_func_name = "hystart_update",
+        .offset = 0xd9,
     },
-    {
-        .bpf_func_name = "cont_check_MAX_SCHED_RQ",
-        .is_kretprobe = false,
-        .kernel_func_name = "blk_mq_tag_update_depth",
-        .offset = 0x3c,
-    },
-    {
-        .bpf_func_name = "jump_check_MAX_SCHED_RQ",
-        .is_kretprobe = false,
-        .kernel_func_name = "blk_mq_tag_update_depth",
-        .offset = 0xa1,
-    },
-    {
-        .bpf_func_name = "xkernel_test_func1_0x5e",
-        .is_kretprobe = false,
-        .kernel_func_name = "xkernel_test_func1",
-        .offset = 0x5e,
-    },
-    {
-        .bpf_func_name = "xkernel_test_func1_0x91",
-        .is_kretprobe = false,
-        .kernel_func_name = "xkernel_test_func1",
-        .offset = 0x91,
-    },
-    {
-        .bpf_func_name = "xkernel_test_func1_0x63",
-        .is_kretprobe = false,
-        .kernel_func_name = "xkernel_test_func1",
-        .offset = 0x63,
-    },
+    // {
+    //     .bpf_func_name = "assign_nr_requests",
+    //     .is_kretprobe = false,
+    //     .kernel_func_name = "blk_alloc_queue",
+    //     .offset = 0x1be,
+    // },
+    // {
+    //     .bpf_func_name = "read_nr_requests",
+    //     .is_kretprobe = true,
+    //     .kernel_func_name = "blk_alloc_queue",
+    // },
+    // {
+    //     .bpf_func_name = "check_MAX_SCHED_RQ",
+    //     .is_kretprobe = false,
+    //     .kernel_func_name = "blk_mq_tag_update_depth",
+    //     .offset = 0x34,
+    // },
+    // {
+    //     .bpf_func_name = "cont_check_MAX_SCHED_RQ",
+    //     .is_kretprobe = false,
+    //     .kernel_func_name = "blk_mq_tag_update_depth",
+    //     .offset = 0x3c,
+    // },
+    // {
+    //     .bpf_func_name = "jump_check_MAX_SCHED_RQ",
+    //     .is_kretprobe = false,
+    //     .kernel_func_name = "blk_mq_tag_update_depth",
+    //     .offset = 0xa1,
+    // },
+    // {
+    //     .bpf_func_name = "xkernel_test_func1_0x5e",
+    //     .is_kretprobe = false,
+    //     .kernel_func_name = "xkernel_test_func1",
+    //     .offset = 0x5e,
+    // },
+    // {
+    //     .bpf_func_name = "xkernel_test_func1_0x91",
+    //     .is_kretprobe = false,
+    //     .kernel_func_name = "xkernel_test_func1",
+    //     .offset = 0x91,
+    // },
+    // {
+    //     .bpf_func_name = "xkernel_test_func1_0x63",
+    //     .is_kretprobe = false,
+    //     .kernel_func_name = "xkernel_test_func1",
+    //     .offset = 0x63,
+    // },
 };
 
 int main() {

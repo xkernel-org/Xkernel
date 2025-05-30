@@ -1,5 +1,10 @@
 # Xkernel
 
+## Dependencies
+`sudo apt-get install clang llvm libbpf-dev pahole -y`
+
+
+
 ## blk_alloc_queue
 
 1. Get function address: `sudo grep -A1 -E '^[0-9a-fA-F]+ [a-zA-Z] blk_alloc_queue$' /proc/kallsyms`
