@@ -17,8 +17,10 @@ function_name = args.function_name
 line_number_list = args.line_number_list
 expression_if = args.expression_if
 logger = logging.getLogger("simple")
+
 kernel_full_name = None
 kernel_no_postfix_name = None
+kall_syms_base_address = 0
 
 def log_init():
     if args.verbose == 0:
@@ -66,6 +68,8 @@ def dump_assembly(start_address, end_address):
     return result.stdout
 
 def run_gdb():
+
+    global kernel_full_name, kernel_no_postfix_name, kall_syms_base_address
 
     kernel_full_name = subprocess.check_output("uname -r", shell=True).decode("utf-8").strip()
     kernel_no_postfix_name = kernel_full_name.split("-")[0]
@@ -149,10 +153,9 @@ def run_gdb():
     kall_syms_start_address = merge_start_address + OFFSET
     kall_syms_end_address = merge_end_address + OFFSET
 
-    OUTPUT.append(f"Base address of {function_name}: 0x{kall_syms_base_address:x}")
-    OUTPUT.append(f"[{function_name}@{line_number_list}]")
-    OUTPUT.append(f"Start address in kallsyms: \t0x{kall_syms_start_address:x}")
-    OUTPUT.append(f"End address in kallsyms: \t0x{kall_syms_end_address:x}\n")
+    OUTPUT.append(f"Base address of {function_name}: \t0x{kall_syms_base_address:x}")
+    OUTPUT.append(f"[{function_name}@{line_number_list}]: \t\t0x{kall_syms_start_address:x}---0x{kall_syms_end_address:x}")
+    OUTPUT.append("")
 
     # Close gdb session
     gdb_session.close()
@@ -160,8 +163,17 @@ def run_gdb():
     return kall_syms_start_address, kall_syms_end_address
 
 def run_objdump(kall_syms_start_address, kall_syms_end_address):
+    global kall_syms_base_address
     assembly = dump_assembly(kall_syms_start_address, kall_syms_end_address)
-    OUTPUT.append(assembly)
+    assembly = assembly.split(">:")[1]
+
+    for line in assembly.split("\n"):
+        addr = line.split(":")[0]
+        if (addr == ""): continue
+        addr = (int)(addr, 16)
+        offset = addr - kall_syms_base_address
+        line = f"({function_name}+0x{offset:x}){line}"
+        OUTPUT.append(line)
 
 if __name__ == "__main__":
 
@@ -171,6 +183,6 @@ if __name__ == "__main__":
 
     run_objdump(kall_syms_start_address, kall_syms_end_address)
 
-    print("\n------------------------------------OUTPUT------------------------------------")
+    print("------------------------------------------OUTPUT------------------------------------------")
     print("\n".join(OUTPUT))
-    print("--------------------------------------------------------------------------------")
+    print("------------------------------------------------------------------------------------------")
