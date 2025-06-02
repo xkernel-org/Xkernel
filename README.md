@@ -3,7 +3,9 @@
 ## Dependencies
 `sudo apt-get install clang llvm libbpf-dev pahole -y`
 
+`sudo apt-get install linux-source gdb -y`
 
+`cd /usr/src/ && sudo tar -xvf linux-source-6.8.0.tar.bz2`
 
 ## blk_alloc_queue
 
