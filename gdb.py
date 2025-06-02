@@ -83,10 +83,18 @@ def run_gdb():
     execute_gdb_cmd(gdb_session, f"set substitute-path /build/linux-Rb6idR/linux-{kernel_no_postfix_name} /usr/src/linux-source-{kernel_no_postfix_name}")
 
     execute_gdb_cmd(gdb_session, f"list {function_name}")
+    output = gdb_session.before.splitlines()
+    # check if the output is Function "xxxxxxxx" not defined.
+    if (len(output) == 4 and output[-2] == f"Function \"{function_name}\" not defined."):
+        logger.error(f"Function {function_name} not defined.")
+        sys.exit(1)
+    logger.debug(f"list output: {output}")
 
     execute_gdb_cmd(gdb_session, f'info line {function_name}')
     output = gdb_session.before.splitlines()
     output = output[3]
+    
+    logger.debug(f"info line output: {output}")
     
     vm_linux_start_address = output.split("starts at address ")[1].split(" <")[0]
     vm_linux_start_address = vm_linux_start_address.replace("\x1b[34m", "").replace("\x1b[m", "")
