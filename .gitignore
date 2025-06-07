@@ -11,4 +11,4 @@
 
 userspace/bpf/vmlinux.h
 
-userspace/kprobe_loader
+bpf_kprobe/kprobe_loader
