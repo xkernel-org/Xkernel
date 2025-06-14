@@ -1,11 +1,20 @@
 # Xkernel
 
 ## Dependencies
-`sudo apt-get install clang llvm libbpf-dev pahole -y`
 
-`sudo apt-get install linux-source gdb -y`
+```shell
+# For linux-image-$(uname -r)-dbgsym
+echo "deb http://ddebs.ubuntu.com $(lsb_release -cs) main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list.d/ddebs.list
+echo "deb http://ddebs.ubuntu.com $(lsb_release -cs)-updates main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list.d/ddebs.list
 
-`cd /usr/src/ && sudo tar -xvf linux-source-6.8.0.tar.bz2`
+sudo apt install ubuntu-dbgsym-keyring && sudo apt update
+
+sudo apt-get install clang llvm libbpf-dev pahole gdb \
+    linux-source linux-image-$(uname -r)-dbgsym -y
+
+pushd /usr/src/ && sudo tar -xvf linux-source-6.8.0.tar.bz2 && popd
+
+```
 
 ## Workflow
 
