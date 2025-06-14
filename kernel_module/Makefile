@@ -1,7 +1,5 @@
 obj-m += kfuncs.o
 
-# sudo cp /sys/kernel/btf/vmlinux /usr/lib/modules/$(uname -r)/build/
-
 KERNELDIR ?= /lib/modules/$(shell uname -r)/build
 CC = gcc
 
@@ -9,7 +7,7 @@ CC = gcc
 EXTRA_CFLAGS += -g -O2
 
 all:
-	make -C $(KERNELDIR) M=$(PWD) modules CC=$(CC)
+	make -C $(KERNELDIR) M=$(PWD) modules CC=$(CC) VMLINUX_BTF=/sys/kernel/btf/vmlinux
 
 clean:
 	make -C $(KERNELDIR) M=$(PWD) clean
