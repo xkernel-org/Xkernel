@@ -12,23 +12,35 @@ using namespace xkernel;
 
 struct xkernel_prog_params progs[] = {
     {
-        .bpf_func_name = "hystart_update_0xcc",
+        .bpf_func_name = "dev_gro_receive_0x20d",
         .is_kretprobe = false,
-        .kernel_func_name = "hystart_update",
-        .offset = 0xcc,
+        .kernel_func_name = "dev_gro_receive",
+        .offset = 0x20d,
     },
     {
-        .bpf_func_name = "hystart_update_0xd9",
+        .bpf_func_name = "dev_gro_receive_0x210",
         .is_kretprobe = false,
-        .kernel_func_name = "hystart_update",
-        .offset = 0xd9,
+        .kernel_func_name = "dev_gro_receive",
+        .offset = 0x210,
     },
-    {
-        .bpf_func_name = "hystart_update",
-        .is_kretprobe = false,
-        .kernel_func_name = "hystart_update",
-        .offset = 0,
-    }
+    // {
+    //     .bpf_func_name = "hystart_update_0xcc",
+    //     .is_kretprobe = false,
+    //     .kernel_func_name = "hystart_update",
+    //     .offset = 0xcc,
+    // },
+    // {
+    //     .bpf_func_name = "hystart_update_0xd9",
+    //     .is_kretprobe = false,
+    //     .kernel_func_name = "hystart_update",
+    //     .offset = 0xd9,
+    // },
+    // {
+    //     .bpf_func_name = "hystart_update",
+    //     .is_kretprobe = false,
+    //     .kernel_func_name = "hystart_update",
+    //     .offset = 0,
+    // }
 };
 
 int main() {

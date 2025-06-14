@@ -2,12 +2,17 @@ obj-m += kfuncs.o
 
 KERNELDIR ?= /lib/modules/$(shell uname -r)/build
 CC = gcc
+BTF_VMLINUX = /sys/kernel/btf/vmlinux
 
 # Enable BTF support
 EXTRA_CFLAGS += -g -O2
 
 all:
-	make -C $(KERNELDIR) M=$(PWD) modules CC=$(CC) VMLINUX_BTF=/sys/kernel/btf/vmlinux
+	@if [ ! -f $(KERNELDIR)/vmlinux ] && [ -f $(BTF_VMLINUX) ]; then \
+		echo "Linking BTF from $(BTF_VMLINUX) to $(KERNELDIR)/vmlinux"; \
+		sudo ln -sf $(BTF_VMLINUX) $(KERNELDIR)/vmlinux; \
+	fi
+	make -C $(KERNELDIR) M=$(PWD) modules CC=$(CC)
 
 clean:
 	make -C $(KERNELDIR) M=$(PWD) clean

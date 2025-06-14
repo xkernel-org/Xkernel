@@ -9,6 +9,6 @@
 *.ko.unsigned
 *.o.d
 
-userspace/bpf/vmlinux.h
+bpf_kprobe/bpf/vmlinux.h
 
 bpf_kprobe/kprobe_loader
