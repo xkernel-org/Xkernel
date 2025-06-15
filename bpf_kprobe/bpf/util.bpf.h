@@ -114,32 +114,4 @@ void dump_ctx(struct pt_regs *ctx) {
     LOG_SS(ctx);
 }
 
-/**
- * @brief Calculate the new value of eax if we want to change the old_const to new_const.
- * 
- * @param old_const
- * @param new_const
- * @param old_eax
- * @return u64
- */
-static __always_inline
-u64 calc_value(u64 old_const, u64 new_const, u64 old_eax)
-{
-    u64 new_eax;
-
-    int diff = (int)(new_const - old_const);
-
-    if (diff == 0)
-        return old_eax;
-
-    if (diff > 0) {
-        u64 dec = MIN(diff, old_eax);
-        new_eax = old_eax - dec;
-    } else {
-        u64 inc = -diff;
-        new_eax = old_eax + inc;
-    }
-    return new_eax;
-}
-
 #endif
