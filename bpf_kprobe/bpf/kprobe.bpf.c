@@ -90,58 +90,17 @@ char LICENSE[] SEC("license") = "GPL";
 //     return 0;
 // }
 
-struct {
-    __uint(type, BPF_MAP_TYPE_PERCPU_ARRAY);
-    __uint(max_entries, 1);
-    __type(key, u32);
-    __type(value, u64);
-} per_cpu_gro_list_count_map SEC(".maps");
-
 SEC("kprobe/dev_gro_receive+0x210")
 int BPF_KPROBE(dev_gro_receive_0x210)
 {
-    u32 key = 0;
-    u64 *v = bpf_map_lookup_elem(&per_cpu_gro_list_count_map, &key);
-    if (!v) return 0;
-    
-    if (*v == 0) return 0;
+    u64 eax = BPF_EAX(ctx);
 
-    u64 eax = *v;
-
-    kfuncs_probe_write_kernel(&ctx->ax, sizeof(eax), &eax, sizeof(eax));
-    // LOG_AX_DEC(ctx);
-
-    *v = 0;
-
-    return 0;
-}
-
-SEC("kprobe/dev_gro_receive+0x20d")
-int BPF_KPROBE(dev_gro_receive_0x20d)
-{
-    u64 eax = (u64)(ctx->ax) & 0xffffffff;
-
-    if (eax == 0) return 0;
-
-    #define OLD_CONST 8
-    #define NEW_CONST 2
-
-    if (eax < NEW_CONST) return 0;
-    
-    // LOG_AX_DEC(ctx);
-
-    u64 old_const = OLD_CONST - 1;
-    u64 new_const = NEW_CONST - 1;
-
-    u32 key = 0;
-    int ret = bpf_map_update_elem(&per_cpu_gro_list_count_map, &key, &eax, BPF_ANY);
-    if (ret) return 0;
-    
-    eax = calc_value(old_const, new_const, eax);
-
-    kfuncs_probe_write_kernel(&ctx->ax, sizeof(eax), &eax, sizeof(eax));
-
-    // LOG_AX_DEC(ctx);
+    #define NEW_CONST 8
+    if (eax >= NEW_CONST) {
+        BPF_SET_JG_TRUE(ctx);
+    } else {
+        BPF_SET_JG_FALSE(ctx);
+    }
 
     return 0;
 }

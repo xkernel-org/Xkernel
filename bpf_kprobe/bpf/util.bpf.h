@@ -3,6 +3,8 @@
 
 #include <bpf/bpf_helpers.h>
 
+#include "kfuncs.bpf.h"
+
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 
@@ -33,6 +35,63 @@
 #define LOG_FLAGS_DEC(ctx)  bpf_printk("ctx->flags: %d, %s:%d", ctx->flags, __FILE__, __LINE__);
 #define LOG_CS_DEC(ctx)     bpf_printk("ctx->cs: %d, %s:%d", ctx->cs, __FILE__, __LINE__);
 #define LOG_SS_DEC(ctx)     bpf_printk("ctx->ss: %d, %s:%d", ctx->ss, __FILE__, __LINE__);
+
+#define BPF_AX(ctx) ((u64)(ctx->ax))
+#define BPF_BX(ctx) ((u64)(ctx->bx))
+#define BPF_CX(ctx) ((u64)(ctx->cx))
+#define BPF_DX(ctx) ((u64)(ctx->dx))
+#define BPF_SI(ctx) ((u64)(ctx->si))
+#define BPF_DI(ctx) ((u64)(ctx->di))
+#define BPF_BP(ctx) ((u64)(ctx->bp))
+#define BPF_SP(ctx) ((u64)(ctx->sp))
+#define BPF_IP(ctx) ((u64)(ctx->ip))
+#define BPF_FLAGS(ctx) ((u64)(ctx->flags))
+#define BPF_CS(ctx) ((u64)(ctx->cs))
+#define BPF_SS(ctx) ((u64)(ctx->ss))
+
+#define BPF_32BIT_MASK 0xffffffff
+#define BPF_EAX(ctx) ((u64)(ctx->ax) & BPF_32BIT_MASK)
+#define BPF_EBX(ctx) ((u64)(ctx->bx) & BPF_32BIT_MASK)
+#define BPF_ECX(ctx) ((u64)(ctx->cx) & BPF_32BIT_MASK)
+#define BPF_EDX(ctx) ((u64)(ctx->dx) & BPF_32BIT_MASK)
+#define BPF_ESI(ctx) ((u64)(ctx->si) & BPF_32BIT_MASK)
+#define BPF_EDI(ctx) ((u64)(ctx->di) & BPF_32BIT_MASK)
+#define BPF_EBP(ctx) ((u64)(ctx->bp) & BPF_32BIT_MASK)
+#define BPF_ESP(ctx) ((u64)(ctx->sp) & BPF_32BIT_MASK)
+#define BPF_EIP(ctx) ((u64)(ctx->ip) & BPF_32BIT_MASK)
+#define BPF_EFLAGS(ctx) ((u64)(ctx->flags) & BPF_32BIT_MASK)
+#define BPF_ECS(ctx) ((u64)(ctx->cs) & BPF_32BIT_MASK)
+#define BPF_ESS(ctx) ((u64)(ctx->ss) & BPF_32BIT_MASK)
+
+// https://en.wikipedia.org/wiki/FLAGS_register
+
+#define BPF_ZF_MASK 0x0040
+#define BPF_SF_MASK 0x0080
+#define BPF_OF_MASK 0x0800
+
+#define BPF_ZF(ctx) ((u64)(ctx->flags) & BPF_ZF_MASK)
+#define BPF_SF(ctx) ((u64)(ctx->flags) & BPF_SF_MASK)
+#define BPF_OF(ctx) ((u64)(ctx->flags) & BPF_OF_MASK)
+
+// ZF = 0 and SF = OF
+#define BPF_JG(ctx) (BPF_ZF(ctx) == 0 && BPF_SF(ctx) == BPF_OF(ctx))
+// Set  to make JG true
+#define BPF_SET_JG_TRUE(ctx) \
+    do { \
+        u64 flags = BPF_EFLAGS(ctx); \
+        flags &= ~BPF_ZF_MASK; \
+        flags &= ~BPF_SF_MASK; \
+        flags &= ~BPF_OF_MASK; \
+        kfuncs_probe_write_kernel(&ctx->flags, sizeof(flags), &flags, sizeof(flags)); \
+    } while (0)
+
+// Set ZF = 1 to make JG false
+#define BPF_SET_JG_FALSE(ctx) \
+    do { \
+        u64 flags = BPF_EFLAGS(ctx); \
+        flags |= BPF_ZF_MASK; \
+        kfuncs_probe_write_kernel(&ctx->flags, sizeof(flags), &flags, sizeof(flags)); \
+    } while (0)
 
 /**
  * @brief Dump all registers in ctx

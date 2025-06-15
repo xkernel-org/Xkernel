@@ -12,12 +12,6 @@ using namespace xkernel;
 
 struct xkernel_prog_params progs[] = {
     {
-        .bpf_func_name = "dev_gro_receive_0x20d",
-        .is_kretprobe = false,
-        .kernel_func_name = "dev_gro_receive",
-        .offset = 0x20d,
-    },
-    {
         .bpf_func_name = "dev_gro_receive_0x210",
         .is_kretprobe = false,
         .kernel_func_name = "dev_gro_receive",
