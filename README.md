@@ -18,10 +18,10 @@ pushd /usr/src/ && sudo tar -xvf linux-source-6.8.0.tar.bz2 && popd
 
 ## Workflow
 
-0. Load kfuncs to kernel: `sudo insmod kernel_module/kfuncs.ko`
+0. Load kfuncs to kernel: `sudo insmod kernel_module/kfuncs.ko`.
 
-1. Determine the offset to attach: `python gdb_core.py hystart_update 434,435 -e`
+1. Determine the offset to attach: `python gdb_core.py hystart_update 434,435 -e`.
 
-2. Write eBPF code in `kprobe.bpf.c` and load it with `kprobe_loader.cc`
+2. Write eBPF code in `bpf_kprobe/bpf/examples`, e.g., `cubic.bpf.c`.
 
-3. Load the eBPF program: `sudo ./kprobe_loader`
+3. Modify `BPF_FILE` in `bpf_kprobe/kprobe_loader.cc` and run `sudo ./kprobe_loader`.

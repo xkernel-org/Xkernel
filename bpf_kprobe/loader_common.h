@@ -23,9 +23,13 @@ public:
 
     void list_progs();
 
-    int attach_prog(struct xkernel_prog_params *params);
+    int attach_all_progs();
 private:
     ::bpf_object *obj_;
+
+    int attach_kretprobe(struct ::bpf_program *prog, const char *kernel_func_name);
+    int attach_kprobe(struct ::bpf_program *prog, const char *kernel_func_name, size_t offset);
+
 };
 
 }; // namespace xkernel
