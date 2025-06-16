@@ -9,7 +9,7 @@
 
 char LICENSE[] SEC("license") = "GPL";
 
-#define IO_LOCAL_TW_DEFAULT_MAX 2
+#define IO_LOCAL_TW_DEFAULT_MAX 4
 
 SEC("kprobe/io_cqring_wait+0x7A")
 int BPF_KPROBE(io_cqring_wait_0x7A)

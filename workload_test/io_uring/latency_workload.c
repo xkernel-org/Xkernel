@@ -5,6 +5,8 @@
 #include <time.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #define QUEUE_DEPTH 16
 #define FILE_TABLE_SIZE 65536
@@ -12,6 +14,7 @@
 #define TEST_ITERATIONS 200000
 #define LINK_DEPTH 32
 #define CQ_ADVANCE_INTERVAL 16
+#define IO_SIZE 65536
 
 #define CQ_RING_SIZE 16
 
@@ -42,6 +45,16 @@ int main() {
         return 1;
     }
 
+    int test_fd = open("testfile.tmp", O_RDWR | O_CREAT | O_TRUNC, 0644);
+    if (test_fd < 0) {
+        perror("open testfile.tmp failed");
+        free(latencies);
+        return 1;
+    }
+
+    char *buf = malloc(IO_SIZE);
+    memset(buf, 0xAB, IO_SIZE);
+
     /*
      * MODIFICATION: Switch to io_uring_queue_init_params to precisely control CQ size.
      * We set cq_entries to our small CQ_RING_SIZE to force overflows, which in turn
@@ -60,8 +73,6 @@ int main() {
         close(dev_null_fd);
         return 1;
     }
-    printf("Ring initialized with SQ depth %u and a small CQ depth %u to induce overflow.\n", ring.sq.ring_entries, ring.cq.ring_entries);
-
 
     int *fds = malloc(sizeof(int) * FILE_TABLE_SIZE);
     for (i = 0; i < FILE_TABLE_SIZE; i++) fds[i] = dev_null_fd;
@@ -82,12 +93,13 @@ int main() {
                 goto submit_flood;
             }
 
-            if (j >= LINK_DEPTH - 1) {
-                io_uring_prep_fsync(sqe, dev_null_fd, 0);
+            if (j == LINK_DEPTH - 1) {
+                io_uring_prep_fsync(sqe, test_fd, 0);
+            } else if (j == LINK_DEPTH - 2) {
+                io_uring_prep_write(sqe, test_fd, buf, IO_SIZE, 0);
             } else {
-                io_uring_prep_files_update(sqe, fds, 1, (i * LINK_DEPTH + j) % FILE_TABLE_SIZE);
+                io_uring_prep_read(sqe, test_fd, buf, IO_SIZE, 0);
             }
-
             sqe->flags |= IOSQE_IO_LINK;
         }
     }
@@ -112,12 +124,13 @@ submit_flood:
                 }
             }
 
-            if (j >= LINK_DEPTH - 1) {
-                io_uring_prep_fsync(sqe, dev_null_fd, 0);
+            if (j == LINK_DEPTH - 1) {
+                io_uring_prep_fsync(sqe, test_fd, 0);
+            } else if (j == LINK_DEPTH - 2) {
+                io_uring_prep_write(sqe, test_fd, buf, IO_SIZE, 0);
             } else {
-                io_uring_prep_files_update(sqe, fds, 1, ((i + BATCH_SUBMIT) * LINK_DEPTH + j) % FILE_TABLE_SIZE);
+                io_uring_prep_read(sqe, test_fd, buf, IO_SIZE, 0);
             }
-
             sqe->flags |= IOSQE_IO_LINK;
         }
 
@@ -201,8 +214,11 @@ end_loop:;
 cleanup:
     io_uring_queue_exit(&ring);
     close(dev_null_fd);
+    close(test_fd);
+    unlink("testfile.tmp");
     free(fds);
     free(latencies);
+    free(buf);
 
     return 0;
 }
