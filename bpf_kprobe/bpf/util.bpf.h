@@ -63,6 +63,24 @@
 #define BPF_ECS(ctx) ((u64)(ctx->cs) & BPF_32BIT_MASK)
 #define BPF_ESS(ctx) ((u64)(ctx->ss) & BPF_32BIT_MASK)
 
+#define BPF_SET_EAX(ctx, value) \
+    do { \
+        u64 eax = (value) & BPF_32BIT_MASK; \
+        kfuncs_probe_write_kernel(&ctx->ax, sizeof(eax), &eax, sizeof(eax)); \
+    } while (0)
+
+#define BPF_SET_EBX(ctx, value) \
+    do { \
+        u64 ebx = (value) & BPF_32BIT_MASK; \
+        kfuncs_probe_write_kernel(&ctx->bx, sizeof(ebx), &ebx, sizeof(ebx)); \
+    } while (0)
+
+#define BPF_SET_ECX(ctx, value) \
+    do { \
+        u64 ecx = (value) & BPF_32BIT_MASK; \
+        kfuncs_probe_write_kernel(&ctx->cx, sizeof(ecx), &ecx, sizeof(ecx)); \
+    } while (0)
+
 // https://en.wikipedia.org/wiki/FLAGS_register
 
 #define BPF_ZF_MASK 0x0040

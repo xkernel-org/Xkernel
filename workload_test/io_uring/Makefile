@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-g -O2 -Wall -I/usr/include/liburing
+CFLAGS=-g -O2 -Wall -I/usr/include/liburing -lm
 LDFLAGS=-luring
 
 all: latency_workload

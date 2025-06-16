@@ -82,6 +82,8 @@ def run_gdb():
     # Set substitute path
     execute_gdb_cmd(gdb_session, f"set substitute-path /build/linux-Rb6idR/linux-{kernel_no_postfix_name} /usr/src/linux-source-{kernel_no_postfix_name}")
 
+    execute_gdb_cmd(gdb_session, f"set debuginfod enabled on")
+
     execute_gdb_cmd(gdb_session, f"list {function_name}")
     output = gdb_session.before.splitlines()
     # check if the output is Function "xxxxxxxx" not defined.

@@ -9,17 +9,21 @@
 
 char LICENSE[] SEC("license") = "GPL";
 
-SEC("kprobe/dev_gro_receive+0x210")
-int BPF_KPROBE(dev_gro_receive_0x210)
+#define IO_LOCAL_TW_DEFAULT_MAX 2
+
+SEC("kprobe/io_cqring_wait+0x7A")
+int BPF_KPROBE(io_cqring_wait_0x7A)
 {
-    u64 eax = BPF_EAX(ctx);
-
-    #define NEW_CONST 2
-    if (eax >= NEW_CONST) {
-        BPF_SET_JG_TRUE(ctx);
-    } else {
-        BPF_SET_JG_FALSE(ctx);
-    }
-
+    BPF_SET_ECX(ctx, IO_LOCAL_TW_DEFAULT_MAX);
     return 0;
 }
+
+SEC("kprobe/io_run_task_work_sig+0x53")
+int BPF_KPROBE(io_run_task_work_sig_0x53)
+{
+    BPF_SET_ECX(ctx, IO_LOCAL_TW_DEFAULT_MAX);
+    return 0;
+}
+
+
+

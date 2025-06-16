@@ -9,7 +9,8 @@
 using namespace xkernel;
 
 // #define BPF_FILE "bpf/examples/cubic.bpf.o"
-#define BPF_FILE "bpf/examples/gro_skb.bpf.o"
+// #define BPF_FILE "bpf/examples/gro_skb.bpf.o"
+#define BPF_FILE "bpf/examples/io_uring.bpf.o"
 
 int main() {
     XKernelLoader loader(BPF_FILE);
