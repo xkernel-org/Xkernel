@@ -32,12 +32,9 @@ static int counter;
 SEC("kprobe/ttwu_do_activate+0x1a3")
 int BPF_KPROBE(ttwu_do_activate_0x1a3, struct rq *rq, struct task_struct *p, int wake_flags)
 {
-#ifdef XKERNEL_DEBUG
-    counter++;
-    if (counter > 300) {
-        bpf_printk("ttwu_do_activate_0x1a3\n");
-        dump_ctx(ctx);
-#endif // XKERNEL_DEBUG
+    u16 id = bpf_get_smp_processor_id();
+    if (id == 42) {
+        bpf_printk("ctx->ax: %d", ctx->ax);
         // https://elixir.bootlin.com/linux/v6.14.7/source/arch/x86/include/asm/ptrace.h#L103
         u64 rax = BPF_EAX(ctx);
         // rax >>= 0; // kprobe_no_change
@@ -45,11 +42,7 @@ int BPF_KPROBE(ttwu_do_activate_0x1a3, struct rq *rq, struct task_struct *p, int
         // rax <<= 4; // kprobe_left_4
         // rax <<= 16; // kprobe_left_16
         BPF_SET_EAX(ctx, 0);
-        kfuncs_probe_write_kernel(&ctx->ax, sizeof(rax), &rax, sizeof(rax));
-#ifdef XKERNEL_DEBUG
-        dump_ctx(ctx);
-        counter = 0;
+        bpf_printk("ctx->ax: %d", ctx->ax);
     }
-#endif // XKERNEL_DEBUG
     return 0;
 }
