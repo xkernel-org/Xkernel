@@ -9,6 +9,38 @@
 
 char LICENSE[] SEC("license") = "GPL";
 
+SEC("kprobe/ttwu_do_activate+0x17e")
+int BPF_KPROBE(ttwu_do_activate_0x17e, struct rq *rq, struct task_struct *p, int wake_flags)
+{
+    u16 id = bpf_get_smp_processor_id();
+    if (id == 42) {
+        bpf_printk("ctx->si: %lu (previous avg_idle)", ctx->si);
+    }
+    return 0;
+}
+
+SEC("kprobe/ttwu_do_activate+0x1b3")
+int BPF_KPROBE(ttwu_do_activate_0x1b3, struct rq *rq, struct task_struct *p, int wake_flags)
+{
+    u16 id = bpf_get_smp_processor_id();
+    if (id == 42) {
+        bpf_printk("ctx->ax: %lu (updated avg_idle)", ctx->ax);
+    }
+    return 0;
+}
+
+SEC("kprobe/ttwu_do_activate+0x1cc")
+int BPF_KPROBE(ttwu_do_activate_0x1cc, struct rq *rq, struct task_struct *p, int wake_flags)
+{
+    u16 id = bpf_get_smp_processor_id();
+    if (id == 42) {
+        bpf_printk("ctx->cx: %lu (updated avg_idle)", ctx->cx);
+    }
+    return 0;
+}
+
+// TODO why these two store's are always run together...
+
 //     ffffffff98362720 <.data>:
 //     ffffffff98362720:       0f 1f 44 00 00          nopl   0x0(%rax,%rax,1)
 //     ...
@@ -34,15 +66,15 @@ int BPF_KPROBE(ttwu_do_activate_0x1a3, struct rq *rq, struct task_struct *p, int
 {
     u16 id = bpf_get_smp_processor_id();
     if (id == 42) {
-        bpf_printk("ctx->ax: %d", ctx->ax);
+        bpf_printk("ctx->ax: %lu", ctx->ax);
         // https://elixir.bootlin.com/linux/v6.14.7/source/arch/x86/include/asm/ptrace.h#L103
         u64 rax = BPF_EAX(ctx);
         // rax >>= 0; // kprobe_no_change
         // rax >>= 4; // kprobe_right_4
         // rax <<= 4; // kprobe_left_4
         // rax <<= 16; // kprobe_left_16
-        BPF_SET_EAX(ctx, 0);
-        bpf_printk("ctx->ax: %d", ctx->ax);
+        // BPF_SET_EAX(ctx, 0);
+        bpf_printk("ctx->ax: %lu", ctx->ax);
     }
     return 0;
 }
