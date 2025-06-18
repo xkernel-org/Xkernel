@@ -39,12 +39,12 @@ int BPF_KPROBE(ttwu_do_activate_0x1a3, struct rq *rq, struct task_struct *p, int
         dump_ctx(ctx);
 #endif // XKERNEL_DEBUG
         // https://elixir.bootlin.com/linux/v6.14.7/source/arch/x86/include/asm/ptrace.h#L103
-        u64 rax = ctx->ax;
+        u64 rax = BPF_EAX(ctx);
         // rax >>= 0; // kprobe_no_change
         // rax >>= 4; // kprobe_right_4
         // rax <<= 4; // kprobe_left_4
         // rax <<= 16; // kprobe_left_16
-        rax = 0;
+        BPF_SET_EAX(ctx, 0);
         kfuncs_probe_write_kernel(&ctx->ax, sizeof(rax), &rax, sizeof(rax));
 #ifdef XKERNEL_DEBUG
         dump_ctx(ctx);
