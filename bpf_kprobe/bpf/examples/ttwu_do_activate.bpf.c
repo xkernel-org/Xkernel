@@ -9,12 +9,27 @@
 
 char LICENSE[] SEC("license") = "GPL";
 
+// The probes are placed too close to each other. As a result, even though
+// only *one* of the two load instructions is executed each time, the
+// handler after the 1st load is always executed.
+//
+//   1:   jb 5
+//   2:   mov           # the 1st load of interest
+//   3:   mov           # patched to jmp
+//   4:   jmp elsewhere
+//   5:   mov           # the 2nd load of interest
+//   6:   jmp 3         # patched to int3
+//
+bool the_second_load;
+
 SEC("kprobe/ttwu_do_activate+0x17e")
 int BPF_KPROBE(ttwu_do_activate_0x17e, struct rq *rq, struct task_struct *p, int wake_flags)
 {
     u16 id = bpf_get_smp_processor_id();
     if (id == 42) {
+        bpf_printk("\n");
         bpf_printk("ctx->si: %lu (previous avg_idle)", ctx->si);
+        the_second_load = false;
     }
     return 0;
 }
@@ -23,7 +38,7 @@ SEC("kprobe/ttwu_do_activate+0x1b3")
 int BPF_KPROBE(ttwu_do_activate_0x1b3, struct rq *rq, struct task_struct *p, int wake_flags)
 {
     u16 id = bpf_get_smp_processor_id();
-    if (id == 42) {
+    if (id == 42 && !the_second_load) {
         bpf_printk("ctx->ax: %lu (updated avg_idle)", ctx->ax);
     }
     return 0;
@@ -35,11 +50,10 @@ int BPF_KPROBE(ttwu_do_activate_0x1cc, struct rq *rq, struct task_struct *p, int
     u16 id = bpf_get_smp_processor_id();
     if (id == 42) {
         bpf_printk("ctx->cx: %lu (updated avg_idle)", ctx->cx);
+        the_second_load = true;
     }
     return 0;
 }
-
-// TODO why these two store's are always run together...
 
 //     ffffffff98362720 <.data>:
 //     ffffffff98362720:       0f 1f 44 00 00          nopl   0x0(%rax,%rax,1)
@@ -66,7 +80,6 @@ int BPF_KPROBE(ttwu_do_activate_0x1a3, struct rq *rq, struct task_struct *p, int
 {
     u16 id = bpf_get_smp_processor_id();
     if (id == 42) {
-        bpf_printk("ctx->ax: %lu", ctx->ax);
         // https://elixir.bootlin.com/linux/v6.14.7/source/arch/x86/include/asm/ptrace.h#L103
         u64 rax = BPF_EAX(ctx);
         // rax >>= 0; // kprobe_no_change
@@ -74,7 +87,7 @@ int BPF_KPROBE(ttwu_do_activate_0x1a3, struct rq *rq, struct task_struct *p, int
         // rax <<= 4; // kprobe_left_4
         // rax <<= 16; // kprobe_left_16
         // BPF_SET_EAX(ctx, 0);
-        bpf_printk("ctx->ax: %lu", ctx->ax);
+        bpf_printk("ctx->ax: %ld (diff)", ctx->ax);
     }
     return 0;
 }
