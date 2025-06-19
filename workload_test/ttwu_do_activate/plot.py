@@ -14,13 +14,20 @@ from flask import Flask
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
 
-MAX_POINTS = 500
+TIME_WINDOW = 15
+PRUNE_TIME_WINDOW = 20
+
 data = {
-    'timestamp':         deque(maxlen=MAX_POINTS),
-    'prev':              deque(maxlen=MAX_POINTS),
-    'updated':           deque(maxlen=MAX_POINTS),
-    'diff_div_by_eight': deque(maxlen=MAX_POINTS),
+    'timestamp':         deque(),
+    'prev':              deque(),
+    'updated':           deque(),
+    'diff_div_by_eight': deque(),
 }
+
+def prune_old_data(time_threshold):
+    while data['timestamp'] and data['timestamp'][0] < time_threshold:
+        for key in data:
+            data[key].popleft()
 
 # Read from stdin thread
 def stream_reader():
@@ -50,9 +57,10 @@ def stream_reader():
             data['prev'].append(prev_idle)
             data['diff_div_by_eight'].append(diff_div_by_eight)
             data['updated'].append(updated_idle)
+            prune_old_data(cur_time - PRUNE_TIME_WINDOW)
             # print(f"[{cur_time:.6f}] prev_idle: {prev_idle}, diff: {diff}, updated_idle: {updated_idle}")
             # Reset for next group
-            cur_time = prev_idle = diff = updated_idle = None
+            cur_time = prev_idle = diff_div_by_eight = updated_idle = None
 
 # Dash app
 server = Flask(__name__)
@@ -66,6 +74,11 @@ app.layout = html.Div([
 @app.callback(Output('live-graph', 'figure'), Input('interval', 'n_intervals'))
 def update_graph(n):
     df = pd.DataFrame(data)
+    if df.empty:
+        return go.Figure()
+
+    latest_time = df['timestamp'].iloc[-1]
+    df = df[df['timestamp'] >= (latest_time - TIME_WINDOW)]
 
     fig = make_subplots(
         rows=2, cols=1,
@@ -97,7 +110,7 @@ def update_graph(n):
     fig.update_xaxes(title_text="Timestamp", row=1, col=1)
     fig.update_yaxes(title_text="diff/8", row=1, col=1)
     fig.update_xaxes(title_text="Timestamp", row=2, col=1)
-    fig.update_yaxes(title_text="avg_idle", row=2, col=1)
+    fig.update_yaxes(range=[-100_000, 1_100_000], title_text="avg_idle", row=2, col=1)
 
     return fig
 
