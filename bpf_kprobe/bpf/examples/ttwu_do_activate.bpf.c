@@ -80,13 +80,13 @@ int BPF_KPROBE(ttwu_do_activate_0x1a3, struct rq *rq, struct task_struct *p, int
 {
     u16 id = bpf_get_smp_processor_id();
     if (id == 42) {
-        // https://elixir.bootlin.com/linux/v6.14.7/source/arch/x86/include/asm/ptrace.h#L103
-        u64 rax = BPF_EAX(ctx);
-        // rax >>= 0; // kprobe_no_change
-        // rax >>= 4; // kprobe_right_4
-        // rax <<= 4; // kprobe_left_4
-        // rax <<= 16; // kprobe_left_16
-        // BPF_SET_EAX(ctx, 0);
+        // manipulate diff which is signed 64-bit integer
+        s64 rax = BPF_AX(ctx);
+        bool is_neg = rax < 0;
+        u64 abs_rax = is_neg ? -rax : rax;
+        abs_rax *= 2;
+        rax = is_neg ? -abs_rax : abs_rax;
+        kfuncs_probe_write_kernel(&ctx->ax, sizeof(rax), &rax, sizeof(rax));
         bpf_printk("ctx->ax: %ld (diff)", ctx->ax);
     }
     return 0;
