@@ -12,7 +12,7 @@ sudo apt install ubuntu-dbgsym-keyring && sudo apt update
 sudo apt-get install clang llvm libbpf-dev pahole gdb \
     linux-source linux-image-$(uname -r)-dbgsym -y
 
-pushd /usr/src/ && sudo tar -xvf linux-source-6.8.0.tar.bz2 && popd
+pushd /usr/src/ && sudo tar -xvf linux-source-6.14.0.tar.bz2 && popd
 
 ```
 
