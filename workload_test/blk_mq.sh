@@ -1,0 +1,14 @@
+fio --name=extreme_nvme_write_small_bs \
+    --ioengine=libaio \
+    --direct=1 \
+    --rw=randwrite \
+    --bs=512b \
+    --numjobs=256 \
+    --iodepth=256 \
+    --size=100G \
+    --runtime=60 \
+    --filename=/dev/nvme1n1 \
+    --end_fsync=1 \
+    --group_reporting \
+    --thread \
+    --cpus_allowed_policy=split
