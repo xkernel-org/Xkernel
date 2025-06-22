@@ -3,6 +3,10 @@
 ## Dependencies
 
 ```shell
+# Sometimes we find the built-in kernel is too new after upgrading to 25.04, and there is no corresponding dbgsym package.
+# Thus, we pick 6.14.0-15-generic.
+sudo apt update && sudo apt install linux-image-6.14.0-15-generic linux-headers-6.14.0-15-generic && sudo update-grub && sudo reboot
+
 # For linux-image-$(uname -r)-dbgsym
 echo "deb http://ddebs.ubuntu.com $(lsb_release -cs) main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list.d/ddebs.list
 echo "deb http://ddebs.ubuntu.com $(lsb_release -cs)-updates main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list.d/ddebs.list
