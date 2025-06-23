@@ -14,10 +14,11 @@ echo "deb http://ddebs.ubuntu.com $(lsb_release -cs)-updates main restricted uni
 sudo apt install ubuntu-dbgsym-keyring && sudo apt update
 
 sudo apt-get install clang llvm libbpf-dev pahole gdb \
-    linux-source linux-image-$(uname -r)-dbgsym -y
+     linux-image-$(uname -r)-dbgsym -y
 
+# [Optional] Download the source code of the kernel. Xkernel doesn't depend on it.
+sudo apt-get install linux-source -y
 pushd /usr/src/ && sudo tar -xvf linux-source-6.14.0.tar.bz2 && popd
-
 ```
 
 ## Workflow
