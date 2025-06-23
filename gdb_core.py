@@ -75,16 +75,25 @@ def run_gdb():
     kernel_no_postfix_name = kernel_full_name.split("-")[0]
     gdb_cmd = f"gdb /usr/lib/debug/boot/vmlinux-{kernel_full_name}"
 
+    logger.debug(f"Execute gdb command: {gdb_cmd}")
+
     # Start gdb session
     gdb_session = pexpect.spawn(gdb_cmd, encoding='utf-8', timeout=10)
     gdb_session.expect_exact("(gdb)")
+    
+    # Disable the confirm prompt
+    execute_gdb_cmd(gdb_session, f"set confirm off")
 
-    # Set substitute path
-    execute_gdb_cmd(gdb_session, f"set substitute-path /build/linux-Rb6idR/linux-{kernel_no_postfix_name} /usr/src/linux-source-{kernel_no_postfix_name}")
-
+    # Enable debuginfod to let GDB download the symbol file automatically from the internet
     execute_gdb_cmd(gdb_session, f"set debuginfod enabled on")
+    
+    # Load the symbol file
+    execute_gdb_cmd(gdb_session, f"symbol-file /usr/lib/debug/boot/vmlinux-{kernel_full_name}")
 
+    # Note: we shoud execite twice to trigger the debuginfod
     execute_gdb_cmd(gdb_session, f"list {function_name}")
+    execute_gdb_cmd(gdb_session, f"list {function_name}")
+
     output = gdb_session.before.splitlines()
     # check if the output is Function "xxxxxxxx" not defined.
     if (len(output) == 4 and output[-2] == f"Function \"{function_name}\" not defined."):
