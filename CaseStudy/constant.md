@@ -13,7 +13,7 @@
 |THROTL_QUANTUM|macro|blk|[block/blk-throttle.c](https://elixir.bootlin.com/linux/v6.14/source/block/blk-throttle.c#L22)|[1](https://elixir.bootlin.com/linux/v6.14/source/block/blk-throttle.c#L993)|-|-|-|-|-|
 |`((cap) * 1280 < (max) * 1024)`  |integer literal|sched|[kernel/sched/fair.c](https://elixir.bootlin.com/linux/v6.14/source/kernel/sched/fair.c#L105)         |-|-|-|-|-|-|
 |`((cap1) * 1024 > (cap2) * 1078)`|integer literal|sched|[kernel/sched/fair.c](https://elixir.bootlin.com/linux/v6.14/source/kernel/sched/fair.c#L113)         |-|-|-|-|-|-|
-|`*avg += diff / 8;`              |integer literal|sched|[kernel/sched/sched.h](https://elixir.bootlin.com/linux/v6.14/source/kernel/sched/sched.h#L247)       |-|-|-|-|-|-|
+|`*avg += diff / 8;`              |integer literal|sched|[kernel/sched/sched.h](https://elixir.bootlin.com/linux/v6.14/source/kernel/sched/sched.h#L247)       |-|-|-|[ttwu_do_activate.bpf.c](https://github.com/zhongjiechen/Xkernel/blob/wentao/bpf_kprobe/bpf/examples/ttwu_do_activate.bpf.c)|-|-|
 |`2*rq->max_idle_balance_cost;`   |integer literal|sched|[kernel/sched/core.c](https://elixir.bootlin.com/linux/v6.14/source/kernel/sched/core.c#L3747)|-|-|-|-|-|-|
 |`RR_TIMESLICE`                   |macro          |sched|[include/linux/sched/rt.h](https://elixir.bootlin.com/linux/v6.14/source/include/linux/sched/rt.h#L82)|-|-|-|-|-|-|
 |`.imbalance_pct = 112,`          |integer literal|sched|[kernel/sched/fair.c](https://elixir.bootlin.com/linux/v6.14/source/kernel/sched/fair.c#L2498)|-|-|-|-|-|-|
