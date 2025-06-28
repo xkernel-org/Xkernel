@@ -66,10 +66,11 @@ int BPF_KRETPROBE(blk_mq_delay_run_hw_queue) {
 
 ### 3. Load BPF programs
 
+The loader will detect the function name and the offset automatically. \
 E.g.,
-`sudo ./kprobe_loader --files blk-mq.bpf.o`. It will detect the function name and the offset automatically.
+`sudo ./kprobe_loader --files blk-mq.bpf.o`.
 
-Multiple BPF files are also supported, separated by comma.
+Multiple BPF files are also supported, separated by comma. \
 E.g.,
 `sudo ./kprobe_loader --files blk-mq.bpf.o,softirq.bpf.o`.
 
