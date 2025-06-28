@@ -23,10 +23,58 @@ pushd /usr/src/ && sudo tar -xvf linux-source-6.14.0.tar.bz2 && popd
 
 ## Workflow
 
-0. Load kfuncs to kernel: `sudo insmod kernel_module/kfuncs.ko`.
+### 0. Compile and load kfuncs to kernel
+`make -j && sudo insmod kernel_module/kfuncs.ko`.
 
-1. Determine the offset to attach: `python gdb_core.py hystart_update 434,435 -e`.
+### 1. Determine the offset to attach
 
-2. Write eBPF code in `bpf_kprobe/bpf/examples`, e.g., `cubic.bpf.c`.
+For most cases, we can leverage gdb to help use analyze the kernel source code and locate the target line directly. \
+E.g.,
+`python gdb_core.py hystart_update 434,435 -e`.
 
-3. Modify `BPF_FILE` in `bpf_kprobe/kprobe_loader.cc` and run `sudo ./kprobe_loader`.
+However, for some cases that gdb is not helpful, we should use objdump to dump all the instructions of the function. \
+E.g.,
+`python ./objdump.py --func blk_mq_delay_run_hw_queue`.
+
+### 2. Write eBPF code
+
+eBPF files should be placed in `bpf_kprobe/bpf/examples`.
+
+E.g., we want to attach a kprobe to the function `blk_mq_delay_run_hw_queue` at the offset `0xbe`:
+```c
+SEC("kprobe/blk_mq_delay_run_hw_queue+0xbe")
+int BPF_KPROBE(blk_mq_delay_run_hw_queue) {
+     return 0;
+}
+```
+
+E.g., we want to attach a kprobe to the start of the function `blk_mq_delay_run_hw_queue`.
+```c
+SEC("kprobe/blk_mq_delay_run_hw_queue")
+int BPF_KPROBE(blk_mq_delay_run_hw_queue) {
+     return 0;
+}
+```
+
+E.g., we want to attach a kprobe to the end of the function `blk_mq_delay_run_hw_queue`.
+```c
+SEC("kretprobe/blk_mq_delay_run_hw_queue")
+int BPF_KRETPROBE(blk_mq_delay_run_hw_queue) {
+     return 0;
+}
+```
+
+### 3. Load BPF programs
+
+E.g.,
+`sudo ./kprobe_loader --files blk-mq.bpf.o`. It will detect the function name and the offset automatically.
+
+Multiple BPF files are also supported, separated by comma.
+E.g.,
+`sudo ./kprobe_loader --files blk-mq.bpf.o,softirq.bpf.o`.
+
+
+
+
+
+
