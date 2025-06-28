@@ -1,6 +1,6 @@
 # Xkernel
 
-## Dependencies
+## Dependencies of Xkernel
 
 ```shell
 # Sometimes we find the built-in kernel is too new after upgrading to 25.04, and there is no corresponding dbgsym package.
@@ -21,7 +21,7 @@ sudo apt-get install linux-source -y
 pushd /usr/src/ && sudo tar -xvf linux-source-6.14.0.tar.bz2 && popd
 ```
 
-## Workflow
+## Workflow of Xkernel
 
 ### 0. Compile and load kfuncs to kernel
 `make -j && sudo insmod kernel_module/kfuncs.ko`.
@@ -73,6 +73,10 @@ E.g.,
 Multiple BPF files are also supported, separated by comma. \
 E.g.,
 `sudo ./kprobe_loader --files blk-mq.bpf.o,softirq.bpf.o`.
+
+## Case Studies
+
+Cases are summarized in [CaseStudy](CaseStudy/constant.md).
 
 
 
