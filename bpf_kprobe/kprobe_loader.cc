@@ -74,7 +74,6 @@ int main(int argc, char *argv[]) {
       sleep(1);
     }
   } else {
-    // print the output of /sys/kernel/tracing/trace_pipe
     FILE *fp = fopen("/sys/kernel/tracing/trace_pipe", "r");
     if (fp == NULL) {
       fprintf(stderr, "Failed to open /sys/kernel/tracing/trace_pipe\n");

@@ -1,7 +1,10 @@
+#! /usr/bin/env python3
+
 import pexpect
 import argparse
 import subprocess
 import sys
+import os
 import logging
 
 OUTPUT = []
@@ -73,11 +76,16 @@ def run_gdb():
 
     kernel_full_name = subprocess.check_output("uname -r", shell=True).decode("utf-8").strip()
     kernel_no_postfix_name = kernel_full_name.split("-")[0]
-    gdb_cmd = f"gdb /usr/lib/debug/boot/vmlinux-{kernel_full_name}"
 
-    logger.debug(f"Execute gdb command: {gdb_cmd}")
+    vm_linux_file = f"/usr/lib/debug/boot/vmlinux-{kernel_full_name}"
+
+    if not os.path.exists(vm_linux_file):
+        logger.error(f"File {vm_linux_file} does not exist")
+        sys.exit(1)
 
     # Start gdb session
+    gdb_cmd = f"gdb {vm_linux_file}"
+    logger.debug(f"Execute gdb command: {gdb_cmd}")
     gdb_session = pexpect.spawn(gdb_cmd, encoding='utf-8', timeout=10)
     gdb_session.expect_exact("(gdb)")
     
@@ -88,7 +96,7 @@ def run_gdb():
     execute_gdb_cmd(gdb_session, f"set debuginfod enabled on")
     
     # Load the symbol file
-    execute_gdb_cmd(gdb_session, f"symbol-file /usr/lib/debug/boot/vmlinux-{kernel_full_name}")
+    execute_gdb_cmd(gdb_session, f"symbol-file {vm_linux_file}")
 
     # Note: we shoud execite twice to trigger the debuginfod
     execute_gdb_cmd(gdb_session, f"list {function_name}")
