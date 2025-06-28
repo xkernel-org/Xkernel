@@ -20,7 +20,7 @@ SRCS := $(wildcard *.cc)
 OBJS := $(SRCS:.cc=.o)
 
 kprobe_loader: $(OBJS)
-	g++ -g -O3 -Wall -I$(LIBBPF_DIR) -o $@ $^ -lbpf -lelf -lz
+	g++ -g -O3 -Wall -I$(LIBBPF_DIR) -o $@ $^ -lbpf -lelf -lz -lgflags
 
 %.o: %.cc
 	g++ -g -O3 -Wall -I$(LIBBPF_DIR) -c $< -o $@

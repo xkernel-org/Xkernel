@@ -4,10 +4,7 @@
 #include <bpf/bpf_helpers.h>
 #include <bpf/bpf_tracing.h>
 
-#include "kfuncs.bpf.h"
-#include "util.bpf.h"
-
-char LICENSE[] SEC("license") = "GPL";
+#include "xkernel.bpf.h"
 
 SEC("kprobe/dev_gro_receive+0x210")
 int BPF_KPROBE(dev_gro_receive_0x210) {

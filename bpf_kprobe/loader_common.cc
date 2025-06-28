@@ -7,6 +7,8 @@
 
 namespace xkernel {
 
+static uint32_t prog_cnt = 0;
+
 XKernelLoader::XKernelLoader(const char *bpf_file) {
   obj_ = ::bpf_object__open_file(bpf_file, NULL);
   if (::libbpf_get_error(obj_)) {
@@ -51,7 +53,6 @@ int XKernelLoader::attach_kprobe(struct ::bpf_program *prog,
 int XKernelLoader::attach_all_progs() {
   struct ::bpf_program *prog;
   int ret = 0;
-  int prog_cnt = 0;
 
   bpf_object__for_each_program(prog, obj_) {
     const char *bpf_func_name = bpf_program__name(prog);

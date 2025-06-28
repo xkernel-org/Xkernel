@@ -4,10 +4,7 @@
 #include <bpf/bpf_helpers.h>
 #include <bpf/bpf_tracing.h>
 
-#include "kfuncs.bpf.h"
-#include "util.bpf.h"
-
-char LICENSE[] SEC("license") = "GPL";
+#include "xkernel.bpf.h"
 
 struct {
   __uint(type, BPF_MAP_TYPE_HASH);

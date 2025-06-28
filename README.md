@@ -13,7 +13,7 @@ echo "deb http://ddebs.ubuntu.com $(lsb_release -cs)-updates main restricted uni
 
 sudo apt install ubuntu-dbgsym-keyring && sudo apt update
 
-sudo apt-get install clang llvm libbpf-dev pahole gdb \
+sudo apt-get install clang llvm libbpf-dev pahole gdb libgflags-dev \
      linux-image-$(uname -r)-dbgsym -y
 
 # [Optional] Download the source code of the kernel. Xkernel doesn't depend on it.

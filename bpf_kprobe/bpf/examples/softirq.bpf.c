@@ -4,10 +4,7 @@
 #include <bpf/bpf_helpers.h>
 #include <bpf/bpf_tracing.h>
 
-#include "kfuncs.bpf.h"
-#include "util.bpf.h"
-
-char LICENSE[] SEC("license") = "GPL";
+#include "xkernel.bpf.h"
 
 SEC("kprobe/handle_softirqs+0x54")
 int BPF_KPROBE(handle_softirqs) {

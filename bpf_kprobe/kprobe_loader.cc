@@ -4,22 +4,45 @@
 #include <stdio.h>
 #include <unistd.h>
 
+#include <gflags/gflags.h>
+#include <sstream>
+#include <string>
+#include <vector>
+
 #include "loader_common.h"
 
 using namespace xkernel;
 
-// #define BPF_FILE "bpf/examples/cubic.bpf.o"
-// #define BPF_FILE "bpf/examples/gro_skb.bpf.o"
-// #define BPF_FILE "bpf/examples/io_uring.bpf.o"
-#define BPF_FILE "bpf/examples/blk-mq.bpf.o"
-// #define BPF_FILE "bpf/examples/softirq.bpf.o"
+DEFINE_string(files, "", "BPF files to load, separated by comma");
 
-int main() {
-  XKernelLoader loader(BPF_FILE);
+#define BPF_DIR "bpf/examples/"
 
-  if (loader.attach_all_progs()) {
-    fprintf(stderr, "Failed to attach all programs\n");
+int main(int argc, char *argv[]) {
+  gflags::ParseCommandLineFlags(&argc, &argv, true);
+
+  if (FLAGS_files.empty()) {
+    fprintf(stderr, "files is not set\n");
     return 1;
+  }
+
+  std::vector<std::string> files;
+  std::string file;
+  std::istringstream ss(FLAGS_files);
+  while (std::getline(ss, file, ',')) {
+    if (!file.empty()) {
+      files.push_back(file);
+    }
+  }
+
+  for (const auto &file : files) {
+    std::string BPF_FILE = BPF_DIR + file;
+
+    XKernelLoader loader(BPF_FILE.c_str());
+
+    if (loader.attach_all_progs()) {
+      fprintf(stderr, "Failed to attach all programs for %s\n", file.c_str());
+      return 1;
+    }
   }
 
   printf(
