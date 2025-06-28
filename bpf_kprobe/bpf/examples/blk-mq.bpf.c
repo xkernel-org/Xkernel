@@ -9,18 +9,26 @@
 
 char LICENSE[] SEC("license") = "GPL";
 
-SEC("kprobe/blk_mq_delay_run_hw_queue")
-int BPF_KPROBE(blk_mq_delay_run_hw_queue, struct blk_mq_hw_ctx *hctx,
-               unsigned long msecs) {
-  if (msecs)
-    bpf_printk("blk_mq_delay_run_hw_queue: %lu\n", msecs);
-  return 0;
-}
+#define BLK_MQ_CPU_WORK_BATCH 8
 
-SEC("kprobe/blk_mq_delay_run_hw_queues")
-int BPF_KPROBE(blk_mq_delay_run_hw_queues, struct request_queue *q,
+#define NEW_BLK_MQ_CPU_WORK_BATCH 32
+
+SEC("kprobe/blk_mq_delay_run_hw_queue+0xbe")
+int BPF_KPROBE(blk_mq_delay_run_hw_queue_0xbe, struct blk_mq_hw_ctx *hctx,
                unsigned long msecs) {
-  if (msecs)
-    bpf_printk("blk_mq_delay_run_hw_queues: %lu\n", msecs);
+  
+
+  // movl   $0x8,0xa4(%rbx)
+  u64 rbx = BPF_RBX(ctx);
+  u64 *addr = (u64 *)(rbx + 0xa4);
+  u64 val;
+  bpf_probe_read_kernel(&val, sizeof(val), addr);
+
+  if ((val & 0xffffffff) == BLK_MQ_CPU_WORK_BATCH) {
+    val &= 0xffffffff00000000;
+    val |= NEW_BLK_MQ_CPU_WORK_BATCH;
+    kfuncs_probe_write_kernel(addr, sizeof(val), &val, sizeof(val));
+  }
+
   return 0;
 }

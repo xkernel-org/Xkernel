@@ -61,53 +61,88 @@
 #define LOG_SS_DEC(ctx)                                                        \
   bpf_printk("ctx->ss: %d, %s:%d", ctx->ss, __FILE__, __LINE__);
 
-#define BPF_AX(ctx) ((u64)(ctx->ax))
-#define BPF_BX(ctx) ((u64)(ctx->bx))
-#define BPF_CX(ctx) ((u64)(ctx->cx))
-#define BPF_DX(ctx) ((u64)(ctx->dx))
-#define BPF_SI(ctx) ((u64)(ctx->si))
-#define BPF_DI(ctx) ((u64)(ctx->di))
-#define BPF_BP(ctx) ((u64)(ctx->bp))
-#define BPF_SP(ctx) ((u64)(ctx->sp))
-#define BPF_IP(ctx) ((u64)(ctx->ip))
-#define BPF_FLAGS(ctx) ((u64)(ctx->flags))
-#define BPF_CS(ctx) ((u64)(ctx->cs))
-#define BPF_SS(ctx) ((u64)(ctx->ss))
+#define BPF_SET_REG_64(ctx, reg, value)                                          \
+  do {                                                                          \
+    u64 reg_value = (value);                                                     \
+    kfuncs_probe_write_kernel(&ctx->reg, sizeof(reg_value), &reg_value,           \
+                              sizeof(reg_value));                                \
+  } while (0)
 
 #define BPF_32BIT_MASK 0xffffffff
-#define BPF_EAX(ctx) ((u64)(ctx->ax) & BPF_32BIT_MASK)
-#define BPF_EBX(ctx) ((u64)(ctx->bx) & BPF_32BIT_MASK)
-#define BPF_ECX(ctx) ((u64)(ctx->cx) & BPF_32BIT_MASK)
-#define BPF_EDX(ctx) ((u64)(ctx->dx) & BPF_32BIT_MASK)
-#define BPF_ESI(ctx) ((u64)(ctx->si) & BPF_32BIT_MASK)
-#define BPF_EDI(ctx) ((u64)(ctx->di) & BPF_32BIT_MASK)
-#define BPF_EBP(ctx) ((u64)(ctx->bp) & BPF_32BIT_MASK)
-#define BPF_ESP(ctx) ((u64)(ctx->sp) & BPF_32BIT_MASK)
-#define BPF_EIP(ctx) ((u64)(ctx->ip) & BPF_32BIT_MASK)
-#define BPF_EFLAGS(ctx) ((u64)(ctx->flags) & BPF_32BIT_MASK)
-#define BPF_ECS(ctx) ((u64)(ctx->cs) & BPF_32BIT_MASK)
-#define BPF_ESS(ctx) ((u64)(ctx->ss) & BPF_32BIT_MASK)
-
-#define BPF_SET_EAX(ctx, value)                                                \
-  do {                                                                         \
-    u64 eax = (value) & BPF_32BIT_MASK;                                        \
-    kfuncs_probe_write_kernel(&ctx->ax, sizeof(eax), &eax, sizeof(eax));       \
+#define BPF_SET_REG_32(ctx, reg, value)                                          \
+  do {                                                                          \
+    u64 reg_value;                                                             \
+    bpf_probe_read_kernel(&reg_value, sizeof(reg_value), &ctx->reg);           \
+    reg_value &= 0xffffffff00000000;                                           \
+    reg_value |= (value & BPF_32BIT_MASK);                                         \
+    kfuncs_probe_write_kernel(&ctx->reg, sizeof(reg_value), &reg_value,         \
+                              sizeof(reg_value));                              \
   } while (0)
 
-#define BPF_SET_EBX(ctx, value)                                                \
-  do {                                                                         \
-    u64 ebx = (value) & BPF_32BIT_MASK;                                        \
-    kfuncs_probe_write_kernel(&ctx->bx, sizeof(ebx), &ebx, sizeof(ebx));       \
+#define BPF_SET_REG_16(ctx, reg, value)                                          \
+  do {                                                                          \
+    u64 reg_value;                                                             \
+    bpf_probe_read_kernel(&reg_value, sizeof(reg_value), &ctx->reg);           \
+    reg_value &= 0xffffffffffff0000;                                           \
+    reg_value |= (value & BPF_16BIT_MASK);                                         \
+    kfuncs_probe_write_kernel(&ctx->reg, sizeof(reg_value), &reg_value,         \
+                              sizeof(reg_value));                              \
   } while (0)
 
-#define BPF_SET_ECX(ctx, value)                                                \
-  do {                                                                         \
-    u64 ecx = (value) & BPF_32BIT_MASK;                                        \
-    kfuncs_probe_write_kernel(&ctx->cx, sizeof(ecx), &ecx, sizeof(ecx));       \
-  } while (0)
+// 64-bit registers
+#define BPF_RAX(ctx) ((u64)(ctx->ax))
+#define BPF_RBX(ctx) ((u64)(ctx->bx))
+#define BPF_RCX(ctx) ((u64)(ctx->cx))
+#define BPF_RDX(ctx) ((u64)(ctx->dx))
+#define BPF_RSI(ctx) ((u64)(ctx->si))
+#define BPF_RDI(ctx) ((u64)(ctx->di))
+#define BPF_RBP(ctx) ((u64)(ctx->bp))
+#define BPF_RSP(ctx) ((u64)(ctx->sp))
+#define BPF_RIP(ctx) ((u64)(ctx->ip))
+#define BPF_RFLAGS(ctx) ((u64)(ctx->flags))
+#define BPF_RCS(ctx) ((u64)(ctx->cs))
+#define BPF_RSS(ctx) ((u64)(ctx->ss))
+
+#define BPF_SET_RAX(ctx, value) BPF_SET_REG_64(ctx, ax, value)
+#define BPF_SET_RBX(ctx, value) BPF_SET_REG_64(ctx, bx, value)
+#define BPF_SET_RCX(ctx, value) BPF_SET_REG_64(ctx, cx, value)
+#define BPF_SET_RDX(ctx, value) BPF_SET_REG_64(ctx, dx, value)
+
+// 32-bit registers
+#define BPF_EAX(ctx) (u32)((u64)(ctx->ax) & BPF_32BIT_MASK)
+#define BPF_EBX(ctx) (u32)((u64)(ctx->bx) & BPF_32BIT_MASK)
+#define BPF_ECX(ctx) (u32)((u64)(ctx->cx) & BPF_32BIT_MASK)
+#define BPF_EDX(ctx) (u32)((u64)(ctx->dx) & BPF_32BIT_MASK)
+#define BPF_ESI(ctx) (u32)((u64)(ctx->si) & BPF_32BIT_MASK)
+#define BPF_EDI(ctx) (u32)((u64)(ctx->di) & BPF_32BIT_MASK)
+#define BPF_EBP(ctx) (u32)((u64)(ctx->bp) & BPF_32BIT_MASK)
+#define BPF_ESP(ctx) (u32)((u64)(ctx->sp) & BPF_32BIT_MASK)
+#define BPF_EIP(ctx) (u32)((u64)(ctx->ip) & BPF_32BIT_MASK)
+#define BPF_EFLAGS(ctx) (u32)((u64)(ctx->flags) & BPF_32BIT_MASK)
+#define BPF_ECS(ctx) (u32)((u64)(ctx->cs) & BPF_32BIT_MASK)
+#define BPF_ESS(ctx) (u32)((u64)(ctx->ss) & BPF_32BIT_MASK)
+
+#define BPF_SET_EAX(ctx, value) BPF_SET_REG_32(ctx, ax, value)
+#define BPF_SET_EBX(ctx, value) BPF_SET_REG_32(ctx, bx, value)
+#define BPF_SET_ECX(ctx, value) BPF_SET_REG_32(ctx, cx, value)
+#define BPF_SET_EDX(ctx, value) BPF_SET_REG_32(ctx, dx, value)
+
+// 16-bit registers
+#define BPF_AX(ctx) (u16)((u64)(ctx->ax) & BPF_16BIT_MASK)
+#define BPF_BX(ctx) (u16)((u64)(ctx->bx) & BPF_16BIT_MASK)
+#define BPF_CX(ctx) (u16)((u64)(ctx->cx) & BPF_16BIT_MASK)
+#define BPF_DX(ctx) (u16)((u64)(ctx->dx) & BPF_16BIT_MASK)
+#define BPF_SI(ctx) (u16)((u64)(ctx->si) & BPF_16BIT_MASK)
+#define BPF_DI(ctx) (u16)((u64)(ctx->di) & BPF_16BIT_MASK)
+#define BPF_BP(ctx) (u16)((u64)(ctx->bp) & BPF_16BIT_MASK)
+#define BPF_SP(ctx) (u16)((u64)(ctx->sp) & BPF_16BIT_MASK)
+
+#define BPF_SET_AX(ctx, value) BPF_SET_REG_16(ctx, ax, value)
+#define BPF_SET_BX(ctx, value) BPF_SET_REG_16(ctx, bx, value)
+#define BPF_SET_CX(ctx, value) BPF_SET_REG_16(ctx, cx, value)
+#define BPF_SET_DX(ctx, value) BPF_SET_REG_16(ctx, dx, value)
 
 // https://en.wikipedia.org/wiki/FLAGS_register
-
 #define BPF_ZF_MASK 0x0040
 #define BPF_SF_MASK 0x0080
 #define BPF_OF_MASK 0x0800

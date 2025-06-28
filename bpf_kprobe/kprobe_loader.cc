@@ -12,6 +12,7 @@ using namespace xkernel;
 // #define BPF_FILE "bpf/examples/gro_skb.bpf.o"
 // #define BPF_FILE "bpf/examples/io_uring.bpf.o"
 #define BPF_FILE "bpf/examples/blk-mq.bpf.o"
+// #define BPF_FILE "bpf/examples/softirq.bpf.o"
 
 int main() {
   XKernelLoader loader(BPF_FILE);
