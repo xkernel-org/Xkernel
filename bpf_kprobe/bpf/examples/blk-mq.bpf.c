@@ -17,7 +17,8 @@ int BPF_KPROBE(blk_mq_delay_run_hw_queue_0xbe, struct blk_mq_hw_ctx *hctx,
   u64 rbx = BPF_RBX(ctx);
   u64 *addr = (u64 *)(rbx + 0xa4);
   u64 val;
-  bpf_probe_read_kernel(&val, sizeof(val), addr);
+  
+  if (bpf_probe_read_kernel(&val, sizeof(val), addr)) return 0;
 
   if ((val & BPF_32BIT_MASK) == BLK_MQ_CPU_WORK_BATCH) {
     val &= 0xffffffff00000000;

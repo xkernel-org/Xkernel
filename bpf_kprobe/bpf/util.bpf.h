@@ -85,6 +85,8 @@
 #define BPF_RCS(ctx) ((u64)(ctx->cs))
 #define BPF_RSS(ctx) ((u64)(ctx->ss))
 
+#define BPF_R12(ctx) ((u64)(ctx->r12))
+
 #define BPF_SET_RAX(ctx, value) BPF_SET_REG_64(ctx, ax, value)
 #define BPF_SET_RBX(ctx, value) BPF_SET_REG_64(ctx, bx, value)
 #define BPF_SET_RCX(ctx, value) BPF_SET_REG_64(ctx, cx, value)
@@ -125,13 +127,35 @@
 #define BPF_SET_DX(ctx, value) BPF_SET_REG_16(ctx, dx, value)
 
 // https://en.wikipedia.org/wiki/FLAGS_register
+#define BPF_CF_MASK 0x0001
 #define BPF_ZF_MASK 0x0040
 #define BPF_SF_MASK 0x0080
 #define BPF_OF_MASK 0x0800
 
+#define BPF_CF(ctx) ((u64)(ctx->flags) & BPF_CF_MASK)
 #define BPF_ZF(ctx) ((u64)(ctx->flags) & BPF_ZF_MASK)
 #define BPF_SF(ctx) ((u64)(ctx->flags) & BPF_SF_MASK)
 #define BPF_OF(ctx) ((u64)(ctx->flags) & BPF_OF_MASK)
+
+// CF = 0 and ZF = 0
+#define BPF_JA(ctx) (BPF_CF(ctx) == 0 && BPF_ZF(ctx) == 0)
+#define BPF_SET_JA_TRUE(ctx)                                                  \
+  do {                                                                         \
+    u64 flags = BPF_EFLAGS(ctx);                                               \
+    flags &= ~BPF_CF_MASK;                                                     \
+    flags &= ~BPF_ZF_MASK;                                                     \
+    kfuncs_probe_write_kernel(&ctx->flags, sizeof(flags), &flags,              \
+                              sizeof(flags));                                  \
+  } while (0)
+
+// Set CF = 1 to make JA false
+#define BPF_SET_JA_FALSE(ctx)                                                  \
+  do {                                                                         \
+    u64 flags = BPF_EFLAGS(ctx);                                               \
+    flags |= BPF_CF_MASK;                                                      \
+    kfuncs_probe_write_kernel(&ctx->flags, sizeof(flags), &flags,              \
+                              sizeof(flags));                                  \
+  } while (0)
 
 // ZF = 0 and SF = OF
 #define BPF_JG(ctx) (BPF_ZF(ctx) == 0 && BPF_SF(ctx) == BPF_OF(ctx))

@@ -9,7 +9,7 @@
 |THROTL_GRP_QUANTUM|macro|blk|[block/blk-throttle.c](https://elixir.bootlin.com/linux/v6.14/source/block/blk-throttle.c#L19)|[1](https://elixir.bootlin.com/linux/v6.14/source/block/blk-throttle.c#L938), [2](https://elixir.bootlin.com/linux/v6.14/source/block/blk-throttle.c#L938)|-|-|-|
 |THROTL_QUANTUM|macro|blk|[block/blk-throttle.c](https://elixir.bootlin.com/linux/v6.14/source/block/blk-throttle.c#L22)|[1](https://elixir.bootlin.com/linux/v6.14/source/block/blk-throttle.c#L993)|-|-|-|
 |MAX_GRO_SKBS|macro|net|[net/core/gro.c](https://elixir.bootlin.com/linux/v6.14/source/net/core/gro.c#L8)|[1](https://elixir.bootlin.com/linux/v6.14/source/net/core/gro.c#L539)|[gro_skb.bpf.c](https://github.com/zhongjiechen/Xkernel/blob/main/bpf_kprobe/bpf/examples/gro_skb.bpf.c)|-|WIP|
-|MAX_PER_SOCKET_BUDGET|macro|xdp|[net/xdp/xsk.c](https://elixir.bootlin.com/linux/v6.14/source/net/xdp/xsk.c#L36)|[1](https://elixir.bootlin.com/linux/v6.14/source/net/xdp/xsk.c#L425)|-|-|-|
+|MAX_PER_SOCKET_BUDGET|macro|xdp|[net/xdp/xsk.c](https://elixir.bootlin.com/linux/v6.14/source/net/xdp/xsk.c#L36)|[1](https://elixir.bootlin.com/linux/v6.14/source/net/xdp/xsk.c#L425)|-|-|❌ Too much overhead|
 |MAX_SOFTIRQ_TIME|macro|softirq|[kernel/softirq.c](https://elixir.bootlin.com/linux/v6.14/source/kernel/softirq.c#L482)|[1](https://elixir.bootlin.com/linux/v6.14/source/kernel/softirq.c#L520)|-|-|Hard to attach|
 |MAX_SOFTIRQ_RESTART|macro|softirq|[kernel/softirq.c](https://elixir.bootlin.com/linux/v6.14/source/kernel/softirq.c#L483)|[1](https://elixir.bootlin.com/linux/v6.14/source/kernel/softirq.c#L522)|[softirq.bpf.c](../bpf_kprobe/bpf/examples/softirq.bpf.c)|-|Hard to find gain|
 
