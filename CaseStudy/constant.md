@@ -12,7 +12,8 @@
 |MAX_PER_SOCKET_BUDGET|macro|xdp|[net/xdp/xsk.c](https://elixir.bootlin.com/linux/v6.14/source/net/xdp/xsk.c#L36)|[1](https://elixir.bootlin.com/linux/v6.14/source/net/xdp/xsk.c#L425)|-|-|❌ Too much overhead|
 |MAX_SOFTIRQ_TIME|macro|softirq|[kernel/softirq.c](https://elixir.bootlin.com/linux/v6.14/source/kernel/softirq.c#L482)|[1](https://elixir.bootlin.com/linux/v6.14/source/kernel/softirq.c#L520)|-|-|Hard to attach|
 |MAX_SOFTIRQ_RESTART|macro|softirq|[kernel/softirq.c](https://elixir.bootlin.com/linux/v6.14/source/kernel/softirq.c#L483)|[1](https://elixir.bootlin.com/linux/v6.14/source/kernel/softirq.c#L522)|[softirq.bpf.c](../bpf_kprobe/bpf/examples/softirq.bpf.c)|-|Hard to find gain|
-
+|fits_capacity|macro|sched|[kernel/sched/fair.c](https://elixir.bootlin.com/linux/v6.14/source/kernel/sched/fair.c#L105)|[1](https://elixir.bootlin.com/linux/v6.14/source/kernel/sched/fair.c#L4983)|-|-|Hard to attach|
+|capacity_greater|macro|sched|[kernel/sched/fair.c](https://elixir.bootlin.com/linux/v6.14/source/kernel/sched/fair.c#L113)|-|-|-|Hard to attach|
 
 
 
