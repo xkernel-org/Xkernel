@@ -10,6 +10,8 @@ from collections import deque
 import logging
 from flask import Flask
 
+data_lock = threading.Lock()
+
 # Suppress Dash web logs
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
@@ -27,7 +29,8 @@ data = {
 def prune_old_data(time_threshold):
     while data['timestamp'] and data['timestamp'][0] < time_threshold:
         for key in data:
-            data[key].popleft()
+            if data[key]:
+                data[key].popleft()
 
 # Read from stdin thread
 def stream_reader():
@@ -53,12 +56,13 @@ def stream_reader():
 
         # Once all parts are captured, process them
         if all(x is not None for x in (cur_time, prev_idle, diff_div_by_eight, updated_idle)):
-            data['timestamp'].append(cur_time)
-            data['prev'].append(prev_idle)
-            data['diff_div_by_eight'].append(diff_div_by_eight)
-            data['updated'].append(updated_idle)
-            prune_old_data(cur_time - PRUNE_TIME_WINDOW)
-            # print(f"[{cur_time:.6f}] prev_idle: {prev_idle}, diff: {diff}, updated_idle: {updated_idle}")
+            with data_lock:
+                data['timestamp'].append(cur_time)
+                data['prev'].append(prev_idle)
+                data['diff_div_by_eight'].append(diff_div_by_eight)
+                data['updated'].append(updated_idle)
+                prune_old_data(cur_time - PRUNE_TIME_WINDOW)
+                # print(f"[{cur_time:.6f}] prev_idle: {prev_idle}, diff: {diff}, updated_idle: {updated_idle}")
             # Reset for next group
             cur_time = prev_idle = diff_div_by_eight = updated_idle = None
 
@@ -73,7 +77,11 @@ app.layout = html.Div([
 
 @app.callback(Output('live-graph', 'figure'), Input('interval', 'n_intervals'))
 def update_graph(n):
-    df = pd.DataFrame(data)
+    with data_lock:
+        lengths = {k: len(v) for k, v in data.items()}
+        assert len(set(lengths.values())) == 1, f"Length mismatch: {lengths}"
+        df = pd.DataFrame(data)
+
     if df.empty:
         return go.Figure()
 
