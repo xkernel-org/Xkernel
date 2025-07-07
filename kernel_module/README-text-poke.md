@@ -49,11 +49,11 @@ make olddefconfig
 > [!CAUTION]
 > Proceed with caution.
 > Back up your data.
-> In the worst case where the system is broken, it may help to connect to
-> CloudLab console and navigate grub.
+> In the worst case where the system is broken, it may (or may not) help to
+> connect to CloudLab console and navigate grub.
 
 ```shell
-# FIXME: modules and initrd is massively larger than the distro for reasons
+# FIXME: modules and initrd are massively larger than the distro for reasons
 # I don't yet know
 chmod +x ./debian/scripts/sign-module
 sudo make modules_install -j$(nproc)
@@ -69,4 +69,44 @@ make RAW_TEXT_POKE=m
 
 ```shell
 sudo reboot
+```
+
+Example of `ttwu_do_activate`
+
+```shell
+uname -r
+# Expect: 6.14.0-export-text-poke
+
+cd <Xkernel>
+bash scripts/runtime-disas.sh ttwu_do_activate | less
+# ...
+# ffffffffb7e521d3:       48 0f 49 c2             cmovns %rdx,%rax
+# ffffffffb7e521d7:       48 c1 f8 03             sar    $0x3,%rax <-- get this address
+# ffffffffb7e521db:       48 01 f0                add    %rsi,%rax
+# ...
+TARGET_ADDR=ffffffffb7e521d7
+NEW_INSN="0x48,0xc1,0xf8,0x02"
+sudo insmod kernel_module/raw_text_poke.ko target_addr=0x$TARGET_ADDR new_insn=$NEW_INSN
+
+sudo dmesg | tail
+# Expect something like:
+# [  502.546089] Patching 4 bytes at ffffffffb7e521d7
+bash scripts/runtime-disas.sh ttwu_do_activate | grep -C2 ^$TARGET_ADDR:
+# ffffffffb7e521cf:       48 8d 42 07             lea    0x7(%rdx),%rax
+# ffffffffb7e521d3:       48 0f 49 c2             cmovns %rdx,%rax
+# ffffffffb7e521d7:       48 c1 f8 02             sar    $0x2,%rax <-- Check if it gets effective
+# ffffffffb7e521db:       48 01 f0                add    %rsi,%rax <-- Also ensure nothing is corrupted afterwards
+# ffffffffb7e521de:       48 39 c1                cmp    %rax,%rcx
+
+sudo rmmod raw_text_poke
+sudo dmesg | tail
+# Expect something like:
+# [  729.144214] Restoring 4 bytes at ffffffffb7e521d7
+
+bash scripts/runtime-disas.sh ttwu_do_activate | grep -C2 ^$TARGET_ADDR:
+# ffffffffb7e521cf:       48 8d 42 07             lea    0x7(%rdx),%rax
+# ffffffffb7e521d3:       48 0f 49 c2             cmovns %rdx,%rax
+# ffffffffb7e521d7:       48 c1 f8 03             sar    $0x3,%rax <-- it should get back
+# ffffffffb7e521db:       48 01 f0                add    %rsi,%rax
+# ffffffffb7e521de:       48 39 c1                cmp    %rax,%rcx
 ```
