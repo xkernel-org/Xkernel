@@ -9,7 +9,8 @@
 *.ko.unsigned
 *.o.d
 
+__pycache__/*
+
 bpf_kprobe/bpf/vmlinux.h
 workload_test/io_uring/latency_workload
-
 bpf_kprobe/kprobe_loader
