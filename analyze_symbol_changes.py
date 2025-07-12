@@ -31,6 +31,8 @@ parser.add_argument('--run-git', '-g', action='store_true',
                     help='Run git command directly instead of reading from input')
 parser.add_argument('--verbose', '-v', action='store_true',
                     help='Show verbose output including line numbers and context')
+parser.add_argument('--very-verbose', '-vv', action='store_true',
+                    help='Show very verbose output including full commit diff and detailed context')
 parser.add_argument('--threads', '-t', type=int, default=4,
                     help='Number of threads for parallel processing (default: 4)')
 parser.add_argument('--filter-duplicates', '-d', action='store_true',
@@ -239,6 +241,16 @@ def get_commit_date(commit_hash: str, kernel_path: Optional[str] = None) -> Opti
             return None
     return None
 
+def get_commit_diff(commit_hash: str, kernel_path: Optional[str] = None) -> str:
+    """Get the full diff of a commit."""
+    cmd = ['git', 'show', '--stat', commit_hash]
+    return run_git_command(cmd, kernel_path)
+
+def get_commit_full_message(commit_hash: str, kernel_path: Optional[str] = None) -> str:
+    """Get the full commit message including body."""
+    cmd = ['git', 'log', '--format=format:%B', '-1', commit_hash]
+    return run_git_command(cmd, kernel_path)
+
 def normalize_definition(definition: str) -> str:
     """Normalize definition by removing whitespace and comments to compare content."""
     if not definition:
@@ -269,9 +281,9 @@ def definitions_are_equivalent(def1: str, def2: str) -> bool:
     
     return norm1 == norm2
 
-def analyze_version_range(args: Tuple[str, str, str, str, Optional[str], bool, int, int]) -> List[Dict]:
+def analyze_version_range(args: Tuple[str, str, str, str, Optional[str], bool, bool, int, int]) -> List[Dict]:
     """Analyze a specific version range. This function is designed to be run in a thread."""
-    start_version, end_version, symbol, file_path, kernel_path, verbose, thread_id, total_threads = args
+    start_version, end_version, symbol, file_path, kernel_path, verbose, very_verbose, thread_id, total_threads = args
     
     results = []
     
@@ -482,8 +494,8 @@ def analyze_from_git_log_output(git_log_output: str, symbol: str, file_path: str
 
 def analyze_from_git_command(symbol: str, file_path: str = 'kernel/rcu/tree.c', 
                            start_version: str = 'v5.1', end_version: str = 'v6.14',
-                           kernel_path: Optional[str] = None, verbose: bool = False, max_workers: int = 4,
-                           filter_duplicates: bool = False):
+                           kernel_path: Optional[str] = None, verbose: bool = False, very_verbose: bool = False, 
+                           max_workers: int = 4, filter_duplicates: bool = False):
     """Run git command and analyze the output using version range multithreading."""
     colored_print(f"Analyzing {symbol} changes from {start_version} to {end_version}...", Colors.HEADER, bold=True)
     if kernel_path:
@@ -504,7 +516,7 @@ def analyze_from_git_command(symbol: str, file_path: str = 'kernel/rcu/tree.c',
     # Prepare arguments for thread pool
     thread_args = []
     for i, (start_ver, end_ver) in enumerate(version_ranges):
-        thread_args.append((start_ver, end_ver, symbol, file_path, kernel_path, verbose, i + 1, max_workers))
+        thread_args.append((start_ver, end_ver, symbol, file_path, kernel_path, verbose, very_verbose, i + 1, max_workers))
     
     # Process version ranges in parallel
     start_time = time.time()
@@ -585,6 +597,19 @@ def analyze_from_git_command(symbol: str, file_path: str = 'kernel/rcu/tree.c',
             colored_print(f"Date: {commit_info['date']}", Colors.CYAN)
             colored_print(f"Message: {commit_info['message']}", Colors.CYAN)
         
+        # Print very verbose information if requested
+        if very_verbose:
+            commit_hash = result['commit_hash']
+            
+            # Get full commit message
+            full_message = get_commit_full_message(commit_hash, kernel_path)
+            if full_message:
+                colored_print("Full commit message:", Colors.HEADER, bold=True)
+                print("-" * 40)
+                print(full_message.strip())
+                print("-" * 40)
+                print()
+        
         if result['found']:
             if verbose and result['line_number']:
                 colored_print(f"{symbol} definition (line {result['line_number']}):", Colors.GREEN, bold=True)
@@ -620,7 +645,7 @@ def main():
     try:
         if args.run_git:
             analyze_from_git_command(args.symbol, args.file_path, args.start_version, args.end_version, 
-                                   args.kernel_path, args.verbose, args.threads, args.filter_duplicates)
+                                   args.kernel_path, args.verbose, args.very_verbose, args.threads, args.filter_duplicates)
         elif args.input:
             if args.input == '-':
                 # Read from stdin
@@ -634,7 +659,7 @@ def main():
         else:
             # Default: run git command
             analyze_from_git_command(args.symbol, args.file_path, args.start_version, args.end_version, 
-                                   args.kernel_path, args.verbose, args.threads, args.filter_duplicates)
+                                   args.kernel_path, args.verbose, args.very_verbose, args.threads, args.filter_duplicates)
             
     except KeyboardInterrupt:
         colored_print("\nAnalysis interrupted by user", Colors.YELLOW)
