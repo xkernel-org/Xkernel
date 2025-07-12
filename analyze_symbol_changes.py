@@ -31,6 +31,8 @@ parser.add_argument('--verbose', '-v', action='store_true',
                     help='Show verbose output including line numbers and context')
 parser.add_argument('--very-verbose', '-vv', action='store_true',
                     help='Show very verbose output including full commit message')
+parser.add_argument('--quiet', '-q', action='store_true',
+                    help='Quiet mode: only show final analysis results, hide intermediate steps')
 parser.add_argument('--threads', '-t', type=int, default=4,
                     help='Number of threads for parallel processing (default: 4)')
 parser.add_argument('--filter-duplicates', '-d', action='store_true',
@@ -53,8 +55,10 @@ class Colors:
 # Global lock for thread-safe printing
 print_lock = Lock()
 
-def colored_print(text: str, color: str = Colors.END, bold: bool = False):
+def colored_print(text: str, color: str = Colors.END, bold: bool = False, quiet: bool = False):
     """Print colored text in a thread-safe manner."""
+    if quiet:
+        return
     with print_lock:
         if bold:
             print(f"{Colors.BOLD}{color}{text}{Colors.END}")
@@ -312,9 +316,9 @@ def definitions_are_equivalent(def1: str, def2: str) -> bool:
     
     return norm1 == norm2
 
-def analyze_version_range(args: Tuple[str, str, str, str, Optional[str], bool, bool, int, int]) -> List[Dict]:
+def analyze_version_range(args: Tuple[str, str, str, str, Optional[str], bool, bool, int, int, bool]) -> List[Dict]:
     """Analyze a specific version range. This function is designed to be run in a thread."""
-    start_version, end_version, symbol, file_path, kernel_path, verbose, very_verbose, thread_id, total_threads = args
+    start_version, end_version, symbol, file_path, kernel_path, verbose, very_verbose, thread_id, total_threads, quiet = args
     
     results = []
     
@@ -328,16 +332,16 @@ def analyze_version_range(args: Tuple[str, str, str, str, Optional[str], bool, b
         git_log_output = run_git_command(git_log_cmd, kernel_path)
         
         if not git_log_output.strip():
-            colored_print(f"Thread {thread_id}: No changes found in range {start_version}..{end_version}", Colors.YELLOW)
+            colored_print(f"Thread {thread_id}: No changes found in range {start_version}..{end_version}", Colors.YELLOW, quiet=quiet)
             return results
         
         commit_hashes = get_commit_hashes(git_log_output)
         
         if not commit_hashes:
-            colored_print(f"Thread {thread_id}: No relevant commits found in range {start_version}..{end_version}", Colors.YELLOW)
+            colored_print(f"Thread {thread_id}: No relevant commits found in range {start_version}..{end_version}", Colors.YELLOW, quiet=quiet)
             return results
         
-        colored_print(f"Thread {thread_id}: Found {len(commit_hashes)} commits in range {start_version}..{end_version}", Colors.GREEN)
+        colored_print(f"Thread {thread_id}: Found {len(commit_hashes)} commits in range {start_version}..{end_version}", Colors.GREEN, quiet=quiet)
         
         # Analyze each commit in this range
         for i, commit_hash in enumerate(commit_hashes):
@@ -454,28 +458,30 @@ def get_version_ranges(start_version: str, end_version: str, num_threads: int, k
 def analyze_from_git_command(symbol: str, file_path: str = 'kernel/rcu/tree.c', 
                            start_version: str = 'v5.1', end_version: str = 'v6.14',
                            kernel_path: Optional[str] = None, verbose: bool = False, very_verbose: bool = False, 
-                           max_workers: int = 4, filter_duplicates: bool = False):
+                           max_workers: int = 4, filter_duplicates: bool = False, quiet: bool = False):
     """Run git command and analyze the output using version range multithreading."""
-    colored_print(f"Analyzing {symbol} changes from {start_version} to {end_version}...", Colors.HEADER, bold=True)
+    colored_print(f"Analyzing {symbol} changes from {start_version} to {end_version}...", Colors.HEADER, bold=True, quiet=quiet)
     if kernel_path:
-        colored_print(f"Using kernel source path: {kernel_path}", Colors.CYAN)
-    colored_print(f"Using {max_workers} threads for parallel processing", Colors.CYAN)
+        colored_print(f"Using kernel source path: {kernel_path}", Colors.CYAN, quiet=quiet)
+    colored_print(f"Using {max_workers} threads for parallel processing", Colors.CYAN, quiet=quiet)
     if filter_duplicates:
-        colored_print("Filtering duplicate definitions (keeping earliest commit)", Colors.CYAN)
-    print("=" * 80)
+        colored_print("Filtering duplicate definitions (keeping earliest commit)", Colors.CYAN, quiet=quiet)
+    if not quiet:
+        print("=" * 80)
     
     # Divide version range into sub-ranges
     version_ranges = get_version_ranges(start_version, end_version, max_workers, kernel_path)
     
-    colored_print(f"Divided version range into {len(version_ranges)} sub-ranges:", Colors.CYAN)
+    colored_print(f"Divided version range into {len(version_ranges)} sub-ranges:", Colors.CYAN, quiet=quiet)
     for i, (start_ver, end_ver) in enumerate(version_ranges):
-        colored_print(f"  Thread {i+1}: {start_ver}..{end_ver}", Colors.CYAN)
-    print()
+        colored_print(f"  Thread {i+1}: {start_ver}..{end_ver}", Colors.CYAN, quiet=quiet)
+    if not quiet:
+        print()
     
     # Prepare arguments for thread pool
     thread_args = []
     for i, (start_ver, end_ver) in enumerate(version_ranges):
-        thread_args.append((start_ver, end_ver, symbol, file_path, kernel_path, verbose, very_verbose, i + 1, max_workers))
+        thread_args.append((start_ver, end_ver, symbol, file_path, kernel_path, verbose, very_verbose, i + 1, max_workers, quiet))
     
     # Process version ranges in parallel
     start_time = time.time()
@@ -496,10 +502,10 @@ def analyze_from_git_command(symbol: str, file_path: str = 'kernel/rcu/tree.c',
                 all_results.extend(results)
                 
                 # Print progress
-                colored_print(f"Thread {thread_id} completed: {start_ver}..{end_ver} ({len(results)} commits)", Colors.BLUE)
+                colored_print(f"Thread {thread_id} completed: {start_ver}..{end_ver} ({len(results)} commits)", Colors.BLUE, quiet=quiet)
                 
             except Exception as e:
-                colored_print(f"Error in thread {thread_id} processing range {start_ver}..{end_ver}: {e}", Colors.RED)
+                colored_print(f"Error in thread {thread_id} processing range {start_ver}..{end_ver}: {e}", Colors.RED, quiet=quiet)
     
     # Sort results by commit date
     all_results.sort(key=lambda x: x.get('commit_date', datetime.min))
@@ -521,43 +527,46 @@ def analyze_from_git_command(symbol: str, file_path: str = 'kernel/rcu/tree.c',
                 # First time seeing this definition
                 seen_definitions[normalized_def] = result
                 filtered_results.append(result)
-                colored_print(f"Keeping first occurrence of definition: {normalized_def[:50]}...", Colors.GREEN)
+                colored_print(f"Keeping first occurrence of definition: {normalized_def[:50]}...", Colors.GREEN, quiet=quiet)
             else:
                 # Duplicate definition found
                 original_commit = seen_definitions[normalized_def]['commit_hash']
                 current_commit = result['commit_hash']
-                colored_print(f"Filtering duplicate definition in commit {current_commit} (same as {original_commit})", Colors.YELLOW)
+                colored_print(f"Filtering duplicate definition in commit {current_commit} (same as {original_commit})", Colors.YELLOW, quiet=quiet)
         
         all_results = filtered_results
     
     # Print results
-    colored_print(f"\nAnalysis completed in {time.time() - start_time:.2f} seconds", Colors.GREEN, bold=True)
-    colored_print(f"Total commits analyzed: {len(all_results)}", Colors.GREEN, bold=True)
+    colored_print(f"\nAnalysis completed in {time.time() - start_time:.2f} seconds", Colors.GREEN, bold=True, quiet=quiet)
+    colored_print(f"Total commits analyzed: {len(all_results)}", Colors.GREEN, bold=True, quiet=quiet)
     if filter_duplicates:
-        colored_print(f"Filtered duplicate definitions: {len(seen_definitions) if 'seen_definitions' in locals() else 0} unique definitions", Colors.GREEN, bold=True)
-    print()
+        colored_print(f"Filtered duplicate definitions: {len(seen_definitions) if 'seen_definitions' in locals() else 0} unique definitions", Colors.GREEN, bold=True, quiet=quiet)
+    if not quiet:
+        print()
     
     for i, result in enumerate(all_results):
         commit_hash = result['commit_hash']
         thread_id = result.get('thread_id', 'N/A')
         
-        colored_print(f"Commit {i+1}/{len(all_results)} (Thread {thread_id}): {commit_hash}", Colors.BLUE, bold=True)
+        if not quiet:
+            colored_print(f"Commit {i+1}/{len(all_results)} (Thread {thread_id}): {commit_hash}", Colors.BLUE, bold=True)
         
         if result['error']:
-            colored_print(f"Error: {result['error']}", Colors.RED)
-            print("-" * 80)
-            print()
+            colored_print(f"Error: {result['error']}", Colors.RED, quiet=quiet)
+            if not quiet:
+                print("-" * 80)
+                print()
             continue
         
         # Print commit info
         commit_info = result['commit_info']
-        if commit_info:
+        if commit_info and not quiet:
             colored_print(f"Author: {commit_info['author']}", Colors.CYAN)
             colored_print(f"Date: {commit_info['date']}", Colors.CYAN)
             colored_print(f"Message: {commit_info['message']}", Colors.CYAN)
         
         # Print very verbose information if requested
-        if very_verbose:
+        if very_verbose and not quiet:
             commit_hash = result['commit_hash']
             
             # Get full commit message
@@ -570,19 +579,28 @@ def analyze_from_git_command(symbol: str, file_path: str = 'kernel/rcu/tree.c',
                 print()
         
         if result['found']:
-            if verbose and result['line_number']:
+            if verbose and result['line_number'] and not quiet:
                 colored_print(f"{symbol} definition (line {result['line_number']}):", Colors.GREEN, bold=True)
-            else:
+            elif not quiet:
                 colored_print(f"{symbol} definition:", Colors.GREEN, bold=True)
-            print(f"  {result['definition']}")
-            if verbose and result['context']:
-                colored_print("  Context:", Colors.CYAN)
-                print(f"  {result['context']}")
+            
+            if quiet:
+                # In quiet mode, just show the essential info with colors
+                commit_info = result['commit_info']
+                if commit_info:
+                    colored_print(f"{Colors.BLUE}{commit_hash[:8]}{Colors.END} | {Colors.CYAN}{commit_info['date'][:10]}{Colors.END} | {Colors.YELLOW}{commit_info['message']}{Colors.END} | {Colors.GREEN}{result['definition']}{Colors.END}")
+            else:
+                print(f"  {result['definition']}")
+                if verbose and result['context']:
+                    colored_print("  Context:", Colors.CYAN)
+                    print(f"  {result['context']}")
         else:
-            colored_print(f"  No definition found for {symbol}", Colors.RED)
+            if not quiet:
+                colored_print(f"  No definition found for {symbol}", Colors.RED)
         
-        print("-" * 80)
-        print()
+        if not quiet:
+            print("-" * 80)
+            print()
 
 def main():
     """Main entry point."""
@@ -610,22 +628,30 @@ def main():
         colored_print("Thread count capped at 16 for stability", Colors.YELLOW)
         args.threads = 16
     
-    colored_print(f"Analyzing {len(symbols)} symbol(s): {', '.join(symbols)}", Colors.HEADER, bold=True)
-    print("=" * 80)
+    colored_print(f"Analyzing {len(symbols)} symbol(s): {', '.join(symbols)}", Colors.HEADER, bold=True, quiet=args.quiet)
+    if not args.quiet:
+        print("=" * 80)
     
     try:
         # Analyze each symbol
         for i, symbol in enumerate(symbols):
-            colored_print(f"\nSymbol {i+1}/{len(symbols)}: {symbol}", Colors.HEADER, bold=True)
-            print("-" * 60)
+            if args.quiet:
+                # In quiet mode, show symbol header
+                colored_print(f"[{i+1}] {symbol}", Colors.HEADER, bold=True, quiet=False)
+            else:
+                colored_print(f"\nSymbol {i+1}/{len(symbols)}: {symbol}", Colors.HEADER, bold=True, quiet=args.quiet)
+                print("-" * 60)
             
             # Run git command analysis
             analyze_from_git_command(symbol, args.file_path, args.start_version, args.end_version, 
-                                   args.kernel_path, args.verbose, args.very_verbose, args.threads, args.filter_duplicates)
+                                   args.kernel_path, args.verbose, args.very_verbose, args.threads, args.filter_duplicates, args.quiet)
             
             # Add separator between symbols
             if i < len(symbols) - 1:
-                print("\n" + "=" * 80)
+                if args.quiet:
+                    print()  # Just a blank line in quiet mode
+                else:
+                    print("\n" + "=" * 80)
             
     except KeyboardInterrupt:
         colored_print("\nAnalysis interrupted by user", Colors.YELLOW)
