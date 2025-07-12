@@ -16,9 +16,9 @@ from threading import Lock
 import time
 from datetime import datetime
 
-parser = argparse.ArgumentParser(description='Analyze symbol changes in git history')
-parser.add_argument('symbol', help='Symbol to search for (e.g., KFREE_DRAIN_JIFFIES)')
-parser.add_argument('--input', '-i', help='Read git log output from file (use - for stdin)')
+parser = argparse.ArgumentParser(description='Analyze symbol changes in git history. Supports multiple symbols via comma-separated list or symbols file.')
+parser.add_argument('symbol', nargs='?', help='Symbol to search for (e.g., KFREE_DRAIN_JIFFIES). Can be comma-separated list of symbols.')
+parser.add_argument('--symbols-file', '-sf', help='File containing symbols to analyze (one symbol per line)')
 parser.add_argument('--file-path', '-f', default='kernel/rcu/tree.c', 
                     help='Path to the file containing the symbol (relative to kernel source)')
 parser.add_argument('--start-version', '-s', default='v5.1',
@@ -27,12 +27,10 @@ parser.add_argument('--end-version', '-e', default='v6.14',
                     help='End version/tag for git range (default: v6.14)')
 parser.add_argument('--kernel-path', '-k', required=True,
                     help='Path to kernel source code directory')
-parser.add_argument('--run-git', '-g', action='store_true', 
-                    help='Run git command directly instead of reading from input')
 parser.add_argument('--verbose', '-v', action='store_true',
                     help='Show verbose output including line numbers and context')
 parser.add_argument('--very-verbose', '-vv', action='store_true',
-                    help='Show very verbose output including full commit diff and detailed context')
+                    help='Show very verbose output including full commit message')
 parser.add_argument('--threads', '-t', type=int, default=4,
                     help='Number of threads for parallel processing (default: 4)')
 parser.add_argument('--filter-duplicates', '-d', action='store_true',
@@ -251,6 +249,39 @@ def get_commit_full_message(commit_hash: str, kernel_path: Optional[str] = None)
     cmd = ['git', 'log', '--format=format:%B', '-1', commit_hash]
     return run_git_command(cmd, kernel_path)
 
+def parse_symbols_list(symbol_arg: Optional[str], symbols_file: Optional[str]) -> List[str]:
+    """Parse symbols from command line argument or file."""
+    symbols = []
+    
+    # Parse comma-separated symbols from command line
+    if symbol_arg:
+        symbols.extend([s.strip() for s in symbol_arg.split(',') if s.strip()])
+    
+    # Parse symbols from file
+    if symbols_file:
+        try:
+            with open(symbols_file, 'r') as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith('#'):  # Skip empty lines and comments
+                        symbols.append(line)
+        except FileNotFoundError:
+            colored_print(f"Error: Symbols file '{symbols_file}' not found", Colors.RED)
+            sys.exit(1)
+        except Exception as e:
+            colored_print(f"Error reading symbols file '{symbols_file}': {e}", Colors.RED)
+            sys.exit(1)
+    
+    # Remove duplicates while preserving order
+    seen = set()
+    unique_symbols = []
+    for symbol in symbols:
+        if symbol not in seen:
+            seen.add(symbol)
+            unique_symbols.append(symbol)
+    
+    return unique_symbols
+
 def normalize_definition(definition: str) -> str:
     """Normalize definition by removing whitespace and comments to compare content."""
     if not definition:
@@ -418,79 +449,7 @@ def get_version_ranges(start_version: str, end_version: str, num_threads: int, k
         idx = next_idx
     return ranges
 
-def analyze_from_git_log_output(git_log_output: str, symbol: str, file_path: str = 'kernel/rcu/tree.c', 
-                               kernel_path: Optional[str] = None, verbose: bool = False, max_workers: int = 4):
-    """Analyze symbol changes from git log output using multithreading by version ranges."""
-    colored_print(f"Analyzing {symbol} changes in git history...", Colors.HEADER, bold=True)
-    if kernel_path:
-        colored_print(f"Using kernel source path: {kernel_path}", Colors.CYAN)
-    colored_print(f"Using {max_workers} threads for parallel processing", Colors.CYAN)
-    print("=" * 80)
-    
-    if not git_log_output.strip():
-        colored_print(f"No changes found for {symbol}", Colors.YELLOW)
-        return
-    
-    commit_hashes = get_commit_hashes(git_log_output)
-    
-    if not commit_hashes:
-        colored_print("No relevant commits found", Colors.YELLOW)
-        return
-    
-    colored_print(f"Found {len(commit_hashes)} relevant commits", Colors.GREEN, bold=True)
-    print()
-    
-    # Analyze each commit (fallback to original method for git log input)
-    for i, commit_hash in enumerate(commit_hashes):
-        colored_print(f"Commit {i+1}/{len(commit_hashes)}: {commit_hash}", Colors.BLUE, bold=True)
-        
-        # Get commit info
-        commit_info = get_commit_info(commit_hash, kernel_path)
-        if commit_info:
-            colored_print(f"Author: {commit_info['author']}", Colors.CYAN)
-            colored_print(f"Date: {commit_info['date']}", Colors.CYAN)
-            colored_print(f"Message: {commit_info['message']}", Colors.CYAN)
-        
-        # First try to get file content from the specified file
-        content = get_file_content_at_commit(commit_hash, file_path, kernel_path)
-        definition = None
-        definition_file = file_path
-        line_number = None
-        context = None
-        
-        if content:
-            if verbose:
-                result = find_symbol_definition_with_context(content, symbol)
-                if result:
-                    definition, line_number, context = result
-            else:
-                definition = find_symbol_definition(content, symbol)
-        
-        # If not found in the specified file, check files in the commit diff
-        if not definition and kernel_path:
-            colored_print(f"  Symbol not found in {file_path}, checking files in commit diff...", Colors.YELLOW)
-            result = find_symbol_in_commit_diff(commit_hash, symbol, kernel_path, verbose)
-            if result:
-                if verbose:
-                    definition_file, definition, line_number, context = result
-                else:
-                    definition_file, definition = result
-                colored_print(f"  Found in file: {definition_file}", Colors.GREEN)
-        
-        if definition:
-            if verbose and line_number:
-                colored_print(f"{symbol} definition (line {line_number}):", Colors.GREEN, bold=True)
-            else:
-                colored_print(f"{symbol} definition:", Colors.GREEN, bold=True)
-            print(f"  {definition}")
-            if verbose and context:
-                colored_print("  Context:", Colors.CYAN)
-                print(f"  {context}")
-        else:
-            colored_print(f"  No definition found for {symbol}", Colors.RED)
-        
-        print("-" * 80)
-        print()
+
 
 def analyze_from_git_command(symbol: str, file_path: str = 'kernel/rcu/tree.c', 
                            start_version: str = 'v5.1', end_version: str = 'v6.14',
@@ -628,11 +587,20 @@ def analyze_from_git_command(symbol: str, file_path: str = 'kernel/rcu/tree.c',
 def main():
     """Main entry point."""
     
+    # Parse symbols list
+    symbols = parse_symbols_list(args.symbol, args.symbols_file)
+    
+    if not symbols:
+        colored_print("Error: No symbols specified. Use --help for usage information.", Colors.RED)
+        sys.exit(1)
+    
     # Expand user paths
     if args.kernel_path:
         args.kernel_path = os.path.expanduser(args.kernel_path)
     if args.file_path:
         args.file_path = os.path.expanduser(args.file_path)
+    if args.symbols_file:
+        args.symbols_file = os.path.expanduser(args.symbols_file)
     
     # Validate thread count
     if args.threads < 1:
@@ -642,24 +610,22 @@ def main():
         colored_print("Thread count capped at 16 for stability", Colors.YELLOW)
         args.threads = 16
     
+    colored_print(f"Analyzing {len(symbols)} symbol(s): {', '.join(symbols)}", Colors.HEADER, bold=True)
+    print("=" * 80)
+    
     try:
-        if args.run_git:
-            analyze_from_git_command(args.symbol, args.file_path, args.start_version, args.end_version, 
+        # Analyze each symbol
+        for i, symbol in enumerate(symbols):
+            colored_print(f"\nSymbol {i+1}/{len(symbols)}: {symbol}", Colors.HEADER, bold=True)
+            print("-" * 60)
+            
+            # Run git command analysis
+            analyze_from_git_command(symbol, args.file_path, args.start_version, args.end_version, 
                                    args.kernel_path, args.verbose, args.very_verbose, args.threads, args.filter_duplicates)
-        elif args.input:
-            if args.input == '-':
-                # Read from stdin
-                git_log_output = sys.stdin.read()
-            else:
-                # Read from file
-                with open(args.input, 'r') as f:
-                    git_log_output = f.read()
-            analyze_from_git_log_output(git_log_output, args.symbol, args.file_path, args.kernel_path, 
-                                      args.verbose, args.threads)
-        else:
-            # Default: run git command
-            analyze_from_git_command(args.symbol, args.file_path, args.start_version, args.end_version, 
-                                   args.kernel_path, args.verbose, args.very_verbose, args.threads, args.filter_duplicates)
+            
+            # Add separator between symbols
+            if i < len(symbols) - 1:
+                print("\n" + "=" * 80)
             
     except KeyboardInterrupt:
         colored_print("\nAnalysis interrupted by user", Colors.YELLOW)
