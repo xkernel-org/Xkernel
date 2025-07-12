@@ -256,6 +256,25 @@ def get_commit_full_message(commit_hash: str, kernel_path: Optional[str] = None)
     cmd = ['git', 'log', '--format=format:%B', '-1', commit_hash]
     return run_git_command(cmd, kernel_path)
 
+def get_commit_kernel_version(commit_hash: str, kernel_path: Optional[str] = None) -> Optional[str]:
+    """Get the kernel version tag for a specific commit."""
+    try:
+        # Find the closest tag before this commit
+        cmd = ['git', 'describe', '--tags', '--abbrev=0', commit_hash]
+        result = run_git_command(cmd, kernel_path)
+        if result.strip():
+            return result.strip()
+        
+        # If no tag found, try to find the next tag after this commit
+        cmd = ['git', 'describe', '--tags', '--abbrev=0', '--contains', commit_hash]
+        result = run_git_command(cmd, kernel_path)
+        if result.strip():
+            return result.strip()
+        
+        return None
+    except Exception:
+        return None
+
 def parse_symbols_list(symbol_arg: Optional[str], symbols_file: Optional[str]) -> List[str]:
     """Parse symbols from command line argument or file."""
     symbols = []
@@ -368,6 +387,10 @@ def analyze_version_range(args: Tuple[str, str, str, str, Optional[str], bool, b
                 # Get commit date for sorting
                 commit_date = get_commit_date(commit_hash, kernel_path)
                 result['commit_date'] = commit_date
+                
+                # Get kernel version for this commit
+                kernel_version = get_commit_kernel_version(commit_hash, kernel_path)
+                result['kernel_version'] = kernel_version
                 
                 # First try to get file content from the specified file
                 content = get_file_content_at_commit(commit_hash, file_path, kernel_path)
@@ -599,9 +622,12 @@ def analyze_from_git_command(symbol: str, file_path: str,
         
         # Print commit info
         commit_info = result['commit_info']
+        kernel_version = result.get('kernel_version')
         if commit_info and not quiet:
             colored_print(f"Author: {commit_info['author']}", Colors.CYAN)
             colored_print(f"Date: {commit_info['date']}", Colors.CYAN)
+            if kernel_version:
+                colored_print(f"Kernel Version: {kernel_version}", Colors.CYAN)
             colored_print(f"Message: {commit_info['message']}", Colors.CYAN)
         
         # Print very verbose information if requested
@@ -626,8 +652,10 @@ def analyze_from_git_command(symbol: str, file_path: str,
             if quiet:
                 # In quiet mode, just show the essential info with colors
                 commit_info = result['commit_info']
+                kernel_version = result.get('kernel_version')
                 if commit_info:
-                    colored_print(f"{Colors.BLUE}{commit_hash[:8]}{Colors.END} | {Colors.CYAN}{commit_info['date'][:10]}{Colors.END} | {Colors.YELLOW}{commit_info['message']}{Colors.END} | {Colors.GREEN}{result['definition']}{Colors.END}")
+                    version_info = f" [{kernel_version}]" if kernel_version else ""
+                    colored_print(f"{Colors.BLUE}{commit_hash[:8]}{Colors.END} | {Colors.CYAN}{commit_info['date'][:10]}{version_info}{Colors.END} | {Colors.YELLOW}{commit_info['message']}{Colors.END} | {Colors.GREEN}{result['definition']}{Colors.END}")
             else:
                 print(f"  {result['definition']}")
                 if verbose and result['context']:
