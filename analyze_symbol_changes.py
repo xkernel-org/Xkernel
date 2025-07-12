@@ -19,8 +19,6 @@ from datetime import datetime
 parser = argparse.ArgumentParser(description='Analyze symbol changes in git history. Supports multiple symbols via comma-separated list or symbols file.')
 parser.add_argument('symbol', nargs='?', help='Symbol to search for (e.g., KFREE_DRAIN_JIFFIES). Can be comma-separated list of symbols.')
 parser.add_argument('--symbols-file', '-sf', help='File containing symbols to analyze (one symbol per line)')
-parser.add_argument('--file-path', '-f', default='kernel/rcu/tree.c', 
-                    help='Path to the file containing the symbol (relative to kernel source)')
 parser.add_argument('--start-version', '-s', default='v5.1',
                     help='Start version/tag for git range (default: v5.1)')
 parser.add_argument('--end-version', '-e', default='v6.14',
@@ -83,6 +81,9 @@ def run_git_command(cmd: List[str], kernel_path: Optional[str] = None) -> str:
             result = subprocess.run(cmd, capture_output=True, text=True, check=True)
             return result.stdout
     except subprocess.CalledProcessError as e:
+        # Don't print error for git log commands that return no results (exit code 128)
+        if e.returncode == 128 and 'log' in cmd:
+            return ""
         colored_print(f"Error running git command: {e}", Colors.RED)
         return ""
 
@@ -109,8 +110,9 @@ def find_symbol_definition(content: str, symbol: str) -> Optional[str]:
     
     # Look for different types of definitions
     patterns = [
-        rf'#define\s+{re.escape(symbol)}\s+.*',
-        rf'#define\s+{re.escape(symbol)}\s*$',
+        rf'#define\s+{re.escape(symbol)}\s*\(.*\)',  # #define SYMBOL(param) ...
+        rf'#define\s+{re.escape(symbol)}\s+[^(].*',  # #define SYMBOL value
+        rf'#define\s+{re.escape(symbol)}\s*$',       # #define SYMBOL
         rf'static\s+.*\s+{re.escape(symbol)}\s*=.*',
         rf'const\s+.*\s+{re.escape(symbol)}\s*=.*',
         rf'{re.escape(symbol)}\s*=.*',
@@ -142,8 +144,9 @@ def find_symbol_definition_with_context(content: str, symbol: str) -> Optional[t
     
     # Look for different types of definitions
     patterns = [
-        rf'#define\s+{re.escape(symbol)}\s+.*',
-        rf'#define\s+{re.escape(symbol)}\s*$',
+        rf'#define\s+{re.escape(symbol)}\s*\(.*\)',  # #define SYMBOL(param) ...
+        rf'#define\s+{re.escape(symbol)}\s+[^(].*',  # #define SYMBOL value
+        rf'#define\s+{re.escape(symbol)}\s*$',       # #define SYMBOL
         rf'static\s+.*\s+{re.escape(symbol)}\s*=.*',
         rf'const\s+.*\s+{re.escape(symbol)}\s*=.*',
         rf'{re.escape(symbol)}\s*=.*',
@@ -427,6 +430,18 @@ def get_version_ranges(start_version: str, end_version: str, num_threads: int, k
             if re.match(r'^v\d+\.\d+$', tag):
                 filtered_tags.append(tag)
     
+    # Check if start_version exists, if not find the earliest available version
+    if start_version not in filtered_tags and filtered_tags:
+        earliest_available = min(filtered_tags, key=lambda x: [int(i) for i in x[1:].split('.')])
+        colored_print(f"Warning: Start version {start_version} not found, using earliest available: {earliest_available}", Colors.YELLOW, quiet=args.quiet)
+        start_version = earliest_available
+    
+    # Check if end_version exists, if not find the latest available version
+    if end_version not in filtered_tags and filtered_tags:
+        latest_available = max(filtered_tags, key=lambda x: [int(i) for i in x[1:].split('.')])
+        colored_print(f"Warning: End version {end_version} not found, using latest available: {latest_available}", Colors.YELLOW, quiet=args.quiet)
+        end_version = latest_available
+    
     # Add start and end versions if not already present
     if start_version not in filtered_tags:
         filtered_tags.insert(0, start_version)
@@ -453,9 +468,33 @@ def get_version_ranges(start_version: str, end_version: str, num_threads: int, k
         idx = next_idx
     return ranges
 
+def find_symbol_definition_file(symbol: str, kernel_path: str) -> Optional[str]:
+    """Find the file containing the definition of a symbol using git grep."""
+    try:
+        # Use git grep to find #define statements for the symbol
+        cmd = ['git', 'grep', '-nw', f'#define {symbol}']
+        result = run_git_command(cmd, kernel_path)
+        
+        if result.strip():
+            # Parse the first line of output to get the file path
+            # Format: file_path:line_number:#define SYMBOL_NAME value
+            lines = result.strip().split('\n')
+            first_line = lines[0]
+            
+            # Extract file path (everything before the first colon)
+            file_path = first_line.split(':', 1)[0]
+            
+            colored_print(f"Found {symbol} definition in: {file_path}", Colors.GREEN, quiet=args.quiet)
+            return file_path
+        else:
+            colored_print(f"No definition found for {symbol} using git grep", Colors.YELLOW, quiet=args.quiet)
+            return None
+            
+    except Exception as e:
+        colored_print(f"Error finding definition for {symbol}: {e}", Colors.RED, quiet=args.quiet)
+        return None
 
-
-def analyze_from_git_command(symbol: str, file_path: str = 'kernel/rcu/tree.c', 
+def analyze_from_git_command(symbol: str, file_path: str, 
                            start_version: str = 'v5.1', end_version: str = 'v6.14',
                            kernel_path: Optional[str] = None, verbose: bool = False, very_verbose: bool = False, 
                            max_workers: int = 4, filter_duplicates: bool = False, quiet: bool = False):
@@ -615,8 +654,6 @@ def main():
     # Expand user paths
     if args.kernel_path:
         args.kernel_path = os.path.expanduser(args.kernel_path)
-    if args.file_path:
-        args.file_path = os.path.expanduser(args.file_path)
     if args.symbols_file:
         args.symbols_file = os.path.expanduser(args.symbols_file)
     
@@ -642,9 +679,15 @@ def main():
                 colored_print(f"\nSymbol {i+1}/{len(symbols)}: {symbol}", Colors.HEADER, bold=True, quiet=args.quiet)
                 print("-" * 60)
             
-            # Run git command analysis
-            analyze_from_git_command(symbol, args.file_path, args.start_version, args.end_version, 
-                                   args.kernel_path, args.verbose, args.very_verbose, args.threads, args.filter_duplicates, args.quiet)
+            # First, find the file containing the symbol definition
+            file_path = find_symbol_definition_file(symbol, args.kernel_path)
+            
+            if file_path:
+                # Run git command analysis with the found file path
+                analyze_from_git_command(symbol, file_path, args.start_version, args.end_version, 
+                                       args.kernel_path, args.verbose, args.very_verbose, args.threads, args.filter_duplicates, args.quiet)
+            else:
+                colored_print(f"Skipping analysis for {symbol} - definition file not found", Colors.RED, quiet=args.quiet)
             
             # Add separator between symbols
             if i < len(symbols) - 1:
