@@ -354,16 +354,19 @@ def analyze_version_range(args: Tuple[str, str, str, str, Optional[str], bool, b
         git_log_output = run_git_command(git_log_cmd, kernel_path)
         
         if not git_log_output.strip():
-            colored_print(f"Thread {thread_id}: No changes found in range {start_version}..{end_version}", Colors.YELLOW, quiet=quiet)
+            if very_verbose and not quiet:
+                colored_print(f"Thread {thread_id}: No changes found in range {start_version}..{end_version}", Colors.YELLOW, quiet=quiet)
             return results
         
         commit_hashes = get_commit_hashes(git_log_output)
         
         if not commit_hashes:
-            colored_print(f"Thread {thread_id}: No relevant commits found in range {start_version}..{end_version}", Colors.YELLOW, quiet=quiet)
+            if very_verbose and not quiet:
+                colored_print(f"Thread {thread_id}: No relevant commits found in range {start_version}..{end_version}", Colors.YELLOW, quiet=quiet)
             return results
         
-        colored_print(f"Thread {thread_id}: Found {len(commit_hashes)} commits in range {start_version}..{end_version}", Colors.GREEN, quiet=quiet)
+        if very_verbose and not quiet:
+            colored_print(f"Thread {thread_id}: Found {len(commit_hashes)} commits in range {start_version}..{end_version}", Colors.GREEN, quiet=quiet)
         
         # Analyze each commit in this range
         for i, commit_hash in enumerate(commit_hashes):
@@ -507,10 +510,12 @@ def find_symbol_definition_file(symbol: str, kernel_path: str) -> Optional[str]:
             # Extract file path (everything before the first colon)
             file_path = first_line.split(':', 1)[0]
             
-            colored_print(f"Found {symbol} definition in: {file_path}", Colors.GREEN, quiet=args.quiet)
+            if not args.quiet:
+                colored_print(f"Found {symbol} definition in: {file_path}", Colors.GREEN, quiet=args.quiet)
             return file_path
         else:
-            colored_print(f"No definition found for {symbol} using git grep", Colors.YELLOW, quiet=args.quiet)
+            if not args.quiet:
+                colored_print(f"No definition found for {symbol} using git grep", Colors.YELLOW, quiet=args.quiet)
             return None
             
     except Exception as e:
@@ -536,7 +541,8 @@ def analyze_from_git_command_with_output(symbol: str, file_path: str,
     # Divide version range into sub-ranges
     version_ranges = get_version_ranges(start_version, end_version, max_workers, kernel_path)
     
-    if not quiet:
+    # Only show version range details in very_verbose mode
+    if very_verbose and not quiet:
         output_lines.append(f"{Colors.CYAN}Divided version range into {len(version_ranges)} sub-ranges:{Colors.END}")
         for i, (start_ver, end_ver) in enumerate(version_ranges):
             output_lines.append(f"{Colors.CYAN}  Thread {i+1}: {start_ver}..{end_ver}{Colors.END}")
@@ -565,8 +571,8 @@ def analyze_from_git_command_with_output(symbol: str, file_path: str,
                 results = future.result()
                 all_results.extend(results)
                 
-                # Add progress to output (only in non-quiet mode)
-                if not quiet:
+                # Add progress to output (only in very_verbose mode)
+                if very_verbose and not quiet:
                     output_lines.append(f"{Colors.BLUE}Thread {thread_id} completed: {start_ver}..{end_ver} ({len(results)} commits){Colors.END}")
                 
             except Exception as e:
@@ -592,19 +598,19 @@ def analyze_from_git_command_with_output(symbol: str, file_path: str,
                 # First time seeing this definition
                 seen_definitions[normalized_def] = result
                 filtered_results.append(result)
-                if not quiet:
+                if very_verbose and not quiet:
                     output_lines.append(f"{Colors.GREEN}Keeping first occurrence of definition: {normalized_def[:50]}...{Colors.END}")
             else:
                 # Duplicate definition found
                 original_commit = seen_definitions[normalized_def]['commit_hash']
                 current_commit = result['commit_hash']
-                if not quiet:
+                if very_verbose and not quiet:
                     output_lines.append(f"{Colors.YELLOW}Filtering duplicate definition in commit {current_commit} (same as {original_commit}){Colors.END}")
         
         all_results = filtered_results
     
-    # Add results to output (only in non-quiet mode)
-    if not quiet:
+    # Add results to output (only in very_verbose mode)
+    if very_verbose and not quiet:
         output_lines.append(f"\n{Colors.GREEN}Analysis completed in {time.time() - start_time:.2f} seconds{Colors.END}")
         output_lines.append(f"{Colors.GREEN}Total commits analyzed: {len(all_results)}{Colors.END}")
         if filter_duplicates:
@@ -692,7 +698,8 @@ def analyze_from_git_command(symbol: str, file_path: str,
     # Divide version range into sub-ranges
     version_ranges = get_version_ranges(start_version, end_version, max_workers, kernel_path)
     
-    if not quiet:
+    # Only show version range details in very_verbose mode
+    if very_verbose and not quiet:
         colored_print(f"Divided version range into {len(version_ranges)} sub-ranges:", Colors.CYAN, quiet=quiet)
         for i, (start_ver, end_ver) in enumerate(version_ranges):
             colored_print(f"  Thread {i+1}: {start_ver}..{end_ver}", Colors.CYAN, quiet=quiet)
@@ -721,8 +728,8 @@ def analyze_from_git_command(symbol: str, file_path: str,
                 results = future.result()
                 all_results.extend(results)
                 
-                # Print progress (only in non-quiet mode)
-                if not quiet:
+                # Print progress (only in very_verbose mode)
+                if very_verbose and not quiet:
                     colored_print(f"Thread {thread_id} completed: {start_ver}..{end_ver} ({len(results)} commits)", Colors.BLUE, quiet=quiet)
                 
             except Exception as e:
@@ -748,19 +755,19 @@ def analyze_from_git_command(symbol: str, file_path: str,
                 # First time seeing this definition
                 seen_definitions[normalized_def] = result
                 filtered_results.append(result)
-                if not quiet:
+                if very_verbose and not quiet:
                     colored_print(f"Keeping first occurrence of definition: {normalized_def[:50]}...", Colors.GREEN, quiet=quiet)
             else:
                 # Duplicate definition found
                 original_commit = seen_definitions[normalized_def]['commit_hash']
                 current_commit = result['commit_hash']
-                if not quiet:
+                if very_verbose and not quiet:
                     colored_print(f"Filtering duplicate definition in commit {current_commit} (same as {original_commit})", Colors.YELLOW, quiet=quiet)
         
         all_results = filtered_results
     
-    # Print results (only in non-quiet mode)
-    if not quiet:
+    # Print results (only in very_verbose mode)
+    if very_verbose and not quiet:
         colored_print(f"\nAnalysis completed in {time.time() - start_time:.2f} seconds", Colors.GREEN, bold=True, quiet=quiet)
         colored_print(f"Total commits analyzed: {len(all_results)}", Colors.GREEN, bold=True, quiet=quiet)
         if filter_duplicates:
