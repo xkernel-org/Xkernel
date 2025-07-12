@@ -16,6 +16,8 @@ from threading import Lock
 import time
 from datetime import datetime
 
+cpu_count = os.cpu_count()
+
 parser = argparse.ArgumentParser(description='Analyze symbol changes in git history. Supports multiple symbols via comma-separated list or symbols file.')
 parser.add_argument('symbol', nargs='?', help='Symbol to search for (e.g., KFREE_DRAIN_JIFFIES). Can be comma-separated list of symbols.')
 parser.add_argument('--symbols-file', '-sf', help='File containing symbols to analyze (one symbol per line)')
@@ -31,8 +33,8 @@ parser.add_argument('--very-verbose', '-vv', action='store_true',
                     help='Show very verbose output including full commit message')
 parser.add_argument('--quiet', '-q', action='store_true',
                     help='Quiet mode: only show final analysis results, hide intermediate steps')
-parser.add_argument('--threads', '-t', type=int, default=4,
-                    help='Number of threads for parallel processing (default: 4)')
+parser.add_argument('--threads', '-t', type=int, default=cpu_count,
+                    help=f'Number of threads for parallel processing (default: {cpu_count})')
 parser.add_argument('--filter-duplicates', '-d', action='store_true',
                     help='Filter commits that only change line numbers but not the actual definition value')
 
@@ -275,13 +277,32 @@ def get_commit_kernel_version(commit_hash: str, kernel_path: Optional[str] = Non
     except Exception:
         return None
 
-def parse_symbols_list(symbol_arg: Optional[str], symbols_file: Optional[str]) -> List[str]:
-    """Parse symbols from command line argument or file."""
+def parse_symbols_list(symbol_arg: Optional[str], symbols_file: Optional[str]) -> List[Tuple[str, Optional[str]]]:
+    """Parse symbols from command line argument or file. Returns list of (symbol, file_path) tuples."""
     symbols = []
     
     # Parse comma-separated symbols from command line
     if symbol_arg:
-        symbols.extend([s.strip() for s in symbol_arg.split(',') if s.strip()])
+        # Split by comma, but handle the case where comma is part of the symbol specification
+        parts = symbol_arg.split(',')
+        i = 0
+        while i < len(parts):
+            s = parts[i].strip()
+            if s:
+                # Check if this part contains a file path (next part doesn't look like a symbol)
+                if i + 1 < len(parts):
+                    next_part = parts[i + 1].strip()
+                    # If next part contains a slash, it's likely a file path
+                    if '/' in next_part or next_part.endswith('.c') or next_part.endswith('.h'):
+                        symbol = s
+                        file_path = next_part
+                        symbols.append((symbol, file_path))
+                        i += 2  # Skip the next part since we used it as file path
+                        continue
+                
+                # No file path specified
+                symbols.append((s, None))
+            i += 1
     
     # Parse symbols from file
     if symbols_file:
@@ -290,7 +311,14 @@ def parse_symbols_list(symbol_arg: Optional[str], symbols_file: Optional[str]) -
                 for line in f:
                     line = line.strip()
                     if line and not line.startswith('#'):  # Skip empty lines and comments
-                        symbols.append(line)
+                        # Check if line has file path specified
+                        if ',' in line:
+                            parts = line.split(',', 1)
+                            symbol = parts[0].strip()
+                            file_path = parts[1].strip()
+                            symbols.append((symbol, file_path))
+                        else:
+                            symbols.append((line, None))
         except FileNotFoundError:
             colored_print(f"Error: Symbols file '{symbols_file}' not found", Colors.RED)
             sys.exit(1)
@@ -301,10 +329,10 @@ def parse_symbols_list(symbol_arg: Optional[str], symbols_file: Optional[str]) -
     # Remove duplicates while preserving order
     seen = set()
     unique_symbols = []
-    for symbol in symbols:
+    for symbol, file_path in symbols:
         if symbol not in seen:
             seen.add(symbol)
-            unique_symbols.append(symbol)
+            unique_symbols.append((symbol, file_path))
     
     return unique_symbols
 
@@ -525,7 +553,7 @@ def find_symbol_definition_file(symbol: str, kernel_path: str) -> Optional[str]:
 def analyze_from_git_command_with_output(symbol: str, file_path: str, 
                                        start_version: str = 'v5.1', end_version: str = 'v6.14',
                                        kernel_path: Optional[str] = None, verbose: bool = False, very_verbose: bool = False, 
-                                       max_workers: int = 4, filter_duplicates: bool = False, quiet: bool = False) -> List[str]:
+                                       max_workers: int = 16, filter_duplicates: bool = False, quiet: bool = False) -> List[str]:
     """Run git command and analyze the output using version range multithreading. Returns output lines instead of printing."""
     output_lines = []
     
@@ -837,7 +865,7 @@ def analyze_from_git_command(symbol: str, file_path: str,
             print("-" * 80)
             print()
 
-def analyze_single_symbol(symbol: str, kernel_path: str, start_version: str, end_version: str, 
+def analyze_single_symbol(symbol: str, file_path: Optional[str], kernel_path: str, start_version: str, end_version: str, 
                          verbose: bool, very_verbose: bool, threads: int, filter_duplicates: bool, 
                          quiet: bool, symbol_index: int, total_symbols: int) -> str:
     """Analyze a single symbol. This function is designed to be run in a thread."""
@@ -851,8 +879,12 @@ def analyze_single_symbol(symbol: str, kernel_path: str, start_version: str, end
             output_lines.append(f"\n{Colors.HEADER}Symbol {symbol_index+1}/{total_symbols}: {symbol}{Colors.END}")
             output_lines.append("-" * 60)
         
-        # First, find the file containing the symbol definition
-        file_path = find_symbol_definition_file(symbol, kernel_path)
+        # Use provided file path if available, otherwise find it using git grep
+        if file_path:
+            if not args.quiet:
+                colored_print(f"Using provided file path for {symbol}: {file_path}", Colors.GREEN, quiet=args.quiet)
+        else:
+            file_path = find_symbol_definition_file(symbol, kernel_path)
         
         if file_path:
             # Run git command analysis with the found file path
@@ -890,22 +922,17 @@ def main():
     if args.symbols_file:
         args.symbols_file = os.path.expanduser(args.symbols_file)
     
-    # Validate thread count
-    if args.threads < 1:
-        colored_print("Thread count must be at least 1, using 1 thread", Colors.YELLOW)
-        args.threads = 1
-    elif args.threads > 16:
-        colored_print("Thread count capped at 16 for stability", Colors.YELLOW)
-        args.threads = 16
-    
-    colored_print(f"Analyzing {len(symbols)} symbol(s): {', '.join(symbols)}", Colors.HEADER, bold=True, quiet=args.quiet)
+    # Extract symbol names for display
+    symbol_names = [symbol for symbol, _ in symbols]
+    colored_print(f"Analyzing {len(symbols)} symbol(s): {', '.join(symbol_names)}", Colors.HEADER, bold=True, quiet=args.quiet)
     if not args.quiet:
         print("=" * 80)
     
     try:
         # For single symbol, use the original sequential approach
         if len(symbols) == 1:
-            output = analyze_single_symbol(symbols[0], args.kernel_path, args.start_version, args.end_version,
+            symbol, file_path = symbols[0]
+            output = analyze_single_symbol(symbol, file_path, args.kernel_path, args.start_version, args.end_version,
                                          args.verbose, args.very_verbose, args.threads, args.filter_duplicates,
                                          args.quiet, 0, 1)
             print(output)
@@ -919,8 +946,8 @@ def main():
             with ThreadPoolExecutor(max_workers=max_workers) as executor:
                 # Submit all symbol analysis tasks
                 futures = []
-                for i, symbol in enumerate(symbols):
-                    future = executor.submit(analyze_single_symbol, symbol, args.kernel_path, 
+                for i, (symbol, file_path) in enumerate(symbols):
+                    future = executor.submit(analyze_single_symbol, symbol, file_path, args.kernel_path, 
                                            args.start_version, args.end_version, args.verbose, 
                                            args.very_verbose, args.threads, args.filter_duplicates,
                                            args.quiet, i, len(symbols))
