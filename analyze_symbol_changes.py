@@ -2,6 +2,7 @@
 """
 Enhanced script to analyze changes of any symbol in git history.
 This script can process git log output from stdin or run git commands directly.
+Supports multithreading for faster analysis by dividing version ranges among threads.
 """
 
 import subprocess
@@ -9,7 +10,31 @@ import re
 import sys
 import argparse
 import os
-from typing import List, Dict, Optional, Union
+from typing import List, Dict, Optional, Union, Tuple
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from threading import Lock
+import time
+from datetime import datetime
+
+parser = argparse.ArgumentParser(description='Analyze symbol changes in git history')
+parser.add_argument('symbol', help='Symbol to search for (e.g., KFREE_DRAIN_JIFFIES)')
+parser.add_argument('--input', '-i', help='Read git log output from file (use - for stdin)')
+parser.add_argument('--file-path', '-f', default='kernel/rcu/tree.c', 
+                    help='Path to the file containing the symbol (relative to kernel source)')
+parser.add_argument('--start-version', '-s', default='v5.1',
+                    help='Start version/tag for git range (default: v5.1)')
+parser.add_argument('--end-version', '-e', default='v6.14',
+                    help='End version/tag for git range (default: v6.14)')
+parser.add_argument('--kernel-path', '-k', required=True,
+                    help='Path to kernel source code directory')
+parser.add_argument('--run-git', '-g', action='store_true', 
+                    help='Run git command directly instead of reading from input')
+parser.add_argument('--verbose', '-v', action='store_true',
+                    help='Show verbose output including line numbers and context')
+parser.add_argument('--threads', '-t', type=int, default=4,
+                    help='Number of threads for parallel processing (default: 4)')
+
+args = parser.parse_args()
 
 # Color codes for output
 class Colors:
@@ -23,12 +48,16 @@ class Colors:
     UNDERLINE = '\033[4m'
     END = '\033[0m'
 
+# Global lock for thread-safe printing
+print_lock = Lock()
+
 def colored_print(text: str, color: str = Colors.END, bold: bool = False):
-    """Print colored text."""
-    if bold:
-        print(f"{Colors.BOLD}{color}{text}{Colors.END}")
-    else:
-        print(f"{color}{text}{Colors.END}")
+    """Print colored text in a thread-safe manner."""
+    with print_lock:
+        if bold:
+            print(f"{Colors.BOLD}{color}{text}{Colors.END}")
+        else:
+            print(f"{color}{text}{Colors.END}")
 
 def run_git_command(cmd: List[str], kernel_path: Optional[str] = None) -> str:
     """Run a git command and return the output."""
@@ -197,11 +226,161 @@ def get_commit_info(commit_hash: str, kernel_path: Optional[str] = None) -> Dict
         }
     return {}
 
-def analyze_from_git_log_output(git_log_output: str, symbol: str, file_path: str = 'kernel/rcu/tree.c', kernel_path: Optional[str] = None, verbose: bool = False):
-    """Analyze symbol changes from git log output."""
+def get_commit_date(commit_hash: str, kernel_path: Optional[str] = None) -> Optional[datetime]:
+    """Get commit date as datetime object for sorting."""
+    cmd = ['git', 'log', '--format=format:%ad', '--date=iso', '-1', commit_hash]
+    output = run_git_command(cmd, kernel_path)
+    if output.strip():
+        try:
+            return datetime.fromisoformat(output.strip().replace('Z', '+00:00'))
+        except ValueError:
+            return None
+    return None
+
+def analyze_version_range(args: Tuple[str, str, str, str, Optional[str], bool, int, int]) -> List[Dict]:
+    """Analyze a specific version range. This function is designed to be run in a thread."""
+    start_version, end_version, symbol, file_path, kernel_path, verbose, thread_id, total_threads = args
+    
+    results = []
+    
+    try:
+        # Get git log for this version range
+        git_log_cmd = [
+            'git', 'log', '--full-history', '-S', symbol,
+            f'{start_version}..{end_version}', '--', file_path
+        ]
+        
+        git_log_output = run_git_command(git_log_cmd, kernel_path)
+        
+        if not git_log_output.strip():
+            colored_print(f"Thread {thread_id}: No changes found in range {start_version}..{end_version}", Colors.YELLOW)
+            return results
+        
+        commit_hashes = get_commit_hashes(git_log_output)
+        
+        if not commit_hashes:
+            colored_print(f"Thread {thread_id}: No relevant commits found in range {start_version}..{end_version}", Colors.YELLOW)
+            return results
+        
+        colored_print(f"Thread {thread_id}: Found {len(commit_hashes)} commits in range {start_version}..{end_version}", Colors.GREEN)
+        
+        # Analyze each commit in this range
+        for i, commit_hash in enumerate(commit_hashes):
+            result = {
+                'commit_hash': commit_hash,
+                'found': False,
+                'definition': None,
+                'definition_file': file_path,
+                'line_number': None,
+                'context': None,
+                'commit_info': None,
+                'error': None,
+                'thread_id': thread_id
+            }
+            
+            try:
+                # Get commit info
+                commit_info = get_commit_info(commit_hash, kernel_path)
+                result['commit_info'] = commit_info
+                
+                # Get commit date for sorting
+                commit_date = get_commit_date(commit_hash, kernel_path)
+                result['commit_date'] = commit_date
+                
+                # First try to get file content from the specified file
+                content = get_file_content_at_commit(commit_hash, file_path, kernel_path)
+                definition = None
+                definition_file = file_path
+                line_number = None
+                context = None
+                
+                if content:
+                    if verbose:
+                        result_ctx = find_symbol_definition_with_context(content, symbol)
+                        if result_ctx:
+                            definition, line_number, context = result_ctx
+                    else:
+                        definition = find_symbol_definition(content, symbol)
+                
+                # If not found in the specified file, check files in the commit diff
+                if not definition and kernel_path:
+                    diff_result = find_symbol_in_commit_diff(commit_hash, symbol, kernel_path, verbose)
+                    if diff_result:
+                        if verbose:
+                            definition_file, definition, line_number, context = diff_result
+                        else:
+                            definition_file, definition = diff_result
+                
+                if definition:
+                    result['found'] = True
+                    result['definition'] = definition
+                    result['definition_file'] = definition_file
+                    result['line_number'] = line_number
+                    result['context'] = context
+                    
+            except Exception as e:
+                result['error'] = str(e)
+            
+            results.append(result)
+            
+    except Exception as e:
+        colored_print(f"Thread {thread_id}: Error processing range {start_version}..{end_version}: {e}", Colors.RED)
+    
+    return results
+
+def get_version_ranges(start_version: str, end_version: str, num_threads: int, kernel_path: Optional[str] = None) -> List[Tuple[str, str]]:
+    """Divide version range into non-overlapping, ordered sub-ranges for each thread (only formal releases)."""
+    if num_threads == 1:
+        return [(start_version, end_version)]
+    
+    # Get all tags between start and end versions
+    cmd = ['git', 'tag', '--list', '--sort=version:refname']
+    all_tags_output = run_git_command(cmd, kernel_path)
+    
+    if not all_tags_output:
+        return [(start_version, end_version)]
+    
+    # Parse tags and filter by version range, only keep formal releases
+    all_tags = [tag.strip() for tag in all_tags_output.strip().split('\n') if tag.strip()]
+    filtered_tags = []
+    for tag in all_tags:
+        if tag >= start_version and tag <= end_version:
+            if re.match(r'^v\d+\.\d+$', tag):
+                filtered_tags.append(tag)
+    
+    # Add start and end versions if not already present
+    if start_version not in filtered_tags:
+        filtered_tags.insert(0, start_version)
+    if end_version not in filtered_tags:
+        filtered_tags.append(end_version)
+    
+    # Sort tags
+    filtered_tags = sorted(set(filtered_tags), key=lambda x: [int(i) for i in x[1:].split('.')])
+    
+    # If区间数大于tag数，直接每个区间只分配一个tag
+    if len(filtered_tags) <= num_threads:
+        return [(filtered_tags[i], filtered_tags[i+1]) for i in range(len(filtered_tags)-1)]
+    
+    # 均匀划分区间
+    step = (len(filtered_tags) - 1) // num_threads
+    remainder = (len(filtered_tags) - 1) % num_threads
+    ranges = []
+    idx = 0
+    for i in range(num_threads):
+        next_idx = idx + step + (1 if i < remainder else 0)
+        start = filtered_tags[idx]
+        end = filtered_tags[next_idx]
+        ranges.append((start, end))
+        idx = next_idx
+    return ranges
+
+def analyze_from_git_log_output(git_log_output: str, symbol: str, file_path: str = 'kernel/rcu/tree.c', 
+                               kernel_path: Optional[str] = None, verbose: bool = False, max_workers: int = 4):
+    """Analyze symbol changes from git log output using multithreading by version ranges."""
     colored_print(f"Analyzing {symbol} changes in git history...", Colors.HEADER, bold=True)
     if kernel_path:
         colored_print(f"Using kernel source path: {kernel_path}", Colors.CYAN)
+    colored_print(f"Using {max_workers} threads for parallel processing", Colors.CYAN)
     print("=" * 80)
     
     if not git_log_output.strip():
@@ -217,7 +396,7 @@ def analyze_from_git_log_output(git_log_output: str, symbol: str, file_path: str
     colored_print(f"Found {len(commit_hashes)} relevant commits", Colors.GREEN, bold=True)
     print()
     
-    # Analyze each commit
+    # Analyze each commit (fallback to original method for git log input)
     for i, commit_hash in enumerate(commit_hashes):
         colored_print(f"Commit {i+1}/{len(commit_hashes)}: {commit_hash}", Colors.BLUE, bold=True)
         
@@ -271,35 +450,95 @@ def analyze_from_git_log_output(git_log_output: str, symbol: str, file_path: str
 
 def analyze_from_git_command(symbol: str, file_path: str = 'kernel/rcu/tree.c', 
                            start_version: str = 'v5.1', end_version: str = 'v6.14',
-                           kernel_path: Optional[str] = None, verbose: bool = False):
-    """Run git command and analyze the output."""
-    git_log_cmd = [
-        'git', 'log', '--full-history', '-S', symbol,
-        f'{start_version}..{end_version}', '--', file_path
-    ]
+                           kernel_path: Optional[str] = None, verbose: bool = False, max_workers: int = 4):
+    """Run git command and analyze the output using version range multithreading."""
+    colored_print(f"Analyzing {symbol} changes from {start_version} to {end_version}...", Colors.HEADER, bold=True)
+    if kernel_path:
+        colored_print(f"Using kernel source path: {kernel_path}", Colors.CYAN)
+    colored_print(f"Using {max_workers} threads for parallel processing", Colors.CYAN)
+    print("=" * 80)
     
-    git_log_output = run_git_command(git_log_cmd, kernel_path)
-    analyze_from_git_log_output(git_log_output, symbol, file_path, kernel_path, verbose)
+    # Divide version range into sub-ranges
+    version_ranges = get_version_ranges(start_version, end_version, max_workers, kernel_path)
+    
+    colored_print(f"Divided version range into {len(version_ranges)} sub-ranges:", Colors.CYAN)
+    for i, (start_ver, end_ver) in enumerate(version_ranges):
+        colored_print(f"  Thread {i+1}: {start_ver}..{end_ver}", Colors.CYAN)
+    print()
+    
+    # Prepare arguments for thread pool
+    thread_args = []
+    for i, (start_ver, end_ver) in enumerate(version_ranges):
+        thread_args.append((start_ver, end_ver, symbol, file_path, kernel_path, verbose, i + 1, max_workers))
+    
+    # Process version ranges in parallel
+    start_time = time.time()
+    all_results = []
+    
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        # Submit all tasks
+        future_to_range = {executor.submit(analyze_version_range, args): args for args in thread_args}
+        
+        # Process completed tasks
+        for future in as_completed(future_to_range):
+            range_args = future_to_range[future]
+            start_ver, end_ver = range_args[0], range_args[1]
+            thread_id = range_args[6]
+            
+            try:
+                results = future.result()
+                all_results.extend(results)
+                
+                # Print progress
+                colored_print(f"Thread {thread_id} completed: {start_ver}..{end_ver} ({len(results)} commits)", Colors.BLUE)
+                
+            except Exception as e:
+                colored_print(f"Error in thread {thread_id} processing range {start_ver}..{end_ver}: {e}", Colors.RED)
+    
+    # Sort results by commit date
+    all_results.sort(key=lambda x: x.get('commit_date', datetime.min))
+    
+    # Print results
+    colored_print(f"\nAnalysis completed in {time.time() - start_time:.2f} seconds", Colors.GREEN, bold=True)
+    colored_print(f"Total commits analyzed: {len(all_results)}", Colors.GREEN, bold=True)
+    print()
+    
+    for i, result in enumerate(all_results):
+        commit_hash = result['commit_hash']
+        thread_id = result.get('thread_id', 'N/A')
+        
+        colored_print(f"Commit {i+1}/{len(all_results)} (Thread {thread_id}): {commit_hash}", Colors.BLUE, bold=True)
+        
+        if result['error']:
+            colored_print(f"Error: {result['error']}", Colors.RED)
+            print("-" * 80)
+            print()
+            continue
+        
+        # Print commit info
+        commit_info = result['commit_info']
+        if commit_info:
+            colored_print(f"Author: {commit_info['author']}", Colors.CYAN)
+            colored_print(f"Date: {commit_info['date']}", Colors.CYAN)
+            colored_print(f"Message: {commit_info['message']}", Colors.CYAN)
+        
+        if result['found']:
+            if verbose and result['line_number']:
+                colored_print(f"{symbol} definition (line {result['line_number']}):", Colors.GREEN, bold=True)
+            else:
+                colored_print(f"{symbol} definition:", Colors.GREEN, bold=True)
+            print(f"  {result['definition']}")
+            if verbose and result['context']:
+                colored_print("  Context:", Colors.CYAN)
+                print(f"  {result['context']}")
+        else:
+            colored_print(f"  No definition found for {symbol}", Colors.RED)
+        
+        print("-" * 80)
+        print()
 
 def main():
     """Main entry point."""
-    parser = argparse.ArgumentParser(description='Analyze symbol changes in git history')
-    parser.add_argument('symbol', help='Symbol to search for (e.g., KFREE_DRAIN_JIFFIES)')
-    parser.add_argument('--input', '-i', help='Read git log output from file (use - for stdin)')
-    parser.add_argument('--file-path', '-f', default='kernel/rcu/tree.c', 
-                       help='Path to the file containing the symbol (relative to kernel source)')
-    parser.add_argument('--start-version', '-s', default='v5.1',
-                       help='Start version/tag for git range (default: v5.1)')
-    parser.add_argument('--end-version', '-e', default='v6.14',
-                       help='End version/tag for git range (default: v6.14)')
-    parser.add_argument('--kernel-path', '-k', required=True,
-                       help='Path to kernel source code directory')
-    parser.add_argument('--run-git', '-g', action='store_true', 
-                       help='Run git command directly instead of reading from input')
-    parser.add_argument('--verbose', '-v', action='store_true',
-                       help='Show verbose output including line numbers and context')
-    
-    args = parser.parse_args()
     
     # Expand user paths
     if args.kernel_path:
@@ -307,9 +546,18 @@ def main():
     if args.file_path:
         args.file_path = os.path.expanduser(args.file_path)
     
+    # Validate thread count
+    if args.threads < 1:
+        colored_print("Thread count must be at least 1, using 1 thread", Colors.YELLOW)
+        args.threads = 1
+    elif args.threads > 16:
+        colored_print("Thread count capped at 16 for stability", Colors.YELLOW)
+        args.threads = 16
+    
     try:
         if args.run_git:
-            analyze_from_git_command(args.symbol, args.file_path, args.start_version, args.end_version, args.kernel_path, args.verbose)
+            analyze_from_git_command(args.symbol, args.file_path, args.start_version, args.end_version, 
+                                   args.kernel_path, args.verbose, args.threads)
         elif args.input:
             if args.input == '-':
                 # Read from stdin
@@ -318,10 +566,12 @@ def main():
                 # Read from file
                 with open(args.input, 'r') as f:
                     git_log_output = f.read()
-            analyze_from_git_log_output(git_log_output, args.symbol, args.file_path, args.kernel_path, args.verbose)
+            analyze_from_git_log_output(git_log_output, args.symbol, args.file_path, args.kernel_path, 
+                                      args.verbose, args.threads)
         else:
             # Default: run git command
-            analyze_from_git_command(args.symbol, args.file_path, args.start_version, args.end_version, args.kernel_path, args.verbose)
+            analyze_from_git_command(args.symbol, args.file_path, args.start_version, args.end_version, 
+                                   args.kernel_path, args.verbose, args.threads)
             
     except KeyboardInterrupt:
         colored_print("\nAnalysis interrupted by user", Colors.YELLOW)
