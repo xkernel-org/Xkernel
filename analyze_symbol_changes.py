@@ -33,6 +33,8 @@ parser.add_argument('--verbose', '-v', action='store_true',
                     help='Show verbose output including line numbers and context')
 parser.add_argument('--threads', '-t', type=int, default=4,
                     help='Number of threads for parallel processing (default: 4)')
+parser.add_argument('--filter-duplicates', '-d', action='store_true',
+                    help='Filter commits that only change line numbers but not the actual definition value')
 
 args = parser.parse_args()
 
@@ -236,6 +238,36 @@ def get_commit_date(commit_hash: str, kernel_path: Optional[str] = None) -> Opti
         except ValueError:
             return None
     return None
+
+def normalize_definition(definition: str) -> str:
+    """Normalize definition by removing whitespace and comments to compare content."""
+    if not definition:
+        return ""
+    
+    # Remove comments and extra whitespace
+    lines = definition.split('\n')
+    normalized_lines = []
+    
+    for line in lines:
+        # Remove comments (both // and /* */)
+        line = re.sub(r'//.*$', '', line)  # Remove // comments
+        line = re.sub(r'/\*.*?\*/', '', line)  # Remove /* */ comments
+        line = line.strip()
+        if line:
+            normalized_lines.append(line)
+    
+    return ' '.join(normalized_lines)
+
+def definitions_are_equivalent(def1: str, def2: str) -> bool:
+    """Compare two definitions to see if they are equivalent (ignoring position/line numbers)."""
+    if not def1 or not def2:
+        return False
+    
+    # Normalize both definitions
+    norm1 = normalize_definition(def1)
+    norm2 = normalize_definition(def2)
+    
+    return norm1 == norm2
 
 def analyze_version_range(args: Tuple[str, str, str, str, Optional[str], bool, int, int]) -> List[Dict]:
     """Analyze a specific version range. This function is designed to be run in a thread."""
@@ -450,12 +482,15 @@ def analyze_from_git_log_output(git_log_output: str, symbol: str, file_path: str
 
 def analyze_from_git_command(symbol: str, file_path: str = 'kernel/rcu/tree.c', 
                            start_version: str = 'v5.1', end_version: str = 'v6.14',
-                           kernel_path: Optional[str] = None, verbose: bool = False, max_workers: int = 4):
+                           kernel_path: Optional[str] = None, verbose: bool = False, max_workers: int = 4,
+                           filter_duplicates: bool = False):
     """Run git command and analyze the output using version range multithreading."""
     colored_print(f"Analyzing {symbol} changes from {start_version} to {end_version}...", Colors.HEADER, bold=True)
     if kernel_path:
         colored_print(f"Using kernel source path: {kernel_path}", Colors.CYAN)
     colored_print(f"Using {max_workers} threads for parallel processing", Colors.CYAN)
+    if filter_duplicates:
+        colored_print("Filtering duplicate definitions (keeping earliest commit)", Colors.CYAN)
     print("=" * 80)
     
     # Divide version range into sub-ranges
@@ -498,9 +533,37 @@ def analyze_from_git_command(symbol: str, file_path: str = 'kernel/rcu/tree.c',
     # Sort results by commit date
     all_results.sort(key=lambda x: x.get('commit_date', datetime.min))
     
+    # Filter duplicate definitions if requested
+    if filter_duplicates:
+        filtered_results = []
+        seen_definitions = {}
+        
+        for result in all_results:
+            if not result['found'] or not result['definition']:
+                filtered_results.append(result)
+                continue
+            
+            definition = result['definition']
+            normalized_def = normalize_definition(definition)
+            
+            if normalized_def not in seen_definitions:
+                # First time seeing this definition
+                seen_definitions[normalized_def] = result
+                filtered_results.append(result)
+                colored_print(f"Keeping first occurrence of definition: {normalized_def[:50]}...", Colors.GREEN)
+            else:
+                # Duplicate definition found
+                original_commit = seen_definitions[normalized_def]['commit_hash']
+                current_commit = result['commit_hash']
+                colored_print(f"Filtering duplicate definition in commit {current_commit} (same as {original_commit})", Colors.YELLOW)
+        
+        all_results = filtered_results
+    
     # Print results
     colored_print(f"\nAnalysis completed in {time.time() - start_time:.2f} seconds", Colors.GREEN, bold=True)
     colored_print(f"Total commits analyzed: {len(all_results)}", Colors.GREEN, bold=True)
+    if filter_duplicates:
+        colored_print(f"Filtered duplicate definitions: {len(seen_definitions) if 'seen_definitions' in locals() else 0} unique definitions", Colors.GREEN, bold=True)
     print()
     
     for i, result in enumerate(all_results):
@@ -557,7 +620,7 @@ def main():
     try:
         if args.run_git:
             analyze_from_git_command(args.symbol, args.file_path, args.start_version, args.end_version, 
-                                   args.kernel_path, args.verbose, args.threads)
+                                   args.kernel_path, args.verbose, args.threads, args.filter_duplicates)
         elif args.input:
             if args.input == '-':
                 # Read from stdin
@@ -571,7 +634,7 @@ def main():
         else:
             # Default: run git command
             analyze_from_git_command(args.symbol, args.file_path, args.start_version, args.end_version, 
-                                   args.kernel_path, args.verbose, args.threads)
+                                   args.kernel_path, args.verbose, args.threads, args.filter_duplicates)
             
     except KeyboardInterrupt:
         colored_print("\nAnalysis interrupted by user", Colors.YELLOW)
