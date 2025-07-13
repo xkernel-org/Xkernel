@@ -21,8 +21,8 @@ cpu_count = os.cpu_count()
 parser = argparse.ArgumentParser(description='Analyze symbol changes in git history. Supports multiple symbols via comma-separated list or symbols file.')
 parser.add_argument('symbol', nargs='?', help='Symbol to search for (e.g., KFREE_DRAIN_JIFFIES). Can be comma-separated list of symbols.')
 parser.add_argument('--symbols-file', '-sf', help='File containing symbols to analyze (one symbol per line)')
-parser.add_argument('--start-version', '-s', default='v5.1',
-                    help='Start version/tag for git range (default: v5.1)')
+parser.add_argument('--start-version', '-s', default='v3.0',
+                    help='Start version/tag for git range (default: v3.0)')
 parser.add_argument('--end-version', '-e', default='v6.14',
                     help='End version/tag for git range (default: v6.14)')
 parser.add_argument('--kernel-path', '-k', required=True,
@@ -551,7 +551,7 @@ def find_symbol_definition_file(symbol: str, kernel_path: str) -> Optional[str]:
         return None
 
 def analyze_from_git_command_with_output(symbol: str, file_path: str, 
-                                       start_version: str = 'v5.1', end_version: str = 'v6.14',
+                                       start_version: str = 'v3.0', end_version: str = 'v6.14',
                                        kernel_path: Optional[str] = None, verbose: bool = False, very_verbose: bool = False, 
                                        max_workers: int = 16, filter_duplicates: bool = False, quiet: bool = False) -> List[str]:
     """Run git command and analyze the output using version range multithreading. Returns output lines instead of printing."""
@@ -710,9 +710,9 @@ def analyze_from_git_command_with_output(symbol: str, file_path: str,
     return output_lines
 
 def analyze_from_git_command(symbol: str, file_path: str, 
-                           start_version: str = 'v5.1', end_version: str = 'v6.14',
+                           start_version: str = 'v3.0', end_version: str = 'v6.14',
                            kernel_path: Optional[str] = None, verbose: bool = False, very_verbose: bool = False, 
-                           max_workers: int = 4, filter_duplicates: bool = False, quiet: bool = False):
+                           max_workers: int = 16, filter_duplicates: bool = False, quiet: bool = False):
     """Run git command and analyze the output using version range multithreading."""
     if not quiet:
         colored_print(f"Analyzing {symbol} changes from {start_version} to {end_version}...", Colors.HEADER, bold=True, quiet=quiet)
