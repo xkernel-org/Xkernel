@@ -94,7 +94,7 @@ The `analyze_symbol_changes.py` script is a powerful tool for analyzing changes 
 python analyze_symbol_changes.py SMC_TX_WORK_DELAY --kernel-path ~/linux --start-version v5.0 --end-version v5.2
 
 # Analyze multiple symbols
-python analyze_symbol_changes.py "SMC_TX_WORK_DELAY,NETDEV_TX_BUSY" --kernel-path ~/linux
+python analyze_symbol_changes.py "SMC_TX_WORK_DELAY,MAX_GRO_SKBS" --kernel-path ~/linux
 
 # Use symbols from a file
 python analyze_symbol_changes.py --symbols-file symbols.txt --kernel-path ~/linux
@@ -162,7 +162,7 @@ f46b9cdb | Wed Nov 20 [v6.12-rc4] | io_uring: limit local tw done | #define IO_L
 506e931f | Wed May 7  [v3.15-rc1] | blk-mq: add basic round-robin of what CPU to queue workqueue work on | BLK_MQ_CPU_WORK_BATCH        = 8,
 
 [3] BLK_MQ_BUDGET_DELAY
-a0823421 | Mon Apr 20 [v5.7-rc2] | blk-mq: Rerun dispatching in the case of budget contention | #define BLK_MQ_BUDGET_DELAY     3           /* ms units */
+a0823421 | Mon Apr 20 [v5.7-rc2] | blk-mq: Rerun dispatching in the case of budget contention | #define BLK_MQ_BUDGET_DELAY     3               /* ms units */
 
 [4] BLK_MQ_RESOURCE_DELAY
 86ff7c2a | Tue Jan 30 [v4.15] | blk-mq: introduce BLK_STS_DEV_RESOURCE | #define BLK_MQ_RESOURCE_DELAY  3               /* ms units */
@@ -201,6 +201,83 @@ f38ba179 | Mon Jan 9  [v4.10-rc3] | smc: work request (WR) base for use by LLC a
 [15] SMC_TX_WORK_DELAY
 18e537cd | Thu Sep 21 [v4.14-rc1] | net/smc: introduce a delay | #define SMC_TX_WORK_DELAY      HZ
 16297d14 | Tue Feb 12 [v5.0-rc5] | net/smc: no delay for free tx buffer wait | #define SMC_TX_WORK_DELAY        0
+
+[16] MAX_SCAN_WINDOW
+598f0ec0 | Mon Oct 7  [v3.12-rc4] | sched/numa: Set the scan rate proportional to the memory usage of the task being scanned | #define MAX_SCAN_WINDOW 2560
+
+[17] NUMA_IMBALANCE_MIN
+abeae76a | Fri Nov 20 [v5.10-rc1] | sched/numa: Rename nr_running and break out the magic number | #define NUMA_IMBALANCE_MIN 2
+
+[18] NUMA_PERIOD_SLOTS
+04bb2f94 | Mon Oct 7  [v3.12-rc4] | sched/numa: Adjust scan rate in task_numa_placement | #define NUMA_PERIOD_SLOTS 10
+
+[19] NUMA_PERIOD_THRESHOLD
+04bb2f94 | Mon Oct 7  [v3.12-rc4] | sched/numa: Adjust scan rate in task_numa_placement | #define NUMA_PERIOD_THRESHOLD 3
+a22b4b01 | Mon Jun 23 [v3.16-rc1] | sched/numa: Change scan period code to match intent | #define NUMA_PERIOD_THRESHOLD 7
+
+[20] DL_SCALE
+332ac17e | Thu Nov 7  [v3.13-rc7] | sched/deadline: Add bandwidth management for SCHED_DEADLINE tasks | #define DL_SCALE (10)
+97fb7a0a | Sat Mar 3  [v4.16-rc2] | sched: Clean up and harmonize the coding style of the scheduler code base | #define DL_SCALE                10
+
+[21] LOAD_AVG_PERIOD
+283e2ed3 | Tue Apr 11 [v4.11-rc6] | sched/fair: Move the PELT constants into a generated header | #define LOAD_AVG_PERIOD 32
+
+[22] LOAD_AVG_MAX
+283e2ed3 | Tue Apr 11 [v4.11-rc6] | sched/fair: Move the PELT constants into a generated header | #define LOAD_AVG_MAX 47742
+
+[23] RR_TIMESLICE
+45ebd394 | Wed Feb 20 [v3.8] | sched: Move RR_TIMESLICE from sysctl.h to rt.h | #define RR_TIMESLICE            (100 * HZ / 1000)
+
+[24] MAX_MEAS
+4e88ec4a | Tue Aug 11 [v5.9-rc1] | rcuperf: Change rcuperf to rcuscale | #define MAX_MEAS 10000
+
+[25] MIN_MEAS
+4e88ec4a | Tue Aug 11 [v5.9-rc1] | rcuperf: Change rcuperf to rcuscale | #define MIN_MEAS 100
+
+[26] RCU_KTHREAD_MAX
+4102adab | Tue Oct 8  [v3.12-rc1] | rcu: Move RCU-related source code to kernel/rcu directory | #define RCU_KTHREAD_MAX      4
+
+[27] RCU_JIFFIES_TILL_FORCE_QS
+4102adab | Tue Oct 8  [v3.12-rc1] | rcu: Move RCU-related source code to kernel/rcu directory | #define RCU_JIFFIES_TILL_FORCE_QS (1 + (HZ > 250) + (HZ > 500))
+
+[28] WCI_MAX_ENTS
+63638450 | Wed May 17 [v6.4-rc1] | workqueue: Report work funcs that trigger automatic CPU_INTENSIVE mechanism | #define WCI_MAX_ENTS 128
+
+[29] BH_WORKER_RESTARTS
+4cb1ef64 | Sun Feb 4  [v6.7] | workqueue: Implement BH workqueues to eventually replace tasklets | #define BH_WORKER_RESTARTS   10
+
+[30] BH_WORKER_JIFFIES
+4cb1ef64 | Sun Feb 4  [v6.7] | workqueue: Implement BH workqueues to eventually replace tasklets | #define BH_WORKER_JIFFIES    msecs_to_jiffies(2)
+
+[31] XDP_BULK_QUEUE_SIZE
+89653987 | Fri Nov 13 [v5.9] | net: xdp: Introduce bulking for xdp tx return path | #define XDP_BULK_QUEUE_SIZE 16
+
+[32] MPTCP_SCHED_MAX
+73c900aa | Mon May 13 [v6.9-rc7] | mptcp: add net.mptcp.available_schedulers | #define MPTCP_SCHED_MAX          128
+
+[33] MPTCP_SUBFLOWS_MAX
+740ebe35 | Mon Aug 21 [v6.5-rc6] | mptcp: add struct mptcp_sched_ops | #define MPTCP_SUBFLOWS_MAX       8
+
+[34] TCP_RACK_RECOVERY_THRESH
+1f255691 | Fri Nov 3  [v4.14-rc7] | tcp: higher throughput under reordering with adaptive RACK reordering wnd | #define TCP_RACK_RECOVERY_THRESH 16
+
+[35] NVME_NVM_IOSQES
+69cd27e2 | Mon Jun 6  [v4.7-rc2] | nvme.h: add NVM command set SQE/CQE size defines | #define NVME_NVM_IOSQES           6
+
+[36] NVME_NVM_IOCQES
+69cd27e2 | Mon Jun 6  [v4.7-rc2] | nvme.h: add NVM command set SQE/CQE size defines | #define NVME_NVM_IOCQES           4
+
+[37] NVME_ADM_SQES
+c1e0cc7e | Wed Aug 7  [v5.3-rc3] | nvme-pci: Add support for variable IO SQ element size | #define NVME_ADM_SQES       6
+
+[38] MIN_THREADS
+ac1b398d | Thu Apr 16 [v4.0] | kernel/fork.c: avoid division by zero | #define MIN_THREADS 20
+
+[39] GRO_HASH_BUCKETS
+07d78363 | Sun Jun 24 [v4.18-rc2] | net: Convert NAPI gro list into a small hash table. | #define GRO_HASH_BUCKETS      8
+
+[40] SHRINK_BATCH
+96f7b2b9 | Mon Sep 11 [v6.6-rc4] | mm: vmscan: move shrinker-related code into a separate file | #define SHRINK_BATCH 128
 ```
 </details>
 

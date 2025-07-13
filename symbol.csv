@@ -13,3 +13,30 @@ MAX_SOFTIRQ_TIME,kernel/softirq.c
 MAX_SOFTIRQ_RESTART,kernel/softirq.c
 SMC_WR_BUF_CNT,net/smc/smc_wr.h
 SMC_TX_WORK_DELAY,net/smc/smc_tx.c
+MAX_SCAN_WINDOW, kernel/sched/fair.c
+NUMA_IMBALANCE_MIN, kernel/sched/fair.c
+NUMA_PERIOD_SLOTS, kernel/sched/fair.c
+NUMA_PERIOD_THRESHOLD, kernel/sched/fair.c
+DL_SCALE, kernel/sched/sched.h
+LOAD_AVG_PERIOD, kernel/sched/sched-pelt.h
+LOAD_AVG_MAX, kernel/sched/sched-pelt.h
+RR_TIMESLICE, include/linux/sched/rt.h
+MAX_MEAS, kernel/rcu/rcuscale.c
+MIN_MEAS, kernel/rcu/rcuscale.c
+RCU_KTHREAD_MAX, kernel/rcu/tree.h
+RCU_JIFFIES_TILL_FORCE_QS, kernel/rcu/tree.h
+WCI_MAX_ENTS, kernel/workqueue.c
+BH_WORKER_RESTARTS, kernel/workqueue.c
+BH_WORKER_JIFFIES, kernel/workqueue.c
+XDP_BULK_QUEUE_SIZE, include/net/xdp.h
+MPTCP_SCHED_MAX, include/net/mptcp.h
+MPTCP_SUBFLOWS_MAX, include/net/mptcp.h
+TCP_RACK_RECOVERY_THRESH, include/linux/tcp.h
+NVME_NVM_IOSQES, include/linux/nvme.h
+NVME_NVM_IOCQES, include/linux/nvme.h
+NVME_ADM_SQES, include/linux/nvme.h
+MIN_THREADS, kernel/fork.c
+GRO_HASH_BUCKETS, include/linux/netdevice.h
+SHRINK_BATCH, mm/shrinker.c
+
+
