@@ -505,11 +505,11 @@ def get_version_ranges(start_version: str, end_version: str, num_threads: int, k
     # Sort tags
     filtered_tags = sorted(set(filtered_tags), key=lambda x: [int(i) for i in x[1:].split('.')])
     
-    # If区间数大于tag数，直接每个区间只分配一个tag
+    # If number of ranges is greater than number of tags, assign one tag per range
     if len(filtered_tags) <= num_threads:
         return [(filtered_tags[i], filtered_tags[i+1]) for i in range(len(filtered_tags)-1)]
     
-    # 均匀划分区间
+    # Evenly divide ranges
     step = (len(filtered_tags) - 1) // num_threads
     remainder = (len(filtered_tags) - 1) % num_threads
     ranges = []
