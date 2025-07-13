@@ -375,7 +375,7 @@ def analyze_version_range(args: Tuple[str, str, str, str, Optional[str], bool, b
     try:
         # Get git log for this version range
         git_log_cmd = [
-            'git', 'log', '--full-history', '-S', symbol,
+            'git', 'log', '--full-history', '-G', symbol,
             f'{start_version}..{end_version}', '--', file_path
         ]
         
