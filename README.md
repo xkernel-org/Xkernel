@@ -148,7 +148,7 @@ SMC_TX_WORK_DELAY
 ### Output Examples
 
 <details>
-<summary>Click to expand: Sample output from batch analysis</summary>
+<summary>Click to expand: Summary of the output</summary>
 
 ```bash
 python3 analyze_symbol_changes.py -sf symbol.csv -k ~/linux -q -d
@@ -201,6 +201,306 @@ f38ba179 | Mon Jan 9  [v4.10-rc3] | smc: work request (WR) base for use by LLC a
 [15] SMC_TX_WORK_DELAY
 18e537cd | Thu Sep 21 [v4.14-rc1] | net/smc: introduce a delay | #define SMC_TX_WORK_DELAY      HZ
 16297d14 | Tue Feb 12 [v5.0-rc5] | net/smc: no delay for free tx buffer wait | #define SMC_TX_WORK_DELAY        0
+```
+</details>
+
+<details>
+<summary>Click to expand: Detailed output</summary>
+
+```bash
+python3 analyze_symbol_changes.py -sf symbol.csv -k ~/linux -d -v
+```
+
+```
+Analyzing 1 symbol(s): SMC_TX_WORK_DELAY
+================================================================================
+Found SMC_TX_WORK_DELAY definition in: net/smc/smc_tx.c
+
+Symbol 1/1: SMC_TX_WORK_DELAY
+------------------------------------------------------------
+Analyzing SMC_TX_WORK_DELAY changes from v3.0 to v6.14...
+Using kernel source path: /users/chenzj/linux
+Using 56 threads for parallel processing
+Filtering duplicate definitions (keeping earliest commit)
+================================================================================
+Commit 1/2 (Thread 23): 18e537cd58e8d6932719bfa79cb96a1fbc639199
+Author: Ursula Braun
+Date: Thu Sep 21 09:16:33 2017 +0200
+Kernel Version: v4.14-rc1
+Message: net/smc: introduce a delay
+SMC_TX_WORK_DELAY definition (line 27):
+  #define SMC_TX_WORK_DELAY     HZ
+  Context:
+        25: #include "smc_tx.h"
+      26: 
+>>>   27: #define SMC_TX_WORK_DELAY     HZ
+      28: 
+      29: /***************************** sndbuf producer *******************************/
+--------------------------------------------------------------------------------
+
+Commit 2/2 (Thread 31): 16297d143989e3f5acd75c1ca0a771b78aa12b46
+Author: Karsten Graul
+Date: Tue Feb 12 16:29:52 2019 +0100
+Kernel Version: v5.0-rc5
+Message: net/smc: no delay for free tx buffer wait
+SMC_TX_WORK_DELAY definition (line 31):
+  #define SMC_TX_WORK_DELAY     0
+  Context:
+        29: #include "smc_tx.h"
+      30: 
+>>>   31: #define SMC_TX_WORK_DELAY     0
+      32: #define SMC_TX_CORK_DELAY     (HZ >> 2)       /* 250 ms */
+      33: 
+--------------------------------------------------------------------------------
+```
+
+</details>
+
+<details>
+<summary>Click to expand: Very detailed output (full commit message)</summary>
+
+```bash
+python3 analyze_symbol_changes.py SMC_TX_WORK_DELAY -k ~/linux -d -vv
+```
+
+```
+Analyzing 1 symbol(s): SMC_TX_WORK_DELAY
+================================================================================
+Found SMC_TX_WORK_DELAY definition in: net/smc/smc_tx.c
+Thread 3: No changes found in range v3.4..v3.6
+Thread 1: No changes found in range v3.0..v3.2
+Thread 16: No changes found in range v4.6..v4.7
+Thread 13: No changes found in range v4.3..v4.4
+Thread 2: No changes found in range v3.2..v3.4
+Thread 23: Found 1 commits in range v4.13..v4.14
+Thread 27: Found 1 commits in range v4.17..v4.18
+Thread 29: No changes found in range v4.19..v4.20
+Thread 17: No changes found in range v4.7..v4.8
+Thread 12: No changes found in range v4.2..v4.3
+Thread 39: No changes found in range v5.8..v5.9
+Thread 20: No changes found in range v4.10..v4.11
+Thread 28: No changes found in range v4.18..v4.19
+Thread 30: No changes found in range v4.20..v5.0
+Thread 54: No changes found in range v6.11..v6.12
+Thread 31: Found 1 commits in range v5.0..v5.1
+Thread 25: Found 1 commits in range v4.15..v4.16
+Thread 55: No changes found in range v6.12..v6.13
+Thread 34: No changes found in range v5.3..v5.4
+Thread 24: No changes found in range v4.14..v4.15
+Thread 22: No changes found in range v4.12..v4.13
+Thread 56: No changes found in range v6.13..v6.14
+Thread 41: No changes found in range v5.10..v5.11
+Thread 4: No changes found in range v3.6..v3.8
+Thread 50: No changes found in range v5.19..v6.0
+Thread 15: No changes found in range v4.5..v4.6
+Thread 53: No changes found in range v6.10..v6.11
+Thread 5: No changes found in range v3.8..v3.10
+Thread 45: No changes found in range v5.14..v5.15
+Thread 37: No changes found in range v5.6..v5.7
+Thread 33: No changes found in range v5.2..v5.3
+Thread 47: No changes found in range v5.16..v5.17
+Thread 26: No changes found in range v4.16..v4.17
+Thread 19: No changes found in range v4.9..v4.10
+Thread 8: No changes found in range v3.14..v3.16
+Thread 6: No changes found in range v3.10..v3.12
+Thread 32: No changes found in range v5.1..v5.2
+Thread 36: No changes found in range v5.5..v5.6
+Thread 44: No changes found in range v5.13..v5.14
+Thread 49: No changes found in range v5.18..v5.19
+Thread 43: No changes found in range v5.12..v5.13
+Thread 11: No changes found in range v4.0..v4.2
+Thread 48: No changes found in range v5.17..v5.18
+Thread 38: No changes found in range v5.7..v5.8
+Thread 7: No changes found in range v3.12..v3.14
+Thread 42: No changes found in range v5.11..v5.12
+Thread 40: Found 1 commits in range v5.9..v5.10
+Thread 35: Found 1 commits in range v5.4..v5.5
+Thread 21: No changes found in range v4.11..v4.12
+Thread 9: No changes found in range v3.16..v3.18
+Thread 10: No changes found in range v3.18..v4.0
+Thread 14: No changes found in range v4.4..v4.5
+Thread 51: No changes found in range v6.0..v6.1
+Thread 46: No changes found in range v5.15..v5.16
+Thread 18: No changes found in range v4.8..v4.9
+Thread 52: No changes found in range v6.1..v6.10
+
+Symbol 1/1: SMC_TX_WORK_DELAY
+------------------------------------------------------------
+Analyzing SMC_TX_WORK_DELAY changes from v3.0 to v6.14...
+Using kernel source path: /users/chenzj/linux
+Using 56 threads for parallel processing
+Filtering duplicate definitions (keeping earliest commit)
+================================================================================
+Divided version range into 56 sub-ranges:
+  Thread 1: v3.0..v3.2
+  Thread 2: v3.2..v3.4
+  Thread 3: v3.4..v3.6
+  Thread 4: v3.6..v3.8
+  Thread 5: v3.8..v3.10
+  Thread 6: v3.10..v3.12
+  Thread 7: v3.12..v3.14
+  Thread 8: v3.14..v3.16
+  Thread 9: v3.16..v3.18
+  Thread 10: v3.18..v4.0
+  Thread 11: v4.0..v4.2
+  Thread 12: v4.2..v4.3
+  Thread 13: v4.3..v4.4
+  Thread 14: v4.4..v4.5
+  Thread 15: v4.5..v4.6
+  Thread 16: v4.6..v4.7
+  Thread 17: v4.7..v4.8
+  Thread 18: v4.8..v4.9
+  Thread 19: v4.9..v4.10
+  Thread 20: v4.10..v4.11
+  Thread 21: v4.11..v4.12
+  Thread 22: v4.12..v4.13
+  Thread 23: v4.13..v4.14
+  Thread 24: v4.14..v4.15
+  Thread 25: v4.15..v4.16
+  Thread 26: v4.16..v4.17
+  Thread 27: v4.17..v4.18
+  Thread 28: v4.18..v4.19
+  Thread 29: v4.19..v4.20
+  Thread 30: v4.20..v5.0
+  Thread 31: v5.0..v5.1
+  Thread 32: v5.1..v5.2
+  Thread 33: v5.2..v5.3
+  Thread 34: v5.3..v5.4
+  Thread 35: v5.4..v5.5
+  Thread 36: v5.5..v5.6
+  Thread 37: v5.6..v5.7
+  Thread 38: v5.7..v5.8
+  Thread 39: v5.8..v5.9
+  Thread 40: v5.9..v5.10
+  Thread 41: v5.10..v5.11
+  Thread 42: v5.11..v5.12
+  Thread 43: v5.12..v5.13
+  Thread 44: v5.13..v5.14
+  Thread 45: v5.14..v5.15
+  Thread 46: v5.15..v5.16
+  Thread 47: v5.16..v5.17
+  Thread 48: v5.17..v5.18
+  Thread 49: v5.18..v5.19
+  Thread 50: v5.19..v6.0
+  Thread 51: v6.0..v6.1
+  Thread 52: v6.1..v6.10
+  Thread 53: v6.10..v6.11
+  Thread 54: v6.11..v6.12
+  Thread 55: v6.12..v6.13
+  Thread 56: v6.13..v6.14
+
+Thread True completed: v3.4..v3.6 (0 commits)
+Thread True completed: v3.0..v3.2 (0 commits)
+Thread True completed: v4.6..v4.7 (0 commits)
+Thread True completed: v4.3..v4.4 (0 commits)
+Thread True completed: v3.2..v3.4 (0 commits)
+Thread True completed: v4.19..v4.20 (0 commits)
+Thread True completed: v4.7..v4.8 (0 commits)
+Thread True completed: v4.2..v4.3 (0 commits)
+Thread True completed: v5.8..v5.9 (0 commits)
+Thread True completed: v4.10..v4.11 (0 commits)
+Thread True completed: v4.18..v4.19 (0 commits)
+Thread True completed: v4.20..v5.0 (0 commits)
+Thread True completed: v6.11..v6.12 (0 commits)
+Thread True completed: v6.12..v6.13 (0 commits)
+Thread True completed: v5.3..v5.4 (0 commits)
+Thread True completed: v4.14..v4.15 (0 commits)
+Thread True completed: v4.12..v4.13 (0 commits)
+Thread True completed: v6.13..v6.14 (0 commits)
+Thread True completed: v5.10..v5.11 (0 commits)
+Thread True completed: v3.6..v3.8 (0 commits)
+Thread True completed: v5.19..v6.0 (0 commits)
+Thread True completed: v4.5..v4.6 (0 commits)
+Thread True completed: v6.10..v6.11 (0 commits)
+Thread True completed: v3.8..v3.10 (0 commits)
+Thread True completed: v5.14..v5.15 (0 commits)
+Thread True completed: v5.6..v5.7 (0 commits)
+Thread True completed: v5.2..v5.3 (0 commits)
+Thread True completed: v5.16..v5.17 (0 commits)
+Thread True completed: v4.16..v4.17 (0 commits)
+Thread True completed: v4.13..v4.14 (1 commits)
+Thread True completed: v4.15..v4.16 (1 commits)
+Thread True completed: v4.9..v4.10 (0 commits)
+Thread True completed: v3.14..v3.16 (0 commits)
+Thread True completed: v4.17..v4.18 (1 commits)
+Thread True completed: v3.10..v3.12 (0 commits)
+Thread True completed: v5.0..v5.1 (1 commits)
+Thread True completed: v5.1..v5.2 (0 commits)
+Thread True completed: v5.5..v5.6 (0 commits)
+Thread True completed: v5.13..v5.14 (0 commits)
+Thread True completed: v5.18..v5.19 (0 commits)
+Thread True completed: v5.12..v5.13 (0 commits)
+Thread True completed: v4.0..v4.2 (0 commits)
+Thread True completed: v5.17..v5.18 (0 commits)
+Thread True completed: v5.7..v5.8 (0 commits)
+Thread True completed: v3.12..v3.14 (0 commits)
+Thread True completed: v5.11..v5.12 (0 commits)
+Thread True completed: v4.11..v4.12 (0 commits)
+Thread True completed: v3.16..v3.18 (0 commits)
+Thread True completed: v5.9..v5.10 (1 commits)
+Thread True completed: v5.4..v5.5 (1 commits)
+Thread True completed: v3.18..v4.0 (0 commits)
+Thread True completed: v4.4..v4.5 (0 commits)
+Thread True completed: v6.0..v6.1 (0 commits)
+Thread True completed: v5.15..v5.16 (0 commits)
+Thread True completed: v4.8..v4.9 (0 commits)
+Thread True completed: v6.1..v6.10 (0 commits)
+Keeping first occurrence of definition: #define SMC_TX_WORK_DELAY       HZ...
+Filtering duplicate definition in commit 1a0a04c7a82c4c4667ab5a9660dc37f6d365d9d3 (same as 18e537cd58e8d6932719bfa79cb96a1fbc639199)
+Filtering duplicate definition in commit 01d2f7e2cdd31becffafa0cb82809a5e36558ec0 (same as 18e537cd58e8d6932719bfa79cb96a1fbc639199)
+Keeping first occurrence of definition: #define SMC_TX_WORK_DELAY       0...
+Filtering duplicate definition in commit b290098092e4aeaa1712d3326bf5b64d2751c740 (same as 16297d143989e3f5acd75c1ca0a771b78aa12b46)
+Filtering duplicate definition in commit 22ef473dbd66a5241b6cedc186abca5a3a4eb922 (same as 16297d143989e3f5acd75c1ca0a771b78aa12b46)
+
+Analysis completed in 3.24 seconds
+Total commits analyzed: 2
+Filtered duplicate definitions: 2 unique definitions
+
+Commit 1/2 (Thread 23): 18e537cd58e8d6932719bfa79cb96a1fbc639199
+Author: Ursula Braun
+Date: Thu Sep 21 09:16:33 2017 +0200
+Kernel Version: v4.14-rc1
+Message: net/smc: introduce a delay
+Full commit message:
+----------------------------------------
+net/smc: introduce a delay
+
+The number of outstanding work requests is limited. If all work
+requests are in use, tx processing is postponed to another scheduling
+of the tx worker. Switch to a delayed worker to have a gap for tx
+completion queue events before the next retry.
+
+Signed-off-by: Ursula Braun <ubraun@linux.vnet.ibm.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+----------------------------------------
+
+SMC_TX_WORK_DELAY definition:
+  #define SMC_TX_WORK_DELAY     HZ
+--------------------------------------------------------------------------------
+
+Commit 2/2 (Thread 31): 16297d143989e3f5acd75c1ca0a771b78aa12b46
+Author: Karsten Graul
+Date: Tue Feb 12 16:29:52 2019 +0100
+Kernel Version: v5.0-rc5
+Message: net/smc: no delay for free tx buffer wait
+Full commit message:
+----------------------------------------
+net/smc: no delay for free tx buffer wait
+
+When no free transfer buffers are available then a work to call
+smc_tx_work() is scheduled. Set the schedule delay to zero, because for
+the out-of-buffers condition the work can start immediately and will
+block in the called function smc_wr_tx_get_free_slot(), waiting for free
+buffers.
+
+Signed-off-by: Karsten Graul <kgraul@linux.ibm.com>
+Signed-off-by: Ursula Braun <ubraun@linux.ibm.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+----------------------------------------
+
+SMC_TX_WORK_DELAY definition:
+  #define SMC_TX_WORK_DELAY     0
+--------------------------------------------------------------------------------
 ```
 </details>
 
