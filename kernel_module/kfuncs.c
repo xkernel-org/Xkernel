@@ -5,6 +5,7 @@
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/version.h>
+#include <asm/text-patching.h>
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Zhongjie");
@@ -16,15 +17,23 @@ __bpf_kfunc long kfuncs_probe_write_kernel(void *dst__ign, __u32 dst__sz,
   __u32 copy_size = min(dst__sz, src__sz);
   return copy_to_kernel_nofault(dst__ign, src__ign, copy_size);
 }
+__bpf_kfunc int kfuncs_text_poke(void *addr__ign, void *insn__ign, __u32 insn_len__sz) {
+  if (insn_len__sz > POKE_MAX_OPCODE_SIZE)
+    return -EINVAL;
+  (void)text_poke(addr__ign, insn__ign, insn_len__sz);
+  return 0;
+}
 __bpf_kfunc_end_defs();
 
 #if LINUX_VERSION_CODE <= KERNEL_VERSION(6, 9, 0)
 BTF_SET8_START(bpf_kfunc_example_ids_set)
 BTF_ID_FLAGS(func, kfuncs_probe_write_kernel)
+BTF_ID_FLAGS(func, kfuncs_text_poke)
 BTF_SET8_END(bpf_kfunc_example_ids_set)
 #else
 BTF_KFUNCS_START(bpf_kfunc_example_ids_set)
 BTF_ID_FLAGS(func, kfuncs_probe_write_kernel)
+BTF_ID_FLAGS(func, kfuncs_text_poke)
 BTF_KFUNCS_END(bpf_kfunc_example_ids_set)
 #endif
 
