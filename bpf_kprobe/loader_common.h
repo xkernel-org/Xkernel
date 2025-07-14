@@ -25,6 +25,8 @@ public:
 
   int attach_all_progs();
 
+  int attach_all_progs_one_shot();
+
 private:
   ::bpf_object *obj_;
 

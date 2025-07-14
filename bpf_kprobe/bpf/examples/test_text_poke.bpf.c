@@ -5,3 +5,9 @@
 #include <bpf/bpf_tracing.h>
 
 #include "xkernel.bpf.h"
+
+SEC("syscall")
+int test_text_poke(void *ctx) {
+    bpf_printk("hello world\n");
+    return 0;
+}

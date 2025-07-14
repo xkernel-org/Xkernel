@@ -1,5 +1,6 @@
 #include "loader_common.h"
 
+#include <bpf/bpf.h>
 #include <bpf/libbpf.h>
 #include <cassert>
 #include <cstdlib>
@@ -46,6 +47,24 @@ int XKernelLoader::attach_kprobe(struct ::bpf_program *prog,
   if (!link) {
     fprintf(stderr, "Failed to attach kprobe\n");
     return -1;
+  }
+  return 0;
+}
+
+int XKernelLoader::attach_all_progs_one_shot() {
+  struct ::bpf_program *prog;
+  bpf_object__for_each_program(prog, obj_) {
+    auto prog_fd = bpf_program__fd(prog);
+
+    struct bpf_test_run_opts opts = {};
+    opts.sz = sizeof(opts);
+    int err = bpf_prog_test_run_opts(prog_fd, &opts);
+    if (err) {
+      fprintf(stderr, "Failed to run program: %s\n", strerror(-err));
+      return -1;
+    }
+
+    printf("Program %s returned %d\n", bpf_program__name(prog), opts.retval);
   }
   return 0;
 }

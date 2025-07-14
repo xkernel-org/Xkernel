@@ -17,6 +17,7 @@ using namespace xkernel;
 DEFINE_string(files, "", "BPF files to load, separated by comma");
 DEFINE_bool(list, false, "List all available BPF files");
 DEFINE_bool(quiet, false, "Quiet mode, do not print any output");
+DEFINE_bool(one_shot, false, "One shot mode, run BPF programs once and exit");
 
 #define BPF_DIR "bpf/examples/"
 
@@ -61,9 +62,17 @@ int main(int argc, char *argv[]) {
 
     XKernelLoader loader(BPF_FILE.c_str());
 
-    if (loader.attach_all_progs()) {
-      fprintf(stderr, "Failed to attach all programs for %s\n", file.c_str());
-      return 1;
+    if (FLAGS_one_shot) {
+      if (loader.attach_all_progs_one_shot()) {
+        fprintf(stderr, "Failed to attach all programs (one-shot) for %s\n", file.c_str());
+        return 1;
+      }
+      return 0;
+    } else {
+      if (loader.attach_all_progs()) {
+        fprintf(stderr, "Failed to attach all programs for %s\n", file.c_str());
+        return 1;
+      }
     }
   }
 
