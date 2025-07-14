@@ -8,7 +8,7 @@ parser.add_argument('--func', type=str, default='blk_mq_delay_run_hw_queue', hel
 args = parser.parse_args()
 
 def search_kallsyms(func_name: str) -> tuple[int, int]:
-    cmd = f"sudo cat /proc/kallsyms |grep {func_name} -w -A1"
+    cmd = f"sudo cat /proc/kallsyms |grep '{func_name}$' -w -A1"
     output = subprocess.check_output(cmd, shell=True).decode("utf-8")
     start_address = output.split("\n")[0].split(" ")[0]
     stop_address = output.split("\n")[1].split(" ")[0]
