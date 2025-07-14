@@ -5,7 +5,7 @@ export KERNELDIR=$HOME/linux-6.14.0-export-symbol
 # Download Ubuntu Linux source
 # Instead of "linux-source" package which seems a "moving target", lock the
 # version via launchpad.
-sudo apt install devscripts
+sudo apt install git fakeroot build-essential ncurses-dev xz-utils libssl-dev bc flex libelf-dev bison rsync dwarves devscripts -y
 TMPDIR=$(mktemp -d)
 cd $TMPDIR
 dget -u https://launchpad.net/ubuntu/+archive/primary/+sourcefiles/linux/6.14.0-15.15/linux_6.14.0-15.15.dsc
