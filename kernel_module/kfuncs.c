@@ -11,11 +11,10 @@ MODULE_AUTHOR("Zhongjie");
 MODULE_DESCRIPTION("A kernel module for loading kfuncs into kernel");
 
 __bpf_kfunc_start_defs();
-__bpf_kfunc int kfuncs_probe_write_kernel(void *dst__ign, __u32 dst__sz,
+__bpf_kfunc long kfuncs_probe_write_kernel(void *dst__ign, __u32 dst__sz,
                                           const void *src__ign, __u32 src__sz) {
   __u32 copy_size = min(dst__sz, src__sz);
-  memcpy(dst__ign, src__ign, copy_size);
-  return 0;
+  return copy_to_kernel_nofault(dst__ign, src__ign, copy_size);
 }
 __bpf_kfunc_end_defs();
 
