@@ -1,0 +1,9 @@
+diff --git a/arch/x86/kernel/alternative.c b/arch/x86/kernel/alternative.c
+index c71b575..cf2236e 100644
+--- a/arch/x86/kernel/alternative.c
++++ b/arch/x86/kernel/alternative.c
+@@ -2016,6 +2016,7 @@ void *text_poke(void *addr, const void *opcode, size_t len)
+
+ 	return __text_poke(text_poke_memcpy, addr, opcode, len);
+ }
++EXPORT_SYMBOL_GPL(text_poke);

@@ -1,8 +1,8 @@
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/init.h>
-#include <linux/text-patching.h>
 #include <linux/param.h>
+#include <asm/text-patching.h>
 
 #define MAX_INSN_LEN 16
 
