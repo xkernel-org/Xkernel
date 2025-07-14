@@ -17,8 +17,9 @@ __bpf_kfunc long kfuncs_probe_write_kernel(void *dst__ign, __u32 dst__sz,
   __u32 copy_size = min(dst__sz, src__sz);
   return copy_to_kernel_nofault(dst__ign, src__ign, copy_size);
 }
+#define MAX_INSN_SIZE 8
 __bpf_kfunc int kfuncs_text_poke(void *addr__ign, void *insn__ign, __u32 insn_len__sz) {
-  if (insn_len__sz > POKE_MAX_OPCODE_SIZE)
+  if (insn_len__sz > MAX_INSN_SIZE)
     return -EINVAL;
   (void)text_poke(addr__ign, insn__ign, insn_len__sz);
   return 0;

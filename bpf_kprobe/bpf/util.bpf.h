@@ -8,6 +8,64 @@
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 
+#define MAX_INSN_SIZE 8
+
+#define LOG_INSN_2(insn, info) \
+  bpf_printk("[%s]insn: %02x %02x\n", info, \
+    (unsigned char)insn[0], \
+    (unsigned char)insn[1]);
+
+#define LOG_INSN_3(insn, info) \
+  bpf_printk("[%s]insn: %02x %02x %02x\n", info, \
+    (unsigned char)insn[0], \
+    (unsigned char)insn[1], \
+    (unsigned char)insn[2]);
+
+#define LOG_INSN_4(insn, info) \
+  bpf_printk("[%s]insn: %02x %02x %02x %02x\n", info, \
+    (unsigned char)insn[0], \
+    (unsigned char)insn[1], \
+    (unsigned char)insn[2], \
+    (unsigned char)insn[3]);
+
+#define LOG_INSN_5(insn, info) \
+  bpf_printk("[%s]insn: %02x %02x %02x %02x %02x\n", info, \
+    (unsigned char)insn[0], \
+    (unsigned char)insn[1], \
+    (unsigned char)insn[2], \
+    (unsigned char)insn[3], \
+    (unsigned char)insn[4]);
+
+#define LOG_INSN_6(insn, info) \
+  bpf_printk("[%s]insn: %02x %02x %02x %02x %02x %02x\n", info, \
+    (unsigned char)insn[0], \
+    (unsigned char)insn[1], \
+    (unsigned char)insn[2], \
+    (unsigned char)insn[3], \
+    (unsigned char)insn[4], \
+    (unsigned char)insn[5]);
+
+#define LOG_INSN_7(insn, info) \
+  bpf_printk("[%s]insn: %02x %02x %02x %02x %02x %02x %02x\n", info, \
+    (unsigned char)insn[0], \
+    (unsigned char)insn[1], \
+    (unsigned char)insn[2], \
+    (unsigned char)insn[3], \
+    (unsigned char)insn[4], \
+    (unsigned char)insn[5], \
+    (unsigned char)insn[6]);
+
+#define LOG_INSN_8(insn, info) \
+  bpf_printk("[%s]insn: %02x %02x %02x %02x %02x %02x %02x %02x\n", info, \
+    (unsigned char)insn[0], \
+    (unsigned char)insn[1], \
+    (unsigned char)insn[2], \
+    (unsigned char)insn[3], \
+    (unsigned char)insn[4], \
+    (unsigned char)insn[5], \
+    (unsigned char)insn[6], \
+    (unsigned char)insn[7]);
+
 #define LOG_CPU(fmt, ...)                                                      \
   bpf_printk("cpu: %d, " fmt, bpf_get_smp_processor_id(), ##__VA_ARGS__);
 
