@@ -6,4 +6,12 @@
 
 char LICENSE[] SEC("license") = "GPL";
 
+#define BPF_ONESHOT_INIT(name) \
+    SEC("syscall") \
+    int oneshot_init_##name(void *ctx) \
+
+#define BPF_ONESHOT_EXIT(name) \
+    SEC("syscall") \
+    int oneshot_exit_##name(void *ctx) \
+
 #endif

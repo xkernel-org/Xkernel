@@ -9,6 +9,9 @@
 *.ko.unsigned
 *.o.d
 
+compile_commands.json
+.cache
+
 __pycache__/*
 
 bpf_kprobe/bpf/vmlinux.h

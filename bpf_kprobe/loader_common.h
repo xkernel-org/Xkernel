@@ -18,7 +18,7 @@ struct xkernel_prog_params {
 
 class XKernelLoader {
 public:
-  XKernelLoader(const char *bpf_file);
+  XKernelLoader(const char *bpf_file, bool one_shot);
   ~XKernelLoader();
 
   void list_progs();
@@ -27,8 +27,11 @@ public:
 
   int attach_all_progs_one_shot();
 
+  int detach_all_progs_one_shot();
+
 private:
   ::bpf_object *obj_;
+  bool one_shot_;
 
   int attach_kretprobe(struct ::bpf_program *prog,
                        const char *kernel_func_name);

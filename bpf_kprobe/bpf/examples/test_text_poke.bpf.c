@@ -6,8 +6,12 @@
 
 #include "xkernel.bpf.h"
 
-SEC("syscall")
-int test_text_poke(void *ctx) {
+BPF_ONESHOT_INIT(test_text_poke) {
     bpf_printk("hello world\n");
+    return 0;
+}
+
+BPF_ONESHOT_EXIT(test_text_poke) {
+    bpf_printk("bye world\n");
     return 0;
 }

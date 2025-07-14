@@ -3,6 +3,8 @@
 #include <errno.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <signal.h>
+#include <stdlib.h>
 
 #include <dirent.h>
 #include <gflags/gflags.h>
@@ -21,8 +23,17 @@ DEFINE_bool(one_shot, false, "One shot mode, run BPF programs once and exit");
 
 #define BPF_DIR "bpf/examples/"
 
+std::vector<XKernelLoader *> loaders;
+
 int main(int argc, char *argv[]) {
   gflags::ParseCommandLineFlags(&argc, &argv, true);
+
+  signal(SIGINT, [](int) {
+    for (auto loader : loaders) {
+      delete loader;
+    }
+    exit(0);
+  });
 
   if (FLAGS_list) {
     // list all files in BPF_DIR
@@ -60,16 +71,15 @@ int main(int argc, char *argv[]) {
   for (const auto &file : files) {
     std::string BPF_FILE = BPF_DIR + file;
 
-    XKernelLoader loader(BPF_FILE.c_str());
+    loaders.push_back(new XKernelLoader(BPF_FILE.c_str(), FLAGS_one_shot));
 
     if (FLAGS_one_shot) {
-      if (loader.attach_all_progs_one_shot()) {
+      if (loaders.back()->attach_all_progs_one_shot()) {
         fprintf(stderr, "Failed to attach all programs (one-shot) for %s\n", file.c_str());
         return 1;
       }
-      return 0;
     } else {
-      if (loader.attach_all_progs()) {
+      if (loaders.back()->attach_all_progs()) {
         fprintf(stderr, "Failed to attach all programs for %s\n", file.c_str());
         return 1;
       }
