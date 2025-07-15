@@ -23,7 +23,6 @@ LOAD_AVG_MAX, kernel/sched/sched-pelt.h
 RR_TIMESLICE, include/linux/sched/rt.h
 MAX_MEAS, kernel/rcu/rcuscale.c
 MIN_MEAS, kernel/rcu/rcuscale.c
-RCU_KTHREAD_MAX, kernel/rcu/tree.h
 RCU_JIFFIES_TILL_FORCE_QS, kernel/rcu/tree.h
 WCI_MAX_ENTS, kernel/workqueue.c
 BH_WORKER_RESTARTS, kernel/workqueue.c
