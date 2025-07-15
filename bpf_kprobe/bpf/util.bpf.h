@@ -8,28 +8,73 @@
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 
-#define MAX_INSN_SIZE 8
+#define ONE_SHOT_ENV(addr, len) \
+  SEC(".bss"); \
+  void *__target_addr = (void *)addr; \
+  bool __old_insn_valid = false; \
+  unsigned char __old_insn[len] = {}; \
+  unsigned char __insn[len] = {};
+
+#define BPF_READ_OLD_INSN() \
+  bpf_probe_read_kernel(__old_insn, sizeof(__old_insn), __target_addr); \
+  __old_insn_valid = true; \
+
+#define BPF_READ_INSN() \
+  bpf_probe_read_kernel(__insn, sizeof(__insn), __target_addr); \
+
+#define BPF_WRITE_INSN(new_insn) \
+  do { \
+    if (sizeof(new_insn) == sizeof(__insn)) { \
+      /* read old insn first */ \
+      BPF_READ_OLD_INSN(); \
+      /* write new insn */ \
+      kfuncs_text_poke(__target_addr, new_insn, sizeof(new_insn)); \
+    } \
+  } while (0) \
+
+#define BPF_RESTORE_INSN() \
+  do { \
+  if (__old_insn_valid) { \
+    /* restore old insn */ \
+    kfuncs_text_poke(__target_addr, __old_insn, sizeof(__old_insn)); \
+  } \
+  } while (0)
+
+#define BPF_PRINT_INSN(info) \
+  do { \
+  BPF_READ_INSN(); \
+  switch (sizeof(__insn)) { \
+    case 2: LOG_INSN_2(__insn, info); break; \
+    case 3: LOG_INSN_3(__insn, info); break; \
+    case 4: LOG_INSN_4(__insn, info); break; \
+    case 5: LOG_INSN_5(__insn, info); break; \
+    case 6: LOG_INSN_6(__insn, info); break; \
+    case 7: LOG_INSN_7(__insn, info); break; \
+    case 8: LOG_INSN_8(__insn, info); break; \
+    default: bpf_printk("unknown insn size: %d", sizeof(__insn)); break; \
+  } \
+  } while (0)
 
 #define LOG_INSN_2(insn, info) \
-  bpf_printk("[%s]insn: %02x %02x\n", info, \
+  bpf_printk("[%s]insn: %02x %02x", info, \
     (unsigned char)insn[0], \
     (unsigned char)insn[1]);
 
 #define LOG_INSN_3(insn, info) \
-  bpf_printk("[%s]insn: %02x %02x %02x\n", info, \
+  bpf_printk("[%s]insn: %02x %02x %02x", info, \
     (unsigned char)insn[0], \
     (unsigned char)insn[1], \
     (unsigned char)insn[2]);
 
 #define LOG_INSN_4(insn, info) \
-  bpf_printk("[%s]insn: %02x %02x %02x %02x\n", info, \
+  bpf_printk("[%s]insn: %02x %02x %02x %02x", info, \
     (unsigned char)insn[0], \
     (unsigned char)insn[1], \
     (unsigned char)insn[2], \
     (unsigned char)insn[3]);
 
 #define LOG_INSN_5(insn, info) \
-  bpf_printk("[%s]insn: %02x %02x %02x %02x %02x\n", info, \
+  bpf_printk("[%s]insn: %02x %02x %02x %02x %02x", info, \
     (unsigned char)insn[0], \
     (unsigned char)insn[1], \
     (unsigned char)insn[2], \
@@ -37,7 +82,7 @@
     (unsigned char)insn[4]);
 
 #define LOG_INSN_6(insn, info) \
-  bpf_printk("[%s]insn: %02x %02x %02x %02x %02x %02x\n", info, \
+  bpf_printk("[%s]insn: %02x %02x %02x %02x %02x %02x", info, \
     (unsigned char)insn[0], \
     (unsigned char)insn[1], \
     (unsigned char)insn[2], \
@@ -46,7 +91,7 @@
     (unsigned char)insn[5]);
 
 #define LOG_INSN_7(insn, info) \
-  bpf_printk("[%s]insn: %02x %02x %02x %02x %02x %02x %02x\n", info, \
+  bpf_printk("[%s]insn: %02x %02x %02x %02x %02x %02x %02x", info, \
     (unsigned char)insn[0], \
     (unsigned char)insn[1], \
     (unsigned char)insn[2], \
@@ -56,7 +101,7 @@
     (unsigned char)insn[6]);
 
 #define LOG_INSN_8(insn, info) \
-  bpf_printk("[%s]insn: %02x %02x %02x %02x %02x %02x %02x %02x\n", info, \
+  bpf_printk("[%s]insn: %02x %02x %02x %02x %02x %02x %02x %02x", info, \
     (unsigned char)insn[0], \
     (unsigned char)insn[1], \
     (unsigned char)insn[2], \

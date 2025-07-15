@@ -8,7 +8,7 @@
 #include <asm/text-patching.h>
 
 MODULE_LICENSE("GPL");
-MODULE_AUTHOR("Zhongjie");
+MODULE_AUTHOR("Zhongjie, Wentao");
 MODULE_DESCRIPTION("A kernel module for loading kfuncs into kernel");
 
 __bpf_kfunc_start_defs();
