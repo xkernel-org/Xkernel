@@ -1,0 +1,17 @@
+a.out
+*.bin
+*.elf
+*.exe
+*.a
+*.so
+*.o
+*.s
+*.bc
+*.ll
+*.i
+.gdbinit
+.gdb_history
+**/compile_commands.json
+**/.cache/clangd
+tool/constant_analysis
+
