@@ -5,12 +5,14 @@
 #include <unistd.h>
 #include <signal.h>
 #include <stdlib.h>
-
+#include <fcntl.h>
 #include <dirent.h>
 #include <gflags/gflags.h>
+
 #include <sstream>
 #include <string>
 #include <vector>
+#include <chrono>
 
 #include "loader_common.h"
 
@@ -90,7 +92,10 @@ int main(int argc, char *argv[]) {
     printf(
         "Kprobe attached successfully. Check /sys/kernel/tracing/trace_pipe\n");
     while (1) {
-      sleep(1);
+      for (auto &loader : loaders) {
+        loader->dump_stack_trace();
+      }
+      sleep(5);
     }
   } else {
     FILE *fp = fopen("/sys/kernel/tracing/trace_pipe", "r");
@@ -98,9 +103,31 @@ int main(int argc, char *argv[]) {
       fprintf(stderr, "Failed to open /sys/kernel/tracing/trace_pipe\n");
       return 1;
     }
+    int fd = fileno(fp);
+    
+    int flags = fcntl(fd, F_GETFL, 0);
+    fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+
     char line[1024];
-    while (fgets(line, sizeof(line), fp) != NULL) {
-      printf("%s", line);
+
+    auto last_print_st = std::chrono::steady_clock::now();
+    last_print_st = std::chrono::steady_clock::now();
+    while (1) {
+      if (fgets(line, sizeof(line), fp) != NULL)
+        printf("%s", line);
+      else if (errno != EAGAIN) {
+        fprintf(stderr, "Error reading from trace_pipe: %s\n", strerror(errno));
+        break;
+      }
+
+      auto now = std::chrono::steady_clock::now();
+      if (now - last_print_st > std::chrono::seconds(5)) {
+        for (auto &loader : loaders) {
+          loader->dump_stack_trace();
+        }
+        last_print_st = now;
+      }
+
     }
     fclose(fp);
   }

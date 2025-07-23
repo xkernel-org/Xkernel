@@ -5,6 +5,7 @@
 #include <cassert>
 #include <cstdlib>
 #include <string>
+#include <mutex>
 
 namespace xkernel {
 
@@ -145,6 +146,71 @@ int XKernelLoader::attach_all_progs() {
     }
     if (ret)
       return ret;
+  }
+
+  return 0;
+}
+
+void XKernelLoader::print_stack_trace(uint32_t stack_id) {
+  uint64_t stack_trace[MAX_STACK_DEPTH] = {};
+  bpf_map_lookup_elem(stack_trace_map_fd_, &stack_id, &stack_trace);
+
+  // Find the first and last valid address in the stack trace
+  int first = -1, last = -1;
+  for (int i = 0; i < MAX_STACK_DEPTH && stack_trace[i] != 0; i++) {
+    if (first == -1) first = i;
+    last = i;
+  }
+  printf("[stack_id: %d]\n", stack_id);
+  for (int i = 0; i <= last && i < MAX_STACK_DEPTH; i++) {
+    printf("stack[%d] = %lx\n", i, stack_trace[i]);
+  }
+
+  printf("Use the following command to dump assembly:\n");
+  printf("sudo objdump -d --start-address=0xxxxxxx --stop-address=0xxxxxxx /proc/kcore\n");
+}
+
+int XKernelLoader::dump_stack_trace() {
+  
+  static std::once_flag once_flag_;
+  std::call_once(once_flag_, [this]() {
+    auto count_map = bpf_object__find_map_by_name(obj_, "stack_count_map");
+    auto stack_trace_map = bpf_object__find_map_by_name(obj_, "stack_trace_map");
+    if (!count_map || !stack_trace_map) {
+      printf("No stack count or stack trace map found\n");
+      return -1;
+    }
+  
+    count_map_fd_ = bpf_map__fd(count_map);
+    stack_trace_map_fd_ = bpf_map__fd(stack_trace_map);
+    return 0;
+  });
+
+  int bss_map_fd = bpf_object__find_map_fd_by_name(obj_, ".bss.call_store_stack");
+  if (bss_map_fd < 0) {
+      fprintf(stderr, "Failed to find .bss map\n");
+      return -1;
+  }
+
+  uint32_t key = 0;
+  uint32_t value = 0;
+  if (bpf_map_lookup_elem(bss_map_fd, &key, &value) != 0) {
+    fprintf(stderr, "Failed to find .bss map\n");
+    return -1;
+  }
+
+  if (!count_map_fd_ || !stack_trace_map_fd_ || !value) {
+    return -1;
+  }
+
+  uint32_t lookup_key = -1, next_key = 0;
+  uint64_t stack_count = 0;
+  while (bpf_map_get_next_key(count_map_fd_, &lookup_key, &next_key) == 0) {
+    bpf_map_lookup_elem(count_map_fd_, &next_key, &stack_count);
+    if (print_stack_trace_map_[next_key]) continue;
+    print_stack_trace_map_[next_key] = true;
+    print_stack_trace(next_key);
+    lookup_key = next_key;
   }
 
   return 0;

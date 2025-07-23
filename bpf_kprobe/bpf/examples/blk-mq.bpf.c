@@ -7,12 +7,16 @@
 #include "xkernel.bpf.h"
 
 #define BLK_MQ_CPU_WORK_BATCH 8
-#define NEW_BLK_MQ_CPU_WORK_BATCH 32
+#define NEW_BLK_MQ_CPU_WORK_BATCH 1
 
-SEC("kprobe/blk_mq_delay_run_hw_queue+0xbe")
-int BPF_KPROBE(blk_mq_delay_run_hw_queue_0xbe, struct blk_mq_hw_ctx *hctx,
+// SEC("kprobe/blk_mq_delay_run_hw_queue+0x12")
+SEC("kprobe/blk_mq_delay_run_hw_queue+0xbf")
+int BPF_KPROBE(blk_mq_delay_run_hw_queue_0xbf, struct blk_mq_hw_ctx *hctx,
                unsigned long msecs) {
 
+  LOG_CPU("hctx: %p, msecs: %lu", hctx, msecs);
+  return 0;
+# if 0
   // movl   $0x8,0xa4(%rbx)
   u64 rbx = BPF_RBX(ctx);
   u64 *addr = (u64 *)(rbx + 0xa4);
@@ -25,6 +29,7 @@ int BPF_KPROBE(blk_mq_delay_run_hw_queue_0xbe, struct blk_mq_hw_ctx *hctx,
     val |= NEW_BLK_MQ_CPU_WORK_BATCH;
     kfuncs_probe_write_kernel(addr, sizeof(val), &val, sizeof(val));
   }
+#endif
 
   return 0;
 }
