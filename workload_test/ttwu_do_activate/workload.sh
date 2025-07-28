@@ -1,9 +1,13 @@
 #!/bin/bash
 
+CPU_IDX=24
+
+trap "exit" SIGINT SIGTERM
+
 while true; do
-    timeout 1 ./wakeup_task 42 100
-    timeout 1 ./wakeup_task 42 200
-    timeout 1 ./wakeup_task 42 400
-    timeout 1 ./wakeup_task 42 800
-    timeout 1 ./wakeup_task 42 1600
+    timeout 1 ./wakeup_task $CPU_IDX 100 || true
+    timeout 1 ./wakeup_task $CPU_IDX 200 || true
+    timeout 1 ./wakeup_task $CPU_IDX 400 || true
+    timeout 1 ./wakeup_task $CPU_IDX 800 || true
+    timeout 1 ./wakeup_task $CPU_IDX 1600 || true
 done
