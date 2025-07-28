@@ -46,14 +46,16 @@ def parse_log_file(filepath):
     return assignments
 
 def main():
-    if len(sys.argv) != 3:
-        print("Usage: python diff_logs.py <log_file_v1> <log_file_v2>")
+    if len(sys.argv) != 4:
+        print("Usage: python diff.py <log_file_v1> <log_file_v2> <csv_output>")
         print("\nCompares two analysis logs to find variables with changed constant values.")
-        print("Example: python diff_logs.py log_dir/log-6.15/all.txt.1 log_dir/log-6.16/all.txt.1")
+        print("Example: python diff.py log_dir/log-5.15/all.txt.1 log_dir/log-6.15/all.txt.1 diff-5.15-6.15.csv")
         sys.exit(1)
 
     file1_path = sys.argv[1]
     file2_path = sys.argv[2]
+
+    csv_file_path = sys.argv[3]
 
     # Deriving version prefixes from log file paths
     # e.g. "log_dir/log-6.15/all.txt.1" -> "log_dir/log-6.15" -> "kernel_build_dir/linux-6.15"
@@ -102,7 +104,6 @@ def main():
         changed_values.sort(key=lambda x: (x['file'], x['function'], x['variable']))
 
         # Save to CSV
-        csv_file_path = 'diff_result.csv'
         print(f"\nSaving detailed changes to {csv_file_path}...")
         try:
             with open(csv_file_path, 'w', newline='', encoding='utf-8') as csvfile:

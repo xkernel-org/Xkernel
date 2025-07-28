@@ -21,7 +21,6 @@ print_time_diff() {
 }
 
 T1=$( date +%s )
-date > start_time.txt
 
 if [[ ! -d $KERNEL_DIR ]]; then
     echo "Kernel directory $KERNEL_DIR does not exist"
@@ -52,7 +51,7 @@ analyze_file() {
     mkdir -p "$OUTPUT_DIR/$(dirname "$FILE")"
     FILE_LOG="$OUTPUT_DIR/$(dirname "$FILE")/$(basename "$FILE").txt"
 
-    tool/constant_analysis --mode=int-literal -p "$KERNEL_DIR" \
+    $THIS_DIR/tool/constant_analysis --mode=int-literal -p "$KERNEL_DIR" \
         "$KERNEL_DIR/$FILE" 2>&1 | \
         sed "s|$REAL_KERNEL_PATH/||g" | \
         tee "$FILE_LOG" >/dev/null
@@ -62,6 +61,7 @@ export -f analyze_file
 export KERNEL_DIR
 export OUTPUT_DIR
 export REAL_KERNEL_PATH=$(realpath "$KERNEL_DIR")
+export THIS_DIR
 
 echo "Running analysis in parallel with $N_JOBS jobs"
 
