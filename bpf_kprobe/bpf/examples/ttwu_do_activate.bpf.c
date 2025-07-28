@@ -6,8 +6,7 @@
 
 #include "util.bpf.h"
 #include "kfuncs.bpf.h"
-
-char LICENSE[] SEC("license") = "GPL";
+#include "xkernel.bpf.h"
 
 /*
  * Monitoring where avg_idle gets updated
