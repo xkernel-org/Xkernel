@@ -10,10 +10,10 @@ BPF_OBJS := $(BPF_SRCS:.bpf.c=.bpf.o)
 
 all: kprobe_loader $(BPF_OBJS)
 
-%.bpf.o: %.bpf.c vmlinux.h
+%.bpf.o: %.bpf.c bpf/vmlinux.h
 	$(BPF_CLANG) $(BPF_CFLAGS) -I$(LIBBPF_DIR) -c $< -o $@
 
-vmlinux.h:
+bpf/vmlinux.h:
 	sudo bpftool btf dump file $(BTF_FILE) format c > bpf/vmlinux.h
 
 SRCS := $(wildcard *.cc)
@@ -26,4 +26,4 @@ kprobe_loader: $(OBJS)
 	g++ -g -O3 -Wall -I$(LIBBPF_DIR) -c $< -o $@
 
 clean:
-	rm -f kprobe_loader bpf/*.o bpf/examples/*.o *.o
+	rm -f kprobe_loader bpf/vmlinux.h bpf/examples/*.o *.o
