@@ -5,8 +5,11 @@ KERNELDIR ?= /lib/modules/$(shell uname -r)/build
 CC = gcc
 BTF_VMLINUX = /sys/kernel/btf/vmlinux
 
-# Enable BTF support
+ifeq ($(RAW_TEXT_POKE),m)
 EXTRA_CFLAGS += -g -O2 -DBPF_TEXT_POKE
+else
+EXTRA_CFLAGS += -g -O2
+endif
 
 all:
 	@if [ ! -f $(KERNELDIR)/vmlinux ] && [ -f $(BTF_VMLINUX) ]; then \
