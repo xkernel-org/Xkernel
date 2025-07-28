@@ -118,7 +118,7 @@ int BPF_KPROBE(ttwu_do_activate_0x1cb, struct rq *rq, struct task_struct *p, int
     u16 id = bpf_get_smp_processor_id();
     if (id == 42) {
         // manipulate diff which is signed 64-bit integer
-        s64 rax = BPF_AX(ctx);
+        s64 rax = BPF_RAX(ctx);
         bool is_neg = rax < 0;
         u64 abs_rax = is_neg ? -rax : rax;
         // abs_rax /= 100;
