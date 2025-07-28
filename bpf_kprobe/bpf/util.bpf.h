@@ -164,6 +164,7 @@
                               sizeof(reg_value));                              \
   } while (0)
 
+#define BPF_16BIT_MASK 0x0000ffff
 #define BPF_SET_REG_16(ctx, reg, value)                                        \
   do {                                                                         \
     u64 reg_value;                                                             \
