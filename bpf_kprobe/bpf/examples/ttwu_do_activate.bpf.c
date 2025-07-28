@@ -8,6 +8,8 @@
 #include "kfuncs.bpf.h"
 #include "xkernel.bpf.h"
 
+#define CPU_IDX 24
+
 /*
  * Monitoring where avg_idle gets updated
  */
@@ -76,7 +78,7 @@ int BPF_KPROBE(ttwu_do_activate_0x1a8, struct rq *rq, struct task_struct *p, int
 		 struct rq_flags *rf)
 {
     u16 id = bpf_get_smp_processor_id();
-    if (id == 42) {
+    if (id == CPU_IDX) {
         bpf_printk("\n");
         bpf_printk("ctx->si: %lu (previous avg_idle)", ctx->si);
         the_second_store = false;
@@ -90,7 +92,7 @@ int BPF_KPROBE(ttwu_do_activate_0x1da, struct rq *rq, struct task_struct *p, int
 		 struct rq_flags *rf)
 {
     u16 id = bpf_get_smp_processor_id();
-    if (id == 42 && !the_second_store) {
+    if (id == CPU_IDX && !the_second_store) {
         bpf_printk("ctx->ax: %lu (updated avg_idle)", ctx->ax);
     }
     return 0;
@@ -102,7 +104,7 @@ int BPF_KPROBE(ttwu_do_activate_0x209, struct rq *rq, struct task_struct *p, int
 		 struct rq_flags *rf)
 {
     u16 id = bpf_get_smp_processor_id();
-    if (id == 42) {
+    if (id == CPU_IDX) {
         bpf_printk("ctx->cx: %lu (updated avg_idle)", ctx->cx);
         the_second_store = true;
     }
@@ -115,7 +117,7 @@ int BPF_KPROBE(ttwu_do_activate_0x1cb, struct rq *rq, struct task_struct *p, int
 		 struct rq_flags *rf)
 {
     u16 id = bpf_get_smp_processor_id();
-    if (id == 42) {
+    if (id == CPU_IDX) {
         // manipulate diff which is signed 64-bit integer
         s64 rax = BPF_RAX(ctx);
         bool is_neg = rax < 0;
