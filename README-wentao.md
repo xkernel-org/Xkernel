@@ -4,6 +4,7 @@
 sudo apt -yq install \
 git bc libncurses-dev wget busybox libssl-dev libelf-dev dwarves flex \
 bison build-essential qemu-system clang llvm lld cmake pkg-config bear
+sudo apt -yq install libgflags2.2 libgflags-dev
 ```
 
 ```shell
@@ -221,7 +222,7 @@ make
 ```shell
 cd $REPODIR/bpf_kprobe/
 sudo cat /sys/kernel/tracing/trace_pipe &
-sudo ./kprobe_loader &
+sudo ./kprobe_loader --files ttwu_do_activate.bpf.o --quiet
 ```
 
 ## Get QEMU wrapper
