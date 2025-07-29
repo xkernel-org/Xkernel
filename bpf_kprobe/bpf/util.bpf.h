@@ -15,9 +15,20 @@
   unsigned char __old_insn[len] = {}; \
   unsigned char __insn[len] = {};
 
+#define ONE_SHOT_ENV_NAMED(addr, len, name) \
+  SEC(".bss"); \
+  void *__target_addr_##name = (void *)addr; \
+  bool __old_insn_valid_##name = false; \
+  unsigned char __old_insn_##name[len] = {}; \
+  unsigned char __insn_##name[len] = {};
+
 #define BPF_READ_OLD_INSN() \
   bpf_probe_read_kernel(__old_insn, sizeof(__old_insn), __target_addr); \
   __old_insn_valid = true; \
+
+#define BPF_READ_OLD_INSN_NAMED(name) \
+  bpf_probe_read_kernel(__old_insn_##name, sizeof(__old_insn_##name), __target_addr_##name); \
+  __old_insn_valid_##name = true; \
 
 #define BPF_READ_INSN() \
   bpf_probe_read_kernel(__insn, sizeof(__insn), __target_addr); \
@@ -32,11 +43,29 @@
     } \
   } while (0) \
 
+#define BPF_WRITE_INSN_NAMED(new_insn, name) \
+  do { \
+    if (sizeof(new_insn) == sizeof(__insn_##name)) { \
+      /* read old insn first */ \
+      BPF_READ_OLD_INSN_NAMED(name); \
+      /* write new insn */ \
+      kfuncs_text_poke(__target_addr_##name, new_insn, sizeof(new_insn)); \
+    } \
+  } while (0) \
+
 #define BPF_RESTORE_INSN() \
   do { \
   if (__old_insn_valid) { \
     /* restore old insn */ \
     kfuncs_text_poke(__target_addr, __old_insn, sizeof(__old_insn)); \
+  } \
+  } while (0)
+
+#define BPF_RESTORE_INSN_NAMED(name) \
+  do { \
+  if (__old_insn_valid_##name) { \
+    /* restore old insn */ \
+    kfuncs_text_poke(__target_addr_##name, __old_insn_##name, sizeof(__old_insn_##name)); \
   } \
   } while (0)
 
