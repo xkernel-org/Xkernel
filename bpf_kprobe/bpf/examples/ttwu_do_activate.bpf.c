@@ -15,6 +15,8 @@
  */
 
 // 6.14.0-22-generic KASLR
+// The offsets are fortunately the same in 6.14.0-export-text-poke that's
+// built by ourselves.
 //
 // ffffffff92c5c430 <.data>:
 // ...

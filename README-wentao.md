@@ -223,6 +223,7 @@ make
 cd $REPODIR/bpf_kprobe/
 sudo cat /sys/kernel/tracing/trace_pipe &
 sudo ./kprobe_loader --files ttwu_do_activate.bpf.o --quiet
+sudo ./kprobe_loader --files ttwu_do_activate_poke.bpf.o --one-shot
 ```
 
 ## Get QEMU wrapper
