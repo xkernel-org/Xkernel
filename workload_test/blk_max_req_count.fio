@@ -1,0 +1,15 @@
+[global]
+ioengine=io_uring
+sqthread_poll=1 
+direct=0
+runtime=60
+ramp_time=10s
+time_based
+group_reporting
+filename=/dev/nvme1n1
+
+[latency-test]
+rw=randread
+bs=120k
+iodepth=31
+numjobs=1
