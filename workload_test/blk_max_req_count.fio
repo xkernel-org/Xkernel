@@ -8,8 +8,9 @@ time_based
 group_reporting
 filename=/dev/nvme1n1
 
-[latency-test]
+[test]
 rw=randread
 bs=120k
-iodepth=31
+iodepth=64
 numjobs=1
+size=100G
