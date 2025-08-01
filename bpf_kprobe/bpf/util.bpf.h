@@ -190,6 +190,9 @@
 #define BPF_RSS(ctx) ((u64)(ctx->ss))
 
 #define BPF_R12(ctx) ((u64)(ctx->r12))
+#define BPF_R13(ctx) ((u64)(ctx->r13))
+#define BPF_R14(ctx) ((u64)(ctx->r14))
+#define BPF_R15(ctx) ((u64)(ctx->r15))
 
 #define BPF_SET_RAX(ctx, value) BPF_SET_REG_64(ctx, ax, value)
 #define BPF_SET_RBX(ctx, value) BPF_SET_REG_64(ctx, bx, value)
@@ -216,6 +219,7 @@
 #define BPF_SET_EDX(ctx, value) BPF_SET_REG_32(ctx, dx, value)
 #define BPF_SET_ESI(ctx, value) BPF_SET_REG_32(ctx, si, value)
 
+#define BPF_16BIT_MASK 0x0000ffff
 // 16-bit registers
 #define BPF_AX(ctx) (u16)((u64)(ctx->ax) & BPF_16BIT_MASK)
 #define BPF_BX(ctx) (u16)((u64)(ctx->bx) & BPF_16BIT_MASK)
@@ -241,6 +245,42 @@
 #define BPF_ZF(ctx) ((u64)(ctx->flags) & BPF_ZF_MASK)
 #define BPF_SF(ctx) ((u64)(ctx->flags) & BPF_SF_MASK)
 #define BPF_OF(ctx) ((u64)(ctx->flags) & BPF_OF_MASK)
+
+#define BPF_SET_CF_TRUE(ctx)                                                   \
+  do {                                                                         \
+    u64 flags = BPF_EFLAGS(ctx);                                               \
+    flags |= BPF_CF_MASK;                                                      \
+    kfuncs_probe_write_kernel(&ctx->flags, sizeof(flags), &flags,              \
+                              sizeof(flags));                                  \
+  } while (0)
+
+#define BPF_SET_CF_FALSE(ctx)                                                  \
+  do {                                                                         \
+    u64 flags = BPF_EFLAGS(ctx);                                               \
+    flags &= ~BPF_CF_MASK;                                                     \
+    kfuncs_probe_write_kernel(&ctx->flags, sizeof(flags), &flags,              \
+                              sizeof(flags));                                  \
+  } while (0)
+
+// ZF = 1 or CF = 1, then jump
+#define BPF_SET_JBE_TRUE(ctx)                                                  \
+  do {                                                                         \
+    u64 flags = BPF_EFLAGS(ctx);                                               \
+    flags |= BPF_CF_MASK;                                                      \
+    flags |= BPF_ZF_MASK;                                                      \
+    kfuncs_probe_write_kernel(&ctx->flags, sizeof(flags), &flags,              \
+                              sizeof(flags));                                  \
+  } while (0)
+
+// ZF = 0 and CF = 0, then not jump
+#define BPF_SET_JBE_FALSE(ctx)                                                 \
+  do {                                                                         \
+    u64 flags = BPF_EFLAGS(ctx);                                               \
+    flags &= ~BPF_ZF_MASK;                                                     \
+    flags &= ~BPF_CF_MASK;                                                     \
+    kfuncs_probe_write_kernel(&ctx->flags, sizeof(flags), &flags,              \
+                              sizeof(flags));                                  \
+  } while (0)
 
 // ZF=1 or SF!=OF, then jump
 #define BPF_SET_JLE_TRUE(ctx)                                                  \
