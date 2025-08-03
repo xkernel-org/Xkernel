@@ -10,6 +10,8 @@ BPF_OBJS := $(BPF_SRCS:.bpf.c=.bpf.o)
 
 all: kprobe_loader $(BPF_OBJS)
 
+bpf/examples/numa_scan_poke.bpf.o: BPF_CFLAGS += -DNEW_NUMA_PERIOD_THRESHOLD=7 -DSYMBOL_BASE_ADDRESS=0x$(shell sudo cat /proc/kallsyms | grep 'T task_numa_fault$$' | awk '{print $$1}')
+
 %.bpf.o: %.bpf.c bpf/vmlinux.h
 	$(BPF_CLANG) $(BPF_CFLAGS) -I$(LIBBPF_DIR) -c $< -o $@
 

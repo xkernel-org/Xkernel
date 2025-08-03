@@ -6,7 +6,14 @@
 
 #include "xkernel.bpf.h"
 
-#define NEW_NUMA_PERIOD_THRESHOLD 6
+#ifndef SYMBOL_BASE_ADDRESS
+#error "You must provide SYMBOL_BASE_ADDRESS"
+#endif
+
+#ifndef NEW_NUMA_PERIOD_THRESHOLD
+#warning "No NEW_NUMA_PERIOD_THRESHOLD specified. Effective no change."
+#define NEW_NUMA_PERIOD_THRESHOLD 7
+#endif
 
 /*
 
@@ -106,7 +113,7 @@
 
 */
 
-ONE_SHOT_ENV_NAMED(0xffffffff9aa61b23, 3, cmp1);
+ONE_SHOT_ENV_NAMED(SYMBOL_BASE_ADDRESS+0x843, 3, cmp1);
 
 BPF_ONESHOT_INIT(task_numa_fault__cmp1) {
   // BPF_PRINT_INSN("Old instruction");
@@ -124,7 +131,7 @@ BPF_ONESHOT_EXIT(task_numa_fault__cmp1) {
 
 ///////////////////////////////////////////////////////////////////////////
 
-ONE_SHOT_ENV_NAMED(0xffffffff9aa61b2c, 3, sub1);
+ONE_SHOT_ENV_NAMED(SYMBOL_BASE_ADDRESS+0x84c, 3, sub1);
 
 BPF_ONESHOT_INIT(task_numa_fault__sub1) {
   unsigned char new_insn[] = {0x83, 0xee, NEW_NUMA_PERIOD_THRESHOLD};
@@ -139,7 +146,7 @@ BPF_ONESHOT_EXIT(task_numa_fault__sub1) {
 
 ///////////////////////////////////////////////////////////////////////////
 
-ONE_SHOT_ENV_NAMED(0xffffffff9aa61caf, 3, cmp2);
+ONE_SHOT_ENV_NAMED(SYMBOL_BASE_ADDRESS+0x9cf, 3, cmp2);
 
 BPF_ONESHOT_INIT(task_numa_fault__cmp2) {
   unsigned char new_insn[] = {0x83, 0xf8, NEW_NUMA_PERIOD_THRESHOLD-1};
@@ -154,7 +161,7 @@ BPF_ONESHOT_EXIT(task_numa_fault__cmp2) {
 
 ///////////////////////////////////////////////////////////////////////////
 
-ONE_SHOT_ENV_NAMED(0xffffffff9aa61cb8, 3, sub2);
+ONE_SHOT_ENV_NAMED(SYMBOL_BASE_ADDRESS+0x9d8, 3, sub2);
 
 BPF_ONESHOT_INIT(task_numa_fault__sub2) {
   unsigned char new_insn[] = {0x83, 0xee, NEW_NUMA_PERIOD_THRESHOLD};
@@ -170,7 +177,7 @@ BPF_ONESHOT_EXIT(task_numa_fault__sub2) {
 
 ///////////////////////////////////////////////////////////////////////////
 
-ONE_SHOT_ENV_NAMED(0xffffffff9aa61e20, 3, sub3);
+ONE_SHOT_ENV_NAMED(SYMBOL_BASE_ADDRESS+0xb40, 3, sub3);
 
 BPF_ONESHOT_INIT(task_numa_fault__sub3) {
   unsigned char new_insn[] = {0x83, 0xee, NEW_NUMA_PERIOD_THRESHOLD};
