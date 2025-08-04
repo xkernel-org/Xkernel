@@ -1,0 +1,3 @@
+All potential_perf_*.csv files are macros that are the possible target macros after pattern matching. 
+
+We can then use LLM's API to batch analyze the functions and meanings of these macros. By reading the results, we can find the macros we need.
