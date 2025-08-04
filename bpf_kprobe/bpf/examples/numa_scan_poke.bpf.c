@@ -11,7 +11,7 @@
 #endif
 
 #ifndef NEW_NUMA_PERIOD_THRESHOLD
-#warning "No NEW_NUMA_PERIOD_THRESHOLD specified. Effective no change."
+#warning "No NEW_NUMA_PERIOD_THRESHOLD specified. Effectively no change."
 #define NEW_NUMA_PERIOD_THRESHOLD 7
 #endif
 
@@ -70,7 +70,7 @@
   3. sed -i 's|#define NUMA_PERIOD_THRESHOLD 7|#define NUMA_PERIOD_THRESHOLD 6|' kernel/sched/fair.c
   4. make kernel/sched/fair.o
   5. objdump -d kernel/sched/fair.o > fair.6.disas.txt
-  7. diff fair.{6,7}.disas.txt
+  6. diff fair.{6,7}.disas.txt
 
   15717c15717
   <     e1e3:     83 f8 05                cmp    $0x5,%eax
