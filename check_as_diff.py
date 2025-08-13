@@ -9,7 +9,7 @@ import sys
 from pathlib import Path
 
 # --- Configuration ---
-DEFAULT_LINUX_PATH = "/users/yltang/linux-6.14"
+DEFAULT_LINUX_PATH = "~/linux-6.14.0-export-symbol"
 REQUIRED_TOOLS = ["gcc", "make", "objdump", "sed", "diff"]
 BUILD_DIR_NAME = "BUILDO"  # Directory for all output files
 
@@ -113,7 +113,7 @@ def main():
     )
     parser.add_argument(
         "-p", "--path",
-        default=DEFAULT_LINUX_PATH,
+        default=os.path.expanduser(DEFAULT_LINUX_PATH),
         help=f"Path to the Linux kernel source code.\nDefault: {DEFAULT_LINUX_PATH}"
     )
     parser.add_argument(
@@ -242,10 +242,17 @@ def main():
                     print(result.stdout)
                 else:
                     print_color("--- Diff Result (No differences) ---", "green")
+            
+            # --- Step 9: Use sed to restore the original file ---
+            print_color("9. Restoring the original file...", "blue")
+            sed_expr = f"s|{to_code}|{from_code}|g"
+            if not run_command(["sed", "-i", sed_expr, str(source_file)], cwd=kernel_path):
+                raise RuntimeError("Failed to restore the original file.")
+            print_color("   Original file restored successfully.\n", "green")
         else:
             print_color("Skipping modification, recompilation, and diff steps because --sed was not provided.", "yellow")
         
-        # --- Step 9: Final Cleanup ---
+        # --- Step 10: Final Cleanup ---
         # [NEW] Delete the final .o file, keeping only the disassembly text files.
         print_color("\n9. Cleaning up intermediate object file...", "blue")
         try:
@@ -267,7 +274,6 @@ def main():
 
     print_color("\nScript finished.", "blue")
     # [MODIFIED] Updated the final message to reflect the cleanup.
-    print_color("Note: The source file may have been modified. Final disassembly files are saved in BUILDO.", "yellow")
 
 
 if __name__ == "__main__":
