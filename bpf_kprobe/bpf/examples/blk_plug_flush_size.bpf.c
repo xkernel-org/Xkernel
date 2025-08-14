@@ -20,16 +20,14 @@
 //   return 0;
 // }
 
-/** 
-SEC("kprobe/blk_mq_flush_plug_list")
-int BPF_KPROBE(blk_mq_flush_plug_list, struct blk_plug *plug, bool from_schedule) {
-  u32 rq_count;
-  bpf_probe_read_kernel(&rq_count, sizeof(u32), &plug->rq_count);
-  if (rq_count)
-    bpf_printk("plug->rq_count = %d", rq_count);
-  return 0;
-}
-**/
+// SEC("kprobe/blk_mq_flush_plug_list")
+// int BPF_KPROBE(blk_mq_flush_plug_list, struct blk_plug *plug, bool from_schedule) {
+//   u16 rq_count;
+//   bpf_probe_read_kernel(&rq_count, sizeof(u16), &plug->rq_count);
+//   if (rq_count)
+//     bpf_printk("plug->rq_count = %d", rq_count);
+//   return 0;
+// }
 
 SEC("kprobe/blk_add_rq_to_plug+0x118")
 int BPF_KPROBE(blk_add_rq_to_plug_0x118, struct blk_plug *plug, struct request *rq) {
