@@ -1,0 +1,20 @@
+[global]
+ioengine=io_uring
+numjobs=1
+direct=1
+group_reporting=1
+exitall_on_error=1
+
+# Push a big burst so requests co-reside in the plug (helps merging/scheduler)
+iodepth=128
+iodepth_batch_submit=128
+iodepth_batch_complete_min=128
+
+# Ignore iolog timestamps; send ops ASAP in given order
+replay_no_stall=1
+
+[job]
+name=regioned-rand4k
+read_iolog=hi.txt
+# If your iolog uses /dev/target, map it to the real device here:
+replay_redirect=/dev/sdb     # <--- set to your raw device; remove if iolog already has /dev/sdX

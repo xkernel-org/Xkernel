@@ -12,6 +12,8 @@
 compile_commands.json
 .cache
 
+.vscode
+
 __pycache__/*
 
 bpf_kprobe/bpf/vmlinux.h
