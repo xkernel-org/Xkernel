@@ -6,7 +6,7 @@ CC = gcc
 BTF_VMLINUX = /sys/kernel/btf/vmlinux
 
 # Enable BTF support
-EXTRA_CFLAGS += -g -O2
+EXTRA_CFLAGS += -g -O2 -DBPF_TEXT_POKE
 
 all:
 	@if [ ! -f $(KERNELDIR)/vmlinux ] && [ -f $(BTF_VMLINUX) ]; then \
