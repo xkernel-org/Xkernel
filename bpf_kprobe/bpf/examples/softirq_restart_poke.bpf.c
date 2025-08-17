@@ -8,7 +8,7 @@
 #include "xkernel.bpf.h"
 
 // (+0x52)ffffffffb218ade2:        bb 0a 00 00 00          mov    $0xa,%ebx
-#define NEW_MAX_SOFTIRQ_RESTART 0x01
+#define NEW_MAX_SOFTIRQ_RESTART 0x0f
 
 ONE_SHOT_ENV(
     0xffffffffb218ade2, // instruction address
