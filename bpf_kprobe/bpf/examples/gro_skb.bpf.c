@@ -6,12 +6,13 @@
 
 #include "xkernel.bpf.h"
 
-SEC("kprobe/dev_gro_receive+0x210")
-int BPF_KPROBE(dev_gro_receive_0x210) {
-  u64 eax = BPF_EAX(ctx);
+#define NEW_MAX_GRO_SKBS 32
 
-#define NEW_CONST 2
-  if (eax >= NEW_CONST) {
+SEC("kprobe/dev_gro_receive+0x53b")
+int BPF_KPROBE(dev_gro_receive_0x53b) {
+  u64 eax = BPF_EAX(ctx);
+  bpf_printk("gro list size: %d", eax);
+  if (eax >= NEW_MAX_GRO_SKBS) {
     BPF_SET_JG_TRUE(ctx);
   } else {
     BPF_SET_JG_FALSE(ctx);
