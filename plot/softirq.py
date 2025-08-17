@@ -20,53 +20,33 @@ df['CPU Usage'] = df['CPU Usage'].str.rstrip('%').astype('float')
 
 df['time_num'] = df['MAX_SOFTIRQ_TIME'].str.extract(r'(\d+)').astype(int)
 
+df['MAX_SOFTIRQ_TIME'] = pd.Categorical(
+    df['MAX_SOFTIRQ_TIME'],
+    categories=['1ms', '2ms (default)', '4ms'],
+    ordered=True
+)
+
+# 1. 绘制Worst Latency图
 plt.figure(figsize=(10, 6))
 sns.lineplot(data=df, x='MAX_SOFTIRQ_RESTART', y='Worst latency (us)', 
              hue='MAX_SOFTIRQ_TIME', style='MAX_SOFTIRQ_TIME', 
              markers=True, palette='tab10')
 
 plt.xlabel('MAX_SOFTIRQ_RESTART')
-plt.xticks(df['MAX_SOFTIRQ_RESTART'])
+plt.xticks(df['MAX_SOFTIRQ_RESTART'].unique())
 plt.ylabel('Worst Latency (us)')
 plt.legend(title='MAX_SOFTIRQ_TIME')
 plt.show()
 
+# 2. 绘制CPU Usage图
 plt.figure(figsize=(10, 6))
 sns.lineplot(data=df, x='MAX_SOFTIRQ_RESTART', y='CPU Usage', 
              hue='MAX_SOFTIRQ_TIME', style='MAX_SOFTIRQ_TIME', 
              markers=True, palette='tab10')
 
 plt.xlabel('MAX_SOFTIRQ_RESTART')
-plt.xticks(df['MAX_SOFTIRQ_RESTART'])
+plt.xticks(df['MAX_SOFTIRQ_RESTART'].unique())
 plt.ylabel('CPU Usage (%)')
 plt.legend(title='MAX_SOFTIRQ_TIME')
-plt.show()
-
-plt.figure(figsize=(8, 6))
-sns.boxplot(
-    data=df, 
-    x='MAX_SOFTIRQ_TIME', 
-    y='Worst latency (us)', 
-    hue='MAX_SOFTIRQ_TIME',
-    palette='tab10',
-    legend=False 
-)
-
-plt.xlabel('MAX_SOFTIRQ_TIME')
-plt.ylabel('Worst Latency (us)')
-plt.show()
-
-plt.figure(figsize=(8, 6))
-sns.boxplot(
-    data=df, 
-    x='MAX_SOFTIRQ_TIME', 
-    y='CPU Usage', 
-    hue='MAX_SOFTIRQ_TIME', 
-    palette='tab10',
-    legend=False
-)
-
-plt.xlabel('MAX_SOFTIRQ_TIME')
-plt.ylabel('CPU Usage (%)')
 plt.show()
     
