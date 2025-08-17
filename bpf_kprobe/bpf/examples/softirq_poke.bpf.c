@@ -7,7 +7,7 @@
 #include "xkernel.bpf.h"
 
 // (+0x25)ffffffffb218adb5:        4c 8d 68 02             lea    0x2(%rax),%r13
-#define NEW_MAX_SOFTIRQ_TIME 0x01
+#define NEW_MAX_SOFTIRQ_TIME 0x04
 
 ONE_SHOT_ENV(
     0xffffffffb218adb5, // instruction address
