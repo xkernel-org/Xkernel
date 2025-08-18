@@ -1,0 +1,9 @@
+Subsystem,File Path,Line Number,Type,Name,Value,Description
+mm,/home/spike/linux-6.14.7/mm/page-writeback.c,2268,static_const,dirty_bytes_min,2 * PAGE_SIZE,
+mm,/home/spike/linux-6.14.7/mm/vmalloc.c,63,static_const,ioremap_max_page_shift,PAGE_SHIFT,
+mm,/home/spike/linux-6.14.7/mm/vmalloc.c,76,static_const,vmap_allow_huge,false,
+mm,/home/spike/linux-6.14.7/mm/vmpressure.c,38,static_const,vmpressure_win,SWAP_CLUSTER_MAX * 16,
+mm,/home/spike/linux-6.14.7/mm/vmpressure.c,46,static_const,vmpressure_level_med,60,
+mm,/home/spike/linux-6.14.7/mm/vmpressure.c,47,static_const,vmpressure_level_critical,95,
+mm,/home/spike/linux-6.14.7/mm/vmpressure.c,68,static_const,vmpressure_level_critical_prio,ilog2(100 / 10),
+mm,/home/spike/linux-6.14.7/mm/rodata_test.c,16,static_const,rodata_test_data,TEST_VALUE,
