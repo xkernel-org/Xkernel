@@ -51,7 +51,7 @@ def load_snapshot(filepath):
 def print_diff(s1, s2):
     """Prints a formatted report comparing two snapshots and their delta."""
     print(f"{'Metric':<25} {'Snapshot 1':>18} {'Snapshot 2':>18} {'Delta':>18}")
-    print("-" * 79)
+    print("-" * 82)
     for key in NUMA_FIELDS:
         val1 = s1.get(key)
         val2 = s2.get(key)
