@@ -1,5 +1,4 @@
-
-PROGRAM_NAME=${1:-"2-threads"}
+PROGRAM_NAME=${1:-"prog"}
 PRINTED_DELIMITER=0
 
 while true; do
