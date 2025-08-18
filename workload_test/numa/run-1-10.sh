@@ -23,6 +23,7 @@ for VALUE in `seq 1 10`; do
     sleep 1
 
     bash $THIS_DIR/helpers/disas__task_numa_fault.sh
+    sudo su -c 'tail -n +1 /sys/kernel/debug/sched/numa_balancing/*'
 
     for i in `seq 1 $REPEAT`; do
 
@@ -65,6 +66,7 @@ for VALUE in `seq 1 10`; do
     done
 
     bash $THIS_DIR/helpers/disas__task_numa_fault.sh
+    sudo su -c 'tail -n +1 /sys/kernel/debug/sched/numa_balancing/*'
 
     kill "$PID"
     wait "$PID" 2>/dev/null

@@ -4,6 +4,7 @@ THIS_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 REPEAT=${REPEAT:-6}
 
 bash $THIS_DIR/helpers/disas__task_numa_fault.sh
+sudo su -c 'tail -n +1 /sys/kernel/debug/sched/numa_balancing/*'
 
 for i in `seq 1 $REPEAT`; do
 
@@ -51,3 +52,4 @@ for i in `seq 1 $REPEAT`; do
 done
 
 bash $THIS_DIR/helpers/disas__task_numa_fault.sh
+sudo su -c 'tail -n +1 /sys/kernel/debug/sched/numa_balancing/*'
