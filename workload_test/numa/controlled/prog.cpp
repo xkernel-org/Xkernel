@@ -39,7 +39,7 @@ void memory_intensive_task(int thread_id, size_t memory_size_mb, int rounds) {
 }
 
 int main(int argc, char* argv[]) {
-    if (argc != 6) {
+    if (argc != 7) {
         std::cerr << "Usage: " << argv[0] << " <num_threads> <total_mb> <rounds> <early_stop> <intentional_remote> <pin_cpu>" << std::endl;
         return 1;
     }
@@ -53,6 +53,7 @@ int main(int argc, char* argv[]) {
 
     if (pin_cpu) {
         // Pin the main thread to CPU 0
+        std::cout << "Pin the main thread to CPU 0" << std::endl;
         cpu_set_t cpuset;
         CPU_ZERO(&cpuset);
         CPU_SET(0, &cpuset);
@@ -85,6 +86,7 @@ int main(int argc, char* argv[]) {
 
         if (pin_cpu) {
             // Pin thread to a specific CPU core
+            std::cout << "Pin thread" << i << "to CPU" << i << std::endl;
             cpu_set_t cpuset;
             CPU_ZERO(&cpuset);
             CPU_SET(i, &cpuset); // Pin to node 0 and 1
