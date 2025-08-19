@@ -1,4 +1,4 @@
-PROGRAM_NAME=${1:-"prog"}
+PROGRAM_NAME=${1:-"prog\$"}
 PRINTED_DELIMITER=0
 
 while true; do
