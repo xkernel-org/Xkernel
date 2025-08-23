@@ -6,5 +6,5 @@
 
 PROGRAM_NAME=${1:-"benchmark"}
 
-ps -o pid,psr,comm -p $(pgrep $PROGRAM_NAME) 2>/dev/null |\
-     tail -n+2 | awk '{ print $2 }' | paste -sd,
+ps -L -o pid,tid,psr,nlwp,comm -p $(pgrep $PROGRAM_NAME) 2>/dev/null |\
+     tail -n+2 | awk '{ print $3 }' | paste -sd,
