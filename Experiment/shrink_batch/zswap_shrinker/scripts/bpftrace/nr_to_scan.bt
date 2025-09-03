@@ -1,0 +1,27 @@
+#!/usr/bin/env bpftrace
+
+BEGIN
+{
+  printf("Every 5s: last nr_to_scan seen in zswap_shrinker_scan\n");
+  printf("TIME      nr_to_scan\n");
+}
+
+// Change the shrinker'scan fucntion to trace other shrinker
+kprobe:zswap_shrinker_scan
+{
+  $sc = (struct shrink_control *)arg1;
+  @last_nr = (uint64)$sc->nr_to_scan;
+  @seen = 1;            
+}
+
+interval:s:5
+{
+  time("%H:%M:%S ");
+  if (@seen) {
+    printf("%llu\n", (uint64)@last_nr);
+  } else {
+    printf("N/A\n");
+  }
+  clear(@last_nr);
+  clear(@seen);
+}

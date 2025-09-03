@@ -9,7 +9,8 @@ import sys
 from pathlib import Path
 
 # --- Configuration ---
-DEFAULT_LINUX_PATH = "~/linux-6.14.0-export-symbol"
+# DEFAULT_LINUX_PATH = "~/linux-6.14.0-export-symbol"
+DEFAULT_LINUX_PATH = "/users/yltang/Download/linux-6.14"
 REQUIRED_TOOLS = ["gcc", "make", "objdump", "sed", "diff"]
 BUILD_DIR_NAME = "BUILDO"  # Directory for all output files
 

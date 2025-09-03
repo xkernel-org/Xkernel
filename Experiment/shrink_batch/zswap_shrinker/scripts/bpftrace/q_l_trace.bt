@@ -1,0 +1,98 @@
+#!/usr/bin/env bpftrace
+
+BEGIN
+{
+  printf("Tracing Q & L (zswap)… 5s interval. Ctrl-C to stop.\n");
+
+  @wb_ok_s = 0;
+  @exist_s = 0;
+  @wb_fail_s = 0;
+  @count_scaled_sum_s = 0;
+  @count_calls_s = 0;
+  @scan_pos_s = 0;
+  @early_stop_s = 0;
+  @swapin_s = 0;
+  @diskin_s = 0;
+}
+
+/* ---------------- Q = 写回/撞热区吞吐 ---------------- */
+kretprobe:zswap_writeback_entry
+{
+  $ret = (int64)retval;
+  if ($ret == 0) {
+    @wb_ok_s = @wb_ok_s + 1;
+  } else if ($ret == -17 /* -EEXIST */) {
+    @exist_s = @exist_s + 1;
+  } else {
+    @wb_fail_s = @wb_fail_s + 1;
+  }
+}
+
+/* ---------------- L = count() 的缩放候选估计 ---------------- */
+kretprobe:zswap_shrinker_count
+{
+  $ret = (int64)retval;
+  /* 只累计正值；避免把 SHRINK_STOP(-1) 等异常值计入平均 */
+  if ($ret > 0) {
+    @count_scaled_sum_s = @count_scaled_sum_s + $ret;
+    @count_calls_s = @count_calls_s + 1;
+  }
+}
+
+/* ---------------- 扫描结果（辅助） ---------------- */
+kretprobe:zswap_shrinker_scan
+{
+  $ret = (int64)retval;
+  /* SHRINK_STOP 在 bpftrace 里就是 -1，用有符号比较最干净 */
+  if ($ret == -1) {
+    @early_stop_s = @early_stop_s + 1;
+  } else if ($ret > 0) {
+    @scan_pos_s = @scan_pos_s + $ret;
+  }
+}
+
+/* ---------------- swapin / diskin 事件（辅助） ---------------- */
+
+kretprobe:zswap_load
+{
+  $ret = (int64)retval;
+  if ($ret != 0) { @zswap_hit_s++; }
+  else           { @zswap_miss_s++; }
+}
+
+
+interval:s:5
+{
+  $wb_ok    = @wb_ok_s;            clear(@wb_ok_s);
+  $exist    = @exist_s;            clear(@exist_s);
+  $wb_fail  = @wb_fail_s;          clear(@wb_fail_s);
+
+  $count_sum = @count_scaled_sum_s; clear(@count_scaled_sum_s);
+  $count_n   = @count_calls_s;      clear(@count_calls_s);
+
+  $scan_pos   = @scan_pos_s;       clear(@scan_pos_s);
+  $early_stop = @early_stop_s;     clear(@early_stop_s);
+
+  $zswap_hit = @zswap_hit_s;        clear(@zswap_hit_s);
+  $zswap_miss = @zswap_miss_s;      clear(@zswap_miss_s);
+
+  $L_est = ((uint64)$count_n > 0) ? ((uint64)$count_sum / (uint64)$count_n) : (uint64)0;
+  $Q_5s  = (uint64)$wb_ok + (uint64)$exist;
+
+  /* t2_ms ≈ (2 * L_est * 5000) / Q_5s */
+  $t2_ms = ($Q_5s > 0) ? (( (uint64)2 * (uint64)$L_est * (uint64)5000 ) / (uint64)$Q_5s) : (uint64)0;
+
+  printf("\n=== Shrink Batch Stats ===\n");
+  printf("T              = %llu s\n",      (uint64)(nsecs / 1000000000));
+  printf("wb_ok          = %llu\n",        (uint64)$wb_ok);
+  printf("exist(EEXIST)  = %llu\n",        (uint64)$exist);
+  printf("wb_fail        = %llu\n",        (uint64)$wb_fail);
+  printf("scan_pos       = %llu\n",        (uint64)$scan_pos);
+  printf("early_stop     = %llu\n",        (uint64)$early_stop);
+  printf("zswap_hit      = %llu\n",        (uint64)$zswap_hit);
+  printf("zswap_miss     = %llu\n",        (uint64)$zswap_miss);
+  printf("L_est          = %llu\n",        (uint64)$L_est);
+  printf("Q_5s           = %llu\n",        (uint64)$Q_5s);
+  printf("t2_ms≈         = %llu ms\n",     (uint64)$t2_ms);
+}
+
