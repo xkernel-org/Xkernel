@@ -2,6 +2,54 @@ File Path,Shrinker Expr,Subsystem (heuristic),Original Line,Explanation (Linux-6
 
 ---
 
+| Subsystem    | File (path)                             | Shrinker (expr)                 | One-sentence summary                            |
+| ------------ | --------------------------------------- | ------------------------------- | ----------------------------------------------- |
+| f2fs         | `fs/f2fs/super.c`                       | `f2fs_shrinker_info`            | 回收 F2FS 的元数据/节点类缓存，限制 NAT/SIT/目录项等内存占用。         |
+| nfsd         | `fs/nfsd/nfscache.c`                    | `nn->nfsd_reply_cache_shrinker` | 回收 NFS 服务器端的 reply cache 条目，控制 RPC 重放状态占用。      |
+| nfsd         | `fs/nfsd/nfs4state.c`                   | `nn->nfsd_client_shrinker`      | 回收 NFSv4 客户端状态（lease/open 等），避免内存膨胀。            |
+| nfsd         | `fs/nfsd/nfs4state.c`                   | `nfsd_slot_shrinker`            | 回收 NFSv4 会话 slot 跟踪对象，限制每客户端资源。                 |
+| nfsd         | `fs/nfsd/filecache.c`                   | `nfsd_file_shrinker`            | 回收 nfsd 的文件句柄/打开文件缓存。                           |
+| xfs          | `fs/xfs/xfs_buf.c`                      | `btp->bt_shrinker`              | 回收 XFS 元数据 buffer/btree 缓存（常与 I/O/锁耦合）。         |
+| xfs          | `fs/xfs/xfs_icache.c`                   | `mp->m_inodegc_shrinker`        | XFS inode 垃圾回收（引用、RCU/锁开销明显）。                   |
+| xfs          | `fs/xfs/xfs_qm.c`                       | `qinf->qi_shrinker`             | 回收 XFS 的 dquot（配额）对象，可能触发磁盘更新。                  |
+| quota        | `fs/quota/dquot.c`                      | `dqcache_shrinker`              | 回收通用 dquot 缓存（被启用配额的文件系统共享）。                    |
+| ext4         | `fs/ext4/extents_status.c`              | `sbi->s_es_shrinker`            | 回收 ext4 extents status 缓存（映射/延迟分配状态）。           |
+| jbd2         | `fs/jbd2/journal.c`                     | `journal->j_shrinker`           | 回收 JBD2 日志层的内存结构（如 revoke/事务元数据缓存）。             |
+| ubifs        | `fs/ubifs/super.c`                      | `ubifs_shrinker_info`           | 回收 UBIFS 的索引/LPT 等元数据缓存。                        |
+| bcachefs     | `fs/bcachefs/btree_key_cache.c`         | `shrinker_register(shrink)`     | 回收 bcachefs btree key cache。                    |
+| bcachefs     | `fs/bcachefs/btree_cache.c`             | `shrinker_register(shrink)`     | 回收 bcachefs btree node/page 缓存。                 |
+| erofs        | `fs/erofs/zutil.c` & `fs/erofs/super.c` | `erofs_shrinker_info`           | 回收 EROFS 的解压/索引相关缓存（压缩只读场景）。                    |
+| nfs          | `fs/nfs/nfs42xattr.c`                   | `shrinker_register(*shrinker)`  | 回收 NFSv4.2 xattr 相关缓存。                          |
+| nfs          | `fs/nfs/super.c`                        | `acl_shrinker`                  | 回收 NFS ACL 缓存。                                  |
+| mbcache      | `fs/mbcache.c`                          | `cache->c_shrink`               | 回收 mbcache（ext\* 常用）的元数据去重缓存。                   |
+| btrfs        | `fs/btrfs/compression.c`                | `compr_pool.shrinker`           | 回收 btrfs 压缩工作区/上下文池（CPU 内存工作集）。                 |
+| generic fs   | `fs/super.c`                            | `s->s_shrink`                   | 每个 super\_block 的通用 shrinker 钩子（回收该文件系统自有缓存）。   |
+| gfs2         | `fs/gfs2/quota.c`                       | `gfs2_qd_shrinker`              | 回收 GFS2 配额（qd）结构。                               |
+| gfs2         | `fs/gfs2/glock.c`                       | `glock_shrinker`                | 回收 GFS2 的 glock（分布式锁）对象。                        |
+| bcache       | `drivers/md/bcache/btree.c`             | `c->shrink`                     | 回收 bcache 的 btree 缓存。                           |
+| dm           | `drivers/md/dm-bufio.c`                 | `c->shrinker`                   | 回收 device-mapper 的通用 bufio 缓存（块缓存）。             |
+| dm           | `drivers/md/dm-zoned-metadata.c`        | `zmd->mblk_shrinker`            | 回收 DM-zoned 的元数据块缓存。                            |
+| md/raid      | `drivers/md/raid5.c`                    | `conf->shrinker`                | 回收 RAID5/6 条带（stripe）缓存。                        |
+| DRM/panfrost | `drivers/gpu/drm/panfrost/...`          | `pfdev->shrinker`               | 回收 panfrost 的 GEM/bo 等显存/页池资源。                  |
+| DRM/msm      | `drivers/gpu/drm/msm/...`               | `priv->shrinker`                | 回收 msm 的 GEM/bo 相关内存。                           |
+| DRM/ttm      | `drivers/gpu/drm/ttm/ttm_pool.c`        | `mm_shrinker`                   | 回收 TTM page pool（GPU 显存后备页池）。                   |
+| DRM/i915     | `drivers/gpu/drm/i915/gem/...`          | `i915->mm.shrinker`             | 回收 i915 GEM/对象/页表相关内存（可能涉及 pin/映射）。             |
+| virt         | `drivers/virtio/virtio_balloon.c`       | `vb->shrinker`                  | 回收/调整 virtio-balloon 相关页占用（协助宿主压力）。             |
+| virt         | `drivers/misc/vmw_balloon.c`            | `b->shrinker`                   | VMware balloon 的类似回收。                           |
+| xen          | `drivers/xen/xenbus/...`                | `backend_memory_shrinker`       | 回收 Xen 后端驱动的内存分配（环形缓冲/页）。                       |
+| android      | `drivers/android/binder_alloc.c`        | `binder_shrinker`               | 回收 Binder 分配器中的 buffer 页（IPC 缓冲）。               |
+| net/sunrpc   | `net/sunrpc/auth.c`                     | `rpc_cred_shrinker`             | 回收 RPC 凭据缓存。                                    |
+| RCU          | `kernel/rcu/tree_nocb.h`                | `lazy_rcu_shrinker`             | 回收/触发惰性 RCU 回调 backlog（加速 kfree\_rcu 进程）。       |
+| VM           | `mm/workingset.c`                       | `workingset_shadow_shrinker`    | 回收 workingset 的 shadow entries（refault/再访迹象结构）。 |
+| VM           | `mm/zswap.c`                            | `zswap_shrinker`                | 回收 zswap 压缩条目（可触发写回到 swap 设备）。                  |
+| VM           | `mm/huge_memory.c`                      | `huge_zero_page_shrinker`       | 在压力下释放全局 huge zero page。                        |
+| VM           | `mm/huge_memory.c`                      | `deferred_split_shrinker`       | 回收/处理 THP 的 deferred split 列表。                  |
+| VM           | `mm/zsmalloc.c`                         | `pool->shrinker`                | 回收 zsmalloc 的空 zspage/大小类页（减少碎片/还回物理页）。         |
+| VM           | `mm/vmalloc.c`                          | `vmap_node_shrinker`            | 回收 vmap 区域/页表（降低 vmap 空间压力）。                    |
+| VM/RCU       | `mm/slab_common.c`                      | `kfree_rcu_shrinker`            | 通过 shrinker 驱动释放积压的 kfree\_rcu 对象。              |
+
+---
+
 ./fs/f2fs/super.c:      shrinker_register(f2fs_shrinker_info):
 
 ### 1. 它是什么
