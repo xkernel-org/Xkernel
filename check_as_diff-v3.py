@@ -186,9 +186,18 @@ def main():
         action="store_true",
         help="Ignore differences that are only leading numbers followed by a colon (e.g., '3833:') in diff output."
     )
+    parser.add_argument(
+        "-l", "--lines",
+        help="Lines to print when using addr2line. Format: <start_line>-<end_line>,<line>,<start_line>-<end_line>"
+    )
     args = parser.parse_args()
     kernel_path = Path(args.path).resolve()
 
+    if args.lines:
+        args.lines = args.lines.split(",")
+        args.lines = [line.split("-") for line in args.lines]
+        args.lines = [(int(line[0]), int(line[1])) for line in args.lines]
+        args.lines = [line for sublist in args.lines for line in range(sublist[0], sublist[1]+1)]
     # --- Validate required arguments ---
     if not args.file:
         parser.error("Error: The --file argument is required when not using --clean.")
@@ -333,15 +342,24 @@ def main():
         # --- Step 10: Use addr2line to get all source-code lines for the instructions that have changed
         print_color("\n10. Using addr2line to get all source-code lines for the instructions that have changed...", "blue")
         for line in diff_result.stdout.splitlines():
-            if line.startswith("+"):
+            if line.startswith("-"):
                 if len(line.split()) < 2:
                     continue
                 offset = line.split()[1]
-                addr2line_cmd = ["addr2line", "-e", str(target_obj), offset]
+                addr2line_cmd = ["addr2line", "-e", str(target_orig_obj), offset]
                 result = subprocess.run(addr2line_cmd, capture_output=True, text=True)
                 if result.stdout:
-                    # print(result.stdout)
-                    if "io_uring.c:3580" in result.stdout:
+                    if args.lines:
+                        line_number = result.stdout.split(":")[1]
+                        line_number = line_number.split(" ")[0]
+                        line_number = line_number.rstrip("\n")
+                        try:
+                            line_number = int(line_number)
+                        except ValueError:
+                            continue
+                        if line_number in args.lines:
+                            print(line+"\t"+result.stdout, end="")
+                    else:
                         print(line+"\t"+result.stdout, end="")
                 else:
                     print_color("No differences found", "green")
