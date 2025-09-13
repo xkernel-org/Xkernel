@@ -102,6 +102,11 @@ def main():
         "-l", "--lines",
         help="Lines to print when using addr2line. Format: <start_line>-<end_line>,<line>,<start_line>-<end_line>"
     )
+    parser.add_argument(
+        "-r", "--reverse",
+        action="store_true",
+        help="Check diff against the post-modification object file."
+    )
     args = parser.parse_args()
 
     if args.lines:
@@ -200,12 +205,14 @@ def main():
         # --- Step 5: Use addr2line to get source-code lines for changed instructions ---
         if diff_result.stdout:
             print_color("\n5. Using addr2line to get source-code lines for changed instructions...", "blue")
+            flag = "+" if args.reverse else "-"
+            o_path = post_o_path if args.reverse else pre_o_path
             for line in diff_result.stdout.splitlines():
-                if line.startswith("-"):
+                if line.startswith(flag):
                     if len(line.split()) < 2:
                         continue
                     offset = line.split()[1]
-                    addr2line_cmd = ["addr2line", "-e", str(pre_o_path), offset]
+                    addr2line_cmd = ["addr2line", "-e", str(o_path), offset]
                     result = subprocess.run(addr2line_cmd, capture_output=True, text=True)
                     if result.stdout:
                         if args.lines:
