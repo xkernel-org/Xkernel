@@ -194,10 +194,26 @@ def main():
     kernel_path = Path(args.path).resolve()
 
     if args.lines:
-        args.lines = args.lines.split(",")
-        args.lines = [line.split("-") for line in args.lines]
-        args.lines = [(int(line[0]), int(line[1])) for line in args.lines]
-        args.lines = [line for sublist in args.lines for line in range(sublist[0], sublist[1]+1)]
+        # Parse args.lines to support formats like xxx-xxx,xxx,xxx-xxx,xxx
+        line_set = set()
+        for part in args.lines.split(","):
+            part = part.strip()
+            if "-" in part:
+                try:
+                    start, end = part.split("-")
+                    start = int(start)
+                    end = int(end)
+                    if start > end:
+                        start, end = end, start
+                    line_set.update(range(start, end + 1))
+                except ValueError:
+                    continue  # skip invalid range
+            else:
+                try:
+                    line_set.add(int(part))
+                except ValueError:
+                    continue  # skip invalid single line
+        args.lines = sorted(line_set)
     # --- Validate required arguments ---
     if not args.file:
         parser.error("Error: The --file argument is required when not using --clean.")
@@ -304,7 +320,7 @@ def main():
                         else:
                             print_color("No differences found", "green")
                     else:
-                        diff_cmd = ["diff", "-u", str(original_disas[file]), str(recompiled_disas[file])]
+                        diff_cmd = ["diff", str(original_disas[file]), str(recompiled_disas[file]), "-U0"]
                         diff_result = subprocess.run(diff_cmd, capture_output=True, text=True)
                         if diff_result.stdout:
                             print(diff_result.stdout)

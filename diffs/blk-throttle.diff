@@ -1,0 +1,10 @@
+sudo python check_as_diff-v3.py -f block/blk-throttle.c  -s "THROTL_GRP_QUANTUM * 3 / 4" "THROTL_GRP_QUANTUM * 1 / 2" --lines 950,960
+-    34f0:      83 fb 06                cmp    $0x6,%ebx        /users/chenzj/linux-6.14.0-export-symbol/block/blk-throttle.c:950
+-    34f3:      75 c6                   jne    34bb <throtl_pending_timer_fn+0x15b>     /users/chenzj/linux-6.14.0-export-symbol/block/blk-throttle.c:950
+-    34f5:      31 c0                   xor    %eax,%eax        /users/chenzj/linux-6.14.0-export-symbol/block/blk-throttle.c:950
+-    34f7:      89 5d c0                mov    %ebx,-0x40(%rbp) /users/chenzj/linux-6.14.0-export-symbol/block/blk-throttle.c:950
+-    34fa:      4d 8d 7e 38             lea    0x38(%r14),%r15  /users/chenzj/linux-6.14.0-export-symbol/block/blk-throttle.c:950
+-    34fe:      41 bd 02 00 00 00       mov    $0x2,%r13d       /users/chenzj/linux-6.14.0-export-symbol/block/blk-throttle.c:950
+-    3504:      89 c3                   mov    %eax,%ebx        /users/chenzj/linux-6.14.0-export-symbol/block/blk-throttle.c:950
+-    3540:      41 83 fd 01             cmp    $0x1,%r13d       /users/chenzj/linux-6.14.0-export-symbol/block/blk-throttle.c:960
+-    3544:      0f 84 fc 00 00 00       je     3646 <throtl_pending_timer_fn+0x2e6>     /users/chenzj/linux-6.14.0-export-symbol/block/blk-throttle.c:960
