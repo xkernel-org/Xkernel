@@ -1,4 +1,4 @@
-sudo python check_as_diff-v3.py -f io_uring/io_uring.c -s "#define IO_LOCAL_TW_DEFAULT_MAX		 20" "#define IO_LOCAL_TW_DEFAULT_MAX		 32" --lines 1331-1332,2349,2513-2514
+sudo python check_as_diff-v3.py -f io_uring/io_uring.c -s "#define IO_LOCAL_TW_DEFAULT_MAX		 20" "#define IO_LOCAL_TW_DEFAULT_MAX		 32"
 
 sudo python check_as_diff-v3.py -f block/blk-mq-sched.c -s "#define BLK_MQ_BUDGET_DELAY	3" "#define BLK_MQ_BUDGET_DELAY	5" --lines 156,248
 

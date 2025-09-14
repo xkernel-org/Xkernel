@@ -190,6 +190,11 @@ def main():
         "-l", "--lines",
         help="Lines to print when using addr2line. Format: <start_line>-<end_line>,<line>,<start_line>-<end_line>"
     )
+    parser.add_argument(
+        "-r", "--reverse",
+        action="store_true",
+        help="Check diff against the post-modification object file."
+    )
     args = parser.parse_args()
     kernel_path = Path(args.path).resolve()
 
@@ -358,11 +363,13 @@ def main():
         # --- Step 10: Use addr2line to get all source-code lines for the instructions that have changed
         print_color("\n10. Using addr2line to get all source-code lines for the instructions that have changed...", "blue")
         for line in diff_result.stdout.splitlines():
-            if line.startswith("-"):
+            flag = "+" if args.reverse else "-"
+            if line.startswith(flag):
                 if len(line.split()) < 2:
                     continue
                 offset = line.split()[1]
-                addr2line_cmd = ["addr2line", "-e", str(target_orig_obj), offset]
+                obj = target_recomp_obj if args.reverse else target_orig_obj
+                addr2line_cmd = ["addr2line", "-e", str(obj), offset]
                 result = subprocess.run(addr2line_cmd, capture_output=True, text=True)
                 if result.stdout:
                     if args.lines:
