@@ -1,23 +1,16 @@
-sudo python check_as_diff-v2.py -f io_uring/io_uring.c -m "IO_LOCAL_TW_DEFAULT_MAX" -s "#define IO_LOCAL_TW_DEFAULT_MAX		 20" "#define IO_LOCAL_TW_DEFAULT_MAX		 32"
+sudo python check_as_diff-v3.py -f io_uring/io_uring.c -s "#define IO_LOCAL_TW_DEFAULT_MAX		 20" "#define IO_LOCAL_TW_DEFAULT_MAX		 32"
 
-sudo python check_as_diff-v2.py -f block/blk-mq.h -m "BLK_MQ_CPU_WORK_BATCH" -s "#define BLK_MQ_CPU_WORK_BATCH	(8)" "#define BLK_MQ_CPU_WORK_BATCH	(16)"
+sudo python check_as_diff-v3.py -f block/blk-mq-sched.c -s "#define BLK_MQ_BUDGET_DELAY	3" "#define BLK_MQ_BUDGET_DELAY	5" --lines 156,248
 
-sudo python check_as_diff-v2.py -f block/blk-mq-sched.c -m "BLK_MQ_BUDGET_DELAY" -s "#define BLK_MQ_BUDGET_DELAY	3" "#define BLK_MQ_BUDGET_DELAY	5"
+sudo python check_as_diff-v3.py -f block/blk-mq.c -s "#define BLK_MQ_RESOURCE_DELAY	3" "#define BLK_MQ_RESOURCE_DELAY	5" --lines 2202
 
-sudo python check_as_diff-v2.py -f block/blk-mq.c -m "#define BLK_MQ_RESOURCE_DELAY	3" -s "#define BLK_MQ_RESOURCE_DELAY	3" "#define BLK_MQ_RESOURCE_DELAY	5"
+sudo python check_as_diff-v3.py -f kernel/sched/fair.c -s "#define fits_capacity(cap, max)	((cap) * 1280 < (max) * 1024)" "#define fits_capacity(cap, max)	((cap) * 640 < (max) * 512)" --lines 4983
 
-sudo python check_as_diff-v2.py -f block/blk-throttle.c -m "THROTL_GRP_QUANTUM" -s "#define THROTL_GRP_QUANTUM 8" "#define THROTL_GRP_QUANTUM 7"
+sudo python check_as_diff-v3.py -f block/blk-mq.c -s "BLK_MAX_REQUEST_COUNT" "128" --lines 1371,1372
 
-sudo python check_as_diff-v2.py -f kernel/sched/fair.c -m "fits_capacity" -s "#define fits_capacity(cap, max)	((cap) * 1280 < (max) * 1024)" "#define fits_capacity(cap, max)	((cap) * 640 < (max) * 512)"
+sudo python check_as_diff-v3.py -f block/blk-mq.c -s "BLK_MQ_CPU_WORK_BATCH" "16"
 
-sudo python check_as_diff-v2.py -f block/blk.h -m "BLK_MAX_REQUEST_COUNT" -s "#define BLK_MAX_REQUEST_COUNT	32" "#define BLK_MAX_REQUEST_COUNT	64"
-
-sudo python check_as_diff-v2.py -f block/blk-mq.h -m "BLK_MQ_CPU_WORK_BATCH" -s "#define BLK_MQ_CPU_WORK_BATCH	(16)" "#define BLK_MQ_CPU_WORK_BATCH	(8)"
-
-sudo python check_as_diff-v2.py -f block/blk-throttle.c -m "THROTL_GRP_QUANTUM" -s "#define THROTL_GRP_QUANTUM 8" "#define THROTL_GRP_QUANTUM 6"
-
-sudo python check_as_diff-v3.py -f block/blk-throttle.c  -s "THROTL_GRP_QUANTUM * 3 / 4" "THROTL_GRP_QUANTUM * 7 / 8" -i
-sudo python check_as_diff-v3.py -f block/blk-throttle.c  -s "THROTL_GRP_QUANTUM * 7 / 8" "THROTL_GRP_QUANTUM * 3 / 4"
+sudo python check_as_diff-v3.py -f block/blk-throttle.c  -s "THROTL_GRP_QUANTUM * 3 / 4" "THROTL_GRP_QUANTUM * 1 / 2" --lines 950,960
 
 
 

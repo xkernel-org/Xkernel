@@ -1,0 +1,2 @@
+sudo python check_as_diff-v3.py -f block/blk-mq.c -s "#define BLK_MQ_RESOURCE_DELAY	3" "#define BLK_MQ_RESOURCE_DELAY	5" --lines 2202
+-    7b91:      be 03 00 00 00          mov    $0x3,%esi        /users/chenzj/linux-6.14.0-export-symbol/block/blk-mq.c:2202

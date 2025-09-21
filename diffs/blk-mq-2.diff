@@ -1,0 +1,5 @@
+sudo python check_as_diff-v3.py -f block/blk-mq.c -s "BLK_MAX_REQUEST_COUNT" "128" --lines 1371,1372
+-    866b:      83 e0 e0                and    $0xffffffe0,%eax /users/chenzj/linux-6.14.0-export-symbol/block/blk-mq.c:1372
+-    866e:      83 c0 40                add    $0x40,%eax       /users/chenzj/linux-6.14.0-export-symbol/block/blk-mq.c:1372
+-    8671:      66 41 39 c6             cmp    %ax,%r14w        /users/chenzj/linux-6.14.0-export-symbol/block/blk-mq.c:1381 (discriminator 1)
+-    8675:      73 1e                   jae    8695 <blk_add_rq_to_plug+0xf5>   /users/chenzj/linux-6.14.0-export-symbol/block/blk-mq.c:1381 (discriminator 1)

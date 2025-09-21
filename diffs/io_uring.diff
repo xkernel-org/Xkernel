@@ -1,0 +1,5 @@
+sudo python check_as_diff-v3.py -f io_uring/io_uring.c -s "#define IO_LOCAL_TW_DEFAULT_MAX		 20" "#define IO_LOCAL_TW_DEFAULT_MAX		 32" --lines 1344,1354,2525
+-    8137:      b9 14 00 00 00          mov    $0x14,%ecx       /users/chenzj/linux-6.14.0-export-symbol/io_uring/io_uring.c:2525 (discriminator 14)
+-    a0df:      b8 14 00 00 00          mov    $0x14,%eax       /users/chenzj/linux-6.14.0-export-symbol/io_uring/io_uring.c:1344 (discriminator 14)
+-    a536:      b8 14 00 00 00          mov    $0x14,%eax       /users/chenzj/linux-6.14.0-export-symbol/io_uring/io_uring.c:1344 (discriminator 14)
+-    a6ee:      b9 14 00 00 00          mov    $0x14,%ecx       /users/chenzj/linux-6.14.0-export-symbol/io_uring/io_uring.c:1354

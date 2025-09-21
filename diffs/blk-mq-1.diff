@@ -1,0 +1,3 @@
+sudo python check_as_diff-v3.py -f block/blk-mq.c -s "BLK_MQ_CPU_WORK_BATCH" "16"
+-    26af:      c7 83 a4 00 00 00 08    movl   $0x8,0xa4(%rbx)  /users/chenzj/linux-6.14.0-export-symbol/block/blk-mq.c:2251
+-    9cf3:      41 c7 86 a4 00 00 00    movl   $0x8,0xa4(%r14)  /users/chenzj/linux-6.14.0-export-symbol/block/blk-mq.c:4199

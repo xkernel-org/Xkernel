@@ -72,29 +72,27 @@ def get_file_hash(file_path):
 
 def process_file(kernel_path, build_path, file_path, is_original=True):
     """Process a single file: compile, disassemble, and manage artifacts"""
-    # Get file components
     rel_path = file_path.relative_to(kernel_path)
     obj_rel_path = rel_path.with_suffix(".o")
     obj_abs_path = kernel_path / obj_rel_path
     file_hash = get_file_hash(rel_path)
     
-    # Create unique filenames for build artifacts
     dest_obj_file = build_path / f"{file_hash}.o"
     disas_file = build_path / f"{file_hash}_{'original' if is_original else 'recompiled'}.disas.txt"
+    orig_obj_file = build_path / f"{file_hash}_{'original' if is_original else 'recompiled'}.orig.o"
 
-    # Compile the object file
     print_color(f"Compiling {rel_path}...", "blue")
     if not run_command(["make", str(obj_rel_path)], cwd=kernel_path):
         raise RuntimeError(f"Compilation failed for {rel_path}")
     
-    # Move and verify object file
     if obj_abs_path.exists():
+        shutil.copy2(str(obj_abs_path), str(orig_obj_file))
+        print_color(f"   - Saved original object file to: {orig_obj_file}", "green")
         shutil.move(str(obj_abs_path), str(dest_obj_file))
         print_color(f"   - Moved {obj_abs_path.name} to {build_path}", "green")
     else:
         raise RuntimeError(f"Build artifact {obj_abs_path} not found")
 
-    # Generate disassembly
     print_color(f"Generating disassembly for {rel_path}...", "blue")
     objdump_cmd = ["objdump", "-d", str(dest_obj_file)]
     disassembly_content = run_command(objdump_cmd, cwd=kernel_path, capture_output=True)
@@ -105,7 +103,7 @@ def process_file(kernel_path, build_path, file_path, is_original=True):
         f.write(disassembly_content)
     print_color(f"   - Disassembly saved to: {disas_file}", "green")
     
-    return dest_obj_file, disas_file
+    return dest_obj_file, disas_file, orig_obj_file
 
 def search_macro_usage(kernel_path, macro_name):
     """Search for files using the specified macro"""
@@ -188,9 +186,39 @@ def main():
         action="store_true",
         help="Ignore differences that are only leading numbers followed by a colon (e.g., '3833:') in diff output."
     )
+    parser.add_argument(
+        "-l", "--lines",
+        help="Lines to print when using addr2line. Format: <start_line>-<end_line>,<line>,<start_line>-<end_line>"
+    )
+    parser.add_argument(
+        "-r", "--reverse",
+        action="store_true",
+        help="Check diff against the post-modification object file."
+    )
     args = parser.parse_args()
     kernel_path = Path(args.path).resolve()
 
+    if args.lines:
+        # Parse args.lines to support formats like xxx-xxx,xxx,xxx-xxx,xxx
+        line_set = set()
+        for part in args.lines.split(","):
+            part = part.strip()
+            if "-" in part:
+                try:
+                    start, end = part.split("-")
+                    start = int(start)
+                    end = int(end)
+                    if start > end:
+                        start, end = end, start
+                    line_set.update(range(start, end + 1))
+                except ValueError:
+                    continue  # skip invalid range
+            else:
+                try:
+                    line_set.add(int(part))
+                except ValueError:
+                    continue  # skip invalid single line
+        args.lines = sorted(line_set)
     # --- Validate required arguments ---
     if not args.file:
         parser.error("Error: The --file argument is required when not using --clean.")
@@ -224,7 +252,7 @@ def main():
     try:
         # --- Step 3: Initial Compilation for Target File ---
         print_color("3. Performing initial compilation for target file...", "blue")
-        target_obj, target_orig_disas = process_file(
+        target_obj, target_orig_disas, target_orig_obj = process_file(
             kernel_path, build_path, source_file, is_original=True
         )
         original_disas[source_file] = target_orig_disas
@@ -235,7 +263,7 @@ def main():
             # Process initial compilation for macro files
             for file in macro_files:
                 if file != source_file:  # Skip if it's our target file
-                    obj, disas = process_file(
+                    obj, disas, orig_obj = process_file(
                         kernel_path, build_path, file, is_original=True
                     )
                     original_disas[file] = disas
@@ -270,7 +298,7 @@ def main():
 
             # --- Step 6: Recompilation for Target File ---
             print_color("6. Recompiling modified target file...", "blue")
-            _, target_recomp_disas = process_file(
+            _, target_recomp_disas, target_recomp_obj = process_file(
                 kernel_path, build_path, source_file, is_original=False
             )
             recompiled_disas[source_file] = target_recomp_disas
@@ -279,7 +307,7 @@ def main():
             if args.macro and macro_files:
                 print_color("\n7. Recompiling files using specified macro...", "blue")
                 for file in macro_files:
-                    _, disas = process_file(
+                    _, disas, orig_obj = process_file(
                         kernel_path, build_path, file, is_original=False
                     )
                     recompiled_disas[file] = disas
@@ -297,10 +325,10 @@ def main():
                         else:
                             print_color("No differences found", "green")
                     else:
-                        diff_cmd = ["diff", "-u", str(original_disas[file]), str(recompiled_disas[file])]
-                        result = subprocess.run(diff_cmd, capture_output=True, text=True)
-                        if result.stdout:
-                            print(result.stdout)
+                        diff_cmd = ["diff", str(original_disas[file]), str(recompiled_disas[file]), "-U0"]
+                        diff_result = subprocess.run(diff_cmd, capture_output=True, text=True)
+                        if diff_result.stdout:
+                            print(diff_result.stdout)
                         else:
                             print_color("No differences found", "green")
             
@@ -331,15 +359,42 @@ def main():
             print_color("   Original file restored successfully.\n", "green")
         else:
             print_color("Skipping modification, recompilation, and diff steps because --sed was not provided.", "yellow")
-        
-        # --- Step 10: Cleanup intermediate object files ---
-        print_color("\n10. Cleaning up intermediate object files...", "blue")
-        for obj_file in build_path.glob("*.o"):
-            try:
-                obj_file.unlink()
-                print_color(f"   - Removed: {obj_file.name}", "green")
-            except OSError as e:
-                print_color(f"   - Error: Failed to remove {obj_file.name}: {e}", "red")
+
+        # --- Step 10: Use addr2line to get all source-code lines for the instructions that have changed
+        print_color("\n10. Using addr2line to get all source-code lines for the instructions that have changed...", "blue")
+        for line in diff_result.stdout.splitlines():
+            flag = "+" if args.reverse else "-"
+            if line.startswith(flag):
+                if len(line.split()) < 2:
+                    continue
+                offset = line.split()[1]
+                obj = target_recomp_obj if args.reverse else target_orig_obj
+                addr2line_cmd = ["addr2line", "-e", str(obj), offset]
+                result = subprocess.run(addr2line_cmd, capture_output=True, text=True)
+                if result.stdout:
+                    if args.lines:
+                        line_number = result.stdout.split(":")[1]
+                        line_number = line_number.split(" ")[0]
+                        line_number = line_number.rstrip("\n")
+                        try:
+                            line_number = int(line_number)
+                        except ValueError:
+                            continue
+                        if line_number in args.lines:
+                            print(line+"\t"+result.stdout, end="")
+                    else:
+                        print(line+"\t"+result.stdout, end="")
+                else:
+                    print_color("No differences found", "green")
+
+        # --- Step 11: Cleanup intermediate object files ---
+        # print_color("\n10. Cleaning up intermediate object files...", "blue")
+        # for obj_file in build_path.glob("*.o"):
+        #     try:
+        #         obj_file.unlink()
+        #         print_color(f"   - Removed: {obj_file.name}", "green")
+        #     except OSError as e:
+        #         print_color(f"   - Error: Failed to remove {obj_file.name}: {e}", "red")
 
     except (RuntimeError, KeyboardInterrupt) as e:
         if isinstance(e, RuntimeError):

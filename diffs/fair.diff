@@ -1,0 +1,27 @@
+sudo python check_as_diff-v3.py -f kernel/sched/fair.c -s "#define fits_capacity(cap, max)	((cap) * 1280 < (max) * 1024)" "#define fits_capacity(cap, max)	((cap) * 640 < (max) * 512)" --lines 4983
+-    2fe6:      48 c1 e6 08             shl    $0x8,%rsi        /users/chenzj/linux-6.14.0-export-symbol/kernel/sched/fair.c:4983
+-    2ff2:      48 c1 e0 0a             shl    $0xa,%rax        /users/chenzj/linux-6.14.0-export-symbol/kernel/sched/fair.c:4983
+-    3934:      48 c1 e1 08             shl    $0x8,%rcx        /users/chenzj/linux-6.14.0-export-symbol/kernel/sched/fair.c:4983
+-    3940:      48 c1 e0 0a             shl    $0xa,%rax        /users/chenzj/linux-6.14.0-export-symbol/kernel/sched/fair.c:4983
+-    a456:      48 c1 e1 08             shl    $0x8,%rcx        /users/chenzj/linux-6.14.0-export-symbol/kernel/sched/fair.c:4983
+-    a462:      48 c1 e0 0a             shl    $0xa,%rax        /users/chenzj/linux-6.14.0-export-symbol/kernel/sched/fair.c:4983
+-    a5db:      48 c1 e1 08             shl    $0x8,%rcx        /users/chenzj/linux-6.14.0-export-symbol/kernel/sched/fair.c:4983
+-    a5e7:      48 c1 e0 0a             shl    $0xa,%rax        /users/chenzj/linux-6.14.0-export-symbol/kernel/sched/fair.c:4983
+-    cc79:      48 c1 e1 08             shl    $0x8,%rcx        /users/chenzj/linux-6.14.0-export-symbol/kernel/sched/fair.c:4983
+-    cc85:      48 c1 e0 0a             shl    $0xa,%rax        /users/chenzj/linux-6.14.0-export-symbol/kernel/sched/fair.c:4983
+-   108c9:      48 c1 e6 08             shl    $0x8,%rsi        /users/chenzj/linux-6.14.0-export-symbol/kernel/sched/fair.c:4983
+-   108d5:      48 c1 e0 0a             shl    $0xa,%rax        /users/chenzj/linux-6.14.0-export-symbol/kernel/sched/fair.c:4983
+-   11054:      48 c1 e2 08             shl    $0x8,%rdx        /users/chenzj/linux-6.14.0-export-symbol/kernel/sched/fair.c:4983
+-   11060:      48 c1 e0 0a             shl    $0xa,%rax        /users/chenzj/linux-6.14.0-export-symbol/kernel/sched/fair.c:4983
+-   114fd:      48 c1 e0 08             shl    $0x8,%rax        /users/chenzj/linux-6.14.0-export-symbol/kernel/sched/fair.c:4983
+-   115ef:      48 c1 e1 0a             shl    $0xa,%rcx        /users/chenzj/linux-6.14.0-export-symbol/kernel/sched/fair.c:4983
+-   12475:      48 c1 e2 08             shl    $0x8,%rdx        /users/chenzj/linux-6.14.0-export-symbol/kernel/sched/fair.c:4983
+-   12481:      48 c1 e0 0a             shl    $0xa,%rax        /users/chenzj/linux-6.14.0-export-symbol/kernel/sched/fair.c:4983
+-   12693:      48 c1 e2 08             shl    $0x8,%rdx        /users/chenzj/linux-6.14.0-export-symbol/kernel/sched/fair.c:4983
+-   1269f:      48 c1 e0 0a             shl    $0xa,%rax        /users/chenzj/linux-6.14.0-export-symbol/kernel/sched/fair.c:4983
+-   12807:      48 c1 e2 08             shl    $0x8,%rdx        /users/chenzj/linux-6.14.0-export-symbol/kernel/sched/fair.c:4983
+-   12813:      48 c1 e0 0a             shl    $0xa,%rax        /users/chenzj/linux-6.14.0-export-symbol/kernel/sched/fair.c:4983
+-   1374f:      48 c1 e1 08             shl    $0x8,%rcx        /users/chenzj/linux-6.14.0-export-symbol/kernel/sched/fair.c:4983
+-   1375b:      48 c1 e0 0a             shl    $0xa,%rax        /users/chenzj/linux-6.14.0-export-symbol/kernel/sched/fair.c:4983
+-   1509d:      48 c1 e7 08             shl    $0x8,%rdi        /users/chenzj/linux-6.14.0-export-symbol/kernel/sched/fair.c:4983
+-   150a9:      48 c1 e0 0a             shl    $0xa,%rax        /users/chenzj/linux-6.14.0-export-symbol/kernel/sched/fair.c:4983

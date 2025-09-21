@@ -1,0 +1,13 @@
+diff --git a/users/chenzj/linux-6.14.0-export-symbol/block/blk-throttle.c b/new.c
+index 8d149af..94850b5 100644
+--- a/block/blk-throttle.c
++++ b/block/blk-throttle.c
+@@ -935,7 +935,7 @@ static int throtl_dispatch_tg(struct throtl_grp *tg)
+ {
+ 	struct throtl_service_queue *sq = &tg->service_queue;
+ 	unsigned int nr_reads = 0, nr_writes = 0;
+-	unsigned int max_nr_reads = THROTL_GRP_QUANTUM * 3 / 4;
++	unsigned int max_nr_reads = THROTL_GRP_QUANTUM * 1 / 4;
+ 	unsigned int max_nr_writes = THROTL_GRP_QUANTUM - max_nr_reads;
+ 	struct bio *bio;
+ 
