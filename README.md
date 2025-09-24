@@ -1,78 +1,78 @@
 # Xkernel
 
-## Dependencies of Xkernel
+## Environment Setup
 
-```shell
-# Sometimes we find the built-in kernel is too new after upgrading to 25.04, and there is no corresponding dbgsym package.
-# Thus, we pick 6.14.0-15-generic.
-sudo apt update && sudo apt install linux-image-6.14.0-15-generic linux-headers-6.14.0-15-generic && sudo update-grub && sudo reboot
+### 1. Install kernel with `text_poke()` support.
 
-# For linux-image-$(uname -r)-dbgsym
-echo "deb http://ddebs.ubuntu.com $(lsb_release -cs) main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list.d/ddebs.list
-echo "deb http://ddebs.ubuntu.com $(lsb_release -cs)-updates main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list.d/ddebs.list
+`sudo bash install.sh`
 
-sudo apt install ubuntu-dbgsym-keyring && sudo apt update
+### 2. Install dependencies.
 
-sudo apt-get install clang llvm libbpf-dev pahole gdb libgflags-dev \
-     linux-image-$(uname -r)-dbgsym -y
+`sudo apt-get install clang llvm libbpf-dev pahole libgflags-dev -y`
 
-# [Optional] Download the source code of the kernel. Xkernel doesn't depend on it.
-sudo apt-get install linux-source -y
-pushd /usr/src/ && sudo tar -xvf linux-source-6.14.0.tar.bz2 && popd
-```
-
-## Workflow of Xkernel
+## Quick Start
 
 ### 0. Compile and load kfuncs to kernel
-`make -j && sudo insmod kernel_module/kfuncs.ko`.
+```
+make -j && sudo insmod kernel_module/kfuncs.ko
+```
 
-### 1. Determine the offset to attach
+### 1. Use binary diff to locate target instructions
 
-For most cases, we can leverage gdb to help use analyze the kernel source code and locate the target line directly. \
-E.g.,
-`python gdb_core.py hystart_update 434,435 -e`.
+See examples in `check_assembly_diff_examples.csv`.
 
-However, for some cases that gdb is not helpful, we should use objdump to dump all the instructions of the function. \
-E.g.,
-`python ./objdump.py --func blk_mq_delay_run_hw_queue`.
+```shell
+# Example
+sudo python check_assembly_diff.py -f block/blk-mq.c -s "BLK_MAX_REQUEST_COUNT" "128" --lines 1371,1372
+# The output should be like this:
+-    81e5:      83 e0 e0  and    $0xffffffe0,%eax /users/chenzj/linux-6.14.0-export-symbol/block/blk-mq.c:1371
+-    81e8:      83 c0 40  add    $0x40,%eax       /users/chenzj/linux-6.14.0-export-symbol/block/blk-mq.c:1371
+```
 
-### 2. Write eBPF code
+### 2. Determine the offset to attach
+
+```shell
+# Example
+python ./objdump.py --func blk_add_rq_to_plug |grep -w 'add    $0x40,%eax' -C 1
+# The ouput should be like this:
+(+0xc5)ffffffff8dff9bf5:        83 e0 e0                and    $0xffffffe0,%eax
+(+0xc8)ffffffff8dff9bf8:        83 c0 40                add    $0x40,%eax
+(+0xcb)ffffffff8dff9bfb:        66 41 39 c6             cmp    %ax,%r14w
+```
+
+### 3. Write eBPF code
 
 eBPF files should be placed in `bpf_kprobe/bpf/examples`.
-
-E.g., we want to attach a kprobe to the function `blk_mq_delay_run_hw_queue` at the offset `0xbe`:
 ```c
-SEC("kprobe/blk_mq_delay_run_hw_queue+0xbe")
-int BPF_KPROBE(blk_mq_delay_run_hw_queue) {
-     return 0;
+// blk-mq.bpf.c
+// SPDX-License-Identifier: GPL-2.0
+#include "vmlinux.h"
+#include <bpf/bpf_helpers.h>
+#include <bpf/bpf_tracing.h>
+#include "xkernel.bpf.h"
+
+// (+0xcb)ffffffff8dff9bfb:        66 41 39 c6             cmp    %ax,%r14w
+SEC("kprobe/blk_add_rq_to_plug+0xcb")
+int BPF_KPROBE(blk_add_rq_to_plug_0xcb) {
+    BPF_SET_EAX(ctx, 128);
+    return 0;
 }
 ```
 
-E.g., we want to attach a kprobe to the start of the function `blk_mq_delay_run_hw_queue`.
-```c
-SEC("kprobe/blk_mq_delay_run_hw_queue")
-int BPF_KPROBE(blk_mq_delay_run_hw_queue) {
-     return 0;
-}
+Compile the eBPF programs.
+```shell
+cd Xkernel/bpf_kprobe && make -j`nproc`
 ```
 
-E.g., we want to attach a kprobe to the end of the function `blk_mq_delay_run_hw_queue`.
-```c
-SEC("kretprobe/blk_mq_delay_run_hw_queue")
-int BPF_KRETPROBE(blk_mq_delay_run_hw_queue) {
-     return 0;
-}
-```
+### 4. Load BPF programs
 
-### 3. Load BPF programs
+The loader will detect the function name and the offset automatically.
 
-The loader will detect the function name and the offset automatically. \
-E.g.,
 `sudo ./kprobe_loader --files blk-mq.bpf.o`.
 
-Multiple BPF files are also supported, separated by comma. \
-E.g.,
-`sudo ./kprobe_loader --files blk-mq.bpf.o,softirq.bpf.o`.
+Multiple BPF files are also supported, separated by comma.
+
+`sudo ./kprobe_loader --files example1.bpf.o,example2.bpf.o`.
 
 ## Text Poke Functionality
 
