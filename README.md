@@ -31,6 +31,8 @@ sudo python check_assembly_diff.py -f block/blk-mq.c -s "BLK_MAX_REQUEST_COUNT" 
 
 ### 2. Determine the offset to attach
 
+Note that the function should not be inlined and can be found in `/proc/kallsyms`.
+
 ```shell
 # Example
 python ./objdump.py --func blk_add_rq_to_plug |grep -w 'add    $0x40,%eax' -C 1
