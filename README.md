@@ -2,11 +2,11 @@
 
 ## Environment Setup
 
-### 1. Install kernel with `text_poke()` support.
+#### Install kernel with `text_poke()` support.
 
 `sudo bash install.sh`
 
-### 2. Install dependencies.
+#### Install dependencies.
 
 `sudo apt-get install clang llvm libbpf-dev pahole libgflags-dev -y`
 
@@ -14,7 +14,7 @@
 
 ### 0. Compile and load kfuncs to kernel
 ```
-make -j && sudo insmod kernel_module/kfuncs.ko
+pushd kernel_module && make -j && sudo insmod kfuncs.ko && popd
 ```
 
 ### 1. Use binary diff to locate target instructions
@@ -63,7 +63,7 @@ int BPF_KPROBE(blk_add_rq_to_plug_0xcb) {
 
 Compile the eBPF programs.
 ```shell
-cd Xkernel/bpf_kprobe && make -j`nproc`
+cd bpf_kprobe && make -j`nproc`
 ```
 
 ### 4. Load BPF programs
