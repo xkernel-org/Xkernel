@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# This script is used to patch the source code by using sed commands.
 import sys
 import os
 import re

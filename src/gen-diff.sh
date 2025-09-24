@@ -15,8 +15,6 @@ fi
 
 mkdir -p ./tmp/{pre_objs,post_objs}
 
-echo "Fast backing up original .o files (excluding drivers/)..."
-
 find "$KERNEL_DIR" -name "*.o" -type f \
     -not -path "$KERNEL_DIR/arch/*" \
     -not -path "$KERNEL_DIR/init/*" \
@@ -31,12 +29,11 @@ time rsync -a --files-from=./tmp/prev_files.txt \
     --exclude='drivers/***' \
     "$KERNEL_DIR/" ./tmp/pre_objs/
 
-echo "Starting kernel compilation... (time will be recorded)"
+
 time make bzImage -C "$KERNEL_DIR" "${@:2}" -j$(nproc)
 
 find "$KERNEL_DIR" -name "*.o" -type f -printf "%T@ %P\n" > ./tmp/curr_objects.txt
 
-echo "Finding changed object files with filters..."
 comm -13 <(sort ./tmp/prev_objects.txt) <(sort ./tmp/curr_objects.txt) | awk '{print $2}' | \
     grep -v '^\.tmp_vmlinux' | \
     grep -v '^arch/' | \
@@ -44,7 +41,6 @@ comm -13 <(sort ./tmp/prev_objects.txt) <(sort ./tmp/curr_objects.txt) | awk '{p
     grep -v '^drivers/' | \
     grep -v '^vmlinux\.o$' > ./tmp/new_objects.txt
 
-echo "Copying modified versions of changed files..."
 while read -r rel_path; do
     obj_file="$KERNEL_DIR/$rel_path"
     if [ -f "$obj_file" ]; then
@@ -54,8 +50,6 @@ while read -r rel_path; do
         echo "Copied modified: $rel_path"
     fi
 done < ./tmp/new_objects.txt
-
-echo "Cleaning pre_objs to only keep modified files..."
 
 > ./tmp/keep_files.txt
 
@@ -75,6 +69,5 @@ find ./tmp/pre_objs -type d -empty -delete
 
 rm ./tmp/prev_objects.txt ./tmp/curr_objects.txt ./tmp/new_objects.txt ./tmp/prev_files.txt ./tmp/keep_files.txt
 
-echo -e "\nOperation completed."
 echo "Modified files saved in: ./tmp/post_objs"
 echo "Original versions of modified files saved in: ./tmp/pre_objs"

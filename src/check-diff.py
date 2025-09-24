@@ -2,12 +2,10 @@
 # -*- coding: utf-8 -*-
 
 import argparse
-import os
 import shutil
 import subprocess
 import sys
 from pathlib import Path
-import re
 
 # --- Configuration ---
 REQUIRED_TOOLS = ["objdump", "diff", "addr2line"]  # Only tools needed for comparison
@@ -65,19 +63,27 @@ def run_command(command, cwd, capture_output=False):
             print(f"--- STDERR ---\n{e.stderr}")
         return False
 
-
-def strip_leading_number_colon(line):
-    """Remove leading numbers followed by a colon (e.g., '3833:') from a line."""
-    return re.sub(r'^\s*\d+:\s*', '', line)
-
-def diff_ignore_number_colon(file1, file2):
-    """Diff two files, ignoring lines that only differ by leading numbers and colon."""
-    with open(file1, "r") as f1, open(file2, "r") as f2:
-        lines1 = [strip_leading_number_colon(l.rstrip('\n')) for l in f1]
-        lines2 = [strip_leading_number_colon(l.rstrip('\n')) for l in f2]
-    import difflib
-    diff = list(difflib.unified_diff(lines1, lines2, fromfile=str(file1), tofile=str(file2), lineterm=''))
-    return diff
+def process_lines(lines):
+    # Parse lines to support formats like xxx-xxx,xxx,xxx-xxx,xxx
+    line_set = set()
+    for part in lines.split(","):
+        part = part.strip()
+        if "-" in part:
+            try:
+                start, end = part.split("-")
+                start = int(start)
+                end = int(end)
+                if start > end:
+                    start, end = end, start
+                line_set.update(range(start, end + 1))
+            except ValueError:
+                continue  # skip invalid range
+        else:
+            try:
+                line_set.add(int(part))
+            except ValueError:
+                continue  # skip invalid single line
+    return sorted(line_set)
 
 def main():
     """Main execution function."""
@@ -94,11 +100,6 @@ def main():
         help="Path to the post-modification object file (.o)"
     )
     parser.add_argument(
-        "-i", "--ignore-number-colon",
-        action="store_true",
-        help="Ignore differences that are only leading numbers followed by a colon (e.g., '3833:') in diff output."
-    )
-    parser.add_argument(
         "-l", "--lines",
         help="Lines to print when using addr2line. Format: <start_line>-<end_line>,<line>,<start_line>-<end_line>"
     )
@@ -110,26 +111,7 @@ def main():
     args = parser.parse_args()
 
     if args.lines:
-        # Parse args.lines to support formats like xxx-xxx,xxx,xxx-xxx,xxx
-        line_set = set()
-        for part in args.lines.split(","):
-            part = part.strip()
-            if "-" in part:
-                try:
-                    start, end = part.split("-")
-                    start = int(start)
-                    end = int(end)
-                    if start > end:
-                        start, end = end, start
-                    line_set.update(range(start, end + 1))
-                except ValueError:
-                    continue  # skip invalid range
-            else:
-                try:
-                    line_set.add(int(part))
-                except ValueError:
-                    continue  # skip invalid single line
-        args.lines = sorted(line_set)
+        args.lines = process_lines(args.lines)
 
     # --- Step 1: Environment Check ---
     check_tools()
@@ -139,7 +121,7 @@ def main():
     post_o_path = Path(args.post_o).resolve()
     
     # Create build directory for output files
-    build_path = Path("BUILDO")
+    build_path = Path("tmp/diff")
     build_path.mkdir(exist_ok=True)
 
     print_color("2. Checking object files...", "blue")
@@ -187,20 +169,12 @@ def main():
         print_color("\n4. Comparing disassembly results...", "blue")
         print_color(f"\n--- Diff between {pre_o_path.name} and {post_o_path.name} ---", "yellow")
         
-        if args.ignore_number_colon:
-            diff = diff_ignore_number_colon(pre_disas_file, post_disas_file)
-            if diff:
-                for line in diff:
-                    print(line)
-            else:
-                print_color("No differences found", "green")
+        diff_cmd = ["diff", "-u", str(pre_disas_file), str(post_disas_file)]
+        diff_result = subprocess.run(diff_cmd, capture_output=True, text=True)
+        if diff_result.stdout:
+            print(diff_result.stdout)
         else:
-            diff_cmd = ["diff", "-u", str(pre_disas_file), str(post_disas_file)]
-            diff_result = subprocess.run(diff_cmd, capture_output=True, text=True)
-            if diff_result.stdout:
-                print(diff_result.stdout)
-            else:
-                print_color("No differences found", "green")
+            print_color("No differences found", "green")
 
         # --- Step 5: Use addr2line to get source-code lines for changed instructions ---
         if diff_result.stdout:
