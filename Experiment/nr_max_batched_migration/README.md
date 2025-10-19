@@ -101,6 +101,15 @@ From mailing list discussions ([https://lkml.indiana.edu/1904.0/04237.html](http
 
 # Experiment Commands
 
+## 0. Before starting
+
+The Linux kernel's automatic `numa_balancing` feature performs page migrations in the background, which can interfere with our precise control experiment. To ensure the purity of the measurement results, please disable this feature before conducting the experiment.
+
+```bash
+$ cat /proc/sys/kernel/numa_balancing
+$ echo 0 | sudo tee /proc/sys/kernel/numa_balancing
+```
+
 We used the following commands to emulate different loads:
 
 ## 1. High Migration Pressure
