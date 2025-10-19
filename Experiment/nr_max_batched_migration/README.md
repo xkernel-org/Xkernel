@@ -108,7 +108,7 @@ We used the following commands to emulate different loads:
 Simulate a **rolling hot set** (every 1 second, the window fully advances by one window width). The migration thread must continuously move pages to keep up, creating many query/migration conflicts and thus exposing batch-size effects on tail latency.
 
 ```bash
-sudo ./benchmark \
+sudo ../bin/benchmark \
   --pages 2097152 --workers 24 --migrates {4, 2, 1} \
   --src 1 --dst 0 --batch 8192 --migrate-interval 0 \
   --hot-frac 0.20 --hot-prob 0.80 --hot-rotate 1 --rotate-step full \
