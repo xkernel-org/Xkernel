@@ -1,0 +1,144 @@
+#!/usr/bin/env bpftrace
+BEGIN
+{
+  @TLB_REMOTE_SHOOTDOWN = 1;
+  @flush_func = kaddr("flush_tlb_func");
+
+  @ipi_tlb_handler_us_lhist = lhist(0, 0, 2000, 20);  clear(@ipi_tlb_handler_us_lhist);
+  @ipi_delivery_us_lhist    = lhist(0, 0, 5000, 50);  clear(@ipi_delivery_us_lhist);
+  @flush_exec_us_lhist      = lhist(0, 0, 5000, 50);  clear(@flush_exec_us_lhist);
+}
+
+/*
+tracepoint:tlb:tlb_flush
+{
+  @tlb_reason_cnt[args->reason] += 1;
+  if(args->pages >= 0) {
+    @tlb_reason_pages[args->reason] += (uint64)args->pages;
+  }
+  else {
+    @tlb_reason_pages_unknown[args->reason] += 1;
+    printf("DEBUG: pages=%d (NEGATIVE!)\n", args->pages);  // 看看是否有负数
+  }
+
+  if (args->reason == @TLB_REMOTE_SHOOTDOWN) {
+    @tlb_shootdown_calls += 1;
+    if(args->pages >= 0) {
+        @tlb_shootdown_pages += (uint64)args->pages;
+    }
+  }
+}
+*/
+
+tracepoint:tlb:tlb_flush
+{
+  @tlb_reason_cnt[args->reason] += 1;
+
+  $pages = (uint64)args->pages;
+
+  // TLB_FLUSH_ALL == (uint64)-1
+  if ($pages == (uint64)-1) {
+    @tlb_fullflush_cnt[args->reason] += 1;   // 只计数，不累加页数
+  } else {
+    @tlb_reason_pages[args->reason] += $pages;
+    if (args->reason == @TLB_REMOTE_SHOOTDOWN) {
+      @tlb_shootdown_calls += 1;
+      @tlb_shootdown_pages += $pages;
+    }
+  }
+}
+
+
+tracepoint:ipi:ipi_entry
+/ strcontains(str(args->reason), "TLB") /
+{
+  @ipi_tlb_start[cpu] = nsecs;
+  @ipi_reason_cnt[str(args->reason)] += 1;
+}
+
+tracepoint:ipi:ipi_exit
+/ @ipi_tlb_start[cpu] /
+{
+  $dur_us = (nsecs - @ipi_tlb_start[cpu]) / 1000;
+  @ipi_tlb_handler_us_lhist = lhist($dur_us, 0, 2000, 20);
+  // printf("IPI_TLB_HANDLER_US=%llu\n", $dur_us);
+  delete(@ipi_tlb_start[cpu]);
+}
+
+tracepoint:csd:csd_queue_cpu
+{
+  @csd_q_ts[args->csd] = nsecs;
+}
+
+tracepoint:csd:csd_function_entry
+/ (@flush_func != 0) && ((uint64)args->func == @flush_func) /
+{
+  if (@csd_q_ts[args->csd]) {
+    $lat_us = (nsecs - @csd_q_ts[args->csd]) / 1000;
+    @ipi_delivery_us_lhist = lhist($lat_us, 0, 5000, 50);
+    // printf("IPI_DELIVERY_US=%llu\n", $lat_us);
+  }
+  @flush_entry_ts[args->csd] = nsecs;
+}
+
+tracepoint:csd:csd_function_exit
+/ (@flush_func != 0) && @flush_entry_ts[args->csd] && ((uint64)args->func == @flush_func) /
+{
+  $exec_us = (nsecs - @flush_entry_ts[args->csd]) / 1000;
+  @flush_exec_us_lhist = lhist($exec_us, 0, 5000, 50);
+  // printf("TLB_HANDLER_EXEC_US=%llu\n", $exec_us);
+  delete(@flush_entry_ts[args->csd]); delete(@csd_q_ts[args->csd]);
+}
+
+END
+{
+  /*
+    reason:
+    0: flush on task switch
+    1: remote shootdown, across CPU TLB shootdown
+    2: local shootdown
+    3: local mm shootdown(tied with specific mm)
+    4: remote ipi send
+    5: remote wrong cpu, if remote CPU is no longer runnning with target mm 
+    when received IPI
+  */
+
+  printf("\n=== TLB shootdown summary ===\n");
+  printf("Remote shootdown (reason=%d): calls=%d pages=%d\n",
+         @TLB_REMOTE_SHOOTDOWN, @tlb_shootdown_calls, @tlb_shootdown_pages);
+
+  printf("\n--- tlb_flush by reason: count ---\n");
+  print(@tlb_reason_cnt);
+  printf("\n--- tlb_flush by reason: pages ---\n");
+  print(@tlb_reason_pages);
+  printf("\n--- tlb_flush: full flush count ---\n");
+  print(@tlb_fullflush_cnt);
+
+  // printf("\n--- IPI reason strings seen (TLB-only, entry side) ---\n");
+  // print(@ipi_reason_cnt);
+
+  /* lhist */
+  // printf("\n=== lhist: IPI handler (TLB) on target CPU (us) ===\n");
+  // print(@ipi_tlb_handler_us_lhist);
+
+  printf("\n=== lhist: IPI delivery latency (queue->entry, us) ===\n");
+  print(@ipi_delivery_us_lhist);
+
+  printf("\n=== lhist: flush_tlb_func execution (entry->exit, us) ===\n");
+  print(@flush_exec_us_lhist);
+
+  clear(@tlb_reason_cnt);
+  clear(@tlb_reason_pages);
+  clear(@tlb_fullflush_cnt);
+  clear(@ipi_reason_cnt);
+  clear(@csd_q_ts);
+  clear(@flush_entry_ts);
+  clear(@ipi_tlb_start);
+  clear(@ipi_tlb_handler_us_lhist);
+  clear(@ipi_delivery_us_lhist);
+  clear(@flush_exec_us_lhist);
+  clear(@flush_func);
+  clear(@TLB_REMOTE_SHOOTDOWN);
+}
+
+

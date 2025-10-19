@@ -1,0 +1,75 @@
+#!/usr/bin/env bpftrace
+/*
+ * 导出 move_pages 的 per-call 和 per-page 样本 + lhist
+ * 无循环，兼容老版本 bpftrace
+ */
+
+#define FILTER (1)      // 如需只看你的程序，改成 (comm=="benchmark") 或 (pid==12345)
+
+tracepoint:syscalls:sys_enter_move_pages
+/ FILTER /
+{
+  @start[tid] = nsecs;
+  @succ[tid]  = 0u;
+  @fail[tid]  = 0u;
+  @total_calls++;
+}
+
+tracepoint:migrate:mm_migrate_pages
+/@start[tid]/
+{
+  @succ[tid] += (uint64)args->succeeded;
+  @fail[tid] += (uint64)args->failed;
+}
+
+tracepoint:syscalls:sys_exit_move_pages
+/@start[tid]/
+{
+  $ret    = args->ret;               // >0: 本次未迁页数；0: 全部迁完；<0: errno
+  $dur_ns = nsecs - @start[tid];
+  $dur_ms = $dur_ns / 1000000;
+  $dur_us = $dur_ns / 1000;
+
+  $succ   = @succ[tid];
+  $fail   = @fail[tid];
+
+  if     ($ret == 0) { @calls_ok++;      }
+  else if($ret  > 0) { @calls_partial++; }
+  else               { @calls_err++;     }
+
+  // ---- 直方图（方便看整体分布趋势） ----
+  @call_ms_lhist   = lhist($dur_ms, 0, 2000, 10);   // 0..2000ms，步长10ms
+  if ($succ > 0) {
+    $per = $dur_us / $succ;
+    @perpage_us_lhist = lhist($per, 0, 2000, 20);   // 0..2000us/页，步长20us
+  }
+
+  // ---- 导出样本（给 awk 做 p50/p95/p99） ----
+  printf("CALL_MS=%llu\n", $dur_ms);
+  if ($succ > 0) {
+    printf("PER_US=%llu\n", $dur_us / $succ);
+  }
+
+  // 如需明细行，取消注释：
+  // printf("pid=%d tid=%d dur_ms=%llu succ=%llu fail=%llu ret=%d\n",
+  //        pid, tid, $dur_ms, $succ, $fail, $ret);
+
+  // 清理
+  delete(@start[tid]); delete(@succ[tid]); delete(@fail[tid]);
+}
+
+END
+{
+  printf("\n=== lhist: Per-call latency (ms) ===\n");
+  print(@call_ms_lhist);
+
+  printf("\n=== lhist: Per-successful-page latency (us) ===\n");
+  print(@perpage_us_lhist);
+
+  printf("\n=== Call breakdown ===\n");
+  printf("Total calls:     %d\n", @total_calls);
+  printf("OK (ret==0):     %d\n", @calls_ok);
+  printf("Partial (ret>0): %d\n", @calls_partial);
+  printf("Err (ret<0):     %d\n", @calls_err);
+}
+ 
