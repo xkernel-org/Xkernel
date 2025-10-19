@@ -1,5 +1,4 @@
 *.o
-*.txt
 *.ko
 *.mod
 *.mod.c

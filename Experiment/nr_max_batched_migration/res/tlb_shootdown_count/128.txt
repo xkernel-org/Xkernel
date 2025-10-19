@@ -1,0 +1,22 @@
+--- tlb_flush by reason: count ---
+@tlb_reason_cnt[5]: 1753
+@tlb_reason_cnt[3]: 45591
+@tlb_reason_cnt[2]: 53504
+@tlb_reason_cnt[4]: 56785
+@tlb_reason_cnt[0]: 73647
+@tlb_reason_cnt[1]: 142812
+
+--- tlb_flush by reason: pages ---
+@tlb_reason_pages[0]: 0
+@tlb_reason_pages[5]: 0
+@tlb_reason_pages[2]: 0
+@tlb_reason_pages[1]: 53
+@tlb_reason_pages[4]: 2089
+@tlb_reason_pages[3]: 54181
+
+--- tlb_flush: full flush count ---
+@tlb_fullflush_cnt[3]: 4158
+@tlb_fullflush_cnt[2]: 53503
+@tlb_fullflush_cnt[4]: 55173
+@tlb_fullflush_cnt[0]: 64013
+@tlb_fullflush_cnt[1]: 694082
