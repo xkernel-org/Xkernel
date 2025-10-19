@@ -143,7 +143,7 @@ sudo ../bin/benchmark \
 * **qps-sample-ms, probe**: record QPS and latency percentiles over sampling windows.
 * **duration**: total runtime.
 
-## Results (Placeholder)
+## Results
 
 Change kernel **`NR_MAX_BATCHED_MIGRATION`** and run **≥ 10 trials** per setting; average the results. Results go here:
 
