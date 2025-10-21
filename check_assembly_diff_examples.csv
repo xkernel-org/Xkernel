@@ -12,5 +12,5 @@ sudo python check_assembly_diff.py -f block/blk-mq.c -s "BLK_MQ_CPU_WORK_BATCH" 
 
 sudo python check_assembly_diff.py -f block/blk-throttle.c  -s "THROTL_GRP_QUANTUM * 3 / 4" "THROTL_GRP_QUANTUM * 1 / 2" --lines 950,960
 
-
+sudo python check_assembly_diff.py -f net/ipv4/tcp_recovery.c -s "tcp_min_rtt(tp) >> 2" "tcp_min_rtt(tp) >> 1"
 
