@@ -6,6 +6,22 @@
 
 char LICENSE[] SEC("license") = "GPL";
 
+struct transition_map_t {
+    __uint(type, BPF_MAP_TYPE_ARRAY);
+    __type(key, u32);
+    __type(value, u64);
+    __uint(max_entries, 1);
+} transition_map SEC(".maps");
+
+static __always_inline int transition_done(void) {
+    int key = 0;
+    u64 *transition_done = bpf_map_lookup_elem(&transition_map, &key);
+    if (!transition_done || *transition_done == 0) {
+        return 0;
+    }
+    return 1;
+}
+
 #define BPF_ONESHOT_INIT(name) \
     SEC("syscall") \
     int oneshot_init_##name(void *ctx) \

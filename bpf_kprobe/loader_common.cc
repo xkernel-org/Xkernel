@@ -23,6 +23,22 @@ XKernelLoader::XKernelLoader(const char *bpf_file, bool one_shot): one_shot_(one
     fprintf(stderr, "Failed to load bpf object: %s\n", strerror(-err));
     exit(1);
   }
+
+  // Pin map
+  transition_map_ = ::bpf_object__find_map_by_name(obj_, "transition_map");
+  if (!transition_map_) {
+    fprintf(stderr, "Failed to find transition map\n");
+    exit(1);
+  }
+
+  char pin_path[256];
+  uint64_t hash = std::hash<::bpf_object *>{}(obj_);
+  snprintf(pin_path, sizeof(pin_path), "/sys/fs/bpf/xkernel/transition_map_%lx", hash);
+  err = ::bpf_map__pin(transition_map_, pin_path);
+  if (err) {
+    fprintf(stderr, "Failed to pin transition map: %s\n", strerror(-err));
+    exit(1);
+  }
 }
 
 int XKernelLoader::detach_all_progs_one_shot() {
@@ -52,7 +68,27 @@ XKernelLoader::~XKernelLoader() {
   if (one_shot_) {
     detach_all_progs_one_shot();
   }
-  ::bpf_object__close(obj_); 
+  ::bpf_object__close(obj_);
+
+  // Unpin map
+  char pin_path[256];
+  uint64_t hash = std::hash<::bpf_object *>{}(obj_);
+  snprintf(pin_path, sizeof(pin_path), "/sys/fs/bpf/xkernel/transition_map_%lx", hash);
+  ::bpf_map__unpin(transition_map_, pin_path);
+}
+
+int XKernelLoader::update_transition_map(uint32_t value) {
+  int map_fd = bpf_map__fd(transition_map_);
+  if (map_fd < 0) {
+    fprintf(stderr, "Failed to find transition map\n");
+    return -1;
+  }
+  uint32_t key = 0;
+  if (bpf_map_update_elem(map_fd, &key, &value, 0) != 0) {
+    fprintf(stderr, "Failed to update transition map\n");
+    return -1;
+  }
+  return 0;
 }
 
 int XKernelLoader::attach_kretprobe(struct ::bpf_program *prog,

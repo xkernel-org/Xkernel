@@ -7,6 +7,7 @@
 
 #define MAX_STACK_ENTRIES 1024
 #define MAX_STACK_DEPTH 127
+#define PIN_PATH "/sys/fs/bpf/xkernel/transition_map"
 
 namespace xkernel {
 
@@ -36,8 +37,11 @@ public:
 
   int dump_stack_trace();
 
+  int update_transition_map(uint32_t value);
+
 private:
   ::bpf_object *obj_;
+  ::bpf_map *transition_map_;
   bool one_shot_;
 
   int count_map_fd_ = 0;

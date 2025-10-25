@@ -12,12 +12,17 @@
 #include <linux/fs.h>
 #include <linux/uaccess.h>
 #include <linux/kthread.h>
+#include <net/sock.h>
 
 #include "kprobe.h"
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Zhongjie");
 MODULE_DESCRIPTION("A kernel module for Xkernel's consistency model");
+
+static int pid = 0;
+module_param(pid, int, 0660);
+MODULE_PARM_DESC(pid, "Userspace PID to notify");
 
 LIST_HEAD(xk_target_functions);
 
@@ -28,6 +33,7 @@ static DEFINE_PER_CPU(unsigned long[MAX_STACK_ENTRIES], xk_stack_entries);
 #define TIMEOUT_TIMES 1000
 
 static struct task_struct *daemon_task = NULL;
+static struct sock *nl_sk = NULL;
 
 #define TARGET_FUNCTIONS_FILE "/dev/shm/xkernel/target_functions"
 
@@ -41,6 +47,59 @@ static void xk_dump_stack_trace(struct task_struct *task, unsigned long *entries
     }
 }
 #endif
+
+static int init_netlink(void) {
+    struct netlink_kernel_cfg cfg = {
+        .input = NULL,
+    };
+
+    nl_sk = netlink_kernel_create(&init_net, NETLINK_USERSOCK, &cfg);
+    if (IS_ERR(nl_sk)) {
+        pr_err("Failed to create netlink socket\n");
+        return PTR_ERR(nl_sk);
+    }
+
+    return 0;
+}
+
+static void cleanup_netlink(void) {
+    if (nl_sk) {
+        netlink_kernel_release(nl_sk);
+        nl_sk = NULL;
+    }
+    return;
+}
+
+static void __xk_notify_usr(char *msg) {
+    struct sk_buff *skb;
+    struct nlmsghdr *nlh;
+    int msg_size = strlen(msg) + 1;
+
+    // 1. Allocate a new netlink message buffer
+    skb = nlmsg_new(msg_size, GFP_KERNEL);
+    if (!skb) {
+        pr_err("Failed to allocate skb\n");
+        return;
+    }
+
+    // 2. Add the netlink message header
+    nlh = nlmsg_put(skb, 0, 0, NLMSG_DONE, msg_size, 0);
+    
+    // 3. Copy your message payload
+    memcpy(nlmsg_data(nlh), msg, msg_size);
+
+    // 4. Send the unicast message to the specific PID
+    // Or use nlmsg_multicast() to send to a group
+    nlmsg_unicast(nl_sk, skb, pid);
+}
+
+static void xk_enable_ir_kprobes(void) {
+    __xk_notify_usr("1");
+}
+
+static void xk_disable_ir_kprobes(void) {
+    __xk_notify_usr("0");
+}
 
 static bool xk_check_functions(struct task_struct *task, unsigned long *entries, int nb_entries) {
     struct xk_target_function *func;
@@ -98,9 +157,9 @@ static int xk_check_stacks(void *data) {
             return -EINVAL;
         }
     } else {
-        // We can immediately enable all Instruction Rewriting Kprobes as no related functions are being executed.
+        // Notify userspace to enable Instruction Rewriting Kprobes
         xk_enable_ir_kprobes();
-        pr_info("Enabled Instruction Rewriting Kprobes immediately\n");
+        pr_info("Notified userspace to enable Instruction Rewriting Kprobes\n");
     }
 
     return 0;
@@ -205,7 +264,7 @@ static int daemon_main(void *data) {
             break;
         }
 
-        schedule_timeout(INTERVAL_MS);
+        schedule_timeout(msecs_to_jiffies(INTERVAL_MS));
         if (times++ > TIMEOUT_TIMES) {
             pr_err("Daemon timeout\n");
             ret = -ETIMEDOUT;
@@ -219,6 +278,8 @@ static int __init consistency_init(void) {
     pr_info("Xkernel consistency module loaded\n");
 
     INIT_LIST_HEAD(&xk_target_functions);
+
+    if (init_netlink()) {pr_err("Failed to init netlink\n"); return -1;}
 
     measure_stop_machine_overhead();
     
@@ -250,6 +311,8 @@ static void __exit consistency_exit(void) {
         kthread_stop(daemon_task);
         daemon_task = NULL;
     }
+
+    cleanup_netlink();
 }
 
 module_init(consistency_init);

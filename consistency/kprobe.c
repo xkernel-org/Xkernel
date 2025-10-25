@@ -5,6 +5,9 @@
 #include <linux/kprobes.h>
 #include <linux/ktime.h>
 #include <linux/limits.h>
+#include <linux/bpf.h>
+#include <linux/fs.h>
+#include <linux/filter.h>
 
 // Global refcount
 atomic_t xk_global_refcount = ATOMIC_INIT(0);
@@ -36,12 +39,6 @@ static int handler_guard(struct kprobe *kp, struct pt_regs *regs) {
 
 static void handler_unguard(struct kprobe *kp, struct pt_regs *regs, unsigned long flags) {
     xk_dec_if_positive();
-}
-
-void xk_enable_ir_kprobes(void) {
-}
-
-void xk_disable_ir_kprobes(void) {
 }
 
 int xk_attach_auxiliary_kprobes(void) {
