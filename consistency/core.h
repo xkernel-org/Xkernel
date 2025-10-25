@@ -12,6 +12,15 @@
 
 extern struct list_head xk_target_functions;
 
+enum xkernel_state {
+    TRANS_PENDING,
+    TRANS_FAILED,
+    TRANS_DONE,
+    TRANS_REVERSE_PENDING,
+    TRANS_REVERSE_FAILED,
+    TRANS_REVERSE_DONE,
+};
+
 struct xk_target_function {
     #define MAX_FUNC_NAME_LEN 128
     char name[MAX_FUNC_NAME_LEN];
@@ -28,6 +37,9 @@ struct xk_target_function {
 
     struct list_head list;
 };
+
+void xk_enable_ir_kprobes(void);
+void xk_disable_ir_kprobes(void);
 
 /**
  * Compare a stack address with a function address and size.

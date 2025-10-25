@@ -34,6 +34,7 @@ static DEFINE_PER_CPU(unsigned long[MAX_STACK_ENTRIES], xk_stack_entries);
 
 static struct task_struct *daemon_task = NULL;
 static struct sock *nl_sk = NULL;
+static enum xkernel_state xk_state = TRANS_PENDING;
 
 #define TARGET_FUNCTIONS_FILE "/dev/shm/xkernel/target_functions"
 
@@ -93,11 +94,11 @@ static void __xk_notify_usr(char *msg) {
     nlmsg_unicast(nl_sk, skb, pid);
 }
 
-static void xk_enable_ir_kprobes(void) {
+void xk_enable_ir_kprobes(void) {
     __xk_notify_usr("1");
 }
 
-static void xk_disable_ir_kprobes(void) {
+void xk_disable_ir_kprobes(void) {
     __xk_notify_usr("0");
 }
 
@@ -137,6 +138,8 @@ static int xk_dump_stack(struct task_struct *task) {
 }
 
 static int xk_check_stacks(void *data) {
+    enum xkernel_state state = (enum xkernel_state)data;
+    bool direction = state == TRANS_PENDING ? true : false;
     struct task_struct *g, *task;
     unsigned long *entries = this_cpu_ptr(xk_stack_entries);
     int nb_entries;
@@ -152,14 +155,19 @@ static int xk_check_stacks(void *data) {
     if (need_transition) {
         // There are related functions being executed, so we need to attach Guard/Unguard Kprobes to all related functions.
         pr_info("Attaching Auxiliary Kprobes to related functions\n");
-        if (xk_attach_auxiliary_kprobes()) {
+        if (xk_attach_auxiliary_kprobes(direction)) {
             pr_err("Failed to attach Auxiliary Kprobes\n");
             return -EINVAL;
         }
     } else {
-        // Notify userspace to enable Instruction Rewriting Kprobes
-        xk_enable_ir_kprobes();
-        pr_info("Notified userspace to enable Instruction Rewriting Kprobes\n");
+        // Notify userspace to enable/disable Instruction Rewriting Kprobes
+        if (direction) {
+            xk_enable_ir_kprobes();
+            pr_info("Notified userspace to enable Instruction Rewriting Kprobes\n");
+        } else {
+            xk_disable_ir_kprobes();
+            pr_info("Notified userspace to disable Instruction Rewriting Kprobes\n");
+        }
     }
 
     return 0;
@@ -226,10 +234,7 @@ static int xk_read_target_functions(void) {
                 pr_err("Failed to parse size for function %s\n", tokens[0]);
                 kfree(func);
                 continue;
-            }
-
-            // Initialize the kprobe structures
-            xk_init_guard_kp(func);
+            }            
 
             INIT_LIST_HEAD(&func->list);
             list_add_tail(&func->list, &xk_target_functions);
@@ -253,21 +258,48 @@ out:
 
 static int daemon_main(void *data) {
     int times = 0;
+    int times_reverse = 0;
     int ret = 0;
 
     while (!kthread_should_stop()) {
 
-        if (xk_refcount() == 0) {
-            // It's time to detach the auxiliary kprobes
-            xk_detach_auxiliary_kprobes();
-            pr_info("Detached Auxiliary Kprobes by daemon\n");
-            break;
+        if (READ_ONCE(xk_state) == TRANS_PENDING) {
+            if (xk_refcount() == 0) {
+                // It's time to detach the auxiliary kprobes
+                xk_detach_auxiliary_kprobes();
+                pr_info("Detached Auxiliary Kprobes by daemon\n");
+                WRITE_ONCE(xk_state, TRANS_DONE);
+                schedule();
+            }
+            schedule_timeout(msecs_to_jiffies(INTERVAL_MS));
+            if (times++ > TIMEOUT_TIMES) {
+                pr_err("Daemon timeout\n");
+                WRITE_ONCE(xk_state, TRANS_FAILED);
+                ret = -ETIMEDOUT;
+                break;
+            }
         }
-
-        schedule_timeout(msecs_to_jiffies(INTERVAL_MS));
-        if (times++ > TIMEOUT_TIMES) {
-            pr_err("Daemon timeout\n");
-            ret = -ETIMEDOUT;
+        else if (READ_ONCE(xk_state) == TRANS_DONE) {
+            // Do nothing
+            schedule();
+        }
+        else if (READ_ONCE(xk_state) == TRANS_REVERSE_PENDING) {
+            if (xk_refcount() == 0) {
+                // It's time to detach the auxiliary kprobes
+                xk_detach_auxiliary_kprobes();
+                pr_info("Detached Auxiliary Kprobes by daemon\n");
+                WRITE_ONCE(xk_state, TRANS_REVERSE_DONE);
+                schedule();
+            }
+            schedule_timeout(msecs_to_jiffies(INTERVAL_MS));
+            if (times_reverse++ > TIMEOUT_TIMES) {
+                pr_err("Daemon timeout\n");
+                WRITE_ONCE(xk_state, TRANS_REVERSE_FAILED);
+                ret = -ETIMEDOUT;
+                break;
+            }
+        }
+        else if (READ_ONCE(xk_state) == TRANS_REVERSE_DONE) {
             break;
         }
     }
@@ -291,13 +323,12 @@ static int __init consistency_init(void) {
     
     if (xk_read_target_functions()) {pr_err("Failed to read target functions\n"); return -1;}
 
-    stop_machine(xk_check_stacks, NULL, NULL);
+    stop_machine(xk_check_stacks, (void *)xk_state, NULL);
 
     if (xk_refcount() > 0) {
         wake_up_process(daemon_task);
     } else {
-        kthread_stop(daemon_task);
-        daemon_task = NULL;
+        WRITE_ONCE(xk_state, TRANS_DONE);
     }
 
     return 0;
@@ -305,8 +336,32 @@ static int __init consistency_init(void) {
 
 static void __exit consistency_exit(void) {
     pr_info("Xkernel consistency module unloaded\n");
-    xk_detach_auxiliary_kprobes();
 
+    while (READ_ONCE(xk_state) == TRANS_PENDING) {
+        // Wait for the transition being done or failed
+        schedule();
+    }
+    
+    if (READ_ONCE(xk_state) == TRANS_FAILED) {
+        goto out;
+    }
+    
+    BUG_ON(READ_ONCE(xk_state) != TRANS_DONE);
+    
+    stop_machine(xk_check_stacks, (void *)xk_state, NULL);
+    
+    if (xk_refcount() > 0) {
+        WRITE_ONCE(xk_state, TRANS_REVERSE_PENDING);
+        wake_up_process(daemon_task);
+        while (READ_ONCE(xk_state) == TRANS_REVERSE_PENDING) {
+            // Wait for the reverse transition being done or failed
+            schedule();
+        }
+    } else {
+        WRITE_ONCE(xk_state, TRANS_REVERSE_DONE);
+    }
+
+out:
     if (daemon_task) {
         kthread_stop(daemon_task);
         daemon_task = NULL;
