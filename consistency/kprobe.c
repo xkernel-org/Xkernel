@@ -124,11 +124,11 @@ int xk_attach_auxiliary_kprobes(bool direction) {
         xk_init_guard_kp(func, direction);
         ret = register_kprobe(&func->guard_kp);
         if (ret < 0) {
-            pr_err("Failed to register Guard Kprobe for function %s, error: %d\n", func->name, ret);
+            pr_err("Failed to register Guard Kprobe for [%s], error: %d\n", func->name, ret);
             return ret;
         }
         func->attached_guard_kp = true;
-        pr_info("Attached Guard/Unguard Kprobes to function %s\n", func->name);
+        pr_info("Attached Guard/Unguard Kprobes to [%s]\n", func->name);
     }
     return 0;
 }
@@ -142,7 +142,7 @@ void xk_detach_auxiliary_kprobes(void) {
         if (!func->attached_guard_kp) continue;
         unregister_kprobe(&func->guard_kp);
         func->attached_guard_kp = false;
-        pr_info("Detached Guard/Unguard Kprobes from function %s\n", func->name);
+        pr_info("Detached Guard/Unguard Kprobes from [%s]\n", func->name);
     }
 }
 

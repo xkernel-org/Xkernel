@@ -106,8 +106,6 @@ static int xk_check_stacks(void *data) {
     }
 
     if (need_transition) {
-        // There are related functions being executed, so we need to attach Guard/Unguard Kprobes to all related functions.
-        pr_info("Enabling Auxiliary Kprobes\n");
         xk_enable_auxiliary_kprobes();
     } else {
         if (direction) {
@@ -186,7 +184,7 @@ static int xk_read_target_functions(void) {
             INIT_LIST_HEAD(&func->list);
             list_add_tail(&func->list, &xk_target_functions);
 
-            printk("Added target function %s at 0x%lx with offset 0x%lx and size 0x%lx\n", func->name, func->address, func->offset, func->size);
+            pr_info("[Target Functions] [%s] at 0x%lx with offset 0x%lx and size 0x%lx\n", func->name, func->address, func->offset, func->size);
         }
     }
     if (bytes < 0) {
@@ -216,17 +214,16 @@ static int daemon_main(void *data) {
                 BUG_ON(!xk_is_auxiliary_kprobes_on());
                 xk_disable_auxiliary_kprobes();
                 xk_detach_auxiliary_kprobes();
-                pr_info("Detached Auxiliary Kprobes by daemon\n");
+                pr_info("[Transition] Transition done\n");
                 WRITE_ONCE(xk_state, XK_FLAGS_DONE);
                 schedule();
             } else {
                 schedule_timeout(msecs_to_jiffies(INTERVAL_MS));
                 if (times++ > TIMEOUT_TIMES) {
-                    pr_err("Daemon timeout\n");
                     BUG_ON(!xk_is_auxiliary_kprobes_on());
                     xk_disable_auxiliary_kprobes();
                     xk_detach_auxiliary_kprobes();
-                    pr_info("Detached Auxiliary Kprobes by daemon\n");
+                    pr_err("[Transition] Transition failed\n");
                     WRITE_ONCE(xk_state, XK_FLAGS_FAILED);
                     ret = -ETIMEDOUT;
                     break;
@@ -243,17 +240,16 @@ static int daemon_main(void *data) {
                 BUG_ON(!xk_is_auxiliary_kprobes_on());
                 xk_disable_auxiliary_kprobes();
                 xk_detach_auxiliary_kprobes();
-                pr_info("Detached Auxiliary Kprobes by daemon\n");
+                pr_info("[Reverse Transition] Reverse transition done\n");
                 WRITE_ONCE(xk_state, XK_FLAGS_REVERSE_DONE);
                 schedule();
             } else {
                 schedule_timeout(msecs_to_jiffies(INTERVAL_MS));
                 if (times_reverse++ > TIMEOUT_TIMES) {
-                    pr_err("Daemon timeout\n");
                     BUG_ON(!xk_is_auxiliary_kprobes_on());
                     xk_disable_auxiliary_kprobes();
                     xk_detach_auxiliary_kprobes();
-                    pr_info("Detached Auxiliary Kprobes by daemon\n");
+                    pr_err("[Reverse Transition] Reverse transition failed\n");
                     WRITE_ONCE(xk_state, XK_FLAGS_REVERSE_FAILED);
                     ret = -ETIMEDOUT;
                     break;
@@ -290,8 +286,10 @@ static int __init consistency_init(void) {
     stop_machine(xk_check_stacks, (void *)xk_state, NULL);
 
     if (xk_is_auxiliary_kprobes_on()) {
+        pr_info("[Transition] Waiting for transition to be done or failed\n");
         wake_up_process(daemon_task);
     } else {
+        pr_info("[Transition] Transition done\n");
         xk_detach_auxiliary_kprobes();
         WRITE_ONCE(xk_state, XK_FLAGS_DONE);
     }
@@ -322,12 +320,14 @@ static void __exit consistency_exit(void) {
     
     if (xk_is_auxiliary_kprobes_on()) {
         WRITE_ONCE(xk_state, XK_FLAGS_REVERSE_PENDING);
+        pr_info("[Reverse Transition] Waiting for reverse transition to be done or failed\n");
         wake_up_process(daemon_task);
         while (READ_ONCE(xk_state) == XK_FLAGS_REVERSE_PENDING) {
             // Wait for the reverse transition being done or failed
             schedule();
         }
     } else {
+        pr_info("[Reverse Transition] Reverse transition done\n");
         xk_detach_auxiliary_kprobes();
         WRITE_ONCE(xk_state, XK_FLAGS_REVERSE_DONE);
     }
