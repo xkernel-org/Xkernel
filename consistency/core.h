@@ -13,12 +13,12 @@
 extern struct list_head xk_target_functions;
 
 enum xkernel_state {
-    TRANS_PENDING,
-    TRANS_FAILED,
-    TRANS_DONE,
-    TRANS_REVERSE_PENDING,
-    TRANS_REVERSE_FAILED,
-    TRANS_REVERSE_DONE,
+    XK_FLAGS_PENDING,
+    XK_FLAGS_FAILED,
+    XK_FLAGS_DONE,
+    XK_FLAGS_REVERSE_PENDING,
+    XK_FLAGS_REVERSE_FAILED,
+    XK_FLAGS_REVERSE_DONE,
 };
 
 struct xk_target_function {

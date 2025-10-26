@@ -29,42 +29,6 @@ DEFINE_bool(one_shot, false, "One shot mode, run BPF programs once and exit");
 
 std::vector<XKernelLoader *> loaders;
 
-// Utility function to receive a message from netlink socket
-// Returns the number of bytes received, or <0 on error.
-// The buffer must be large enough to hold the message.
-ssize_t recv_netlink_msg(int sock_fd, char *buf, size_t buf_sz) {
-  struct sockaddr_nl nl_addr;
-  struct iovec iov = {
-    .iov_base = buf,
-    .iov_len = buf_sz,
-  };
-  struct msghdr msg = {
-    .msg_name = &nl_addr,
-    .msg_namelen = sizeof(nl_addr),
-    .msg_iov = &iov,
-    .msg_iovlen = 1,
-    .msg_control = NULL,
-    .msg_controllen = 0,
-    .msg_flags = 0,
-  };
-
-  ssize_t ret = recvmsg(sock_fd, &msg, 0);
-  if (ret < 0) {
-    if (errno != EAGAIN)
-      perror("recv_netlink_msg: recvmsg failed");
-    return ret;
-  }
-
-  // Safety: ensure null-termination if possible
-  if ((size_t)ret < buf_sz)
-    buf[ret] = '\0';
-  else if (buf_sz > 0)
-    buf[buf_sz-1] = '\0';
-
-  return ret;
-}
-
-
 int main(int argc, char *argv[]) {
   gflags::ParseCommandLineFlags(&argc, &argv, true);
 
@@ -74,22 +38,6 @@ int main(int argc, char *argv[]) {
     }
     exit(0);
   });
-
-  // Initialize netlink
-  struct sockaddr_nl src_addr;
-  int sock_fd;
-  char netlink_msg[1024];
-
-  sock_fd = socket(AF_NETLINK, SOCK_RAW, NETLINK_USERSOCK);
-
-  int flags = fcntl(sock_fd, F_GETFL, 0);
-  fcntl(sock_fd, F_SETFL, flags | O_NONBLOCK);
-
-  memset(&src_addr, 0, sizeof(src_addr));
-  src_addr.nl_family = AF_NETLINK;
-  src_addr.nl_pid = getpid();
-  src_addr.nl_groups = 0;
-  bind(sock_fd, (struct sockaddr *)&src_addr, sizeof(src_addr));
 
   if (FLAGS_list) {
     // list all files in BPF_DIR
@@ -180,21 +128,6 @@ int main(int argc, char *argv[]) {
           loader->dump_stack_trace();
         }
         last_print_st = now;
-      }
-
-      if (recv_netlink_msg(sock_fd, netlink_msg, sizeof(netlink_msg)) > 0) {
-        char *payload = (char *)NLMSG_DATA(netlink_msg);
-        if (strncmp(payload, "1", 1) == 0) {
-          printf("Instruction Rewriting Kprobes enabled\n");
-          for (auto &loader : loaders) {
-            loader->update_transition_map(1);
-          }
-        } else {
-          printf("Instruction Rewriting Kprobes disabled\n");
-          for (auto &loader : loaders) {
-            loader->update_transition_map(0);
-          }
-        }
       }
     }
     fclose(fp);

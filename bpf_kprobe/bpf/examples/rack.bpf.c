@@ -10,8 +10,11 @@ SEC("kprobe/tcp_rack_detect_loss+0x6a")
 int BPF_KPROBE(tcp_rack_detect_loss_6a) {
 
   if (!transition_done()) {
+    bpf_printk("Transition not done");
     return 0;
   }
+
+  bpf_printk("Transition done");
 
   u64 r15d = BPF_R15(ctx);
   BPF_SET_R15(ctx, r15d << 1);

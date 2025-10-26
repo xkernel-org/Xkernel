@@ -20,10 +20,6 @@ MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Zhongjie");
 MODULE_DESCRIPTION("A kernel module for Xkernel's consistency model");
 
-static int pid = 0;
-module_param(pid, int, 0660);
-MODULE_PARM_DESC(pid, "Userspace PID to notify");
-
 LIST_HEAD(xk_target_functions);
 
 #define MAX_STACK_ENTRIES 100
@@ -33,8 +29,9 @@ static DEFINE_PER_CPU(unsigned long[MAX_STACK_ENTRIES], xk_stack_entries);
 #define TIMEOUT_TIMES 1000
 
 static struct task_struct *daemon_task = NULL;
-static struct sock *nl_sk = NULL;
-static enum xkernel_state xk_state = TRANS_PENDING;
+static enum xkernel_state xk_state = XK_FLAGS_PENDING;
+
+extern bool ir_kprobes_on;
 
 #define TARGET_FUNCTIONS_FILE "/dev/shm/xkernel/target_functions"
 
@@ -49,57 +46,12 @@ static void xk_dump_stack_trace(struct task_struct *task, unsigned long *entries
 }
 #endif
 
-static int init_netlink(void) {
-    struct netlink_kernel_cfg cfg = {
-        .input = NULL,
-    };
-
-    nl_sk = netlink_kernel_create(&init_net, NETLINK_USERSOCK, &cfg);
-    if (IS_ERR(nl_sk)) {
-        pr_err("Failed to create netlink socket\n");
-        return PTR_ERR(nl_sk);
-    }
-
-    return 0;
-}
-
-static void cleanup_netlink(void) {
-    if (nl_sk) {
-        netlink_kernel_release(nl_sk);
-        nl_sk = NULL;
-    }
-    return;
-}
-
-static void __xk_notify_usr(char *msg) {
-    struct sk_buff *skb;
-    struct nlmsghdr *nlh;
-    int msg_size = strlen(msg) + 1;
-
-    // 1. Allocate a new netlink message buffer
-    skb = nlmsg_new(msg_size, GFP_KERNEL);
-    if (!skb) {
-        pr_err("Failed to allocate skb\n");
-        return;
-    }
-
-    // 2. Add the netlink message header
-    nlh = nlmsg_put(skb, 0, 0, NLMSG_DONE, msg_size, 0);
-    
-    // 3. Copy your message payload
-    memcpy(nlmsg_data(nlh), msg, msg_size);
-
-    // 4. Send the unicast message to the specific PID
-    // Or use nlmsg_multicast() to send to a group
-    nlmsg_unicast(nl_sk, skb, pid);
-}
-
 void xk_enable_ir_kprobes(void) {
-    __xk_notify_usr("1");
+    WRITE_ONCE(ir_kprobes_on, true);
 }
 
 void xk_disable_ir_kprobes(void) {
-    __xk_notify_usr("0");
+    WRITE_ONCE(ir_kprobes_on, false);
 }
 
 static bool xk_check_functions(struct task_struct *task, unsigned long *entries, int nb_entries) {
@@ -137,9 +89,10 @@ static int xk_dump_stack(struct task_struct *task) {
     return nb_entries;
 }
 
+// Note: This function is called in a stop_machine context, so it is not allowed to sleep.
 static int xk_check_stacks(void *data) {
     enum xkernel_state state = (enum xkernel_state)data;
-    bool direction = state == TRANS_PENDING ? true : false;
+    bool direction = state == XK_FLAGS_PENDING ? true : false;
     struct task_struct *g, *task;
     unsigned long *entries = this_cpu_ptr(xk_stack_entries);
     int nb_entries;
@@ -154,19 +107,13 @@ static int xk_check_stacks(void *data) {
 
     if (need_transition) {
         // There are related functions being executed, so we need to attach Guard/Unguard Kprobes to all related functions.
-        pr_info("Attaching Auxiliary Kprobes to related functions\n");
-        if (xk_attach_auxiliary_kprobes(direction)) {
-            pr_err("Failed to attach Auxiliary Kprobes\n");
-            return -EINVAL;
-        }
+        pr_info("Enabling Auxiliary Kprobes\n");
+        xk_enable_auxiliary_kprobes();
     } else {
-        // Notify userspace to enable/disable Instruction Rewriting Kprobes
         if (direction) {
             xk_enable_ir_kprobes();
-            pr_info("Notified userspace to enable Instruction Rewriting Kprobes\n");
         } else {
             xk_disable_ir_kprobes();
-            pr_info("Notified userspace to disable Instruction Rewriting Kprobes\n");
         }
     }
 
@@ -263,43 +210,57 @@ static int daemon_main(void *data) {
 
     while (!kthread_should_stop()) {
 
-        if (READ_ONCE(xk_state) == TRANS_PENDING) {
+        if (READ_ONCE(xk_state) == XK_FLAGS_PENDING) {
             if (xk_refcount() == 0) {
                 // It's time to detach the auxiliary kprobes
+                BUG_ON(!xk_is_auxiliary_kprobes_on());
+                xk_disable_auxiliary_kprobes();
                 xk_detach_auxiliary_kprobes();
                 pr_info("Detached Auxiliary Kprobes by daemon\n");
-                WRITE_ONCE(xk_state, TRANS_DONE);
+                WRITE_ONCE(xk_state, XK_FLAGS_DONE);
                 schedule();
-            }
-            schedule_timeout(msecs_to_jiffies(INTERVAL_MS));
-            if (times++ > TIMEOUT_TIMES) {
-                pr_err("Daemon timeout\n");
-                WRITE_ONCE(xk_state, TRANS_FAILED);
-                ret = -ETIMEDOUT;
-                break;
+            } else {
+                schedule_timeout(msecs_to_jiffies(INTERVAL_MS));
+                if (times++ > TIMEOUT_TIMES) {
+                    pr_err("Daemon timeout\n");
+                    BUG_ON(!xk_is_auxiliary_kprobes_on());
+                    xk_disable_auxiliary_kprobes();
+                    xk_detach_auxiliary_kprobes();
+                    pr_info("Detached Auxiliary Kprobes by daemon\n");
+                    WRITE_ONCE(xk_state, XK_FLAGS_FAILED);
+                    ret = -ETIMEDOUT;
+                    break;
+                }
             }
         }
-        else if (READ_ONCE(xk_state) == TRANS_DONE) {
+        else if (READ_ONCE(xk_state) == XK_FLAGS_DONE) {
             // Do nothing
             schedule();
         }
-        else if (READ_ONCE(xk_state) == TRANS_REVERSE_PENDING) {
+        else if (READ_ONCE(xk_state) == XK_FLAGS_REVERSE_PENDING) {
             if (xk_refcount() == 0) {
                 // It's time to detach the auxiliary kprobes
+                BUG_ON(!xk_is_auxiliary_kprobes_on());
+                xk_disable_auxiliary_kprobes();
                 xk_detach_auxiliary_kprobes();
                 pr_info("Detached Auxiliary Kprobes by daemon\n");
-                WRITE_ONCE(xk_state, TRANS_REVERSE_DONE);
+                WRITE_ONCE(xk_state, XK_FLAGS_REVERSE_DONE);
                 schedule();
-            }
-            schedule_timeout(msecs_to_jiffies(INTERVAL_MS));
-            if (times_reverse++ > TIMEOUT_TIMES) {
-                pr_err("Daemon timeout\n");
-                WRITE_ONCE(xk_state, TRANS_REVERSE_FAILED);
-                ret = -ETIMEDOUT;
-                break;
+            } else {
+                schedule_timeout(msecs_to_jiffies(INTERVAL_MS));
+                if (times_reverse++ > TIMEOUT_TIMES) {
+                    pr_err("Daemon timeout\n");
+                    BUG_ON(!xk_is_auxiliary_kprobes_on());
+                    xk_disable_auxiliary_kprobes();
+                    xk_detach_auxiliary_kprobes();
+                    pr_info("Detached Auxiliary Kprobes by daemon\n");
+                    WRITE_ONCE(xk_state, XK_FLAGS_REVERSE_FAILED);
+                    ret = -ETIMEDOUT;
+                    break;
+                }
             }
         }
-        else if (READ_ONCE(xk_state) == TRANS_REVERSE_DONE) {
+        else if (READ_ONCE(xk_state) == XK_FLAGS_REVERSE_DONE) {
             break;
         }
     }
@@ -311,8 +272,6 @@ static int __init consistency_init(void) {
 
     INIT_LIST_HEAD(&xk_target_functions);
 
-    if (init_netlink()) {pr_err("Failed to init netlink\n"); return -1;}
-
     measure_stop_machine_overhead();
     
     daemon_task = kthread_create(daemon_main, NULL, "xkernel-daemon");
@@ -323,12 +282,18 @@ static int __init consistency_init(void) {
     
     if (xk_read_target_functions()) {pr_err("Failed to read target functions\n"); return -1;}
 
+    // Since register_kprobe() is not allowed to be called in a stop_machine context, 
+    // we need to attach the auxiliary kprobes here but don't enable them.
+    xk_disable_auxiliary_kprobes();
+    xk_attach_auxiliary_kprobes(true);
+
     stop_machine(xk_check_stacks, (void *)xk_state, NULL);
 
-    if (xk_refcount() > 0) {
+    if (xk_is_auxiliary_kprobes_on()) {
         wake_up_process(daemon_task);
     } else {
-        WRITE_ONCE(xk_state, TRANS_DONE);
+        xk_detach_auxiliary_kprobes();
+        WRITE_ONCE(xk_state, XK_FLAGS_DONE);
     }
 
     return 0;
@@ -337,28 +302,34 @@ static int __init consistency_init(void) {
 static void __exit consistency_exit(void) {
     pr_info("Xkernel consistency module unloaded\n");
 
-    while (READ_ONCE(xk_state) == TRANS_PENDING) {
+    while (READ_ONCE(xk_state) == XK_FLAGS_PENDING) {
         // Wait for the transition being done or failed
         schedule();
     }
     
-    if (READ_ONCE(xk_state) == TRANS_FAILED) {
+    if (READ_ONCE(xk_state) == XK_FLAGS_FAILED) {
         goto out;
     }
     
-    BUG_ON(READ_ONCE(xk_state) != TRANS_DONE);
+    BUG_ON(READ_ONCE(xk_state) != XK_FLAGS_DONE);
+
+    // Since register_kprobe() is not allowed to be called in a stop_machine context, 
+    // we need to attach the auxiliary kprobes here but don't enable them.
+    xk_disable_auxiliary_kprobes();
+    xk_attach_auxiliary_kprobes(false);
     
     stop_machine(xk_check_stacks, (void *)xk_state, NULL);
     
-    if (xk_refcount() > 0) {
-        WRITE_ONCE(xk_state, TRANS_REVERSE_PENDING);
+    if (xk_is_auxiliary_kprobes_on()) {
+        WRITE_ONCE(xk_state, XK_FLAGS_REVERSE_PENDING);
         wake_up_process(daemon_task);
-        while (READ_ONCE(xk_state) == TRANS_REVERSE_PENDING) {
+        while (READ_ONCE(xk_state) == XK_FLAGS_REVERSE_PENDING) {
             // Wait for the reverse transition being done or failed
             schedule();
         }
     } else {
-        WRITE_ONCE(xk_state, TRANS_REVERSE_DONE);
+        xk_detach_auxiliary_kprobes();
+        WRITE_ONCE(xk_state, XK_FLAGS_REVERSE_DONE);
     }
 
 out:
@@ -366,8 +337,6 @@ out:
         kthread_stop(daemon_task);
         daemon_task = NULL;
     }
-
-    cleanup_netlink();
 }
 
 module_init(consistency_init);

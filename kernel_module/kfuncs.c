@@ -11,6 +11,15 @@ MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Zhongjie, Wentao");
 MODULE_DESCRIPTION("A kernel module for loading kfuncs into kernel");
 
+bool ir_kprobes_on = false;
+EXPORT_SYMBOL(ir_kprobes_on);
+
+__bpf_kfunc_start_defs();
+__bpf_kfunc bool kfuncs_is_ir_kprobes_on(void) {
+  return READ_ONCE(ir_kprobes_on);
+}
+__bpf_kfunc_end_defs();
+
 __bpf_kfunc_start_defs();
 __bpf_kfunc long kfuncs_probe_write_kernel(void *dst__ign, __u32 dst__sz,
                                           const void *src__ign, __u32 src__sz) {
@@ -36,16 +45,18 @@ __bpf_kfunc_end_defs();
 #if LINUX_VERSION_CODE <= KERNEL_VERSION(6, 9, 0)
 BTF_SET8_START(bpf_kfunc_example_ids_set)
 BTF_ID_FLAGS(func, kfuncs_probe_write_kernel)
-#ifdef BPF_TEXT_POKE
-BTF_ID_FLAGS(func, kfuncs_text_poke)
-#endif
+BTF_ID_FLAGS(func, kfuncs_is_ir_kprobes_on)
+  #ifdef BPF_TEXT_POKE
+  BTF_ID_FLAGS(func, kfuncs_text_poke)
+  #endif
 BTF_SET8_END(bpf_kfunc_example_ids_set)
 #else
 BTF_KFUNCS_START(bpf_kfunc_example_ids_set)
 BTF_ID_FLAGS(func, kfuncs_probe_write_kernel)
-#ifdef BPF_TEXT_POKE
-BTF_ID_FLAGS(func, kfuncs_text_poke)
-#endif
+BTF_ID_FLAGS(func, kfuncs_is_ir_kprobes_on)
+  #ifdef BPF_TEXT_POKE
+  BTF_ID_FLAGS(func, kfuncs_text_poke)
+  #endif
 BTF_KFUNCS_END(bpf_kfunc_example_ids_set)
 #endif
 

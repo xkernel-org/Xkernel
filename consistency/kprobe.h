@@ -14,4 +14,8 @@ int xk_dec_if_positive(void);
 int xk_attach_auxiliary_kprobes(bool direction);
 void xk_detach_auxiliary_kprobes(void);
 
+int xk_enable_auxiliary_kprobes(void);
+int xk_disable_auxiliary_kprobes(void);
+int xk_is_auxiliary_kprobes_on(void);
+
 #endif
