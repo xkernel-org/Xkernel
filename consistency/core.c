@@ -26,12 +26,24 @@ LIST_HEAD(xk_target_functions);
 static DEFINE_PER_CPU(unsigned long[MAX_STACK_ENTRIES], xk_stack_entries);
 
 #define INTERVAL_MS 1
-#define TIMEOUT_TIMES 1000
+#define TIMEOUT_TIMES 5000
 
 static struct task_struct *daemon_task = NULL;
 static enum xkernel_state xk_state = XK_FLAGS_PENDING;
 
 extern bool ir_kprobes_on;
+
+void xk_enable_ir_kprobes(void) {
+    WRITE_ONCE(ir_kprobes_on, true);
+}
+
+void xk_disable_ir_kprobes(void) {
+    WRITE_ONCE(ir_kprobes_on, false);
+}
+
+bool xk_is_ir_kprobes_on(void) {
+    return READ_ONCE(ir_kprobes_on);
+}
 
 #define TARGET_FUNCTIONS_FILE "/dev/shm/xkernel/target_functions"
 
@@ -45,14 +57,6 @@ static void xk_dump_stack_trace(struct task_struct *task, unsigned long *entries
     }
 }
 #endif
-
-void xk_enable_ir_kprobes(void) {
-    WRITE_ONCE(ir_kprobes_on, true);
-}
-
-void xk_disable_ir_kprobes(void) {
-    WRITE_ONCE(ir_kprobes_on, false);
-}
 
 static bool xk_check_functions(struct task_struct *task, unsigned long *entries, int nb_entries) {
     struct xk_target_function *func;
@@ -104,7 +108,7 @@ static int xk_check_stacks(void *data) {
         if (nb_entries == 0) continue;
         need_transition |= xk_check_functions(task, entries, nb_entries);
     }
-
+    
     if (need_transition) {
         xk_enable_auxiliary_kprobes();
     } else {
@@ -208,6 +212,11 @@ static int daemon_main(void *data) {
 
     while (!kthread_should_stop()) {
 
+        if (READ_ONCE(xk_state) == XK_FLAGS_FAILED || READ_ONCE(xk_state) == XK_FLAGS_REVERSE_FAILED) {
+            schedule();
+            continue;
+        }
+
         if (READ_ONCE(xk_state) == XK_FLAGS_PENDING) {
             if (xk_refcount() == 0) {
                 // It's time to detach the auxiliary kprobes
@@ -226,7 +235,6 @@ static int daemon_main(void *data) {
                     pr_err("[Transition] Transition failed\n");
                     WRITE_ONCE(xk_state, XK_FLAGS_FAILED);
                     ret = -ETIMEDOUT;
-                    break;
                 }
             }
         }
@@ -252,7 +260,6 @@ static int daemon_main(void *data) {
                     pr_err("[Reverse Transition] Reverse transition failed\n");
                     WRITE_ONCE(xk_state, XK_FLAGS_REVERSE_FAILED);
                     ret = -ETIMEDOUT;
-                    break;
                 }
             }
         }
@@ -284,7 +291,7 @@ static int __init consistency_init(void) {
     xk_attach_auxiliary_kprobes(true);
 
     stop_machine(xk_check_stacks, (void *)xk_state, NULL);
-
+    
     if (xk_is_auxiliary_kprobes_on()) {
         pr_info("[Transition] Waiting for transition to be done or failed\n");
         wake_up_process(daemon_task);

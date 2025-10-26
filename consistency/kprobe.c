@@ -48,8 +48,11 @@ int xk_dec_if_positive(void) {
     return atomic_dec_if_positive(&xk_global_refcount);
 }
 
-static int handler_guard(struct kprobe *kp, struct pt_regs *regs) {
+void xk_reset_refcount(void) {
+    atomic_set(&xk_global_refcount, 0);
+}
 
+static int handler_guard(struct kprobe *kp, struct pt_regs *regs) {
     if (!xk_is_auxiliary_kprobes_on()) {
         return 0;
     }
@@ -119,6 +122,8 @@ int xk_attach_auxiliary_kprobes(bool direction) {
     int ret;
 
     BUG_ON(xk_is_auxiliary_kprobes_on());
+
+    xk_reset_refcount();
     
     list_for_each_entry(func, &xk_target_functions, list) {
         xk_init_guard_kp(func, direction);

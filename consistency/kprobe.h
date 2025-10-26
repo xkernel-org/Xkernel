@@ -5,6 +5,7 @@
 
 #define TRANSITION_MAP_PATH "/sys/fs/bpf/xkernel/transition_map"
 
+void xk_reset_refcount(void);
 int xk_refcount(void);
 void xk_inc_refcount(void);
 int xk_inc_if_not_zero(void);

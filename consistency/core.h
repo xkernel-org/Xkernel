@@ -40,6 +40,7 @@ struct xk_target_function {
 
 void xk_enable_ir_kprobes(void);
 void xk_disable_ir_kprobes(void);
+bool xk_is_ir_kprobes_on(void);
 
 /**
  * Compare a stack address with a function address and size.
