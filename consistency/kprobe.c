@@ -68,7 +68,7 @@ static int reverse_handler_guard(struct kprobe *kp, struct pt_regs *regs) {
     if (!xk_is_auxiliary_kprobes_on()) {
         return 0;
     }
-    
+
     if (xk_inc_if_not_zero() == 0) {
         xk_disable_ir_kprobes();
     }

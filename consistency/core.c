@@ -16,6 +16,8 @@
 
 #include "kprobe.h"
 
+// #define DEBUG
+
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Zhongjie");
 MODULE_DESCRIPTION("A kernel module for Xkernel's consistency model");
@@ -60,21 +62,22 @@ static void xk_dump_stack_trace(struct task_struct *task, unsigned long *entries
 
 static bool xk_check_functions(struct task_struct *task, unsigned long *entries, int nb_entries) {
     struct xk_target_function *func;
+    bool flag = false;
     list_for_each_entry(func, &xk_target_functions, list) {
         for (int i = 0; i < nb_entries; i++) {
             if (xk_compare_function(entries[i], func->address, func->size)) {
-                pr_info("Function %s found in stack trace for task %s\n", func->name, task->comm);
+                pr_info("Function %s found in stack trace for task [%s]\n", func->name, task->comm);
                 /**
                  * Increment the global refcount to indicate that the function is being executed.
                  * This is used to fix the refcount of the task.
                  */
                 xk_inc_refcount();
 
-                return true;
+                flag = true;
             }
         }
     }
-    return false;
+    return flag;
 }
 
 static int xk_dump_stack(struct task_struct *task) {
@@ -107,6 +110,9 @@ static int xk_check_stacks(void *data) {
         if (nb_entries < 0) return -1;
         if (nb_entries == 0) continue;
         need_transition |= xk_check_functions(task, entries, nb_entries);
+        #ifdef DEBUG
+        xk_dump_stack_trace(task, entries, nb_entries);
+        #endif
     }
     
     if (need_transition) {
@@ -227,6 +233,7 @@ static int daemon_main(void *data) {
                 WRITE_ONCE(xk_state, XK_FLAGS_DONE);
                 schedule();
             } else {
+                set_current_state(TASK_INTERRUPTIBLE);
                 schedule_timeout(msecs_to_jiffies(INTERVAL_MS));
                 if (times++ > TIMEOUT_TIMES) {
                     BUG_ON(!xk_is_auxiliary_kprobes_on());
@@ -252,6 +259,7 @@ static int daemon_main(void *data) {
                 WRITE_ONCE(xk_state, XK_FLAGS_REVERSE_DONE);
                 schedule();
             } else {
+                set_current_state(TASK_INTERRUPTIBLE);
                 schedule_timeout(msecs_to_jiffies(INTERVAL_MS));
                 if (times_reverse++ > TIMEOUT_TIMES) {
                     BUG_ON(!xk_is_auxiliary_kprobes_on());
@@ -275,7 +283,9 @@ static int __init consistency_init(void) {
 
     INIT_LIST_HEAD(&xk_target_functions);
 
+    #ifdef DEBUG
     measure_stop_machine_overhead();
+    #endif
     
     daemon_task = kthread_create(daemon_main, NULL, "xkernel-daemon");
     if (IS_ERR(daemon_task)) {
