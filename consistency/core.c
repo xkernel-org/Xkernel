@@ -16,7 +16,7 @@
 
 #include "kprobe.h"
 
-// #define DEBUG
+#define DEBUG
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Zhongjie");
@@ -62,7 +62,7 @@ static void xk_dump_stack_trace(struct task_struct *task, unsigned long *entries
 
 static bool xk_check_functions(struct task_struct *task, unsigned long *entries, int nb_entries) {
     struct xk_target_function *func;
-    bool flag = false;
+    bool found = false;
     list_for_each_entry(func, &xk_target_functions, list) {
         for (int i = 0; i < nb_entries; i++) {
             if (xk_compare_function(entries[i], func->address, func->size)) {
@@ -73,11 +73,19 @@ static bool xk_check_functions(struct task_struct *task, unsigned long *entries,
                  */
                 xk_inc_refcount();
 
-                flag = true;
+                found = true;
             }
         }
     }
-    return flag;
+
+
+    #ifdef DEBUG
+    if (found) {
+        xk_dump_stack_trace(task, entries, nb_entries);
+    }
+    #endif
+
+    return found;
 }
 
 static int xk_dump_stack(struct task_struct *task) {
@@ -110,9 +118,6 @@ static int xk_check_stacks(void *data) {
         if (nb_entries < 0) return -1;
         if (nb_entries == 0) continue;
         need_transition |= xk_check_functions(task, entries, nb_entries);
-        #ifdef DEBUG
-        xk_dump_stack_trace(task, entries, nb_entries);
-        #endif
     }
     
     if (need_transition) {
@@ -231,6 +236,8 @@ static int daemon_main(void *data) {
                 xk_detach_auxiliary_kprobes();
                 pr_info("[Transition] Transition done\n");
                 WRITE_ONCE(xk_state, XK_FLAGS_DONE);
+
+                set_current_state(TASK_INTERRUPTIBLE);
                 schedule();
             } else {
                 set_current_state(TASK_INTERRUPTIBLE);
@@ -247,6 +254,7 @@ static int daemon_main(void *data) {
         }
         else if (READ_ONCE(xk_state) == XK_FLAGS_DONE) {
             // Do nothing
+            set_current_state(TASK_INTERRUPTIBLE);
             schedule();
         }
         else if (READ_ONCE(xk_state) == XK_FLAGS_REVERSE_PENDING) {
@@ -257,6 +265,8 @@ static int daemon_main(void *data) {
                 xk_detach_auxiliary_kprobes();
                 pr_info("[Reverse Transition] Reverse transition done\n");
                 WRITE_ONCE(xk_state, XK_FLAGS_REVERSE_DONE);
+
+                set_current_state(TASK_INTERRUPTIBLE);
                 schedule();
             } else {
                 set_current_state(TASK_INTERRUPTIBLE);
@@ -330,6 +340,7 @@ static void __exit consistency_exit(void) {
 
     // Since register_kprobe() is not allowed to be called in a stop_machine context, 
     // we need to attach the auxiliary kprobes here but don't enable them.
+    WARN_ON(xk_refcount() > 0);
     xk_disable_auxiliary_kprobes();
     xk_attach_auxiliary_kprobes(false);
     

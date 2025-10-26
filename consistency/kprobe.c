@@ -36,7 +36,7 @@ void xk_inc_refcount(void) {
     atomic_inc(&xk_global_refcount);
 }
 
-int xk_inc_if_not_zero(void) {
+int xk_inc_not_zero(void) {
    return atomic_inc_not_zero(&xk_global_refcount);
 }
 
@@ -57,7 +57,7 @@ static int handler_guard(struct kprobe *kp, struct pt_regs *regs) {
         return 0;
     }
 
-    if (xk_inc_if_not_zero() == 0) {
+    if (xk_inc_not_zero() == 0) {
         xk_enable_ir_kprobes();
     }
     return 0;
@@ -69,7 +69,7 @@ static int reverse_handler_guard(struct kprobe *kp, struct pt_regs *regs) {
         return 0;
     }
 
-    if (xk_inc_if_not_zero() == 0) {
+    if (xk_inc_not_zero() == 0) {
         xk_disable_ir_kprobes();
     }
     return 0;

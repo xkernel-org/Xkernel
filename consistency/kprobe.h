@@ -8,7 +8,7 @@
 void xk_reset_refcount(void);
 int xk_refcount(void);
 void xk_inc_refcount(void);
-int xk_inc_if_not_zero(void);
+int xk_inc_not_zero(void);
 void xk_dec_refcount(void);
 int xk_dec_if_positive(void);
 
