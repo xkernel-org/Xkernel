@@ -258,6 +258,10 @@ static int daemon_main(void *data) {
                 schedule_timeout(msecs_to_jiffies(INTERVAL_MS));
                 if (times++ > TIMEOUT_TIMES) {
                     pr_err("[Transition] Transition failed\n");
+                    struct xk_target_function *func;
+                    list_for_each_entry(func, &xk_target_functions, list) {
+                        pr_info("nmissed in kretprobe for [%s]: %d\n", func->name, func->aux_kp.nmissed);
+                    }
                     BUG_ON(!xk_is_auxiliary_kprobes_on());
                     xk_detach_auxiliary_kprobes("daemon_main");
                     set_xk_state(XK_FLAGS_FAILED);
@@ -280,6 +284,10 @@ static int daemon_main(void *data) {
                 schedule_timeout(msecs_to_jiffies(INTERVAL_MS));
                 if (times_reverse++ > TIMEOUT_TIMES) {
                     pr_err("[Reverse Transition] Reverse transition failed\n");
+                    struct xk_target_function *func;
+                    list_for_each_entry(func, &xk_target_functions, list) {
+                        pr_info("nmissed in kretprobe for [%s]: %d\n", func->name, func->aux_kp.nmissed);
+                    }
                     BUG_ON(!xk_is_auxiliary_kprobes_on());
                     xk_detach_auxiliary_kprobes("daemon_main");
                     set_xk_state(XK_FLAGS_REVERSE_FAILED);
