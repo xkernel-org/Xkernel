@@ -31,9 +31,9 @@ struct xk_target_function {
     /* The size of the function in the kernel */
     unsigned long size;
 
-    struct kprobe guard_kp;
+    struct kretprobe aux_kp;
 
-    bool attached_guard_kp;
+    bool attached_aux_kp;
 
     struct list_head list;
 };

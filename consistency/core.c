@@ -74,7 +74,8 @@ static bool xk_check_functions(struct task_struct *task, unsigned long *entries,
     list_for_each_entry(func, &xk_target_functions, list) {
         for (int i = 0; i < nb_entries; i++) {
             if (xk_compare_function(entries[i], func->address, func->size)) {
-                pr_info("Function %s found in stack trace for task [%s]\n", func->name, task->comm);
+                pr_info("Function %s found in stack trace for task [%s/%d]\n", 
+                    func->name, task->comm, task->pid);
                 /**
                  * Increment the global refcount to indicate that the function is being executed.
                  * This is used to fix the refcount of the task.
@@ -344,7 +345,6 @@ static void __exit consistency_exit(void) {
     // Since register_kprobe() is not allowed to be called in a stop_machine context, 
     // we need to attach the auxiliary kprobes here but don't enable them.
     xk_attach_auxiliary_kprobes(false, "consistency_exit");
-    
     
     stop_machine(xk_check_stacks, NULL, NULL);
     
