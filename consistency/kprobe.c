@@ -57,10 +57,12 @@ void xk_reset_refcount(void) {
 // kprobe: increment the refcount
 // static int handler_guard(struct kprobe *kp, struct pt_regs *regs) {
 static int handler_guard(struct kretprobe_instance *ri, struct pt_regs *regs) {
+
     if (!xk_is_auxiliary_kprobes_on())
         return 0;
 
-    #ifdef DEBUG
+    #if 1
+
     char task_name[128];
     char *pos = strchr(current->comm, '/');
     if (pos) {
@@ -72,25 +74,25 @@ static int handler_guard(struct kretprobe_instance *ri, struct pt_regs *regs) {
         static int dbg_cnt0 = 0;
         if (dbg_cnt0++ < 5) {
             pr_info("Incrementing refcount %d for [%d/%s] in guard\n", 
-                xk_refcount(), current->tgid, task_name);
+                xk_refcount(), current->pid, task_name);
         }
     } else if (strncmp(task_name, "test 1", 6) == 0) {
         static int dbg_cnt1 = 0;
         if (dbg_cnt1++ < 5) {
             pr_info("Incrementing refcount %d for [%d/%s] in guard\n", 
-                xk_refcount(), current->tgid, task_name);
+                xk_refcount(), current->pid, task_name);
         }
     } else if (strncmp(task_name, "test 2", 6) == 0) {
         static int dbg_cnt2 = 0;
         if (dbg_cnt2++ < 5) {
             pr_info("Incrementing refcount %d for [%d/%s] in guard\n", 
-                xk_refcount(), current->tgid, task_name);
+                xk_refcount(), current->pid, task_name);
         }
     } else if (strncmp(task_name, "test 3", 6) == 0) {
         static int dbg_cnt3 = 0;
         if (dbg_cnt3++ < 5) {
             pr_info("Incrementing refcount %d for [%d/%s] in guard\n", 
-                xk_refcount(), current->tgid, task_name);
+                xk_refcount(), current->pid, task_name);
         }
     }
     #endif
@@ -106,7 +108,7 @@ static int handler_unguard(struct kretprobe_instance *ri, struct pt_regs *regs) 
     if (!xk_is_auxiliary_kprobes_on())
         return 0;
 
-    #ifdef DEBUG
+    #if 1
     char task_name[128];
     char *pos = strchr(current->comm, '/');
     if (pos) {
@@ -118,25 +120,25 @@ static int handler_unguard(struct kretprobe_instance *ri, struct pt_regs *regs) 
         static int dbg_cnt0 = 0;
         if (dbg_cnt0++ < 5) {
             pr_info("Decrementing refcount %d for [%d/%s] in unguard\n", 
-                xk_refcount(), current->tgid, task_name);
+                xk_refcount(), current->pid, task_name);
         }
     } else if (strncmp(task_name, "test 1", 6) == 0) {
         static int dbg_cnt1 = 0;
         if (dbg_cnt1++ < 5) {
             pr_info("Decrementing refcount %d for [%d/%s] in unguard\n", 
-                xk_refcount(), current->tgid, task_name);
+                xk_refcount(), current->pid, task_name);
         }
     } else if (strncmp(task_name, "test 2", 6) == 0) {
         static int dbg_cnt2 = 0;
         if (dbg_cnt2++ < 5) {
             pr_info("Decrementing refcount %d for [%d/%s] in unguard\n", 
-                xk_refcount(), current->tgid, task_name);
+                xk_refcount(), current->pid, task_name);
         }
     } else if (strncmp(task_name, "test 3", 6) == 0) {
         static int dbg_cnt3 = 0;
         if (dbg_cnt3++ < 5) {
             pr_info("Decrementing refcount %d for [%d/%s] in unguard\n", 
-                xk_refcount(), current->tgid, task_name);
+                xk_refcount(), current->pid, task_name);
         }
     }
     #endif
@@ -182,7 +184,9 @@ static void xk_init_aux_kp(struct xk_target_function *func, bool direction) {
     memset(&func->aux_kp, 0, sizeof(func->aux_kp));
     
     func->aux_kp.kp.symbol_name = func->name;
-    
+
+    func->aux_kp.data_size = sizeof(int);
+
     if (direction) {
         func->aux_kp.entry_handler = handler_guard;
         func->aux_kp.handler = handler_unguard;
