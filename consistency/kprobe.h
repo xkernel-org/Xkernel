@@ -12,8 +12,8 @@ int xk_inc_not_zero(void);
 void xk_dec_refcount(void);
 int xk_dec_if_positive(void);
 
-int xk_attach_auxiliary_kprobes(bool direction);
-void xk_detach_auxiliary_kprobes(void);
+int xk_attach_auxiliary_kprobes(bool direction, char *debug_info);
+void xk_detach_auxiliary_kprobes(char *debug_info);
 
 int xk_enable_auxiliary_kprobes(void);
 int xk_disable_auxiliary_kprobes(void);

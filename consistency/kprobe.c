@@ -13,6 +13,7 @@
 atomic_t xk_global_refcount = ATOMIC_INIT(0);
 
 bool aux_kprobes_on = false;
+static DEFINE_MUTEX(aux_kprobes_mtx);
 
 int xk_enable_auxiliary_kprobes(void) {
     WRITE_ONCE(aux_kprobes_on, true);
@@ -52,49 +53,46 @@ void xk_reset_refcount(void) {
     atomic_set(&xk_global_refcount, 0);
 }
 
+// Transition phase: old value -> new value
+// pre-handler: increment the refcount
 static int handler_guard(struct kprobe *kp, struct pt_regs *regs) {
-    if (!xk_is_auxiliary_kprobes_on()) {
+    if (!xk_is_auxiliary_kprobes_on())
         return 0;
-    }
 
-    if (xk_inc_not_zero() == 0) {
+    if (xk_inc_not_zero() == 0)
         xk_enable_ir_kprobes();
-    }
-    return 0;
-}
-
-static int reverse_handler_guard(struct kprobe *kp, struct pt_regs *regs) {
     
-    if (!xk_is_auxiliary_kprobes_on()) {
-        return 0;
-    }
-
-    if (xk_inc_not_zero() == 0) {
-        xk_disable_ir_kprobes();
-    }
     return 0;
 }
 
+// post-handler: decrement the refcount
 static void handler_unguard(struct kprobe *kp, struct pt_regs *regs, unsigned long flags) {
-    
-    if (!xk_is_auxiliary_kprobes_on()) {
+    if (!xk_is_auxiliary_kprobes_on())
         return;
-    }
     
-    if (xk_dec_if_positive() == 0) {
+    if (xk_dec_if_positive() == 0)
         xk_enable_ir_kprobes();
-    }
 }
 
-static void reverse_handler_unguard(struct kprobe *kp, struct pt_regs *regs, unsigned long flags) {
-    
-    if (!xk_is_auxiliary_kprobes_on()) {
-        return;
-    }
+// Transition phase: old value -> new value
+// pre-handler: increment the refcount
+static int reverse_handler_guard(struct kprobe *kp, struct pt_regs *regs) {
+    if (!xk_is_auxiliary_kprobes_on())
+        return 0;
 
-    if (xk_dec_if_positive() == 0) {
+    if (xk_inc_not_zero() == 0)
         xk_disable_ir_kprobes();
-    }
+
+    return 0;
+}
+
+// post-handler: decrement the refcount
+static void reverse_handler_unguard(struct kprobe *kp, struct pt_regs *regs, unsigned long flags) {
+    if (!xk_is_auxiliary_kprobes_on())
+        return;
+
+    if (xk_dec_if_positive() == 0)
+        xk_disable_ir_kprobes();
 }
 
 /**
@@ -117,11 +115,15 @@ static void xk_init_guard_kp(struct xk_target_function *func, bool direction) {
     func->attached_guard_kp = false;
 }
 
-int xk_attach_auxiliary_kprobes(bool direction) {
+int xk_attach_auxiliary_kprobes(bool direction, char *debug_info) {
     struct xk_target_function *func;
     int ret;
 
-    BUG_ON(xk_is_auxiliary_kprobes_on());
+    pr_info("xk_attach_auxiliary_kprobes called by %s\n", debug_info);
+
+    mutex_lock(&aux_kprobes_mtx);
+
+    xk_disable_auxiliary_kprobes();
 
     xk_reset_refcount();
     
@@ -130,18 +132,22 @@ int xk_attach_auxiliary_kprobes(bool direction) {
         ret = register_kprobe(&func->guard_kp);
         if (ret < 0) {
             pr_err("Failed to register Guard Kprobe for [%s], error: %d\n", func->name, ret);
+            mutex_unlock(&aux_kprobes_mtx);
             return ret;
         }
         func->attached_guard_kp = true;
         pr_info("Attached Guard/Unguard Kprobes to [%s]\n", func->name);
     }
+    mutex_unlock(&aux_kprobes_mtx);
     return 0;
 }
 
-void xk_detach_auxiliary_kprobes(void) {
+void xk_detach_auxiliary_kprobes(char *debug_info) {
     struct xk_target_function *func;
 
-    BUG_ON(xk_is_auxiliary_kprobes_on());
+    pr_info("xk_detach_auxiliary_kprobes called by %s\n", debug_info);
+
+    mutex_lock(&aux_kprobes_mtx);
     
     list_for_each_entry(func, &xk_target_functions, list) {
         if (!func->attached_guard_kp) continue;
@@ -149,5 +155,6 @@ void xk_detach_auxiliary_kprobes(void) {
         func->attached_guard_kp = false;
         pr_info("Detached Guard/Unguard Kprobes from [%s]\n", func->name);
     }
+    mutex_unlock(&aux_kprobes_mtx);
 }
 
