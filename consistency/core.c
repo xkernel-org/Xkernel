@@ -25,7 +25,7 @@ MODULE_DESCRIPTION("A kernel module for Xkernel's consistency model");
 LIST_HEAD(xk_target_functions);
 
 #define MAX_STACK_ENTRIES 100
-static DEFINE_PER_CPU(unsigned long[MAX_STACK_ENTRIES], xk_stack_entries);
+static unsigned long xk_stack_entries[MAX_STACK_ENTRIES];
 
 #define INTERVAL_MS 1
 #define TIMEOUT_TIMES 5000
@@ -98,10 +98,9 @@ static bool xk_check_functions(struct task_struct *task, unsigned long *entries,
 }
 
 static int xk_dump_stack(struct task_struct *task) {
-    unsigned long *entries = this_cpu_ptr(xk_stack_entries);
     int nb_entries;
 
-    nb_entries = stack_trace_save_tsk(task, entries, ARRAY_SIZE(xk_stack_entries), 0);
+    nb_entries = stack_trace_save_tsk(task, xk_stack_entries, MAX_STACK_ENTRIES, 0);
 
     if (nb_entries == 0) {
         if (strncmp(task->comm, "migration/", 10) != 0) {
@@ -117,7 +116,7 @@ static int xk_dump_stack(struct task_struct *task) {
 static int xk_check_stacks(void *data) {
     bool direction = get_xk_state() == XK_FLAGS_PENDING ? true : false;
     struct task_struct *g, *task;
-    unsigned long *entries = this_cpu_ptr(xk_stack_entries);
+    unsigned long *entries = xk_stack_entries;
     int nb_entries;
     bool need_transition = false;
     

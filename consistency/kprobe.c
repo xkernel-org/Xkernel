@@ -72,27 +72,27 @@ static int handler_guard(struct kretprobe_instance *ri, struct pt_regs *regs) {
     task_name[sizeof(task_name) - 1] = '\0';
     if (strncmp(task_name, "test 0", 6) == 0) {
         static int dbg_cnt0 = 0;
-        if (dbg_cnt0++ < 100000) {
-            pr_info("Incrementing refcount %d for [%d/%s] in guard\n", 
-                xk_refcount(), current->pid, task_name);
+        if (dbg_cnt0++ < 500000) {
+            pr_info("Incrementing refcount %d for [%d/%s] in guard, %d\n", 
+                xk_refcount(), current->pid, task_name, dbg_cnt0);
         }
     } else if (strncmp(task_name, "test 1", 6) == 0) {
         static int dbg_cnt1 = 0;
-        if (dbg_cnt1++ < 100000) {
-            pr_info("Incrementing refcount %d for [%d/%s] in guard\n", 
-                xk_refcount(), current->pid, task_name);
+        if (dbg_cnt1++ < 500000) {
+            pr_info("Incrementing refcount %d for [%d/%s] in guard, %d\n", 
+                xk_refcount(), current->pid, task_name, dbg_cnt1);
         }
     } else if (strncmp(task_name, "test 2", 6) == 0) {
         static int dbg_cnt2 = 0;
-        if (dbg_cnt2++ < 100000) {
-            pr_info("Incrementing refcount %d for [%d/%s] in guard\n", 
-                xk_refcount(), current->pid, task_name);
+        if (dbg_cnt2++ < 500000) {
+            pr_info("Incrementing refcount %d for [%d/%s] in guard, %d\n", 
+                xk_refcount(), current->pid, task_name, dbg_cnt2);
         }
     } else if (strncmp(task_name, "test 3", 6) == 0) {
         static int dbg_cnt3 = 0;
-        if (dbg_cnt3++ < 100000) {
-            pr_info("Incrementing refcount %d for [%d/%s] in guard\n", 
-                xk_refcount(), current->pid, task_name);
+        if (dbg_cnt3++ < 500000) {
+            pr_info("Incrementing refcount %d for [%d/%s] in guard, %d\n", 
+                xk_refcount(), current->pid, task_name, dbg_cnt3);
         }
     }
     #endif
@@ -118,27 +118,27 @@ static int handler_unguard(struct kretprobe_instance *ri, struct pt_regs *regs) 
     task_name[sizeof(task_name) - 1] = '\0';
     if (strncmp(task_name, "test 0", 6) == 0) {
         static int dbg_cnt0 = 0;
-        if (dbg_cnt0++ < 100000) {
-            pr_info("Decrementing refcount %d for [%d/%s] in unguard\n", 
-                xk_refcount(), current->pid, task_name);
+        if (dbg_cnt0++ < 500000) {
+            pr_info("Decrementing refcount %d for [%d/%s] in unguard, %d\n", 
+                xk_refcount(), current->pid, task_name, dbg_cnt0);
         }
     } else if (strncmp(task_name, "test 1", 6) == 0) {
         static int dbg_cnt1 = 0;
-        if (dbg_cnt1++ < 100000) {
-            pr_info("Decrementing refcount %d for [%d/%s] in unguard\n", 
-                xk_refcount(), current->pid, task_name);
+        if (dbg_cnt1++ < 500000) {
+            pr_info("Decrementing refcount %d for [%d/%s] in unguard, %d\n", 
+                xk_refcount(), current->pid, task_name, dbg_cnt1);
         }
     } else if (strncmp(task_name, "test 2", 6) == 0) {
         static int dbg_cnt2 = 0;
-        if (dbg_cnt2++ < 100000) {
-            pr_info("Decrementing refcount %d for [%d/%s] in unguard\n", 
-                xk_refcount(), current->pid, task_name);
+        if (dbg_cnt2++ < 500000) {
+            pr_info("Decrementing refcount %d for [%d/%s] in unguard, %d\n", 
+                xk_refcount(), current->pid, task_name, dbg_cnt2);
         }
     } else if (strncmp(task_name, "test 3", 6) == 0) {
         static int dbg_cnt3 = 0;
-        if (dbg_cnt3++ < 100000) {
-            pr_info("Decrementing refcount %d for [%d/%s] in unguard\n", 
-                xk_refcount(), current->pid, task_name);
+        if (dbg_cnt3++ < 500000) {
+            pr_info("Decrementing refcount %d for [%d/%s] in unguard, %d\n", 
+                xk_refcount(), current->pid, task_name, dbg_cnt3);
         }
     }
     #endif
