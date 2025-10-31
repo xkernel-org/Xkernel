@@ -26,14 +26,16 @@ struct xk_target_function {
     char name[MAX_FUNC_NAME_LEN];
     /* The address of the function in the kernel */
     unsigned long address;
-    /* The offset of the function in the kernel */
-    unsigned long offset;
-    /* The size of the function in the kernel */
-    unsigned long size;
+    /* The start offset of the function in the kernel */
+    unsigned long soff;
+    /* The end offset of the function in the kernel */
+    unsigned long eoff;
 
-    struct kretprobe aux_kp;
+    struct kprobe guard_kp;
+    struct kprobe unguard_kp;
 
-    bool attached_aux_kp;
+    bool attached_guard_kp;
+    bool attached_unguard_kp;
 
     struct list_head list;
 };
@@ -43,14 +45,15 @@ void xk_disable_ir_kprobes(void);
 bool xk_is_ir_kprobes_on(void);
 
 /**
- * Compare a stack address with a function address and size.
+ * Compare a stack address with a function span.
  * @param stack_address: The address on the stack.
  * @param function_address: The address of the function.
- * @param function_size: The size of the function.
- * @return: True if the stack address is within the function address and size, false otherwise.
+ * @param soff: The start offset of the function.
+ * @param eoff: The end offset of the function.
+ * @return: True if the stack address is within the function span, false otherwise.
  */
-static inline bool xk_compare_function(unsigned long stack_address, unsigned long function_address, unsigned long function_size) {
-    return stack_address >= function_address && stack_address < function_address + function_size;
+static inline bool xk_compare_function(unsigned long stack_address, unsigned long function_address,unsigned long soff, unsigned long eoff) {
+    return stack_address >= function_address + soff && stack_address < function_address + eoff;
 }
 
 static int dummy_stop_machine_callback(void *data) {return 0;}

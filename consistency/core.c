@@ -73,9 +73,9 @@ static bool xk_check_functions(struct task_struct *task, unsigned long *entries,
     bool found = false;
     list_for_each_entry(func, &xk_target_functions, list) {
         for (int i = 0; i < nb_entries; i++) {
-            if (xk_compare_function(entries[i], func->address, func->size)) {
-                pr_info("Function %s found in stack trace for task [%s/%d]\n", 
-                    func->name, task->comm, task->pid);
+            if (xk_compare_function(entries[i], func->address, func->soff, func->eoff)) {
+                pr_info("Function %s[0x%lx, 0x%lx] found in stack trace for task [%s/%d]\n", 
+                    func->name, func->soff, func->eoff, task->comm, task->pid);
                 /**
                  * Increment the global refcount to indicate that the function is being executed.
                  * This is used to fix the refcount of the task.
@@ -194,13 +194,13 @@ static int xk_read_target_functions(void) {
                 kfree(func);
                 continue;
             }
-            if (kstrtoul(tokens[2], 0, &func->offset)) {
-                pr_err("Failed to parse offset for function %s\n", tokens[0]);
+            if (kstrtoul(tokens[2], 0, &func->soff)) {
+                pr_err("Failed to parse soff for function %s\n", tokens[0]);
                 kfree(func);
                 continue;
             }
-            if (kstrtoul(tokens[3], 0, &func->size)) {
-                pr_err("Failed to parse size for function %s\n", tokens[0]);
+            if (kstrtoul(tokens[3], 0, &func->eoff)) {
+                pr_err("Failed to parse eoff for function %s\n", tokens[0]);
                 kfree(func);
                 continue;
             }            
@@ -208,7 +208,7 @@ static int xk_read_target_functions(void) {
             INIT_LIST_HEAD(&func->list);
             list_add_tail(&func->list, &xk_target_functions);
 
-            pr_info("[Target Functions] [%s] at 0x%lx with offset 0x%lx and size 0x%lx\n", func->name, func->address, func->offset, func->size);
+            pr_info("[Target Functions] [%s] at 0x%lx with span [0x%lx, 0x%lx]\n", func->name, func->address, func->soff, func->eoff);
         }
     }
     if (bytes < 0) {
@@ -257,10 +257,6 @@ static int daemon_main(void *data) {
                 schedule_timeout(msecs_to_jiffies(INTERVAL_MS));
                 if (times++ > TIMEOUT_TIMES) {
                     pr_err("[Transition] Transition failed\n");
-                    struct xk_target_function *func;
-                    list_for_each_entry(func, &xk_target_functions, list) {
-                        pr_info("nmissed in kretprobe for [%s]: %d\n", func->name, func->aux_kp.nmissed);
-                    }
                     BUG_ON(!xk_is_auxiliary_kprobes_on());
                     xk_detach_auxiliary_kprobes("daemon_main");
                     set_xk_state(XK_FLAGS_FAILED);
@@ -283,10 +279,6 @@ static int daemon_main(void *data) {
                 schedule_timeout(msecs_to_jiffies(INTERVAL_MS));
                 if (times_reverse++ > TIMEOUT_TIMES) {
                     pr_err("[Reverse Transition] Reverse transition failed\n");
-                    struct xk_target_function *func;
-                    list_for_each_entry(func, &xk_target_functions, list) {
-                        pr_info("nmissed in kretprobe for [%s]: %d\n", func->name, func->aux_kp.nmissed);
-                    }
                     BUG_ON(!xk_is_auxiliary_kprobes_on());
                     xk_detach_auxiliary_kprobes("daemon_main");
                     set_xk_state(XK_FLAGS_REVERSE_FAILED);
@@ -317,11 +309,16 @@ static int __init consistency_init(void) {
 
     // Since register_kprobe() is not allowed to be called in a stop_machine context, 
     // we need to attach the auxiliary kprobes here but don't enable them.
-    xk_attach_auxiliary_kprobes(true, "consistency_init");
+    if (xk_attach_auxiliary_kprobes(true, "consistency_init")) {
+        pr_err("Failed to attach auxiliary kprobes\n");
+        return -1;
+    }
 
     set_xk_state(XK_FLAGS_PENDING);
 
     stop_machine(xk_check_stacks, NULL, NULL);
+
+    pr_info("MODULE_INIT: Initial refcount: %d\n", xk_refcount());
     
     if (xk_is_auxiliary_kprobes_on()) {
         pr_info("[Transition] Waiting for transition to be done or failed\n");
@@ -351,9 +348,14 @@ static void __exit consistency_exit(void) {
 
     // Since register_kprobe() is not allowed to be called in a stop_machine context, 
     // we need to attach the auxiliary kprobes here but don't enable them.
-    xk_attach_auxiliary_kprobes(false, "consistency_exit");
+    if (xk_attach_auxiliary_kprobes(false, "consistency_exit")) {
+        pr_err("Failed to attach auxiliary kprobes\n");
+        goto out;
+    }
     
     stop_machine(xk_check_stacks, NULL, NULL);
+
+    pr_info("MODULE_EXIT: Initial refcount: %d\n", xk_refcount());
     
     if (xk_is_auxiliary_kprobes_on()) {
         set_xk_state(XK_FLAGS_REVERSE_PENDING);

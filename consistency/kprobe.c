@@ -56,7 +56,7 @@ void xk_reset_refcount(void) {
 // Transition phase: old value -> new value
 // kprobe: increment the refcount
 // static int handler_guard(struct kprobe *kp, struct pt_regs *regs) {
-static int handler_guard(struct kretprobe_instance *ri, struct pt_regs *regs) {
+static int handler_guard(struct kprobe *kp, struct pt_regs *regs) {
 
     if (!xk_is_auxiliary_kprobes_on())
         return 0;
@@ -72,25 +72,25 @@ static int handler_guard(struct kretprobe_instance *ri, struct pt_regs *regs) {
     task_name[sizeof(task_name) - 1] = '\0';
     if (strncmp(task_name, "test 0", 6) == 0) {
         static int dbg_cnt0 = 0;
-        if (dbg_cnt0++ < 500000) {
+        if (dbg_cnt0++ < 10) {
             pr_info("Incrementing refcount %d for [%d/%s] in guard, %d\n", 
                 xk_refcount(), current->pid, task_name, dbg_cnt0);
         }
     } else if (strncmp(task_name, "test 1", 6) == 0) {
         static int dbg_cnt1 = 0;
-        if (dbg_cnt1++ < 500000) {
+        if (dbg_cnt1++ < 10) {
             pr_info("Incrementing refcount %d for [%d/%s] in guard, %d\n", 
                 xk_refcount(), current->pid, task_name, dbg_cnt1);
         }
     } else if (strncmp(task_name, "test 2", 6) == 0) {
         static int dbg_cnt2 = 0;
-        if (dbg_cnt2++ < 500000) {
+        if (dbg_cnt2++ < 10) {
             pr_info("Incrementing refcount %d for [%d/%s] in guard, %d\n", 
                 xk_refcount(), current->pid, task_name, dbg_cnt2);
         }
     } else if (strncmp(task_name, "test 3", 6) == 0) {
         static int dbg_cnt3 = 0;
-        if (dbg_cnt3++ < 500000) {
+        if (dbg_cnt3++ < 10) {
             pr_info("Incrementing refcount %d for [%d/%s] in guard, %d\n", 
                 xk_refcount(), current->pid, task_name, dbg_cnt3);
         }
@@ -104,7 +104,7 @@ static int handler_guard(struct kretprobe_instance *ri, struct pt_regs *regs) {
 }
 
 // kretprobe: decrement the refcount
-static int handler_unguard(struct kretprobe_instance *ri, struct pt_regs *regs) {
+static int handler_unguard(struct kprobe *kp, struct pt_regs *regs) {
     if (!xk_is_auxiliary_kprobes_on())
         return 0;
 
@@ -118,25 +118,25 @@ static int handler_unguard(struct kretprobe_instance *ri, struct pt_regs *regs) 
     task_name[sizeof(task_name) - 1] = '\0';
     if (strncmp(task_name, "test 0", 6) == 0) {
         static int dbg_cnt0 = 0;
-        if (dbg_cnt0++ < 500000) {
+        if (dbg_cnt0++ < 10) {
             pr_info("Decrementing refcount %d for [%d/%s] in unguard, %d\n", 
                 xk_refcount(), current->pid, task_name, dbg_cnt0);
         }
     } else if (strncmp(task_name, "test 1", 6) == 0) {
         static int dbg_cnt1 = 0;
-        if (dbg_cnt1++ < 500000) {
+        if (dbg_cnt1++ < 10) {
             pr_info("Decrementing refcount %d for [%d/%s] in unguard, %d\n", 
                 xk_refcount(), current->pid, task_name, dbg_cnt1);
         }
     } else if (strncmp(task_name, "test 2", 6) == 0) {
         static int dbg_cnt2 = 0;
-        if (dbg_cnt2++ < 500000) {
+        if (dbg_cnt2++ < 10) {
             pr_info("Decrementing refcount %d for [%d/%s] in unguard, %d\n", 
                 xk_refcount(), current->pid, task_name, dbg_cnt2);
         }
     } else if (strncmp(task_name, "test 3", 6) == 0) {
         static int dbg_cnt3 = 0;
-        if (dbg_cnt3++ < 500000) {
+        if (dbg_cnt3++ < 10) {
             pr_info("Decrementing refcount %d for [%d/%s] in unguard, %d\n", 
                 xk_refcount(), current->pid, task_name, dbg_cnt3);
         }
@@ -152,7 +152,7 @@ static int handler_unguard(struct kretprobe_instance *ri, struct pt_regs *regs) 
 // Transition phase: old value -> new value
 // kprobe: increment the refcount
 // static int reverse_handler_guard(struct kprobe *kp, struct pt_regs *regs) {
-static int reverse_handler_guard(struct kretprobe_instance *ri, struct pt_regs *regs) {
+static int reverse_handler_guard(struct kprobe *kp, struct pt_regs *regs) {
     if (!xk_is_auxiliary_kprobes_on())
         return 0;
 
@@ -163,7 +163,7 @@ static int reverse_handler_guard(struct kretprobe_instance *ri, struct pt_regs *
 }
 
 // kretprobe: decrement the refcount
-static int reverse_handler_unguard(struct kretprobe_instance *ri, struct pt_regs *regs) {
+static int reverse_handler_unguard(struct kprobe *kp, struct pt_regs *regs) {
     if (!xk_is_auxiliary_kprobes_on())
         return 0;
 
@@ -181,21 +181,25 @@ static int reverse_handler_unguard(struct kretprobe_instance *ri, struct pt_regs
  *                      false: disable_ir_kprobes
  */
 static void xk_init_aux_kp(struct xk_target_function *func, bool direction) {
-    memset(&func->aux_kp, 0, sizeof(func->aux_kp));
+    memset(&func->guard_kp, 0, sizeof(func->guard_kp));
+    memset(&func->unguard_kp, 0, sizeof(func->unguard_kp));
     
-    func->aux_kp.kp.symbol_name = func->name;
+    func->guard_kp.symbol_name = func->name;
+    func->unguard_kp.symbol_name = func->name;
 
-    func->aux_kp.data_size = sizeof(int);
+    func->guard_kp.offset = func->soff;
+    func->unguard_kp.offset = func->eoff;
 
     if (direction) {
-        func->aux_kp.entry_handler = handler_guard;
-        func->aux_kp.handler = handler_unguard;
+        func->guard_kp.pre_handler = handler_guard;
+        func->unguard_kp.pre_handler = handler_unguard;
     } else {
-        func->aux_kp.entry_handler = reverse_handler_guard;
-        func->aux_kp.handler = reverse_handler_unguard;
+        func->guard_kp.pre_handler = reverse_handler_guard;
+        func->unguard_kp.pre_handler = reverse_handler_unguard;
     }
 
-    func->attached_aux_kp = false;
+    func->attached_guard_kp = false;
+    func->attached_unguard_kp = false;
 }
 
 int xk_attach_auxiliary_kprobes(bool direction, char *debug_info) {
@@ -212,18 +216,26 @@ int xk_attach_auxiliary_kprobes(bool direction, char *debug_info) {
     
     list_for_each_entry(func, &xk_target_functions, list) {
         xk_init_aux_kp(func, direction);
-        ret = register_kretprobe(&func->aux_kp);
+        ret = register_kprobe(&func->guard_kp);
         if (ret < 0) {
-            pr_err("Failed to register Unguard Kretprobe for [%s], error: %d\n", func->name, ret);
-            unregister_kretprobe(&func->aux_kp);
-            mutex_unlock(&aux_kprobes_mtx);
-            return ret;
+            pr_err("Failed to register Guard Kprobe for [%s], error: %d\n", func->name, ret);
+            goto err;
         }
-        func->attached_aux_kp = true;
+        func->attached_guard_kp = true;
+        ret = register_kprobe(&func->unguard_kp);
+        if (ret < 0) {
+            pr_err("Failed to register Unguard Kprobe for [%s], error: %d\n", func->name, ret);
+            goto err;
+        }
+        func->attached_unguard_kp = true;
         pr_info("Attached Guard/Unguard Kprobes to [%s]\n", func->name);
     }
     mutex_unlock(&aux_kprobes_mtx);
     return 0;
+err:
+    xk_detach_auxiliary_kprobes("xk_attach_auxiliary_kprobes");
+    mutex_unlock(&aux_kprobes_mtx);
+    return ret;
 }
 
 void xk_detach_auxiliary_kprobes(char *debug_info) {
@@ -234,9 +246,13 @@ void xk_detach_auxiliary_kprobes(char *debug_info) {
     mutex_lock(&aux_kprobes_mtx);
     
     list_for_each_entry(func, &xk_target_functions, list) {
-        if (func->attached_aux_kp) {
-            unregister_kretprobe(&func->aux_kp);
-            func->attached_aux_kp = false;
+        if (func->attached_guard_kp) {
+            unregister_kprobe(&func->guard_kp);
+            func->attached_guard_kp = false;
+        }
+        if (func->attached_unguard_kp) {
+            unregister_kprobe(&func->unguard_kp);
+            func->attached_unguard_kp = false;
         }
         pr_info("Detached Guard/Unguard Kprobes from [%s]\n", func->name);
     }
