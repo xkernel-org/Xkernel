@@ -21,6 +21,15 @@ enum xkernel_state {
   XK_FLAGS_REVERSE_DONE,
 };
 
+// Per-task refcount
+struct xk_refcount {
+    pid_t pid;
+    atomic_t refcount;
+    // Timestamps for the transition
+    ktime_t start;
+    struct hlist_node node;
+};
+
 struct xk_target_function {
 #define MAX_FUNC_NAME_LEN 128
   char name[MAX_FUNC_NAME_LEN];
@@ -79,5 +88,27 @@ static inline void measure_stop_machine_overhead(void) {
   }
   pr_info("stop_machine overhead: %lld us\n", total_time / NUM_MEASUREMENTS);
 }
+
+int xk_refcount_per_task(pid_t pid);
+int xk_inc_refcount_per_task(pid_t pid);
+int xk_inc_not_zero_per_task(pid_t pid);
+void xk_dec_refcount_per_task(pid_t pid);
+int xk_dec_if_positive_per_task(pid_t pid);
+void xk_reset_refcount_per_task(pid_t pid);
+
+void ref_hash_spinlock(unsigned long flags);
+void ref_hash_spinunlock(unsigned long flags);
+struct xk_refcount *find_or_alloc_refcount(pid_t pid);
+struct xk_refcount *find_or_fail_refcount(pid_t pid);
+void find_and_free_refcount(pid_t pid);
+void free_refcount(struct xk_refcount *ref);
+size_t ref_get_hash_size(void);
+
+void xk_reset_refcount(void);
+int xk_refcount(void);
+void xk_inc_refcount(void);
+int xk_inc_not_zero(void);
+void xk_dec_refcount(void);
+int xk_dec_if_positive(void);
 
 #endif

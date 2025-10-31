@@ -1,22 +1,26 @@
 #include "kprobe.h"
+#include "core.h"
 
 #include <linux/bpf.h>
 #include <linux/filter.h>
 #include <linux/fs.h>
+#include <linux/hash.h>
 #include <linux/kernel.h>
 #include <linux/kprobes.h>
 #include <linux/ktime.h>
 #include <linux/limits.h>
 #include <linux/module.h>
-
-// Global refcount
-atomic_t xk_global_refcount = ATOMIC_INIT(0);
+#include <linux/sched.h>
+#include <linux/slab.h>
+#include <linux/spinlock.h>
 
 bool aux_kprobes_on = false;
 static DEFINE_MUTEX(aux_kprobes_mtx);
 
 extern ktime_t start;
 extern ktime_t end;
+
+extern int kTask;
 
 int xk_enable_auxiliary_kprobes(void) {
   WRITE_ONCE(aux_kprobes_on, true);
@@ -29,20 +33,6 @@ int xk_disable_auxiliary_kprobes(void) {
 }
 
 int xk_is_auxiliary_kprobes_on(void) { return READ_ONCE(aux_kprobes_on); }
-
-int xk_refcount(void) { return atomic_read(&xk_global_refcount); }
-
-void xk_inc_refcount(void) { atomic_inc(&xk_global_refcount); }
-
-int xk_inc_not_zero(void) { return atomic_inc_not_zero(&xk_global_refcount); }
-
-void xk_dec_refcount(void) { atomic_dec(&xk_global_refcount); }
-
-int xk_dec_if_positive(void) {
-  return atomic_dec_if_positive(&xk_global_refcount);
-}
-
-void xk_reset_refcount(void) { atomic_set(&xk_global_refcount, 0); }
 
 // Transition phase: old value -> new value
 // kprobe: increment the refcount
@@ -88,10 +78,26 @@ static int handler_guard(struct kprobe *kp, struct pt_regs *regs) {
     }
 #endif
 
-  if (xk_inc_not_zero() == 0) {
-    xk_enable_ir_kprobes();
-    if (end == 0)
-      end = ktime_get();
+  if (kTask) {
+    unsigned long flags;
+    ref_hash_spinlock(flags);
+    struct xk_refcount *ref = find_or_fail_refcount(current->pid);
+    if (ref) {
+      if (xk_inc_not_zero_per_task(current->pid) == 0) {
+        xk_enable_ir_kprobes();
+        pr_info("Task [%d/%s] has finished its transition, freeing refcount, time "
+                "cost: %lldus\n", current->pid, current->comm,
+                ktime_to_us(ktime_sub(ktime_get(), ref->start)));
+        free_refcount(ref);
+      }
+    }
+    ref_hash_spinunlock(flags);
+  } else {
+    if (xk_inc_not_zero() == 0) {
+      xk_enable_ir_kprobes();
+      if (end == 0)
+        end = ktime_get();
+    }
   }
 
   return 0;
@@ -137,10 +143,26 @@ static int handler_unguard(struct kprobe *kp, struct pt_regs *regs) {
     }
 #endif
 
-  if (xk_dec_if_positive() == 0) {
-    xk_enable_ir_kprobes();
-    if (end == 0)
-      end = ktime_get();
+  if (kTask) {
+    unsigned long flags;
+    ref_hash_spinlock(flags);
+    struct xk_refcount *ref = find_or_fail_refcount(current->pid);
+    if (ref) {
+      if (xk_dec_if_positive_per_task(current->pid) == 0) {
+        xk_enable_ir_kprobes();
+        pr_info("Task has finished its transition, freeing refcount, time "
+                "cost: %lldus\n",
+                ktime_to_us(ktime_sub(ktime_get(), ref->start)));
+        free_refcount(ref);
+      }
+    }
+    ref_hash_spinunlock(flags);
+  } else {
+    if (xk_dec_if_positive() == 0) {
+      xk_enable_ir_kprobes();
+      if (end == 0)
+        end = ktime_get();
+    }
   }
 
   return 0;
