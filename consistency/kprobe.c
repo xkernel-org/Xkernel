@@ -22,6 +22,20 @@ extern ktime_t end;
 
 extern int kTask;
 
+// kfuncs.ko
+struct transition_task {
+  pid_t pid;
+  struct hlist_node node;
+  struct rcu_head rcu;
+};
+#define TRANSITION_TASK_HASH_BITS 8
+extern struct hlist_head transition_task_hash_table[1 << TRANSITION_TASK_HASH_BITS];
+
+static void ttsk_rcu_free(struct rcu_head *rcu) {
+  struct transition_task *ttsk = container_of(rcu, struct transition_task, rcu);
+  kfree(ttsk);
+}
+
 int xk_enable_auxiliary_kprobes(void) {
   WRITE_ONCE(aux_kprobes_on, true);
   return 0;
@@ -82,9 +96,19 @@ static int handler_guard(struct kprobe *kp, struct pt_regs *regs) {
     unsigned long flags;
     ref_hash_spinlock(flags);
     struct xk_refcount *ref = find_or_fail_refcount(current->pid);
+    struct transition_task *to_free = NULL;
     if (ref) {
       if (xk_inc_not_zero_per_task(current->pid) == 0) {
-        xk_enable_ir_kprobes();
+        int bucket = hash_32(current->pid, TRANSITION_TASK_HASH_BITS);
+        struct transition_task *ttsk;
+        struct hlist_node *tmp;
+        hlist_for_each_entry_safe(ttsk, tmp, &transition_task_hash_table[bucket], node) {
+          if (ttsk->pid == current->pid) {
+            hlist_del_rcu(&ttsk->node);
+            to_free = ttsk;
+            break;
+          }
+        }
         pr_info("Task [%d/%s] has finished its transition, freeing refcount, time "
                 "cost: %lldus\n", current->pid, current->comm,
                 ktime_to_us(ktime_sub(ktime_get(), ref->start)));
@@ -92,6 +116,9 @@ static int handler_guard(struct kprobe *kp, struct pt_regs *regs) {
       }
     }
     ref_hash_spinunlock(flags);
+    if (to_free) {
+      call_rcu(&to_free->rcu, ttsk_rcu_free);
+    }
   } else {
     if (xk_inc_not_zero() == 0) {
       xk_enable_ir_kprobes();
@@ -147,9 +174,19 @@ static int handler_unguard(struct kprobe *kp, struct pt_regs *regs) {
     unsigned long flags;
     ref_hash_spinlock(flags);
     struct xk_refcount *ref = find_or_fail_refcount(current->pid);
+    struct transition_task *to_free = NULL;
     if (ref) {
       if (xk_dec_if_positive_per_task(current->pid) == 0) {
-        xk_enable_ir_kprobes();
+        int bucket = hash_32(current->pid, TRANSITION_TASK_HASH_BITS);
+        struct transition_task *ttsk;
+        struct hlist_node *tmp;
+        hlist_for_each_entry_safe(ttsk, tmp, &transition_task_hash_table[bucket], node) {
+          if (ttsk->pid == current->pid) {
+            hlist_del_rcu(&ttsk->node);
+            to_free = ttsk;
+            break;
+          }
+        }
         pr_info("Task has finished its transition, freeing refcount, time "
                 "cost: %lldus\n",
                 ktime_to_us(ktime_sub(ktime_get(), ref->start)));
@@ -157,6 +194,9 @@ static int handler_unguard(struct kprobe *kp, struct pt_regs *regs) {
       }
     }
     ref_hash_spinunlock(flags);
+    if (to_free) {
+      call_rcu(&to_free->rcu, ttsk_rcu_free);
+    }
   } else {
     if (xk_dec_if_positive() == 0) {
       xk_enable_ir_kprobes();
