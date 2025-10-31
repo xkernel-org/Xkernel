@@ -53,6 +53,9 @@ void xk_enable_ir_kprobes(void);
 void xk_disable_ir_kprobes(void);
 bool xk_is_ir_kprobes_on(void);
 
+void xk_enable_ir_kprobes_task(int v);
+void xk_disable_ir_kprobes_task(void);
+
 /**
  * Compare a stack address with a function span.
  * @param stack_address: The address on the stack.

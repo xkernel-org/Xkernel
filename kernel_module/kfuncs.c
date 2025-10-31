@@ -5,6 +5,7 @@
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/version.h>
+#include <linux/hashtable.h>
 #include <asm/text-patching.h>
 
 MODULE_LICENSE("GPL");
@@ -14,9 +15,55 @@ MODULE_DESCRIPTION("A kernel module for loading kfuncs into kernel");
 bool ir_kprobes_on = false;
 EXPORT_SYMBOL(ir_kprobes_on);
 
+// 0: global consistency model
+// 1: per-task consistency model
+static int kTask = 0;
+module_param(kTask, int, 0644);
+MODULE_PARM_DESC(kTask, "0: global consistency model, 1: per-task consistency model");
+
+// Per-task consistency model
+// 0: all tasks are not ready
+// 1: traverse pid list to check if ready
+// 2: all tasks are ready
+int transition = 0;
+EXPORT_SYMBOL(transition);
+struct transition_task {
+  pid_t pid;
+  struct hlist_node node;
+};
+// This list is protected by RCU and shared with consistency kernel module.
+#define TRANSITION_TASK_HASH_BITS 8
+DEFINE_HASHTABLE(transition_task_hash_table, TRANSITION_TASK_HASH_BITS);
+EXPORT_SYMBOL(transition_task_hash_table);
+
+static bool check_transition_done(pid_t pid) {
+  struct transition_task *task;
+  int bucket = hash_32(pid, TRANSITION_TASK_HASH_BITS);
+  rcu_read_lock();
+  hlist_for_each_entry_rcu(task, &transition_task_hash_table[bucket], node) {
+    if (task->pid == pid) {
+      rcu_read_unlock();
+      return false;
+    }
+  }
+  rcu_read_unlock();
+  return true;
+}
+
 __bpf_kfunc_start_defs();
 __bpf_kfunc bool kfuncs_is_ir_kprobes_on(void) {
-  return READ_ONCE(ir_kprobes_on);
+  if (kTask) {
+    int t = READ_ONCE(transition);
+    if (t == 0) {
+      return false;
+    } else if (t == 2) {
+      return true;
+    } else {
+      return check_transition_done(current->pid);
+    }
+  } else {
+    return READ_ONCE(ir_kprobes_on);
+  }
 }
 __bpf_kfunc_end_defs();
 
