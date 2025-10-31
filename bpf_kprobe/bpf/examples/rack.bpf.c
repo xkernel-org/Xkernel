@@ -6,8 +6,23 @@
 
 #include "xkernel.bpf.h"
 
-SEC("kprobe/tcp_rack_detect_loss+0x6a")
-int BPF_KPROBE(tcp_rack_detect_loss_6a) {
+// SEC("kprobe/tcp_rack_detect_loss+0x6a")
+// int BPF_KPROBE(tcp_rack_detect_loss_6a) {
+
+//   if (!transition_done()) {
+//     bpf_printk("Transition not done");
+//     return 0;
+//   }
+
+//   bpf_printk("Transition done");
+
+//   u64 r15d = BPF_R15(ctx);
+//   BPF_SET_R15(ctx, r15d << 1);
+//   return 0;
+// }
+
+SEC("kprobe/ksys_mmap_pgoff+0x43")
+int BPF_KPROBE(ksys_mmap_pgoff_43) {
 
   if (!transition_done()) {
     bpf_printk("Transition not done");
@@ -15,8 +30,5 @@ int BPF_KPROBE(tcp_rack_detect_loss_6a) {
   }
 
   bpf_printk("Transition done");
-
-  u64 r15d = BPF_R15(ctx);
-  BPF_SET_R15(ctx, r15d << 1);
   return 0;
 }
