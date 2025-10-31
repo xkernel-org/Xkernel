@@ -258,6 +258,9 @@ static int xk_check_stacks(void *data) {
   }
 
   if (need_transition) {
+    if (!kTask) {
+      pr_info("Initial refcount: %d\n", xk_refcount());
+    }
     xk_enable_auxiliary_kprobes();
     start = ktime_get();
   } else {
@@ -594,10 +597,6 @@ static int __init consistency_init(void) {
 
   stop_machine(xk_check_stacks, NULL, NULL);
 
-  if (!kTask) {
-    pr_info("MODULE_INIT: Initial refcount: %d\n", xk_refcount());
-  }
-
   if (xk_is_auxiliary_kprobes_on()) {
     pr_info("[Transition] Waiting for transition to be done or failed\n");
     wake_up_process(daemon_task);
@@ -634,10 +633,6 @@ static void __exit consistency_exit(void) {
     xk_disable_ir_kprobes_task();
 
   stop_machine(xk_check_stacks, NULL, NULL);
-
-  if (!kTask) {
-    pr_info("MODULE_EXIT: Initial refcount: %d\n", xk_refcount());
-  }
 
   if (xk_is_auxiliary_kprobes_on()) {
     set_xk_state(XK_FLAGS_REVERSE_PENDING);
