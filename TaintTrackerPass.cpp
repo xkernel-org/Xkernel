@@ -95,129 +95,103 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
 
 found:
 
-        // --- 2. Run the Worklist Algorithm ---
-        while (!Worklist.empty()) {
-            Value *V = Worklist.pop_back_val();
-            errs() << "[PROP] Processing uses of: " << getValueName(V) << "\n";
+        // --- 2. Run the Worklist Algorithm with Load Tracking ---
+        // Keep track of which pointers we've already scanned for loads
+        DenseSet<Value*> ScannedPointers;
 
-            for (User *U : V->users()) {
-                if (Instruction *UserInst = dyn_cast<Instruction>(U)) {
-                    if (Verbose)
-                        errs() << "  [USER] Processing use: " << getValueName(U) << "\n";
+        // Iterate until we reach a fixed point (no new tainted pointers)
+        bool changed = true;
+        while (changed) {
+            changed = false;
 
-                    // TODO
-                    // --- 3. Check for Sinks (Stop Cases) ---
-                    if (CallInst *Call = dyn_cast<CallInst>(UserInst)) {
-                        bool isArg = false;
-                        for (Value *Arg : Call->args()) {
-                            if (Arg == V) {
-                                isArg = true;
-                                break;
+            // Process the worklist
+            while (!Worklist.empty()) {
+                Value *V = Worklist.pop_back_val();
+                errs() << "[PROP] Processing uses of: " << getValueName(V) << "\n";
+
+                for (User *U : V->users()) {
+                    if (Instruction *UserInst = dyn_cast<Instruction>(U)) {
+                        if (Verbose)
+                            errs() << "  [USER] Processing use: " << getValueName(U) << "\n";
+
+                        // --- Check for Sinks (Stop Cases) ---
+                        if (CallInst *Call = dyn_cast<CallInst>(UserInst)) {
+                            bool isArg = false;
+                            for (Value *Arg : Call->args()) {
+                                if (Arg == V) {
+                                    isArg = true;
+                                    break;
+                                }
                             }
-                        }
-                        if (isArg) {
-                            errs() << "  [SINK] Stop: Tainted value used in function call: "
-                                   << getValueName(Call) << "\n";
-                            continue;
-                        }
-                    }
-                    if (ReturnInst *Ret = dyn_cast<ReturnInst>(UserInst)) {
-                        if (Ret->getReturnValue() == V) {
-                            errs() << "  [SINK] Stop: Tainted value is returned: "
-                                   << getValueName(Ret) << "\n";
-                            continue;
-                        }
-                    }
-                    if (StoreInst *Store = dyn_cast<StoreInst>(UserInst)) {
-                        if (Store->getValueOperand() == V) {
-                            Value *Ptr = Store->getPointerOperand()->stripPointerCasts();
-                            if (isa<GlobalVariable>(Ptr)) {
-                                errs() << "  [SINK] Stop: Tainted value stored in Global Variable: "
-                                       << Ptr->getName() << "\n";
+                            if (isArg) {
+                                errs() << "  [SINK] Stop: Tainted value used in function call: "
+                                       << getValueName(Call) << "\n";
                                 continue;
                             }
-                            if (Argument *Arg = dyn_cast<Argument>(Ptr)) {
-                                if (Arg->getType()->isPointerTy()) {
-                                    errs() << "  [SINK] Stop: Tainted value stored to Pointer Parameter: "
-                                           << Arg->getName() << "\n";
+                        }
+                        if (ReturnInst *Ret = dyn_cast<ReturnInst>(UserInst)) {
+                            if (Ret->getReturnValue() == V) {
+                                errs() << "  [SINK] Stop: Tainted value is returned: "
+                                       << getValueName(Ret) << "\n";
+                                continue;
+                            }
+                        }
+                        if (StoreInst *Store = dyn_cast<StoreInst>(UserInst)) {
+                            if (Store->getValueOperand() == V) {
+                                Value *Ptr = Store->getPointerOperand()->stripPointerCasts();
+                                if (isa<GlobalVariable>(Ptr)) {
+                                    errs() << "  [SINK] Stop: Tainted value stored in Global Variable: "
+                                           << Ptr->getName() << "\n";
                                     continue;
                                 }
-                            }
-                            // For local variables, mark the pointer as tainted
-                            if (TaintedPointers.insert(Ptr).second) {
-                                errs() << "  [TRACK] Marking pointer as tainted: "
-                                       << getValueName(Ptr) << "\n";
+                                if (Argument *Arg = dyn_cast<Argument>(Ptr)) {
+                                    if (Arg->getType()->isPointerTy()) {
+                                        errs() << "  [SINK] Stop: Tainted value stored to Pointer Parameter: "
+                                               << Arg->getName() << "\n";
+                                        continue;
+                                    }
+                                }
+                                // For local variables, mark the pointer as tainted
+                                // This allows us to track through variable assignments
+                                if (TaintedPointers.insert(Ptr).second) {
+                                    errs() << "  [TRACK] Marking pointer as tainted: "
+                                           << getValueName(Ptr) << "\n";
+                                    changed = true;  // We found a new tainted pointer
+                                }
                             }
                         }
-                    }
 
-                    // --- 4. Propagate Taint ---
-                    if (TaintedValues.insert(UserInst).second) {
-                        Worklist.push_back(UserInst);
-                        errs() << "  [FLOW] Taint flows to: " << getValueName(UserInst) << "\n";
+                        // --- Propagate Taint ---
+                        if (TaintedValues.insert(UserInst).second) {
+                            Worklist.push_back(UserInst);
+                            errs() << "  [FLOW] Taint flows to: " << getValueName(UserInst) << "\n";
+                        }
                     }
                 }
             }
-        }
 
-        // --- 3. Check for loads from tainted pointers ---
-        // Now scan for load instructions that read from tainted pointers
-        for (Function &F : M) {
-            if (F.getName() == FunctionName) {
-                for (BasicBlock &BB : F) {
-                    for (Instruction &I : BB) {
-                        if (LoadInst *Load = dyn_cast<LoadInst>(&I)) {
-                            Value *Ptr = Load->getPointerOperand()->stripPointerCasts();
-                            if (TaintedPointers.count(Ptr)) {
-                                if (TaintedValues.insert(Load).second) {
-                                    errs() << "[LOAD] Tainted load from tracked pointer: "
-                                           << getValueName(Load) << "\n";
-                                    Worklist.push_back(Load);
+            // Scan for loads from newly tainted pointers
+            for (Function &F : M) {
+                if (F.getName() == FunctionName) {
+                    for (BasicBlock &BB : F) {
+                        for (Instruction &I : BB) {
+                            if (LoadInst *Load = dyn_cast<LoadInst>(&I)) {
+                                Value *Ptr = Load->getPointerOperand()->stripPointerCasts();
+                                // Only process if this pointer is tainted and we haven't scanned it yet
+                                if (TaintedPointers.count(Ptr) && !ScannedPointers.count(Ptr)) {
+                                    if (TaintedValues.insert(Load).second) {
+                                        errs() << "[LOAD] Tainted load from tracked pointer: "
+                                               << getValueName(Load) << "\n";
+                                        Worklist.push_back(Load);
+                                        changed = true;
+                                    }
                                 }
                             }
                         }
                     }
-                }
-            }
-        }
-
-        // --- 4. Continue propagating from loads ---
-        while (!Worklist.empty()) {
-            Value *V = Worklist.pop_back_val();
-            errs() << "[PROP] Processing uses of: " << getValueName(V) << "\n";
-
-            for (User *U : V->users()) {
-                if (Instruction *UserInst = dyn_cast<Instruction>(U)) {
-                    if (Verbose)
-                        errs() << "  [USER] Processing use: " << getValueName(U) << "\n";
-
-                    // --- Check for Sinks (Stop Cases) ---
-                    if (CallInst *Call = dyn_cast<CallInst>(UserInst)) {
-                        bool isArg = false;
-                        for (Value *Arg : Call->args()) {
-                            if (Arg == V) {
-                                isArg = true;
-                                break;
-                            }
-                        }
-                        if (isArg) {
-                            errs() << "  [SINK] Stop: Tainted value used in function call: "
-                                   << getValueName(Call) << "\n";
-                            continue;
-                        }
-                    }
-                    if (ReturnInst *Ret = dyn_cast<ReturnInst>(UserInst)) {
-                        if (Ret->getReturnValue() == V) {
-                            errs() << "  [SINK] Stop: Tainted value is returned: "
-                                   << getValueName(Ret) << "\n";
-                            continue;
-                        }
-                    }
-
-                    // --- Propagate Taint ---
-                    if (TaintedValues.insert(UserInst).second) {
-                        Worklist.push_back(UserInst);
-                        errs() << "  [FLOW] Taint flows to: " << getValueName(UserInst) << "\n";
+                    // Mark all currently tainted pointers as scanned
+                    for (Value *Ptr : TaintedPointers) {
+                        ScannedPointers.insert(Ptr);
                     }
                 }
             }
