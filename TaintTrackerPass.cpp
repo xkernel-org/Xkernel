@@ -107,7 +107,11 @@ found:
             // Process the worklist
             while (!Worklist.empty()) {
                 Value *V = Worklist.pop_back_val();
-                errs() << "[PROP] Processing uses of: " << getValueName(V) << "\n";
+
+                if (!V->user_empty())
+                    errs() << "[PROP] Processing uses of: " << getValueName(V) << "\n";
+                else
+                    errs() << "[PROP] No uses of: " << getValueName(V) << "\n";
 
                 for (User *U : V->users()) {
                     if (Instruction *UserInst = dyn_cast<Instruction>(U)) {
@@ -181,7 +185,11 @@ found:
                                 if (TaintedPointers.count(Ptr) && !ScannedPointers.count(Ptr)) {
                                     if (TaintedValues.insert(Load).second) {
                                         errs() << "[LOAD] Tainted load from tracked pointer: "
-                                               << getValueName(Load) << "\n";
+                                               << getValueName(Load)
+                                               << " ("
+                                               << *Ptr
+                                               << ") "
+                                               << "\n";
                                         Worklist.push_back(Load);
                                         changed = true;
                                     }
