@@ -39,6 +39,7 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
         SmallVector<Value*, 64> Worklist;
         DenseSet<Value*> TaintedValues;
         DenseSet<Value*> TaintedPointers;  // Track pointers that hold tainted values
+        DenseSet<Instruction*> KilledStores;  // Track stores that kill taint (overwrite with non-tainted value)
 
         // --- 1. Seed the Worklist ---
         // Find the starting point based on function name, opcode, and constant value
@@ -174,7 +175,36 @@ found:
                 }
             }
 
+            // --- Identify Kill Stores ---
+            // Find stores to tainted pointers where the stored value is NOT tainted
+            // These "kill" the taint for that pointer
+            for (Function &F : M) {
+                if (F.getName() == FunctionName) {
+                    for (BasicBlock &BB : F) {
+                        for (Instruction &I : BB) {
+                            if (StoreInst *Store = dyn_cast<StoreInst>(&I)) {
+                                Value *StoredVal = Store->getValueOperand();
+                                Value *Ptr = Store->getPointerOperand()->stripPointerCasts();
+
+                                // If we're storing to a tainted pointer, but the value is NOT tainted
+                                // This is a kill - it overwrites the tainted value
+                                if (TaintedPointers.count(Ptr) && !TaintedValues.count(StoredVal)) {
+                                    // Only kill if this is not the original source store
+                                    // (Check that this store itself is not tainted)
+                                    if (!TaintedValues.count(Store)) {
+                                        KilledStores.insert(Store);
+                                        errs() << "[KILL] Store overwrites tainted pointer with non-tainted value: "
+                                               << getValueName(Store) << "\n";
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             // Scan for loads from newly tainted pointers
+            // But skip loads that happen after a kill store
             for (Function &F : M) {
                 if (F.getName() == FunctionName) {
                     for (BasicBlock &BB : F) {
@@ -183,6 +213,48 @@ found:
                                 Value *Ptr = Load->getPointerOperand()->stripPointerCasts();
                                 // Only process if this pointer is tainted and we haven't scanned it yet
                                 if (TaintedPointers.count(Ptr) && !ScannedPointers.count(Ptr)) {
+
+                                    // Check if this load happens after a kill store to the same pointer
+                                    bool afterKill = false;
+                                    for (Instruction *KillStore : KilledStores) {
+                                        Value *KillPtr = cast<StoreInst>(KillStore)->getPointerOperand()->stripPointerCasts();
+                                        if (KillPtr == Ptr) {
+                                            // Check if Load comes after KillStore in the same basic block
+                                            if (Load->getParent() == KillStore->getParent()) {
+                                                // Simple ordering: iterate through BB and check which comes first
+                                                for (Instruction &CheckI : *Load->getParent()) {
+                                                    if (&CheckI == KillStore) {
+                                                        // Kill store comes first, check if load comes after
+                                                        break;
+                                                    }
+                                                    if (&CheckI == Load) {
+                                                        // Load comes first, so it's before the kill
+                                                        break;
+                                                    }
+                                                }
+                                                // Check again properly
+                                                bool foundKill = false;
+                                                for (Instruction &CheckI : *Load->getParent()) {
+                                                    if (&CheckI == KillStore) {
+                                                        foundKill = true;
+                                                    }
+                                                    if (&CheckI == Load && foundKill) {
+                                                        afterKill = true;
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                            // TODO: Handle cross-basic-block dominance properly
+                                            // For now, just handle same-BB case
+                                        }
+                                    }
+
+                                    if (afterKill) {
+                                        errs() << "[SKIP] Load after kill, not tainting: "
+                                               << getValueName(Load) << "\n";
+                                        continue;
+                                    }
+
                                     if (TaintedValues.insert(Load).second) {
                                         errs() << "[LOAD] Tainted load from tracked pointer: "
                                                << getValueName(Load)
