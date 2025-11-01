@@ -87,7 +87,7 @@ struct xk_refcount *find_or_alloc_refcount(pid_t pid) {
     }
   }
 
-  ref = kmalloc(sizeof(*ref), GFP_KERNEL);
+  ref = kmalloc(sizeof(*ref), GFP_ATOMIC);
   if (!ref) {
     return NULL;
   }
