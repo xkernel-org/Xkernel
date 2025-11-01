@@ -164,14 +164,14 @@ llvmGetPassPluginInfo() {
                     // Parse: taint-tracker<function_name;opcode;constant_value;debug>
                     if (Name.consume_front("taint-tracker")) {
                         std::string FunctionName = "gss_fill_context";  // default
-                        std::string Opcode = "select";  // default (empty means all opcodes)
+                        std::string Opcode = "";  // default (empty means all opcodes)
                         uint64_t Constant = 3600;  // default
                         bool Debug = false;  // default
 
                         if (Name.consume_front("<") && Name.consume_back(">")) {
                             // Parse parameters separated by semicolons
                             SmallVector<StringRef, 4> Params;
-                            Name.split(Params, ';', -1, false);
+                            Name.split(Params, ';', -1, true);
 
                             if (Params.size() >= 1 && !Params[0].empty()) {
                                 FunctionName = Params[0].str();
