@@ -76,6 +76,27 @@ Multiple BPF files are also supported, separated by comma.
 
 `sudo ./kprobe_loader --files example1.bpf.o,example2.bpf.o`.
 
+## Consistency
+Xkernel provides two following consistency models:
+1. Per-task consistency model: Each task transitions to the new value independently.
+2. Global consistency model: All tasks transition to the new value together.
+
+### Per-task consistency model
+
+```
+sudo insmod kfuncs.ko kTask=1
+sudo insmod consistency/xk-consistency.ko kTask=1
+sudo rmmod xk_consistency
+```
+
+### Global consistency model
+
+```
+sudo insmod kfuncs.ko
+sudo insmod consistency/xk-consistency.ko kTimeoutTimes=1000 # Transition timeout: 1000ms
+sudo rmmod xk_consistency
+```
+
 ## Text Poke Functionality
 
 Xkernel provides a high-performance API to modify kernel instructions at runtime safely. The eBPF program will be loaded into kernel and executed in a single shot.
