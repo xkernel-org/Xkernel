@@ -10,6 +10,8 @@ if ! command -v clang >/dev/null 2>&1; then
     fi
 fi
 
+rm -rf tests/*.bc tests/*.ll
+
 for file in tests/*.c; do
     clang -c -emit-llvm $file -o ${file%.c}.bc
     clang -S -emit-llvm $file -o ${file%.c}.ll
