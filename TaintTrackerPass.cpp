@@ -5,6 +5,7 @@
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Constants.h"
+#include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/DenseSet.h"
 #include "llvm/ADT/StringRef.h"
@@ -31,6 +32,23 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
         std::string s;
         raw_string_ostream os(s);
         V->print(os);
+        return os.str();
+    }
+
+    // Helper to get debug location information
+    std::string getDebugLoc(Instruction *I) {
+        if (!I) return "";
+
+        const DebugLoc &DL = I->getDebugLoc();
+        if (!DL) return "";
+
+        std::string s;
+        raw_string_ostream os(s);
+        os << " [" << DL->getFilename() << ":" << DL->getLine();
+        if (DL->getColumn() != 0) {
+            os << ":" << DL->getColumn();
+        }
+        os << "]";
         return os.str();
     }
 
@@ -74,14 +92,14 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
                                 if (CI->getZExtValue() == ConstantToTrack) {
                                     if (TaintedValues.insert(&I).second) {
                                         Worklist.push_back(&I);
-                                        errs() << "[SOURCE] Tainting: " << I << "\n";
+                                        errs() << "[SOURCE] Tainting: " << I << getDebugLoc(&I) << "\n";
 
                                         // If this is a store instruction, also mark the pointer as tainted
                                         if (StoreInst *Store = dyn_cast<StoreInst>(&I)) {
                                             Value *Ptr = Store->getPointerOperand()->stripPointerCasts();
                                             if (TaintedPointers.insert(Ptr).second) {
                                                 errs() << "[SOURCE] Marking pointer as tainted: "
-                                                       << getValueName(Ptr) << "\n";
+                                                       << getValueName(Ptr) << getDebugLoc(Store) << "\n";
                                             }
                                         }
 
@@ -100,7 +118,7 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
                                                                 Worklist.push_back(Param);
                                                                 errs() << "[INTERPROC] Tainting parameter in "
                                                                        << Callee->getName() << ": "
-                                                                       << getValueName(Param) << "\n";
+                                                                       << getValueName(Param) << getDebugLoc(Call) << "\n";
                                                             }
                                                         }
                                                     }
@@ -163,20 +181,20 @@ found:
                                             Worklist.push_back(Param);
                                             errs() << "  [INTERPROC] Propagating taint to parameter in "
                                                    << Callee->getName() << ": "
-                                                   << getValueName(Param) << "\n";
+                                                   << getValueName(Param) << getDebugLoc(Call) << "\n";
                                             changed = true;
                                         }
                                     }
                                 }
                                 errs() << "  [SINK] Tainted value used in function call: "
-                                       << getValueName(Call) << "\n";
+                                       << getValueName(Call) << getDebugLoc(Call) << "\n";
                                 // Don't continue - still propagate the call itself
                             }
                         }
                         if (ReturnInst *Ret = dyn_cast<ReturnInst>(UserInst)) {
                             if (Ret->getReturnValue() == V) {
                                 errs() << "  [SINK] Stop: Tainted value is returned: "
-                                       << getValueName(Ret) << "\n";
+                                       << getValueName(Ret) << getDebugLoc(Ret) << "\n";
                                 continue;
                             }
                         }
@@ -185,13 +203,13 @@ found:
                                 Value *Ptr = Store->getPointerOperand()->stripPointerCasts();
                                 if (isa<GlobalVariable>(Ptr)) {
                                     errs() << "  [SINK] Stop: Tainted value stored in Global Variable: "
-                                           << Ptr->getName() << "\n";
+                                           << Ptr->getName() << getDebugLoc(Store) << "\n";
                                     continue;
                                 }
                                 if (Argument *Arg = dyn_cast<Argument>(Ptr)) {
                                     if (Arg->getType()->isPointerTy()) {
                                         errs() << "  [SINK] Stop: Tainted value stored to Pointer Parameter: "
-                                               << Arg->getName() << "\n";
+                                               << Arg->getName() << getDebugLoc(Store) << "\n";
                                         continue;
                                     }
                                 }
@@ -199,7 +217,7 @@ found:
                                 // This allows us to track through variable assignments
                                 if (TaintedPointers.insert(Ptr).second) {
                                     errs() << "  [TRACK] Marking pointer as tainted: "
-                                           << getValueName(Ptr) << "\n";
+                                           << getValueName(Ptr) << getDebugLoc(Store) << "\n";
                                     changed = true;  // We found a new tainted pointer
                                 }
                             }
@@ -208,7 +226,7 @@ found:
                         // --- Propagate Taint ---
                         if (TaintedValues.insert(UserInst).second) {
                             Worklist.push_back(UserInst);
-                            errs() << "  [FLOW] Taint flows to: " << getValueName(UserInst) << "\n";
+                            errs() << "  [FLOW] Taint flows to: " << getValueName(UserInst) << getDebugLoc(UserInst) << "\n";
                         }
                     }
                 }
@@ -233,7 +251,7 @@ found:
                                 if (!TaintedValues.count(Store)) {
                                     KilledStores.insert(Store);
                                     errs() << "[KILL] Store overwrites tainted pointer with non-tainted value: "
-                                           << getValueName(Store) << "\n";
+                                           << getValueName(Store) << getDebugLoc(Store) << "\n";
                                 }
                             }
                         }
@@ -296,7 +314,7 @@ found:
 
                                 if (afterKill) {
                                     errs() << "[SKIP] Load after kill, not tainting: "
-                                           << getValueName(Load) << "\n";
+                                           << getValueName(Load) << getDebugLoc(Load) << "\n";
                                     continue;
                                 }
 
@@ -306,7 +324,7 @@ found:
                                            << " ("
                                            << *Ptr
                                            << ") "
-                                           << "\n";
+                                           << getDebugLoc(Load) << "\n";
                                     Worklist.push_back(Load);
                                     changed = true;
                                 }
