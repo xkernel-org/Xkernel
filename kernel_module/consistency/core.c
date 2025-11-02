@@ -36,11 +36,6 @@ module_param(kTimeoutTimes, int, 0644);
 MODULE_PARM_DESC(kTimeoutTimes,
                  "Timeout times for the transition. Default: 5000 * 1ms");
 
-int kTask = 0;
-module_param(kTask, int, 0644);
-MODULE_PARM_DESC(kTask,
-                 "Enable per-task consistency model. Default: 0 (disabled)");
-
 static struct task_struct *daemon_task = NULL;
 
 ktime_t start = 0;
@@ -55,7 +50,8 @@ static DEFINE_SPINLOCK(ref_hash_lock);
 static DEFINE_HASHTABLE(ref_hash_table, REF_HASH_BITS);
 static atomic_t ref_hash_size = ATOMIC_INIT(0);
 
-// kfuncs.ko
+// xk-kfuncs.ko
+extern int kMode;
 extern bool ir_kprobes_on;
 extern int transition;
 struct transition_task {
@@ -189,7 +185,7 @@ static bool xk_check_functions(struct task_struct *task, unsigned long *entries,
          * is being executed. This is used to fix the refcount of the task.
          */
 
-        if (kTask) {
+        if (kMode == 1) {
           if (xk_inc_refcount_per_task(task->pid)) {
             pr_err("Failed to increment the refcount for task %s\n",
                    task->comm);
@@ -258,7 +254,7 @@ static int xk_check_stacks(void *data) {
   }
 
   if (need_transition) {
-    if (!kTask) {
+    if (kMode == 2) {
       pr_info("Initial refcount: %d\n", xk_refcount());
     }
     xk_enable_auxiliary_kprobes();
@@ -267,7 +263,7 @@ static int xk_check_stacks(void *data) {
     // No target functions are found in the stacks, so we can directly enable or
     // disable the IR kprobes.
     if (direction) {
-      if (kTask) {
+      if (kMode == 1) {
         xk_enable_ir_kprobes_task(1);
       } else {
         xk_enable_ir_kprobes();
@@ -558,7 +554,10 @@ static int daemon_main(void *data) {
 static int __init consistency_init(void) {
   pr_info("Xkernel consistency module loaded\n");
 
-  if (kTask) {
+  if (kMode == 0) {
+    pr_info("Immediate consistency model is enabled\n");
+    return 0;
+  } else if (kMode == 1) {
     pr_info("Per-task consistency model is enabled\n");
   } else {
     pr_info("Global consistency model is enabled\n");
@@ -569,7 +568,7 @@ static int __init consistency_init(void) {
 #ifdef DEBUG
   measure_stop_machine_overhead();
 #endif
-  if (kTask) {
+  if (kMode == 1) {
     daemon_task =
         kthread_create(daemon_task_main, NULL, "xkernel-daemon-per-task");
   } else {
@@ -612,6 +611,10 @@ static int __init consistency_init(void) {
 static void __exit consistency_exit(void) {
   pr_info("Xkernel consistency module unloaded\n");
 
+  if (kMode == 0) {
+    return;
+  }
+
   while (get_xk_state() == XK_FLAGS_PENDING) {
     // Wait for the transition being done or failed
     cpu_relax();
@@ -629,7 +632,7 @@ static void __exit consistency_exit(void) {
     goto out;
   }
 
-  if (kTask)
+  if (kMode == 1)
     xk_disable_ir_kprobes_task();
 
   stop_machine(xk_check_stacks, NULL, NULL);
@@ -653,7 +656,7 @@ static void __exit consistency_exit(void) {
 
 out:
 
-  if (kTask) {
+  if (kMode == 1) {
     struct transition_task *ttsk;
     struct hlist_node *tmp;
     int bucket;

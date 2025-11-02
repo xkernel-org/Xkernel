@@ -12,9 +12,9 @@
 
 ## Quick Start
 
-### 0. Compile and load kfuncs to kernel
+### 0. Compile kernel modules
 ```
-pushd kernel_module && make -j && sudo insmod kfuncs.ko && popd
+pushd kernel_module && ./build.sh && popd
 ```
 
 ### 1. Use binary diff to locate target instructions
@@ -56,6 +56,9 @@ eBPF files should be placed in `bpf_kprobe/bpf/examples`.
 // (+0xcb)ffffffff8dff9bfb:        66 41 39 c6             cmp    %ax,%r14w
 SEC("kprobe/blk_add_rq_to_plug+0xcb")
 int BPF_KPROBE(blk_add_rq_to_plug_0xcb) {
+    
+    if (!transition_done()) return 0;
+
     BPF_SET_EAX(ctx, 128);
     return 0;
 }
@@ -66,7 +69,13 @@ Compile the eBPF programs.
 cd bpf_kprobe && make -j`nproc`
 ```
 
-### 4. Load BPF programs
+### 4. Load kfuncs module
+```shell
+sudo insmod kernel_module/kfuncs/xk-kfuncs.ko # Global consistency model
+sudo insmod kernel_module/kfuncs/xk-kfuncs.ko kTask=1 # Per-task consistency model
+```
+
+### 5. Load BPF programs
 
 The loader will detect the function name and the offset automatically.
 
@@ -76,24 +85,15 @@ Multiple BPF files are also supported, separated by comma.
 
 `sudo ./kprobe_loader --files example1.bpf.o,example2.bpf.o`.
 
-## Consistency
+Note that the new values have not taken effect yet.
+
+## 6. Load consistency module
 Xkernel provides two following consistency models:
 1. Per-task consistency model: Each task transitions to the new value independently.
 2. Global consistency model: All tasks transition to the new value together.
 
-### Per-task consistency model
-
 ```
-sudo insmod kfuncs.ko kTask=1
-sudo insmod consistency/xk-consistency.ko kTask=1
-sudo rmmod xk_consistency
-```
-
-### Global consistency model
-
-```
-sudo insmod kfuncs.ko
-sudo insmod consistency/xk-consistency.ko kTimeoutTimes=1000 # Transition timeout: 1000ms
+sudo insmod kernel_module/consistency/xk-consistency.ko
 sudo rmmod xk_consistency
 ```
 

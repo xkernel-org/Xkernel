@@ -17,9 +17,10 @@ EXPORT_SYMBOL(ir_kprobes_on);
 
 // 0: global consistency model
 // 1: per-task consistency model
-static int kTask = 0;
-module_param(kTask, int, 0644);
-MODULE_PARM_DESC(kTask, "0: global consistency model, 1: per-task consistency model");
+int kMode = 2;
+module_param(kMode, int, 0644);
+MODULE_PARM_DESC(kMode, "0: Immediate, 1: Per-task, 2: Global");
+EXPORT_SYMBOL(kMode);
 
 // Per-task consistency model
 // 0: all tasks are not ready
@@ -52,7 +53,9 @@ static bool check_transition_done(pid_t pid) {
 
 __bpf_kfunc_start_defs();
 __bpf_kfunc bool kfuncs_is_ir_kprobes_on(void) {
-  if (kTask) {
+  if (kMode == 0) { // Immediate
+    return true;
+  } else if (kMode == 1) { // Per-task consistency model
     int t = READ_ONCE(transition);
     if (t == 0) {
       return false;
@@ -61,7 +64,7 @@ __bpf_kfunc bool kfuncs_is_ir_kprobes_on(void) {
     } else {
       return check_transition_done(current->pid);
     }
-  } else {
+  } else { // Global consistency model
     return READ_ONCE(ir_kprobes_on);
   }
 }

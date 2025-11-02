@@ -20,7 +20,7 @@ static DEFINE_MUTEX(aux_kprobes_mtx);
 extern ktime_t start;
 extern ktime_t end;
 
-extern int kTask;
+extern int kMode;
 
 // kfuncs.ko
 struct transition_task {
@@ -92,7 +92,7 @@ static int handler_guard(struct kprobe *kp, struct pt_regs *regs) {
     }
 #endif
 
-  if (kTask) {
+  if (kMode == 1) {
     unsigned long flags;
     ref_hash_spinlock(flags);
     struct xk_refcount *ref = find_or_fail_refcount(current->pid);
@@ -170,7 +170,7 @@ static int handler_unguard(struct kprobe *kp, struct pt_regs *regs) {
     }
 #endif
 
-  if (kTask) {
+  if (kMode == 1) {
     unsigned long flags;
     ref_hash_spinlock(flags);
     struct xk_refcount *ref = find_or_fail_refcount(current->pid);
@@ -271,7 +271,7 @@ int xk_attach_auxiliary_kprobes(bool direction, char *debug_info) {
   struct xk_target_function *func;
   int ret;
 
-  pr_info("xk_attach_auxiliary_kprobes called by %s\n", debug_info);
+  pr_debug("xk_attach_auxiliary_kprobes called by %s\n", debug_info);
 
   mutex_lock(&aux_kprobes_mtx);
 
@@ -295,7 +295,7 @@ int xk_attach_auxiliary_kprobes(bool direction, char *debug_info) {
       goto err;
     }
     func->attached_unguard_kp = true;
-    pr_info("Attached Guard/Unguard Kprobes to [%s]\n", func->name);
+    pr_debug("Attached Guard/Unguard Kprobes to [%s]\n", func->name);
   }
   mutex_unlock(&aux_kprobes_mtx);
   return 0;
@@ -308,7 +308,7 @@ err:
 void xk_detach_auxiliary_kprobes(char *debug_info) {
   struct xk_target_function *func;
 
-  pr_info("xk_detach_auxiliary_kprobes called by %s\n", debug_info);
+  pr_debug("xk_detach_auxiliary_kprobes called by %s\n", debug_info);
 
   mutex_lock(&aux_kprobes_mtx);
 
@@ -321,7 +321,7 @@ void xk_detach_auxiliary_kprobes(char *debug_info) {
       unregister_kprobe(&func->unguard_kp);
       func->attached_unguard_kp = false;
     }
-    pr_info("Detached Guard/Unguard Kprobes from [%s]\n", func->name);
+    pr_debug("Detached Guard/Unguard Kprobes from [%s]\n", func->name);
   }
   mutex_unlock(&aux_kprobes_mtx);
 }

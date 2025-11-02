@@ -1,4 +1,7 @@
-obj-m += kfuncs.o
+obj-m += xk-kfuncs.o
+
+xk-kfuncs-objs := kfuncs.o
+
 obj-$(RAW_TEXT_POKE) += raw_text_poke.o
 
 KERNELDIR ?= /lib/modules/$(shell uname -r)/build
