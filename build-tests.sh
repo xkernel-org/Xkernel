@@ -13,6 +13,6 @@ fi
 rm -rf tests/*.bc tests/*.ll
 
 for file in tests/*.c; do
-    clang -c -emit-llvm $file -o ${file%.c}.bc
-    clang -S -emit-llvm $file -o ${file%.c}.ll
+    clang -g -c -emit-llvm $file -o ${file%.c}.bc
+    clang -g -S -emit-llvm $file -o ${file%.c}.ll
 done
