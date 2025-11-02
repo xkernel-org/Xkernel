@@ -84,6 +84,29 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
                                                        << getValueName(Ptr) << "\n";
                                             }
                                         }
+
+                                        // If this is a call instruction with the constant as an argument,
+                                        // perform interprocedural taint tracking
+                                        if (CallInst *Call = dyn_cast<CallInst>(&I)) {
+                                            Function *Callee = Call->getCalledFunction();
+                                            if (Callee && !Callee->isDeclaration()) {
+                                                // Find which argument position has the constant
+                                                for (unsigned ArgIdx = 0; ArgIdx < Call->arg_size(); ++ArgIdx) {
+                                                    if (Call->getArgOperand(ArgIdx) == CI) {
+                                                        // Taint the corresponding parameter in the callee
+                                                        if (ArgIdx < Callee->arg_size()) {
+                                                            Argument *Param = Callee->getArg(ArgIdx);
+                                                            if (TaintedValues.insert(Param).second) {
+                                                                Worklist.push_back(Param);
+                                                                errs() << "[INTERPROC] Tainting parameter in "
+                                                                       << Callee->getName() << ": "
+                                                                       << getValueName(Param) << "\n";
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
                                     }
                                     goto found;
                                 }
@@ -119,19 +142,35 @@ found:
                         if (Verbose)
                             errs() << "  [USER] Processing use: " << getValueName(U) << "\n";
 
-                        // --- Check for Sinks (Stop Cases) ---
+                        // --- Check for Sinks and Interprocedural Propagation ---
                         if (CallInst *Call = dyn_cast<CallInst>(UserInst)) {
                             bool isArg = false;
-                            for (Value *Arg : Call->args()) {
-                                if (Arg == V) {
+                            unsigned argIdx = 0;
+                            for (unsigned i = 0; i < Call->arg_size(); ++i) {
+                                if (Call->getArgOperand(i) == V) {
                                     isArg = true;
+                                    argIdx = i;
                                     break;
                                 }
                             }
                             if (isArg) {
-                                errs() << "  [SINK] Stop: Tainted value used in function call: "
+                                Function *Callee = Call->getCalledFunction();
+                                if (Callee && !Callee->isDeclaration()) {
+                                    // Interprocedural propagation: taint the parameter
+                                    if (argIdx < Callee->arg_size()) {
+                                        Argument *Param = Callee->getArg(argIdx);
+                                        if (TaintedValues.insert(Param).second) {
+                                            Worklist.push_back(Param);
+                                            errs() << "  [INTERPROC] Propagating taint to parameter in "
+                                                   << Callee->getName() << ": "
+                                                   << getValueName(Param) << "\n";
+                                            changed = true;
+                                        }
+                                    }
+                                }
+                                errs() << "  [SINK] Tainted value used in function call: "
                                        << getValueName(Call) << "\n";
-                                continue;
+                                // Don't continue - still propagate the call itself
                             }
                         }
                         if (ReturnInst *Ret = dyn_cast<ReturnInst>(UserInst)) {
@@ -179,23 +218,22 @@ found:
             // Find stores to tainted pointers where the stored value is NOT tainted
             // These "kill" the taint for that pointer
             for (Function &F : M) {
-                if (F.getName() == FunctionName) {
-                    for (BasicBlock &BB : F) {
-                        for (Instruction &I : BB) {
-                            if (StoreInst *Store = dyn_cast<StoreInst>(&I)) {
-                                Value *StoredVal = Store->getValueOperand();
-                                Value *Ptr = Store->getPointerOperand()->stripPointerCasts();
+                if (F.isDeclaration()) continue;  // Skip declarations
+                for (BasicBlock &BB : F) {
+                    for (Instruction &I : BB) {
+                        if (StoreInst *Store = dyn_cast<StoreInst>(&I)) {
+                            Value *StoredVal = Store->getValueOperand();
+                            Value *Ptr = Store->getPointerOperand()->stripPointerCasts();
 
-                                // If we're storing to a tainted pointer, but the value is NOT tainted
-                                // This is a kill - it overwrites the tainted value
-                                if (TaintedPointers.count(Ptr) && !TaintedValues.count(StoredVal)) {
-                                    // Only kill if this is not the original source store
-                                    // (Check that this store itself is not tainted)
-                                    if (!TaintedValues.count(Store)) {
-                                        KilledStores.insert(Store);
-                                        errs() << "[KILL] Store overwrites tainted pointer with non-tainted value: "
-                                               << getValueName(Store) << "\n";
-                                    }
+                            // If we're storing to a tainted pointer, but the value is NOT tainted
+                            // This is a kill - it overwrites the tainted value
+                            if (TaintedPointers.count(Ptr) && !TaintedValues.count(StoredVal)) {
+                                // Only kill if this is not the original source store
+                                // (Check that this store itself is not tainted)
+                                if (!TaintedValues.count(Store)) {
+                                    KilledStores.insert(Store);
+                                    errs() << "[KILL] Store overwrites tainted pointer with non-tainted value: "
+                                           << getValueName(Store) << "\n";
                                 }
                             }
                         }
@@ -205,75 +243,82 @@ found:
 
             // Scan for loads from newly tainted pointers
             // But skip loads that happen after a kill store
-            for (Function &F : M) {
-                if (F.getName() == FunctionName) {
-                    for (BasicBlock &BB : F) {
-                        for (Instruction &I : BB) {
-                            if (LoadInst *Load = dyn_cast<LoadInst>(&I)) {
-                                Value *Ptr = Load->getPointerOperand()->stripPointerCasts();
-                                // Only process if this pointer is tainted and we haven't scanned it yet
-                                if (TaintedPointers.count(Ptr) && !ScannedPointers.count(Ptr)) {
+            DenseSet<Value*> PointersToScan;
+            for (Value *Ptr : TaintedPointers) {
+                if (!ScannedPointers.count(Ptr)) {
+                    PointersToScan.insert(Ptr);
+                }
+            }
 
-                                    // Check if this load happens after a kill store to the same pointer
-                                    bool afterKill = false;
-                                    for (Instruction *KillStore : KilledStores) {
-                                        Value *KillPtr = cast<StoreInst>(KillStore)->getPointerOperand()->stripPointerCasts();
-                                        if (KillPtr == Ptr) {
-                                            // Check if Load comes after KillStore in the same basic block
-                                            if (Load->getParent() == KillStore->getParent()) {
-                                                // Simple ordering: iterate through BB and check which comes first
-                                                for (Instruction &CheckI : *Load->getParent()) {
-                                                    if (&CheckI == KillStore) {
-                                                        // Kill store comes first, check if load comes after
-                                                        break;
-                                                    }
-                                                    if (&CheckI == Load) {
-                                                        // Load comes first, so it's before the kill
-                                                        break;
-                                                    }
+            for (Function &F : M) {
+                if (F.isDeclaration()) continue;  // Skip declarations
+                for (BasicBlock &BB : F) {
+                    for (Instruction &I : BB) {
+                        if (LoadInst *Load = dyn_cast<LoadInst>(&I)) {
+                            Value *Ptr = Load->getPointerOperand()->stripPointerCasts();
+                            // Only process if this pointer needs to be scanned
+                            if (PointersToScan.count(Ptr)) {
+
+                                // Check if this load happens after a kill store to the same pointer
+                                bool afterKill = false;
+                                for (Instruction *KillStore : KilledStores) {
+                                    Value *KillPtr = cast<StoreInst>(KillStore)->getPointerOperand()->stripPointerCasts();
+                                    if (KillPtr == Ptr) {
+                                        // Check if Load comes after KillStore in the same basic block
+                                        if (Load->getParent() == KillStore->getParent()) {
+                                            // Simple ordering: iterate through BB and check which comes first
+                                            for (Instruction &CheckI : *Load->getParent()) {
+                                                if (&CheckI == KillStore) {
+                                                    // Kill store comes first, check if load comes after
+                                                    break;
                                                 }
-                                                // Check again properly
-                                                bool foundKill = false;
-                                                for (Instruction &CheckI : *Load->getParent()) {
-                                                    if (&CheckI == KillStore) {
-                                                        foundKill = true;
-                                                    }
-                                                    if (&CheckI == Load && foundKill) {
-                                                        afterKill = true;
-                                                        break;
-                                                    }
+                                                if (&CheckI == Load) {
+                                                    // Load comes first, so it's before the kill
+                                                    break;
                                                 }
                                             }
-                                            // TODO: Handle cross-basic-block dominance properly
-                                            // For now, just handle same-BB case
+                                            // Check again properly
+                                            bool foundKill = false;
+                                            for (Instruction &CheckI : *Load->getParent()) {
+                                                if (&CheckI == KillStore) {
+                                                    foundKill = true;
+                                                }
+                                                if (&CheckI == Load && foundKill) {
+                                                    afterKill = true;
+                                                    break;
+                                                }
+                                            }
                                         }
+                                        // TODO: Handle cross-basic-block dominance properly
+                                        // For now, just handle same-BB case
                                     }
+                                }
 
-                                    if (afterKill) {
-                                        errs() << "[SKIP] Load after kill, not tainting: "
-                                               << getValueName(Load) << "\n";
-                                        continue;
-                                    }
+                                if (afterKill) {
+                                    errs() << "[SKIP] Load after kill, not tainting: "
+                                           << getValueName(Load) << "\n";
+                                    continue;
+                                }
 
-                                    if (TaintedValues.insert(Load).second) {
-                                        errs() << "[LOAD] Tainted load from tracked pointer: "
-                                               << getValueName(Load)
-                                               << " ("
-                                               << *Ptr
-                                               << ") "
-                                               << "\n";
-                                        Worklist.push_back(Load);
-                                        changed = true;
-                                    }
+                                if (TaintedValues.insert(Load).second) {
+                                    errs() << "[LOAD] Tainted load from tracked pointer: "
+                                           << getValueName(Load)
+                                           << " ("
+                                           << *Ptr
+                                           << ") "
+                                           << "\n";
+                                    Worklist.push_back(Load);
+                                    changed = true;
                                 }
                             }
                         }
                     }
-                    // Mark all currently tainted pointers as scanned
-                    for (Value *Ptr : TaintedPointers) {
-                        ScannedPointers.insert(Ptr);
-                    }
                 }
+            }
+
+            // Mark the pointers we just scanned
+            for (Value *Ptr : PointersToScan) {
+                ScannedPointers.insert(Ptr);
             }
         }
 
