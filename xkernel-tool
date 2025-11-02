@@ -3,7 +3,7 @@
 show_help() {
     echo "Usage: $0 <command> [options]"
     echo "Commands:"
-    echo "  load [0:Immediate, 1:Per-task, 2:Global] [file1,file2,...]   Load BPF kprobes for listed files"
+    echo "  load [0:Immediate, 1:Per-task, 2:Global] [file1,file2,...] [Timeout seconds]   Load BPF kprobes for listed files"
     echo "  unload                   Unload all loaded BPF kprobes"
     exit 1
 }
@@ -16,7 +16,7 @@ COMMAND=$1
 
 if [ "$COMMAND" = "load" ]; then
     if [ -z "$2" ] || [ -z "$3" ]; then
-        echo "Missing argument: [0:Immediate, 1:Per-task, 2:Global] [file1,file2,...]"
+        echo "Missing argument: [0:Immediate, 1:Per-task, 2:Global] [file1,file2,...] [Timeout seconds]"
         exit 1
     fi
     MODE=$2
@@ -47,7 +47,13 @@ if [ "$COMMAND" = "load" ]; then
     fi
 
     echo "[Step 3] Loading consistency module for transition..."
-    sudo insmod ./kernel_module/consistency/xk-consistency.ko
+    timeout=$4
+
+    if [ -z "$timeout" ]; then
+        sudo insmod ./kernel_module/consistency/xk-consistency.ko
+    else
+        sudo insmod ./kernel_module/consistency/xk-consistency.ko kTimeout=$timeout
+    fi
 
     echo "Check dmesg to see if the transition is successful."
 

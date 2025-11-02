@@ -31,10 +31,10 @@ static unsigned long xk_stack_entries[MAX_STACK_ENTRIES];
 
 #define INTERVAL_MS 1
 
-static int kTimeoutTimes = 5000;
-module_param(kTimeoutTimes, int, 0644);
-MODULE_PARM_DESC(kTimeoutTimes,
-                 "Timeout times for the transition. Default: 5000 * 1ms");
+static int kTimeout = 5;
+module_param(kTimeout, int, 0644);
+MODULE_PARM_DESC(kTimeout,
+                 "Timeout seconds for the transition. Default: 5s");
 
 static struct task_struct *daemon_task = NULL;
 
@@ -450,7 +450,7 @@ static int daemon_task_main(void *data) {
       } else {
         set_current_state(TASK_INTERRUPTIBLE);
         schedule_timeout(msecs_to_jiffies(INTERVAL_MS));
-        if (times++ > kTimeoutTimes) {
+        if (times++ > kTimeout * 1000 / INTERVAL_MS) {
           pr_err("[Transition] Transition failed\n");
           xk_detach_auxiliary_kprobes("daemon_task_main");
           set_xk_state(XK_FLAGS_FAILED);
@@ -471,7 +471,7 @@ static int daemon_task_main(void *data) {
       }
       set_current_state(TASK_INTERRUPTIBLE);
       schedule_timeout(msecs_to_jiffies(INTERVAL_MS));
-      if (times_reverse++ > kTimeoutTimes) {
+      if (times_reverse++ > kTimeout * 1000 / INTERVAL_MS) {
         pr_err("[Reverse Transition] Reverse transition failed\n");
         xk_detach_auxiliary_kprobes("daemon_task_main");
         set_xk_state(XK_FLAGS_REVERSE_FAILED);
@@ -515,7 +515,7 @@ static int daemon_main(void *data) {
       } else {
         set_current_state(TASK_INTERRUPTIBLE);
         schedule_timeout(msecs_to_jiffies(INTERVAL_MS));
-        if (times++ > kTimeoutTimes) {
+        if (times++ > kTimeout * 1000 / INTERVAL_MS) {
           pr_err("[Transition] Transition failed\n");
           BUG_ON(!xk_is_auxiliary_kprobes_on());
           xk_detach_auxiliary_kprobes("daemon_main");
@@ -538,7 +538,7 @@ static int daemon_main(void *data) {
       } else {
         set_current_state(TASK_INTERRUPTIBLE);
         schedule_timeout(msecs_to_jiffies(INTERVAL_MS));
-        if (times_reverse++ > kTimeoutTimes) {
+        if (times_reverse++ > kTimeout * 1000 / INTERVAL_MS) {
           pr_err("[Reverse Transition] Reverse transition failed\n");
           BUG_ON(!xk_is_auxiliary_kprobes_on());
           xk_detach_auxiliary_kprobes("daemon_main");
@@ -553,6 +553,8 @@ static int daemon_main(void *data) {
 
 static int __init consistency_init(void) {
   pr_info("Xkernel consistency module loaded\n");
+
+  pr_info("Timeout: %d seconds\n", kTimeout);
 
   if (kMode == 0) {
     pr_info("Immediate consistency model is enabled\n");

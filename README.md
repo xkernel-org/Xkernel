@@ -77,8 +77,8 @@ xkernel-tool load 0 bpf_kprobe/bpf/examples/blk-mq.bpf.o,bpf_kprobe/bpf/examples
 # Use per-task consistency model.
 xkernel-tool load 1 bpf_kprobe/bpf/examples/blk-mq.bpf.o
 
-# Use global consistency model.
-xkernel-tool load 2 bpf_kprobe/bpf/examples/blk-mq.bpf.o
+# Use global consistency model and set timeout to 3 seconds.
+xkernel-tool load 2 bpf_kprobe/bpf/examples/blk-mq.bpf.o 3
 ```
 
 ### 5. Unload all BPF programs
