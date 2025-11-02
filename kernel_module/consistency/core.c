@@ -22,7 +22,7 @@ MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Zhongjie");
 MODULE_DESCRIPTION("A kernel module for Xkernel's consistency model");
 
-#define TARGET_FUNCTIONS_FILE "/dev/shm/xkernel/target_functions"
+#define TARGET_FUNCTIONS_FILE "/dev/shm/xkernel/cs"
 
 LIST_HEAD(xk_target_functions);
 

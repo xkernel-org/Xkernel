@@ -68,8 +68,19 @@ Compile the eBPF programs.
 ```shell
 cd bpf_kprobe && make -j`nproc`
 ```
+### 4. Consistency Span
+Manuallywrite the consistency span in the `/dev/shm/xkernel/cs` file or use auto-generation tool (TODO).
 
-### 4. Load BPF programs
+Each line describes a consistency span with the following format:
+```
+ksys_mmap_pgoff,0xffffffffbb2354a0,0x43,0x6c
+```
+- ksys_mmap_pgoff: function name
+- 0xffffffffbb2354a0: the address of the function
+- 0x43: the start offset of the function
+- 0x6c: the end offset of the function
+
+### 5. Load BPF programs
 ```shell
 # Immediately enable the BPF Kprobes.
 xkernel-tool load 0 bpf_kprobe/bpf/examples/blk-mq.bpf.o,bpf_kprobe/bpf/examples/mmap.bpf.o
@@ -81,7 +92,7 @@ xkernel-tool load 1 bpf_kprobe/bpf/examples/blk-mq.bpf.o
 xkernel-tool load 2 bpf_kprobe/bpf/examples/blk-mq.bpf.o 3
 ```
 
-### 5. Unload all BPF programs
+### 6. Unload all BPF programs
 ```shell
 xkernel-tool unload
 ```
