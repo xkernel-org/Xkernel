@@ -14,5 +14,5 @@ for file in tests/*.bc; do
     opt -load-pass-plugin=build/libTaintTrackerPass.so \
         -passes="taint-tracker<foo;;3600;false>" \
         -disable-output \
-        $file
+        $file |& tee ${file%.bc}.results.txt
 done
