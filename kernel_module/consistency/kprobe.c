@@ -300,8 +300,8 @@ int xk_attach_auxiliary_kprobes(bool direction, char *debug_info) {
   mutex_unlock(&aux_kprobes_mtx);
   return 0;
 err:
-  xk_detach_auxiliary_kprobes("xk_attach_auxiliary_kprobes");
   mutex_unlock(&aux_kprobes_mtx);
+  xk_detach_auxiliary_kprobes("xk_attach_auxiliary_kprobes");
   return ret;
 }
 
