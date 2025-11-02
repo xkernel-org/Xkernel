@@ -2,9 +2,17 @@
 
 show_help() {
     echo "Usage: $0 <command> [options]"
+    echo
     echo "Commands:"
-    echo "  load [0:Immediate, 1:Per-task, 2:Global] [file1,file2,...] [Timeout seconds]   Load BPF kprobes for listed files"
-    echo "  unload                   Unload all loaded BPF kprobes"
+    echo "  load      Load BPF kprobes for specified files"
+    echo "  unload    Unload all loaded BPF kprobes"
+    echo "  trace     Trace the kernel logs"
+    echo
+    echo "Options for 'load' command:"
+    echo "  [0:Immediate, 1:Per-task, 2:Global]   (required) Mode of consistency guarantee"
+    echo "  [file1,file2,...]                     (required) List of BPF files to load"
+    echo "  [Timeout seconds]                     (optional) Timeout duration in seconds"
+    echo
     exit 1
 }
 
@@ -71,6 +79,9 @@ elif [ "$COMMAND" = "unload" ]; then
     
     echo "Check dmesg to see if the transition is successful."
 
+    exit 0
+elif [ "$COMMAND" = "trace" ]; then
+    sudo bpftool prog tracelog
     exit 0
 else
     show_help

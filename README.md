@@ -86,6 +86,22 @@ xkernel-tool load 2 bpf_kprobe/bpf/examples/blk-mq.bpf.o 3
 xkernel-tool unload
 ```
 
+### xkernel-tool
+
+```shell
+Usage: ./xkernel-tool <command> [options]
+
+Commands:
+  load      Load BPF kprobes for specified files
+  unload    Unload all loaded BPF kprobes
+  trace     Trace the kernel logs
+
+Options for 'load' command:
+  [0:Immediate, 1:Per-task, 2:Global]   (required) Mode of consistency guarantee
+  [file1,file2,...]                     (required) List of BPF files to load
+  [Timeout seconds]                     (optional) Timeout duration in seconds
+```
+
 ### Example outputs of different consistency models
 
 #### Global consistency model:
