@@ -187,8 +187,8 @@ static int handler_unguard(struct kprobe *kp, struct pt_regs *regs) {
             break;
           }
         }
-        pr_info("Task has finished its transition, freeing refcount, time "
-                "cost: %lldus\n",
+        pr_info("Task [%d/%s] has finished its transition, freeing refcount, time "
+                "cost: %lldus\n", current->pid, current->comm,
                 ktime_to_us(ktime_sub(ktime_get(), ref->start)));
         free_refcount(ref);
       }

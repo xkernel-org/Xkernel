@@ -115,6 +115,9 @@ void free_refcount(struct xk_refcount *ref) {
     hlist_del(&ref->node);
     kfree(ref);
     atomic_dec(&ref_hash_size);
+    if (ref_get_hash_size() == 0) {
+      pr_info("All refcounts have been freed: %lld us\n", ktime_to_us(ktime_sub(ktime_get(), start)));
+    }
   }
 }
 
