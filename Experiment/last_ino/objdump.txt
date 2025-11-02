@@ -1,0 +1,60 @@
+(base) yltang@node-0:~/sdb/Xkernel$ sudo python new_dump.py --func get_next_ino
+Symbol  : get_next_ino  [vmlinux]
+Start   : 0xffffffffba455470
+Stop    : 0xffffffffba4554f0  (source: next text sym in same module)
+Syms    : /proc/kallsyms
+(+0x0)ffffffffba455470 <load1+0x855470>:
+(+0x0)ffffffffba455470: 0f 1f 44 00 00          nopl   0x0(%rax,%rax,1)
+(+0x5)ffffffffba455475: 65 ff 05 8c 0d be 45    incl   %gs:0x45be0d8c(%rip)        # 0x36208
+(+0xc)ffffffffba45547c: 65 48 8b 15 94 45 bc    mov    %gs:0x45bc4594(%rip),%rdx        # 0x19a18
+(+0x13)ffffffffba455483:        45 
+(+0x14)ffffffffba455484:        8b 82 70 2e 03 00       mov    0x32e70(%rdx),%eax
+--- (+0x1a)ffffffffba45548a:        a9 ff 03 00 00          test   $0x3ff,%eax
+--- test $0x1ff, %eax
+(+0x1f)ffffffffba45548f:        74 23                   je     0xffffffffba4554b4
+(+0x21)ffffffffba455491:        83 c0 01                add    $0x1,%eax
+(+0x24)ffffffffba455494:        b9 01 00 00 00          mov    $0x1,%ecx
+(+0x29)ffffffffba455499:        0f 44 c1                cmove  %ecx,%eax
+(+0x2c)ffffffffba45549c:        89 82 70 2e 03 00       mov    %eax,0x32e70(%rdx)
+(+0x32)ffffffffba4554a2:        65 ff 0d 5f 0d be 45    decl   %gs:0x45be0d5f(%rip)        # 0x36208
+(+0x39)ffffffffba4554a9:        74 18                   je     0xffffffffba4554c3
+(+0x3b)ffffffffba4554ab:        31 d2                   xor    %edx,%edx
+(+0x3d)ffffffffba4554ad:        31 c9                   xor    %ecx,%ecx
+(+0x3f)ffffffffba4554af:        c3                      ret
+(+0x40)ffffffffba4554b0:        cc                      int3
+(+0x41)ffffffffba4554b1:        cc                      int3
+(+0x42)ffffffffba4554b2:        cc                      int3
+(+0x43)ffffffffba4554b3:        cc                      int3
+--- (+0x44)ffffffffba4554b4:        b8 00 04 00 00          mov    $0x400,%eax
+--- mov $0x200, %eax
+(+0x49)ffffffffba4554b9:        f0 0f c1 05 27 d5 8f    lock xadd %eax,0x28fd527(%rip)        # 0xffffffffbcd529e8
+(+0x50)ffffffffba4554c0:        02 
+(+0x51)ffffffffba4554c1:        eb ce                   jmp    0xffffffffba455491
+(+0x53)ffffffffba4554c3:        55                      push   %rbp
+(+0x54)ffffffffba4554c4:        48 89 e5                mov    %rsp,%rbp
+(+0x57)ffffffffba4554c7:        0f 1f 44 00 00          nopl   0x0(%rax,%rax,1)
+(+0x5c)ffffffffba4554cc:        5d                      pop    %rbp
+(+0x5d)ffffffffba4554cd:        31 d2                   xor    %edx,%edx
+(+0x5f)ffffffffba4554cf:        31 c9                   xor    %ecx,%ecx
+(+0x61)ffffffffba4554d1:        c3                      ret
+(+0x62)ffffffffba4554d2:        cc                      int3
+(+0x63)ffffffffba4554d3:        cc                      int3
+(+0x64)ffffffffba4554d4:        cc                      int3
+(+0x65)ffffffffba4554d5:        cc                      int3
+(+0x66)ffffffffba4554d6:        66 2e 0f 1f 84 00 00    cs nopw 0x0(%rax,%rax,1)
+(+0x6d)ffffffffba4554dd:        00 00 00 
+(+0x70)ffffffffba4554e0:        90                      nop
+(+0x71)ffffffffba4554e1:        90                      nop
+(+0x72)ffffffffba4554e2:        90                      nop
+...
+
+
+--- Diff for fs/inode.c ---
+--- /users/yltang/sdb/linux-6.14/BUILDO/fs_inode_c_original.disas.txt   2025-11-01 05:04:55.662300815 -0400
++++ /users/yltang/sdb/linux-6.14/BUILDO/fs_inode_c_recompiled.disas.txt 2025-11-01 05:05:01.551903710 -0400
+@@ -1105 +1105 @@
+-     9ea:      a9 ff 03 00 00          test   $0x3ff,%eax
++     9ea:      a9 ff 01 00 00          test   $0x1ff,%eax
+@@ -1116 +1116 @@
+-     a14:      b8 00 04 00 00          mov    $0x400,%eax
++     a14:      b8 00 02 00 00          mov    $0x200,%eax

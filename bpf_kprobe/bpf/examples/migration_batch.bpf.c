@@ -17,15 +17,19 @@ SEC("kprobe/migrate_pages+0x117")
 int BPF_KPROBE(migrate_pages_0x117){
     int eax = (int)BPF_EAX(ctx);
     /* Modify it here */
-    if(eax > 1023) 
+    if(eax > 1023){
         BPF_SET_JG_TRUE(ctx);
+        bpf_printk("0x117\n");
+    }
     return 0;
 }
 
 SEC("kprobe/migrate_pages+0x164")
 int BPF_KPROBE(migrate_pages_0x164){
     int eax = (int)BPF_EAX(ctx);
-    if(eax > 1023)
+    if(eax > 1023){
         BPF_SET_JG_TRUE(ctx);
+        bpf_printk("0x164\n");
+    }
     return 0;
 }

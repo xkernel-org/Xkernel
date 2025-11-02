@@ -58,6 +58,7 @@ int BPF_KPROBE(__tlb_batch_free_encoded_pages_0x29){
     // set to 0x800(2048)
     // set to 0x400(1024)
     BPF_SET_EBX(ctx, 0x400);
+    bpf_printk("0x29\n");
     return 0;
 }
 
@@ -67,7 +68,9 @@ int BPF_KPROBE(__tlb_batch_free_encoded_pages_0x8e){
     u64 eax = (u64)BPF_EAX(ctx);
     // set to 0x7ff(2047)
     // set to 0x3ff(1023)
-    if(eax > 1023) 
+    if(eax > 1023){ 
         BPF_SET_JA_TRUE(ctx); 
+        bpf_printk("0x8e\n");
+    }
     return 0;
 }

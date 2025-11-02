@@ -189,6 +189,11 @@
 #define BPF_RCS(ctx) ((u64)(ctx->cs))
 #define BPF_RSS(ctx) ((u64)(ctx->ss))
 
+#define BPF_R8(ctx)  ((u64)(ctx->r8))
+#define BPF_R9(ctx)  ((u64)(ctx->r9))
+#define BPF_R10(ctx) ((u64)(ctx->r10))
+#define BPF_R11(ctx) ((u64)(ctx->r11))
+
 #define BPF_R12(ctx) ((u64)(ctx->r12))
 #define BPF_R13(ctx) ((u64)(ctx->r13))
 #define BPF_R14(ctx) ((u64)(ctx->r14))
@@ -198,6 +203,7 @@
 #define BPF_SET_RBX(ctx, value) BPF_SET_REG_64(ctx, bx, value)
 #define BPF_SET_RCX(ctx, value) BPF_SET_REG_64(ctx, cx, value)
 #define BPF_SET_RDX(ctx, value) BPF_SET_REG_64(ctx, dx, value)
+#define BPF_SET_RSI(ctx, value) BPF_SET_REG_64(ctx, si, value)
 
 // 32-bit registers
 #define BPF_EAX(ctx) (u32)((u64)(ctx->ax) & BPF_32BIT_MASK)
@@ -218,6 +224,7 @@
 #define BPF_SET_ECX(ctx, value) BPF_SET_REG_32(ctx, cx, value)
 #define BPF_SET_EDX(ctx, value) BPF_SET_REG_32(ctx, dx, value)
 #define BPF_SET_ESI(ctx, value) BPF_SET_REG_32(ctx, si, value)
+#define BPF_SET_EDI(ctx, value) BPF_SET_REG_32(ctx, di, value)
 
 #define BPF_16BIT_MASK 0x0000ffff
 // 16-bit registers
@@ -245,6 +252,22 @@
 #define BPF_ZF(ctx) ((u64)(ctx->flags) & BPF_ZF_MASK)
 #define BPF_SF(ctx) ((u64)(ctx->flags) & BPF_SF_MASK)
 #define BPF_OF(ctx) ((u64)(ctx->flags) & BPF_OF_MASK)
+
+#define BPF_SET_ZF_TRUE(ctx)                                                   \
+  do {                                                                         \
+    u64 flags = BPF_EFLAGS(ctx);                                               \
+    flags |= BPF_ZF_MASK;                                                      \
+    kfuncs_probe_write_kernel(&ctx->flags, sizeof(flags), &flags,              \
+                              sizeof(flags));                                  \
+  } while (0)
+
+#define BPF_SET_ZF_FALSE(ctx)                                                   \
+do {                                                                         \
+  u64 flags = BPF_EFLAGS(ctx);                                               \
+  flags &= ~BPF_ZF_MASK;                                                      \
+  kfuncs_probe_write_kernel(&ctx->flags, sizeof(flags), &flags,              \
+                            sizeof(flags));                                  \
+} while (0)
 
 #define BPF_SET_CF_TRUE(ctx)                                                   \
   do {                                                                         \
