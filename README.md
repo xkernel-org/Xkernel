@@ -69,32 +69,111 @@ Compile the eBPF programs.
 cd bpf_kprobe && make -j`nproc`
 ```
 
-### 4. Load kfuncs module
+### 4. Load BPF programs
 ```shell
-sudo insmod kernel_module/kfuncs/xk-kfuncs.ko # Global consistency model
-sudo insmod kernel_module/kfuncs/xk-kfuncs.ko kTask=1 # Per-task consistency model
+# Immediately enable the BPF Kprobes.
+xkernel-tool load 0 bpf_kprobe/bpf/examples/blk-mq.bpf.o,bpf_kprobe/bpf/examples/mmap.bpf.o
+
+# Use per-task consistency model.
+xkernel-tool load 1 bpf_kprobe/bpf/examples/blk-mq.bpf.o
+
+# Use global consistency model.
+xkernel-tool load 2 bpf_kprobe/bpf/examples/blk-mq.bpf.o
 ```
 
-### 5. Load BPF programs
-
-The loader will detect the function name and the offset automatically.
-
-`sudo ./kprobe_loader --files blk-mq.bpf.o`.
-
-Multiple BPF files are also supported, separated by comma.
-
-`sudo ./kprobe_loader --files example1.bpf.o,example2.bpf.o`.
-
-Note that the new values have not taken effect yet.
-
-## 6. Load consistency module
-Xkernel provides two following consistency models:
-1. Per-task consistency model: Each task transitions to the new value independently.
-2. Global consistency model: All tasks transition to the new value together.
-
+### 5. Unload all BPF programs
+```shell
+xkernel-tool unload
 ```
-sudo insmod kernel_module/consistency/xk-consistency.ko
-sudo rmmod xk_consistency
+
+### Example outputs of different consistency models
+
+#### Global consistency model:
+```shell
+[107775.520824] Xkernel consistency module loaded
+[107775.520829] Global consistency model is enabled
+[107775.994777] stop_machine overhead: 46 us
+[107775.994820] [Target Functions] [ksys_mmap_pgoff] at 0xffffffffbb2354a0 with span [0x43, 0x6c]
+[107775.996365] Function ksys_mmap_pgoff[0x43, 0x6c] found in stack trace for task [test 0/149514]
+[107775.996370] Stack trace for task [test 0]:
+[107775.996372]   [0] vm_mmap_pgoff+0xc0/0x1a0
+[107775.996377]   [1] ksys_mmap_pgoff+0x4a/0x270
+[107775.996381]   [2] __x64_sys_mmap+0x33/0x70
+[107775.996385]   [3] x64_sys_call+0x1fce/0x25a0
+[107775.996388]   [4] do_syscall_64+0x7f/0x180
+[107775.996393]   [5] entry_SYSCALL_64_after_hwframe+0x78/0x80
+[107775.996397] Function ksys_mmap_pgoff[0x43, 0x6c] found in stack trace for task [test 2/149516]
+[107775.996399] Stack trace for task [test 2]:
+[107775.996400]   [0] vm_mmap_pgoff+0xc0/0x1a0
+[107775.996403]   [1] ksys_mmap_pgoff+0x4a/0x270
+[107775.996405]   [2] __x64_sys_mmap+0x33/0x70
+[107775.996408]   [3] x64_sys_call+0x1fce/0x25a0
+[107775.996410]   [4] do_syscall_64+0x7f/0x180
+[107775.996412]   [5] entry_SYSCALL_64_after_hwframe+0x78/0x80
+[107775.996415] Function ksys_mmap_pgoff[0x43, 0x6c] found in stack trace for task [test 3/149517]
+[107775.996417] Stack trace for task [test 3]:
+[107775.996418]   [0] vm_mmap_pgoff+0xc0/0x1a0
+[107775.996420]   [1] ksys_mmap_pgoff+0x4a/0x270
+[107775.996423]   [2] __x64_sys_mmap+0x33/0x70
+[107775.996425]   [3] x64_sys_call+0x1fce/0x25a0
+[107775.996427]   [4] do_syscall_64+0x7f/0x180
+[107775.996429]   [5] entry_SYSCALL_64_after_hwframe+0x78/0x80
+[107775.996433] Function ksys_mmap_pgoff[0x43, 0x6c] found in stack trace for task [test 5/149519]
+[107775.996434] Stack trace for task [test 5]:
+[107775.996435]   [0] vm_mmap_pgoff+0xc0/0x1a0
+[107775.996437]   [1] ksys_mmap_pgoff+0x4a/0x270
+[107775.996440]   [2] __x64_sys_mmap+0x33/0x70
+[107775.996442]   [3] x64_sys_call+0x1fce/0x25a0
+[107775.996444]   [4] do_syscall_64+0x7f/0x180
+[107775.996447]   [5] entry_SYSCALL_64_after_hwframe+0x78/0x80
+[107775.996463] Initial refcount: 4
+[107775.996484] [Transition] Waiting for transition to be done or failed
+[107776.015601] [Transition] Transition done, time: 19019 us
+```
+
+#### Per-task consistency model:
+```shell
+[107846.049951] Xkernel consistency module loaded
+[107846.049956] Per-task consistency model is enabled
+[107846.547789] stop_machine overhead: 49 us
+[107846.547832] [Target Functions] [ksys_mmap_pgoff] at 0xffffffffbb2354a0 with span [0x43, 0x6c]
+[107846.549399] Function ksys_mmap_pgoff[0x43, 0x6c] found in stack trace for task [test 0/149862]
+[107846.549405] Stack trace for task [test 0]:
+[107846.549406]   [0] vm_mmap_pgoff+0xc0/0x1a0
+[107846.549412]   [1] ksys_mmap_pgoff+0x4a/0x270
+[107846.549416]   [2] __x64_sys_mmap+0x33/0x70
+[107846.549420]   [3] x64_sys_call+0x1fce/0x25a0
+[107846.549424]   [4] do_syscall_64+0x7f/0x180
+[107846.549428]   [5] entry_SYSCALL_64_after_hwframe+0x78/0x80
+[107846.549432] Function ksys_mmap_pgoff[0x43, 0x6c] found in stack trace for task [test 1/149864]
+[107846.549434] Stack trace for task [test 1]:
+[107846.549435]   [0] vm_mmap_pgoff+0xc0/0x1a0
+[107846.549437]   [1] ksys_mmap_pgoff+0x4a/0x270
+[107846.549440]   [2] __x64_sys_mmap+0x33/0x70
+[107846.549442]   [3] x64_sys_call+0x1fce/0x25a0
+[107846.549444]   [4] do_syscall_64+0x7f/0x180
+[107846.549447]   [5] entry_SYSCALL_64_after_hwframe+0x78/0x80
+[107846.549450] Function ksys_mmap_pgoff[0x43, 0x6c] found in stack trace for task [test 2/149865]
+[107846.549451] Stack trace for task [test 2]:
+[107846.549452]   [0] vm_mmap_pgoff+0xc0/0x1a0
+[107846.549455]   [1] ksys_mmap_pgoff+0x4a/0x270
+[107846.549457]   [2] __x64_sys_mmap+0x33/0x70
+[107846.549459]   [3] x64_sys_call+0x1fce/0x25a0
+[107846.549461]   [4] do_syscall_64+0x7f/0x180
+[107846.549464]   [5] entry_SYSCALL_64_after_hwframe+0x78/0x80
+[107846.549467] Function ksys_mmap_pgoff[0x43, 0x6c] found in stack trace for task [test 4/149867]
+[107846.549469] Stack trace for task [test 4]:
+[107846.549470]   [0] vm_mmap_pgoff+0xc0/0x1a0
+[107846.549472]   [1] ksys_mmap_pgoff+0x4a/0x270
+[107846.549475]   [2] __x64_sys_mmap+0x33/0x70
+[107846.549477]   [3] x64_sys_call+0x1fce/0x25a0
+[107846.549479]   [4] do_syscall_64+0x7f/0x180
+[107846.549481]   [5] entry_SYSCALL_64_after_hwframe+0x78/0x80
+[107846.549521] [Transition] Waiting for transition to be done or failed
+[107846.552324] Task has finished its transition, freeing refcount, time cost: 2889us
+[107846.552332] Task has finished its transition, freeing refcount, time cost: 2863us
+[107846.553322] Task has finished its transition, freeing refcount, time cost: 3917us
+[107846.553336] Task has finished its transition, freeing refcount, time cost: 3884us
 ```
 
 ## Text Poke Functionality
