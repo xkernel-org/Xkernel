@@ -44,11 +44,11 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
 
         std::string s;
         raw_string_ostream os(s);
-        os << " [" << DL->getFilename() << ":" << DL->getLine();
+        os << " <" << DL->getFilename() << ":" << DL->getLine();
         if (DL->getColumn() != 0) {
             os << ":" << DL->getColumn();
         }
-        os << "]";
+        os << ">";
         return os.str();
     }
 
