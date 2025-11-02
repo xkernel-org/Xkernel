@@ -98,7 +98,7 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
                                         if (StoreInst *Store = dyn_cast<StoreInst>(&I)) {
                                             Value *Ptr = Store->getPointerOperand()->stripPointerCasts();
                                             if (TaintedPointers.insert(Ptr).second) {
-                                                errs() << "[SOURCE] Marking pointer as tainted: "
+                                                errs() << "[STORE] Marking pointer as tainted: "
                                                        << getValueName(Ptr) << getDebugLoc(Store) << "\n";
                                             }
                                         }
@@ -116,7 +116,7 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
                                                             Argument *Param = Callee->getArg(ArgIdx);
                                                             if (TaintedValues.insert(Param).second) {
                                                                 Worklist.push_back(Param);
-                                                                errs() << "[INTERPROC] Tainting parameter in "
+                                                                errs() << "[CHILD FUNCTION] Tainting parameter in "
                                                                        << Callee->getName() << ": "
                                                                        << getValueName(Param) << getDebugLoc(Call) << "\n";
                                                             }
@@ -151,9 +151,9 @@ found:
                 Value *V = Worklist.pop_back_val();
 
                 if (!V->user_empty())
-                    errs() << "[PROP] Processing uses of: " << getValueName(V) << "\n";
+                    errs() << "[USE] Processing uses of: " << getValueName(V) << "\n";
                 else
-                    errs() << "[PROP] No uses of: " << getValueName(V) << "\n";
+                    errs() << "[NO USE] No uses of: " << getValueName(V) << "\n";
 
                 for (User *U : V->users()) {
                     if (Instruction *UserInst = dyn_cast<Instruction>(U)) {
@@ -179,21 +179,21 @@ found:
                                         Argument *Param = Callee->getArg(argIdx);
                                         if (TaintedValues.insert(Param).second) {
                                             Worklist.push_back(Param);
-                                            errs() << "  [INTERPROC] Propagating taint to parameter in "
+                                            errs() << "  [TODO INTERPROC] Propagating taint to parameter in "
                                                    << Callee->getName() << ": "
                                                    << getValueName(Param) << getDebugLoc(Call) << "\n";
                                             changed = true;
                                         }
                                     }
                                 }
-                                errs() << "  [SINK] Tainted value used in function call: "
+                                errs() << "  [TODO SINK] Tainted value used in function call: "
                                        << getValueName(Call) << getDebugLoc(Call) << "\n";
                                 // Don't continue - still propagate the call itself
                             }
                         }
                         if (ReturnInst *Ret = dyn_cast<ReturnInst>(UserInst)) {
                             if (Ret->getReturnValue() == V) {
-                                errs() << "  [SINK] Stop: Tainted value is returned: "
+                                errs() << "  [RETURN] Stop: Tainted value is returned: "
                                        << getValueName(Ret) << getDebugLoc(Ret) << "\n";
                                 continue;
                             }
@@ -202,13 +202,13 @@ found:
                             if (Store->getValueOperand() == V) {
                                 Value *Ptr = Store->getPointerOperand()->stripPointerCasts();
                                 if (isa<GlobalVariable>(Ptr)) {
-                                    errs() << "  [SINK] Stop: Tainted value stored in Global Variable: "
+                                    errs() << "  [GLOBAL] Stop: Tainted value stored in Global Variable: "
                                            << Ptr->getName() << getDebugLoc(Store) << "\n";
                                     continue;
                                 }
                                 if (Argument *Arg = dyn_cast<Argument>(Ptr)) {
                                     if (Arg->getType()->isPointerTy()) {
-                                        errs() << "  [SINK] Stop: Tainted value stored to Pointer Parameter: "
+                                        errs() << "  [POINTER PARAMETER] Stop: Tainted value stored to Pointer Parameter: "
                                                << Arg->getName() << getDebugLoc(Store) << "\n";
                                         continue;
                                     }
@@ -216,7 +216,7 @@ found:
                                 // For local variables, mark the pointer as tainted
                                 // This allows us to track through variable assignments
                                 if (TaintedPointers.insert(Ptr).second) {
-                                    errs() << "  [TRACK] Marking pointer as tainted: "
+                                    errs() << "  [STORE DESTINATION] Marking pointer as tainted: "
                                            << getValueName(Ptr) << getDebugLoc(Store) << "\n";
                                     changed = true;  // We found a new tainted pointer
                                 }
@@ -226,7 +226,7 @@ found:
                         // --- Propagate Taint ---
                         if (TaintedValues.insert(UserInst).second) {
                             Worklist.push_back(UserInst);
-                            errs() << "  [FLOW] Taint flows to: " << getValueName(UserInst) << getDebugLoc(UserInst) << "\n";
+                            errs() << "  [USE] Taint flows to: " << getValueName(UserInst) << getDebugLoc(UserInst) << "\n";
                         }
                     }
                 }
