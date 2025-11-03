@@ -11,7 +11,7 @@ int foo() {
     f = e / b;
     g = f % c;
 
-    if (a == g)
+    if (a == g) // FINDME
         return 1;
     return 0;
 }

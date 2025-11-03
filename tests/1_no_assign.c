@@ -2,7 +2,7 @@
 
 int foo() {
     int a = 100;
-    if (a == MACRO)
+    if (a == MACRO) // FINDME
         return 1;
     return 0;
 }
