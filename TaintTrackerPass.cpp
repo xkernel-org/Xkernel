@@ -98,7 +98,7 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
                                         if (StoreInst *Store = dyn_cast<StoreInst>(&I)) {
                                             Value *Ptr = Store->getPointerOperand()->stripPointerCasts();
                                             if (TaintedPointers.insert(Ptr).second) {
-                                                errs() << "[STORE] Marking pointer as tainted: "
+                                                errs() << "[STORE DESTINATION] Marking pointer as tainted: "
                                                        << getValueName(Ptr) << getDebugLoc(Store) << "\n";
                                             }
                                         }
@@ -251,7 +251,7 @@ found:
                                 if (!TaintedValues.count(Store)) {
                                     KilledStores.insert(Store);
                                     errs() << "[KILL] Store overwrites tainted pointer with non-tainted value: "
-                                           << getValueName(Store) << getDebugLoc(Store) << "\n";
+                                           << getValueName(Store) /* << getDebugLoc(Store) */<< "\n";
                                 }
                             }
                         }
@@ -314,7 +314,7 @@ found:
 
                                 if (afterKill) {
                                     errs() << "[SKIP] Load after kill, not tainting: "
-                                           << getValueName(Load) << getDebugLoc(Load) << "\n";
+                                           << getValueName(Load) << /* getDebugLoc(Load) << */ "\n";
                                     continue;
                                 }
 
