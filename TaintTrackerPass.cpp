@@ -169,7 +169,7 @@ found:
                                 Function *Callee = Call->getCalledFunction();
                                 if (Callee && !Callee->isDeclaration()) {
                                     // Report but don't propagate into callee
-                                    errs() << "  [CHILD FUNCTION] Tainted value used in call to "
+                                    errs() << "  [** CHILD FUNCTION] Tainted value used in call to "
                                            << Callee->getName() << " at argument " << argIdx
                                            << getDebugLoc(Call) << "\n";
                                 } else {
