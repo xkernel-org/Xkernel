@@ -43,10 +43,10 @@ if [ "$COMMAND" = "load" ]; then
         exit 1
     fi
 
-    echo "[Step 1] Loading kfuncs module..."
+    echo "Loading kfuncs module..."
     sudo insmod ./kernel_module/kfuncs/xk-kfuncs.ko kMode=$MODE
     
-    echo "[Step 2] Successfully loading BPF Kprobes:"
+    echo "Successfully loading BPF Kprobes:"
     sudo "$LOADER" --files "$FILES" --pin
     STATUS=$?
     if [ $STATUS -ne 0 ]; then
@@ -54,27 +54,29 @@ if [ "$COMMAND" = "load" ]; then
         exit $STATUS
     fi
 
-    echo "[Step 3] Loading consistency module for transition..."
-    timeout=$4
+    if [ "$MODE" -eq 2 ]; then
+        echo "Loading global consistency module for transition..."
+        timeout=$4
 
-    if [ -z "$timeout" ]; then
-        sudo insmod ./kernel_module/consistency/xk-consistency.ko
-    else
-        sudo insmod ./kernel_module/consistency/xk-consistency.ko kTimeout=$timeout
+        if [ -z "$timeout" ]; then
+            sudo insmod ./kernel_module/consistency/xk-consistency.ko
+        else
+            sudo insmod ./kernel_module/consistency/xk-consistency.ko kTimeout=$timeout
+        fi
+
+        echo "Check dmesg to see if the transition is successful."
     fi
 
-    echo "Check dmesg to see if the transition is successful."
-
 elif [ "$COMMAND" = "unload" ]; then
-    echo "[Step 1] Unloading consistency module for transition..."
-    sudo rmmod xk-consistency
+    echo "Unloading global consistency module for transition (if loaded)..."
+    sudo rmmod xk-consistency > /dev/null 2>&1
 
-    echo "[Step 2] Unloading BPF Kprobes..."
+    echo "Unloading BPF Kprobes..."
     sudo rm -rf /sys/fs/bpf/xkernel
 
     # Give bpf tools time to detach the kprobes.
     sleep 2
-    echo "[Step 3] Unloading kfuncs module..."
+    echo "Unloading kfuncs module..."
     sudo rmmod xk-kfuncs
     
     echo "Check dmesg to see if the transition is successful."

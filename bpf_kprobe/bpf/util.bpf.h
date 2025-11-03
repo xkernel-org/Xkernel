@@ -8,6 +8,9 @@
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 
+#define unlikely(x) __builtin_expect(!!(x), 0)
+#define likely(x) __builtin_expect(!!(x), 1)
+
 #define ONE_SHOT_ENV(addr, len) \
   SEC(".bss"); \
   void *__target_addr = (void *)addr; \
@@ -110,6 +113,9 @@
     (unsigned char)insn[5], \
     (unsigned char)insn[6], \
     (unsigned char)insn[7]);
+
+#define LOG_PANIC(fmt, ...) \
+  bpf_printk("PANIC: " fmt, ##__VA_ARGS__);
 
 #define LOG_CPU(fmt, ...)                                                      \
   bpf_printk("cpu: %d, " fmt, bpf_get_smp_processor_id(), ##__VA_ARGS__);

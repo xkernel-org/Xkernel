@@ -22,51 +22,12 @@ module_param(kMode, int, 0644);
 MODULE_PARM_DESC(kMode, "0: Immediate, 1: Per-task, 2: Global");
 EXPORT_SYMBOL(kMode);
 
-// Per-task consistency model
-// 0: all tasks are not ready
-// 1: traverse pid list to check if ready
-// 2: all tasks are ready
-int transition = 0;
-EXPORT_SYMBOL(transition);
-struct transition_task {
-  pid_t pid;
-  struct hlist_node node;
-};
-// This list is protected by RCU and shared with consistency kernel module.
-#define TRANSITION_TASK_HASH_BITS 8
-DEFINE_HASHTABLE(transition_task_hash_table, TRANSITION_TASK_HASH_BITS);
-EXPORT_SYMBOL(transition_task_hash_table);
-
-static bool check_transition_done(pid_t pid) {
-  struct transition_task *task;
-  int bucket = hash_32(pid, TRANSITION_TASK_HASH_BITS);
-  rcu_read_lock();
-  hlist_for_each_entry_rcu(task, &transition_task_hash_table[bucket], node) {
-    if (task->pid == pid) {
-      rcu_read_unlock();
-      return false;
-    }
-  }
-  rcu_read_unlock();
-  return true;
-}
-
 __bpf_kfunc_start_defs();
+__bpf_kfunc int kfuncs_get_consistency_mode(void) {
+  return kMode;
+}
 __bpf_kfunc bool kfuncs_is_ir_kprobes_on(void) {
-  if (kMode == 0) { // Immediate
-    return true;
-  } else if (kMode == 1) { // Per-task consistency model
-    int t = READ_ONCE(transition);
-    if (t == 0) {
-      return false;
-    } else if (t == 2) {
-      return true;
-    } else {
-      return check_transition_done(current->pid);
-    }
-  } else { // Global consistency model
-    return READ_ONCE(ir_kprobes_on);
-  }
+  return READ_ONCE(ir_kprobes_on);
 }
 __bpf_kfunc_end_defs();
 
@@ -96,6 +57,7 @@ __bpf_kfunc_end_defs();
 BTF_SET8_START(bpf_kfunc_example_ids_set)
 BTF_ID_FLAGS(func, kfuncs_probe_write_kernel)
 BTF_ID_FLAGS(func, kfuncs_is_ir_kprobes_on)
+BTF_ID_FLAGS(func, kfuncs_get_consistency_mode)
   #ifdef BPF_TEXT_POKE
   BTF_ID_FLAGS(func, kfuncs_text_poke)
   #endif
@@ -104,6 +66,7 @@ BTF_SET8_END(bpf_kfunc_example_ids_set)
 BTF_KFUNCS_START(bpf_kfunc_example_ids_set)
 BTF_ID_FLAGS(func, kfuncs_probe_write_kernel)
 BTF_ID_FLAGS(func, kfuncs_is_ir_kprobes_on)
+BTF_ID_FLAGS(func, kfuncs_get_consistency_mode)
   #ifdef BPF_TEXT_POKE
   BTF_ID_FLAGS(func, kfuncs_text_poke)
   #endif

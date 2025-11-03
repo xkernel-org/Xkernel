@@ -11,6 +11,11 @@
 
 namespace xkernel {
 
+struct critical_span {
+  __u64 soff;
+  __u64 eoff;
+};
+
 struct xkernel_prog_params {
   // BPF function name
   const char *bpf_func_name;
@@ -35,6 +40,8 @@ public:
 
   int detach_all_progs_one_shot();
 
+  int load_cricial_spans(const char *cs_path);
+
   int dump_stack_trace();
 
 private:
@@ -52,6 +59,7 @@ private:
                        const char *kernel_func_name, std::string pin_path);
   int attach_kprobe(struct ::bpf_program *prog, const char *kernel_func_name,
                     size_t offset, std::string pin_path);
+                    
   void print_stack_trace(uint32_t stack_id);
 };
 

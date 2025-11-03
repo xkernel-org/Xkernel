@@ -8,6 +8,10 @@
 #include <string>
 #include <mutex>
 #include <string>
+#include <fstream>
+#include <sstream>
+#include <vector>
+#include <algorithm>
 
 namespace xkernel {
 
@@ -169,6 +173,82 @@ int XKernelLoader::attach_all_progs() {
     if (ret)
       return ret;
   }
+  return 0;
+}
+
+int XKernelLoader::load_cricial_spans(const char *cs_path) {
+  auto cs_map = bpf_object__find_map_by_name(obj_, "cs_map");
+  if (!cs_map) {
+    fprintf(stderr, "Failed to find cs_map\n");
+    return -1;
+  }
+  auto cs_map_fd = bpf_map__fd(cs_map);
+  if (cs_map_fd < 0) {
+    fprintf(stderr, "Failed to get cs_map fd\n");
+    return -1;
+  }
+  auto cs_len_map = bpf_object__find_map_by_name(obj_, ".bss.cs_len");
+  if (!cs_len_map) {
+    fprintf(stderr, "Failed to find .bss.cs_len\n");
+    return -1;
+  }
+  auto cs_len_fd = bpf_map__fd(cs_len_map);
+  if (cs_len_fd < 0) {
+    fprintf(stderr, "Failed to get .bss.cs_len fd\n");
+    return -1;
+  }
+
+  std::ifstream cs_file(cs_path);
+  if (!cs_file.is_open()) {
+    fprintf(stderr, "Failed to open cs_file\n");
+    return -1;
+  }
+  
+  // The format looks like this (one per line, split by comma)
+  // function_name,function_address,soff,eoff
+  // e.g., vm_mmap_pgoff,0xffffffff98299640,0x6,0x161
+
+  std::vector<critical_span> cs_list;
+  std::string line;
+  while (std::getline(cs_file, line)) {
+    std::istringstream iss(line);
+    std::string function_name, function_address_str, soff_str, eoff_str;
+    std::getline(iss, function_name, ',');
+    std::getline(iss, function_address_str, ',');
+    std::getline(iss, soff_str, ',');
+    std::getline(iss, eoff_str, ',');
+    if (function_name.empty() || function_address_str.empty() || soff_str.empty() || eoff_str.empty()) {
+      fprintf(stderr, "Malformed line in %s: %s\n", cs_path, line.c_str());
+      continue;
+    }
+    __u64 function_address = std::stoull(function_address_str, nullptr, 16);
+    __u32 soff = std::stoul(soff_str, nullptr, 16);
+    __u32 eoff = std::stoul(eoff_str, nullptr, 16);
+    cs_list.push_back({
+      .soff = function_address + soff,
+      .eoff = function_address + eoff,
+    });
+  }
+
+  std::sort(cs_list.begin(), cs_list.end(), [](const critical_span &a, const critical_span &b) {
+    if (a.soff != b.soff) return a.soff < b.soff;
+    return a.eoff > b.eoff;
+  });
+
+  auto cs_len = cs_list.size();
+  __u32 key = 0;
+  if (bpf_map_update_elem(cs_len_fd, &key, &cs_len, BPF_ANY)) {
+    fprintf(stderr, "Failed to update cs_len\n");
+    return -1;
+  }
+
+  for (size_t i = 0; i < cs_list.size(); i++) {
+    if (bpf_map_update_elem(cs_map_fd, &i, &cs_list[i], BPF_ANY)) {
+      fprintf(stderr, "Failed to update cs_map\n");
+      return -1;
+    }
+  }
+
   return 0;
 }
 

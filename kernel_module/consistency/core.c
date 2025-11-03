@@ -53,15 +53,6 @@ static atomic_t ref_hash_size = ATOMIC_INIT(0);
 // xk-kfuncs.ko
 extern int kMode;
 extern bool ir_kprobes_on;
-extern int transition;
-struct transition_task {
-  pid_t pid;
-  struct hlist_node node;
-  struct rcu_head rcu;
-};
-#define TRANSITION_TASK_HASH_BITS 8
-extern struct hlist_head
-    transition_task_hash_table[1 << TRANSITION_TASK_HASH_BITS];
 
 void ref_hash_spinlock(unsigned long flags) {
   spin_lock_irqsave(&ref_hash_lock, flags);
@@ -152,14 +143,6 @@ void xk_enable_ir_kprobes(void) { WRITE_ONCE(ir_kprobes_on, true); }
 void xk_disable_ir_kprobes(void) { WRITE_ONCE(ir_kprobes_on, false); }
 bool xk_is_ir_kprobes_on(void) { return READ_ONCE(ir_kprobes_on); }
 
-// Per-task
-void xk_enable_ir_kprobes_task(int v) {
-  WARN_ON(v == 0);
-  WRITE_ONCE(transition, v);
-}
-
-void xk_disable_ir_kprobes_task(void) { WRITE_ONCE(transition, 0); }
-
 #ifdef DEBUG
 static void xk_print_stack(struct task_struct *task, unsigned long *entries,
                            int nb_entries) {
@@ -184,28 +167,10 @@ static bool xk_check_functions(struct task_struct *task, unsigned long *entries,
             "Function %s[0x%lx, 0x%lx] found in stack trace for task [%s/%d]\n",
             func->name, func->soff, func->eoff, task->comm, task->pid);
         /**
-         * Increment the global/per-task refcount to indicate that the function
+         * Increment the global refcount to indicate that the function
          * is being executed. This is used to fix the refcount of the task.
          */
-
-        if (kMode == 1) {
-          if (xk_inc_refcount_per_task(task->pid)) {
-            pr_err("Failed to increment the refcount for task %s\n",
-                   task->comm);
-          }
-
-          int bucket = hash_32(task->pid, TRANSITION_TASK_HASH_BITS);
-          struct transition_task *ttsk = kmalloc(sizeof(struct transition_task), GFP_ATOMIC);
-          if (!ttsk) {
-            pr_err("kmalloc failed for transition_task\n");
-          } else {
-            ttsk->pid = task->pid;
-            hlist_add_head_rcu(&ttsk->node,
-                               &transition_task_hash_table[bucket]);
-          }
-        } else {
-          xk_inc_refcount();
-        }
+         xk_inc_refcount();
 
         found = true;
       }
@@ -257,20 +222,14 @@ static int xk_check_stacks(void *data) {
   }
 
   if (need_transition) {
-    if (kMode == 2) {
-      pr_info("Initial refcount: %d\n", xk_refcount());
-    }
+    pr_info("Initial refcount: %d\n", xk_refcount());
     xk_enable_auxiliary_kprobes();
     start = ktime_get();
   } else {
     // No target functions are found in the stacks, so we can directly enable or
     // disable the IR kprobes.
     if (direction) {
-      if (kMode == 1) {
-        xk_enable_ir_kprobes_task(1);
-      } else {
-        xk_enable_ir_kprobes();
-      }
+      xk_enable_ir_kprobes();
     } else {
       xk_disable_ir_kprobes();
     }
@@ -364,54 +323,6 @@ out:
   return 0;
 }
 
-// Per-task refcount
-int xk_refcount_per_task(pid_t pid) {
-  struct xk_refcount *ref;
-  ref = find_or_alloc_refcount(pid);
-  if (!ref) {
-    return -ENOENT;
-  }
-  return atomic_read(&ref->refcount);
-}
-
-int xk_inc_refcount_per_task(pid_t pid) {
-  struct xk_refcount *ref;
-  ref = find_or_alloc_refcount(pid);
-  if (!ref) {
-    return -ENOMEM;
-  }
-  ref->start = ktime_get();
-  atomic_inc(&ref->refcount);
-  return 0;
-}
-
-int xk_inc_not_zero_per_task(pid_t pid) {
-  struct xk_refcount *ref;
-  ref = find_or_fail_refcount(pid);
-  if (!ref) {
-    return -ENOENT;
-  }
-  return atomic_inc_not_zero(&ref->refcount);
-}
-
-int xk_dec_if_positive_per_task(pid_t pid) {
-  struct xk_refcount *ref;
-  ref = find_or_fail_refcount(pid);
-  if (!ref) {
-    return -ENOENT;
-  }
-  return atomic_dec_if_positive(&ref->refcount);
-}
-
-void xk_reset_refcount_per_task(pid_t pid) {
-  struct xk_refcount *ref;
-  ref = find_or_fail_refcount(pid);
-  if (!ref) {
-    return;
-  }
-  atomic_set(&ref->refcount, 0);
-}
-
 // Global refcount
 int xk_refcount(void) { return atomic_read(&xk_global_refcount); }
 void xk_inc_refcount(void) { atomic_inc(&xk_global_refcount); }
@@ -421,70 +332,6 @@ int xk_dec_if_positive(void) {
   return atomic_dec_if_positive(&xk_global_refcount);
 }
 void xk_reset_refcount(void) { atomic_set(&xk_global_refcount, 0); }
-
-static int daemon_task_main(void *data) {
-  int ret = 0;
-  int times = 0;
-  int times_reverse = 0;
-
-  while (!kthread_should_stop()) {
-
-    if (get_xk_state() == XK_FLAGS_FAILED ||
-        get_xk_state() == XK_FLAGS_REVERSE_FAILED ||
-        get_xk_state() == XK_FLAGS_DONE ||
-        get_xk_state() == XK_FLAGS_REVERSE_DONE) {
-      set_current_state(TASK_INTERRUPTIBLE);
-      schedule();
-      // Let consistency_exit() to stop the daemon task.
-      continue;
-    }
-
-    if (get_xk_state() == XK_FLAGS_PENDING) {
-      if (ref_get_hash_size() == 0) {
-
-        xk_enable_ir_kprobes_task(2);
-
-        // It's time to detach the auxiliary kprobes
-        xk_detach_auxiliary_kprobes("daemon_task_main");
-        set_xk_state(XK_FLAGS_DONE);
-        set_current_state(TASK_INTERRUPTIBLE);
-        schedule();
-        continue;
-      } else {
-        set_current_state(TASK_INTERRUPTIBLE);
-        schedule_timeout(msecs_to_jiffies(INTERVAL_MS));
-        if (times++ > kTimeout * 1000 / INTERVAL_MS) {
-          pr_err("[Transition] Transition failed\n");
-          xk_detach_auxiliary_kprobes("daemon_task_main");
-          set_xk_state(XK_FLAGS_FAILED);
-          ret = -ETIMEDOUT;
-        }
-      }
-    } else if (get_xk_state() == XK_FLAGS_REVERSE_PENDING) {
-      if (ref_get_hash_size() == 0) {
-
-        xk_enable_ir_kprobes_task(2);
-
-        // It's time to detach the auxiliary kprobes
-        xk_detach_auxiliary_kprobes("daemon_task_main");
-        set_xk_state(XK_FLAGS_REVERSE_DONE);
-        set_current_state(TASK_INTERRUPTIBLE);
-        schedule();
-        continue;
-      }
-      set_current_state(TASK_INTERRUPTIBLE);
-      schedule_timeout(msecs_to_jiffies(INTERVAL_MS));
-      if (times_reverse++ > kTimeout * 1000 / INTERVAL_MS) {
-        pr_err("[Reverse Transition] Reverse transition failed\n");
-        xk_detach_auxiliary_kprobes("daemon_task_main");
-        set_xk_state(XK_FLAGS_REVERSE_FAILED);
-        ret = -ETIMEDOUT;
-      }
-    }
-  }
-
-  return ret;
-}
 
 static int daemon_main(void *data) {
   int times = 0;
@@ -555,30 +402,18 @@ static int daemon_main(void *data) {
 }
 
 static int __init consistency_init(void) {
-  pr_info("Xkernel consistency module loaded\n");
+  pr_info("Xkernel global consistency module loaded\n");
 
   pr_info("Timeout: %d seconds\n", kTimeout);
-
-  if (kMode == 0) {
-    pr_info("Immediate consistency model is enabled\n");
-    return 0;
-  } else if (kMode == 1) {
-    pr_info("Per-task consistency model is enabled\n");
-  } else {
-    pr_info("Global consistency model is enabled\n");
-  }
 
   INIT_LIST_HEAD(&xk_target_functions);
 
 #ifdef DEBUG
   measure_stop_machine_overhead();
 #endif
-  if (kMode == 1) {
-    daemon_task =
-        kthread_create(daemon_task_main, NULL, "xkernel-daemon-per-task");
-  } else {
-    daemon_task = kthread_create(daemon_main, NULL, "xkernel-daemon");
-  }
+  
+daemon_task = kthread_create(daemon_main, NULL, "xkernel-daemon");
+  
   if (IS_ERR(daemon_task)) {
     pr_err("Failed to create daemon task\n");
     return PTR_ERR(daemon_task);
@@ -614,11 +449,7 @@ static int __init consistency_init(void) {
 }
 
 static void __exit consistency_exit(void) {
-  pr_info("Xkernel consistency module unloaded\n");
-
-  if (kMode == 0) {
-    return;
-  }
+  pr_info("Xkernel global consistency module unloaded\n");
 
   while (get_xk_state() == XK_FLAGS_PENDING) {
     // Wait for the transition being done or failed
@@ -636,9 +467,6 @@ static void __exit consistency_exit(void) {
     pr_err("Failed to attach auxiliary kprobes\n");
     goto out;
   }
-
-  if (kMode == 1)
-    xk_disable_ir_kprobes_task();
 
   stop_machine(xk_check_stacks, NULL, NULL);
 
@@ -660,19 +488,6 @@ static void __exit consistency_exit(void) {
   }
 
 out:
-
-  if (kMode == 1) {
-    struct transition_task *ttsk;
-    struct hlist_node *tmp;
-    int bucket;
-    for (bucket = 0; bucket < 1 << TRANSITION_TASK_HASH_BITS; bucket++) {
-      hlist_for_each_entry_safe(ttsk, tmp, &transition_task_hash_table[bucket], node) {
-        hlist_del_rcu(&ttsk->node);
-        synchronize_rcu();
-        kfree(ttsk);
-      }
-    }
-  }
 
   if (daemon_task) {
     kthread_stop(daemon_task);

@@ -92,13 +92,6 @@ static inline void measure_stop_machine_overhead(void) {
   pr_info("stop_machine overhead: %lld us\n", total_time / NUM_MEASUREMENTS);
 }
 
-int xk_refcount_per_task(pid_t pid);
-int xk_inc_refcount_per_task(pid_t pid);
-int xk_inc_not_zero_per_task(pid_t pid);
-void xk_dec_refcount_per_task(pid_t pid);
-int xk_dec_if_positive_per_task(pid_t pid);
-void xk_reset_refcount_per_task(pid_t pid);
-
 void ref_hash_spinlock(unsigned long flags);
 void ref_hash_spinunlock(unsigned long flags);
 struct xk_refcount *find_or_alloc_refcount(pid_t pid);

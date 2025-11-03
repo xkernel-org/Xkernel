@@ -9,7 +9,7 @@
 SEC("kprobe/tcp_rack_detect_loss+0x6a")
 int BPF_KPROBE(tcp_rack_detect_loss_6a) {
 
-  if (!transition_done()) {
+  if (!transition_done(ctx)) {
     return 0;
   }
 

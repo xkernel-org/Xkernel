@@ -61,6 +61,12 @@ int main(int argc, char *argv[]) {
 
     loaders.push_back(new XKernelLoader(BPF_FILE.c_str(), FLAGS_one_shot, FLAGS_pin));
 
+    int ret = loaders.back()->load_cricial_spans("/dev/shm/xkernel/cs");
+    if (ret) {
+      fprintf(stderr, "Failed to load critical spans\n");
+      return 1;
+    }
+
     if (FLAGS_one_shot) {
       if (loaders.back()->attach_all_progs_one_shot()) {
         fprintf(stderr, "Failed to attach all programs (one-shot) for %s\n", file.c_str());

@@ -6,7 +6,7 @@
 #include <sched.h>
 #include <errno.h>
 
-#define NUM_CALLS 50000
+#define NUM_CALLS 200000
 #define NUM_THREADS 8
 
 void* call_getpid(void* arg) {
