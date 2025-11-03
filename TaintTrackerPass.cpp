@@ -104,23 +104,17 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
                                         }
 
                                         // If this is a call instruction with the constant as an argument,
-                                        // perform interprocedural taint tracking
+                                        // report it but don't track into the callee
                                         if (CallInst *Call = dyn_cast<CallInst>(&I)) {
                                             Function *Callee = Call->getCalledFunction();
                                             if (Callee && !Callee->isDeclaration()) {
                                                 // Find which argument position has the constant
                                                 for (unsigned ArgIdx = 0; ArgIdx < Call->arg_size(); ++ArgIdx) {
                                                     if (Call->getArgOperand(ArgIdx) == CI) {
-                                                        // Taint the corresponding parameter in the callee
-                                                        if (ArgIdx < Callee->arg_size()) {
-                                                            Argument *Param = Callee->getArg(ArgIdx);
-                                                            if (TaintedValues.insert(Param).second) {
-                                                                Worklist.push_back(Param);
-                                                                errs() << "[CHILD FUNCTION] Tainting parameter in "
-                                                                       << Callee->getName() << ": "
-                                                                       << getValueName(Param) << getDebugLoc(Call) << "\n";
-                                                            }
-                                                        }
+                                                        // Report but don't propagate into callee
+                                                        errs() << "[CHILD FUNCTION] Constant used in call to "
+                                                               << Callee->getName() << " at argument " << ArgIdx
+                                                               << getDebugLoc(Call) << "\n";
                                                     }
                                                 }
                                             }
@@ -160,7 +154,7 @@ found:
                         if (Verbose)
                             errs() << "  [USER] Processing use: " << getValueName(U) << "\n";
 
-                        // --- Check for Sinks and Interprocedural Propagation ---
+                        // --- Check for Sinks (Stop at function calls) ---
                         if (CallInst *Call = dyn_cast<CallInst>(UserInst)) {
                             bool isArg = false;
                             unsigned argIdx = 0;
@@ -174,21 +168,16 @@ found:
                             if (isArg) {
                                 Function *Callee = Call->getCalledFunction();
                                 if (Callee && !Callee->isDeclaration()) {
-                                    // Interprocedural propagation: taint the parameter
-                                    if (argIdx < Callee->arg_size()) {
-                                        Argument *Param = Callee->getArg(argIdx);
-                                        if (TaintedValues.insert(Param).second) {
-                                            Worklist.push_back(Param);
-                                            errs() << "  [TODO INTERPROC] Propagating taint to parameter in "
-                                                   << Callee->getName() << ": "
-                                                   << getValueName(Param) << getDebugLoc(Call) << "\n";
-                                            changed = true;
-                                        }
-                                    }
+                                    // Report but don't propagate into callee
+                                    errs() << "  [CHILD FUNCTION] Tainted value used in call to "
+                                           << Callee->getName() << " at argument " << argIdx
+                                           << getDebugLoc(Call) << "\n";
+                                } else {
+                                    errs() << "  [EXTERNAL CALL] Tainted value used in external/indirect call"
+                                           << getDebugLoc(Call) << "\n";
                                 }
-                                errs() << "  [TODO SINK] Tainted value used in function call: "
-                                       << getValueName(Call) << getDebugLoc(Call) << "\n";
-                                // Don't continue - still propagate the call itself
+                                // Don't continue - don't propagate the call further
+                                continue;
                             }
                         }
                         if (ReturnInst *Ret = dyn_cast<ReturnInst>(UserInst)) {
