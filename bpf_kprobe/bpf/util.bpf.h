@@ -204,6 +204,8 @@
 #define BPF_SET_RCX(ctx, value) BPF_SET_REG_64(ctx, cx, value)
 #define BPF_SET_RDX(ctx, value) BPF_SET_REG_64(ctx, dx, value)
 #define BPF_SET_RSI(ctx, value) BPF_SET_REG_64(ctx, si, value)
+#define BPF_SET_R9(ctx, value)  BPF_SET_REG_64(ctx, r9, value)
+#define BPF_SET_R12(ctx, value) BPF_SET_REG_64(ctx, r12, value)
 
 // 32-bit registers
 #define BPF_EAX(ctx) (u32)((u64)(ctx->ax) & BPF_32BIT_MASK)

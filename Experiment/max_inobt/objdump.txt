@@ -1,0 +1,101 @@
+(base) yltang@node-0:~/sdb/myXkernel$ sudo python new_dump.py --func xfs_inobt_walk
+Symbol  : xfs_inobt_walk  [xfs]
+Start   : 0xffffffffc1497270
+Stop    : 0xffffffffc1497350  (source: next text sym in same module)
+Syms    : /proc/kallsyms
+
+--- Disassembly ---
+(+0x0)ffffffffc1497270 <load3+0x1497270>:
+(+0x0)ffffffffc1497270: 0f 1f 44 00 00          nopl   0x0(%rax,%rax,1)
+(+0x5)ffffffffc1497275: 55                      push   %rbp
+(+0x6)ffffffffc1497276: 49 89 fb                mov    %rdi,%r11
+(+0x9)ffffffffc1497279: 48 89 e5                mov    %rsp,%rbp
+(+0xc)ffffffffc149727c: 41 54                   push   %r12
+(+0xe)ffffffffc149727e: 49 89 d4                mov    %rdx,%r12
+(+0x11)ffffffffc1497281:        53                      push   %rbx
+(+0x12)ffffffffc1497282:        48 8d 95 68 ff ff ff    lea    -0x98(%rbp),%rdx
+(+0x19)ffffffffc1497289:        48 89 f3                mov    %rsi,%rbx
+(+0x1c)ffffffffc149728c:        89 ce                   mov    %ecx,%esi
+(+0x1e)ffffffffc149728e:        48 89 d7                mov    %rdx,%rdi
+(+0x21)ffffffffc1497291:        b9 10 00 00 00          mov    $0x10,%ecx
+(+0x26)ffffffffc1497296:        48 81 ec 88 00 00 00    sub    $0x88,%rsp
+(+0x2d)ffffffffc149729d:        4c 8b 55 10             mov    0x10(%rbp),%r10
+(+0x31)ffffffffc14972a1:        65 48 8b 04 25 28 00    mov    %gs:0x28,%rax
+(+0x38)ffffffffc14972a8:        00 00 
+(+0x3a)ffffffffc14972aa:        48 89 45 e8             mov    %rax,-0x18(%rbp)
+(+0x3e)ffffffffc14972ae:        31 c0                   xor    %eax,%eax
+(+0x40)ffffffffc14972b0:        f3 48 ab                rep stos %rax,%es:(%rdi)
+(+0x43)ffffffffc14972b3:        4c 89 5d 90             mov    %r11,-0x70(%rbp)
+--- (+0x47)ffffffffc14972b7:        b8 00 01 00 00          mov    $0x100,%eax
+--- mov $0x8000, %eax
+(+0x4c)ffffffffc14972bc:        48 89 5d 98             mov    %rbx,-0x68(%rbp)
+(+0x50)ffffffffc14972c0:        4c 89 65 a8             mov    %r12,-0x58(%rbp)
+(+0x54)ffffffffc14972c4:        48 c7 45 b0 ff ff ff    movq   $0xffffffffffffffff,-0x50(%rbp)
+(+0x5b)ffffffffc14972cb:        ff 
+(+0x5c)ffffffffc14972cc:        45 85 c9                test   %r9d,%r9d
+(+0x5f)ffffffffc14972cf:        74 16                   je     0xffffffffc14972e7
+(+0x61)ffffffffc14972d1:        b8 02 00 00 00          mov    $0x2,%eax
+--- (+0x66)ffffffffc14972d6:        b9 00 01 00 00          mov    $0x100,%ecx
+--- mov $0x8000, %ecx
+(+0x6b)ffffffffc14972db:        41 39 c1                cmp    %eax,%r9d
+(+0x6e)ffffffffc14972de:        41 0f 43 c1             cmovae %r9d,%eax
+(+0x72)ffffffffc14972e2:        39 c8                   cmp    %ecx,%eax
+(+0x74)ffffffffc14972e4:        0f 47 c1                cmova  %ecx,%eax
+(+0x77)ffffffffc14972e7:        48 89 d7                mov    %rdx,%rdi
+(+0x7a)ffffffffc14972ea:        89 45 c0                mov    %eax,-0x40(%rbp)
+(+0x7d)ffffffffc14972ed:        4c 89 45 d0             mov    %r8,-0x30(%rbp)
+(+0x81)ffffffffc14972f1:        4c 89 55 d8             mov    %r10,-0x28(%rbp)
+(+0x85)ffffffffc14972f5:        e8 76 fb ff ff          call   0xffffffffc1496e70
+(+0x8a)ffffffffc14972fa:        48 8b 55 e8             mov    -0x18(%rbp),%rdx
+(+0x8e)ffffffffc14972fe:        65 48 2b 14 25 28 00    sub    %gs:0x28,%rdx
+(+0x95)ffffffffc1497305:        00 00 
+(+0x97)ffffffffc1497307:        75 24                   jne    0xffffffffc149732d
+(+0x99)ffffffffc1497309:        48 81 c4 88 00 00 00    add    $0x88,%rsp
+(+0xa0)ffffffffc1497310:        5b                      pop    %rbx
+(+0xa1)ffffffffc1497311:        41 5c                   pop    %r12
+(+0xa3)ffffffffc1497313:        5d                      pop    %rbp
+(+0xa4)ffffffffc1497314:        31 d2                   xor    %edx,%edx
+(+0xa6)ffffffffc1497316:        31 c9                   xor    %ecx,%ecx
+(+0xa8)ffffffffc1497318:        31 f6                   xor    %esi,%esi
+(+0xaa)ffffffffc149731a:        31 ff                   xor    %edi,%edi
+(+0xac)ffffffffc149731c:        45 31 c0                xor    %r8d,%r8d
+(+0xaf)ffffffffc149731f:        45 31 c9                xor    %r9d,%r9d
+(+0xb2)ffffffffc1497322:        45 31 d2                xor    %r10d,%r10d
+(+0xb5)ffffffffc1497325:        45 31 db                xor    %r11d,%r11d
+(+0xb8)ffffffffc1497328:        c3                      ret
+(+0xb9)ffffffffc1497329:        cc                      int3
+(+0xba)ffffffffc149732a:        cc                      int3
+(+0xbb)ffffffffc149732b:        cc                      int3
+(+0xbc)ffffffffc149732c:        cc                      int3
+(+0xbd)ffffffffc149732d:        e8 0e f2 c9 f9          call   0xffffffffbb136540
+(+0xc2)ffffffffc1497332:        66 2e 0f 1f 84 00 00    cs nopw 0x0(%rax,%rax,1)
+(+0xc9)ffffffffc1497339:        00 00 00 
+(+0xcc)ffffffffc149733c:        0f 1f 40 00             nopl   0x0(%rax)
+(+0xd0)ffffffffc1497340:        90                      nop
+(+0xd1)ffffffffc1497341:        90                      nop
+(+0xd2)ffffffffc1497342:        90                      nop
+(+0xd3)ffffffffc1497343:        90                      nop
+(+0xd4)ffffffffc1497344:        90                      nop
+(+0xd5)ffffffffc1497345:        90                      nop
+(+0xd6)ffffffffc1497346:        90                      nop
+(+0xd7)ffffffffc1497347:        90                      nop
+(+0xd8)ffffffffc1497348:        90                      nop
+(+0xd9)ffffffffc1497349:        90                      nop
+(+0xda)ffffffffc149734a:        90                      nop
+(+0xdb)ffffffffc149734b:        90                      nop
+(+0xdc)ffffffffc149734c:        90                      nop
+(+0xdd)ffffffffc149734d:        90                      nop
+(+0xde)ffffffffc149734e:        90                      nop
+(+0xdf)ffffffffc149734f:        90                      nop
+(base) yltang@node-0:~/sdb/myXkernel$ 
+
+
+--- Diff for fs/xfs/xfs_iwalk.c ---
+--- /users/yltang/sdb/linux-6.14/BUILDO/fs_xfs_xfs_iwalk_c_original.disas.txt   2025-11-02 10:57:44.581162546 -0500
++++ /users/yltang/sdb/linux-6.14/BUILDO/fs_xfs_xfs_iwalk_c_recompiled.disas.txt 2025-11-02 10:57:48.063257013 -0500
+@@ -1308 +1308 @@
+- ef7:  b8 00 01 00 00          mov    $0x100,%eax
++ ef7:  b8 00 80 00 00          mov    $0x8000,%eax
+@@ -1316 +1316 @@
+- f16:  b9 00 01 00 00          mov    $0x100,%ecx
++ f16:  b9 00 80 00 00          mov    $0x8000,%ecx
