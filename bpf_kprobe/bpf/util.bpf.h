@@ -204,8 +204,10 @@
 #define BPF_SET_RCX(ctx, value) BPF_SET_REG_64(ctx, cx, value)
 #define BPF_SET_RDX(ctx, value) BPF_SET_REG_64(ctx, dx, value)
 #define BPF_SET_RSI(ctx, value) BPF_SET_REG_64(ctx, si, value)
+#define BPF_SET_R8(ctx, value)  BPF_SET_REG_64(ctx, r8, value)
 #define BPF_SET_R9(ctx, value)  BPF_SET_REG_64(ctx, r9, value)
 #define BPF_SET_R12(ctx, value) BPF_SET_REG_64(ctx, r12, value)
+#define BPF_SET_R13(ctx, value) BPF_SET_REG_64(ctx, r13, value)
 
 // 32-bit registers
 #define BPF_EAX(ctx) (u32)((u64)(ctx->ax) & BPF_32BIT_MASK)
@@ -283,6 +285,24 @@ do {                                                                         \
   do {                                                                         \
     u64 flags = BPF_EFLAGS(ctx);                                               \
     flags &= ~BPF_CF_MASK;                                                     \
+    kfuncs_probe_write_kernel(&ctx->flags, sizeof(flags), &flags,              \
+                              sizeof(flags));                                  \
+  } while (0)
+
+  // JE (Jump if Equal) <=> ZF = 1
+#define BPF_SET_JE_TRUE(ctx)                                                   \
+  do {                                                                         \
+    u64 flags = BPF_EFLAGS(ctx);                                               \
+    flags |= BPF_ZF_MASK;                                                      \
+    kfuncs_probe_write_kernel(&ctx->flags, sizeof(flags), &flags,              \
+                              sizeof(flags));                                  \
+  } while (0)
+
+// JNE (Jump if Not Equal) <=> ZF = 0
+#define BPF_SET_JNE_TRUE(ctx)                                                  \
+  do {                                                                         \
+    u64 flags = BPF_EFLAGS(ctx);                                               \
+    flags &= ~BPF_ZF_MASK;                                                     \
     kfuncs_probe_write_kernel(&ctx->flags, sizeof(flags), &flags,              \
                               sizeof(flags));                                  \
   } while (0)
