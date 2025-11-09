@@ -1,9 +1,9 @@
 Get whole-program LLVM for Linux
 
 ```shell
-git clone https://github.com/torvalds/linux.git --branch=v6.14 --depth=1 linux-wllvm
+git clone https://github.com/torvalds/linux.git --branch=v6.14 --depth=1 linux-wllvm-defconfig
 
-cd linux-wllvm
+cd linux-wllvm-defconfig
 
 git apply - << 'EOF'
 diff --git a/arch/x86/boot/compressed/vmlinux.lds.S b/arch/x86/boot/compressed/vmlinux.lds.S
@@ -35,12 +35,15 @@ index 0deb4887d..ad7377de3 100644
  	DISCARDS
 EOF
 
+git commit -am 'wllvm: make linker happy'
+
 export LLVM_COMPILER=clang
 make CC=wllvm AR=llvm-ar HOSTCC=clang defconfig
 ./scripts/config -e LTO_CLANG
 ./scripts/config -e DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT
 make CC=wllvm AR=llvm-ar HOSTCC=clang olddefconfig
-make CC=wllvm AR=llvm-ar HOSTCC=clang -j
+# 2min51s
+/usr/bin/time -v make CC=wllvm AR=llvm-ar HOSTCC=clang -j
 
 # TODO check whether it boots
 # TODO check if LTO is necessary; does the result reflect before- or after-LTO
