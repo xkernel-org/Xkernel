@@ -10,7 +10,7 @@ if ! command -v clang >/dev/null 2>&1; then
     fi
 fi
 
-rm -rf tests/*.bc tests/*.ll
+rm -rf tests/*.bc tests/*.ll tests/*.results.txt
 
 for file in tests/*.c; do
     clang -g -c -emit-llvm $file -o ${file%.c}.bc
