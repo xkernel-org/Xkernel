@@ -94,6 +94,14 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
                                         Worklist.push_back(&I);
                                         errs() << "[SOURCE] Tainting: " << I << getDebugLoc(&I) << "\n";
 
+                                        // If this is a return instruction with the constant, report it
+                                        if (ReturnInst *Ret = dyn_cast<ReturnInst>(&I)) {
+                                            if (Ret->getReturnValue() == CI) {
+                                                errs() << "[RETURN] Constant is returned directly"
+                                                       << getDebugLoc(Ret) << "\n";
+                                            }
+                                        }
+
                                         // If this is a store instruction, check what we're storing to
                                         if (StoreInst *Store = dyn_cast<StoreInst>(&I)) {
                                             Value *Ptr = Store->getPointerOperand()->stripPointerCasts();
