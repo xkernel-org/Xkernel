@@ -107,13 +107,21 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
                                         // report it but don't track into the callee
                                         if (CallInst *Call = dyn_cast<CallInst>(&I)) {
                                             Function *Callee = Call->getCalledFunction();
-                                            if (Callee && !Callee->isDeclaration()) {
+                                            if (Callee) {
                                                 // Find which argument position has the constant
                                                 for (unsigned ArgIdx = 0; ArgIdx < Call->arg_size(); ++ArgIdx) {
                                                     if (Call->getArgOperand(ArgIdx) == CI) {
-                                                        // Report but don't propagate into callee
+                                                        // Report for both internal and external functions
                                                         errs() << "[CHILD FUNCTION] Constant used in call to "
                                                                << Callee->getName() << " at argument " << ArgIdx
+                                                               << getDebugLoc(Call) << "\n";
+                                                    }
+                                                }
+                                            } else {
+                                                // Indirect call
+                                                for (unsigned ArgIdx = 0; ArgIdx < Call->arg_size(); ++ArgIdx) {
+                                                    if (Call->getArgOperand(ArgIdx) == CI) {
+                                                        errs() << "[CHILD FUNCTION] Constant used in indirect call at argument " << ArgIdx
                                                                << getDebugLoc(Call) << "\n";
                                                     }
                                                 }
