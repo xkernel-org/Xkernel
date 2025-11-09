@@ -19,6 +19,8 @@ known_headers = [
     'SKIP',
     'KILL',
 
+    'GLOBAL',
+
     'RETURN',
 
     'CHILD FUNCTION',
@@ -35,6 +37,7 @@ propogation_headers = [
 
 external_headers = [
     'CHILD FUNCTION',
+    'GLOBAL',
 ]
 
 def get_results_files() -> List[Path]:
@@ -246,6 +249,22 @@ class TestTaintTrackerResults(unittest.TestCase):
     def test_3_child_param_indirect(self):
 
         name = "3_child_param_indirect"
+        results_file_path = Path(__file__).parent / "tests" / f"{name}.results.txt"
+        source_file_path = Path(__file__).parent / "tests" / f"{name}.c"
+
+        common_checks(self, True, results_file_path, source_file_path)
+
+    def test_4_global(self):
+
+        name = "4_global"
+        results_file_path = Path(__file__).parent / "tests" / f"{name}.results.txt"
+        source_file_path = Path(__file__).parent / "tests" / f"{name}.c"
+
+        common_checks(self, True, results_file_path, source_file_path)
+
+    def test_4_global_indirect(self):
+
+        name = "4_global_indirect"
         results_file_path = Path(__file__).parent / "tests" / f"{name}.results.txt"
         source_file_path = Path(__file__).parent / "tests" / f"{name}.c"
 
