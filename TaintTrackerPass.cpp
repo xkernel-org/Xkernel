@@ -20,11 +20,12 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
     std::string TargetOpcode;
     uint64_t ConstantToTrack;
     bool Verbose;
+    bool InterprocMode;  // Enable interprocedural taint tracking
 
     // Constructor with parameters
-    TaintTrackerPass(std::string FuncName, std::string Opcode, uint64_t Constant, bool Debug)
+    TaintTrackerPass(std::string FuncName, std::string Opcode, uint64_t Constant, bool Debug, bool Interproc)
         : FunctionName(std::move(FuncName)), TargetOpcode(std::move(Opcode)),
-          ConstantToTrack(Constant), Verbose(Debug) {}
+          ConstantToTrack(Constant), Verbose(Debug), InterprocMode(Interproc) {}
 
     // Helper to print a value
     std::string getValueName(Value *V) {
@@ -65,7 +66,8 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
         errs() << "Function: " << FunctionName << "\n";
         errs() << "Opcode: " << TargetOpcode << "\n";
         errs() << "Constant: " << ConstantToTrack << "\n";
-        errs() << "Verbose: " << (Verbose ? "ON" : "OFF") << "\n\n";
+        errs() << "Verbose: " << (Verbose ? "ON" : "OFF") << "\n";
+        errs() << "Interproc: " << (InterprocMode ? "ON" : "OFF") << "\n\n";
 
         for (Function &F : M) {
             if (F.getName() == FunctionName) {
@@ -93,6 +95,9 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
                                     if (TaintedValues.insert(&I).second) {
                                         Worklist.push_back(&I);
                                         errs() << "[SOURCE] Tainting: " << I << getDebugLoc(&I) << "\n";
+
+                                        // Mark as part of data flow since it's in the worklist
+                                        errs() << "[USE] Source instruction in data flow" << getDebugLoc(&I) << "\n";
 
                                         // If this is a return instruction with the constant, report it
                                         if (ReturnInst *Ret = dyn_cast<ReturnInst>(&I)) {
@@ -127,18 +132,30 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
                                             }
                                         }
 
-                                        // If this is a call instruction with the constant as an argument,
-                                        // report it but don't track into the callee
+                                        // If this is a call instruction with the constant as an argument
                                         if (CallInst *Call = dyn_cast<CallInst>(&I)) {
                                             Function *Callee = Call->getCalledFunction();
                                             if (Callee) {
                                                 // Find which argument position has the constant
                                                 for (unsigned ArgIdx = 0; ArgIdx < Call->arg_size(); ++ArgIdx) {
                                                     if (Call->getArgOperand(ArgIdx) == CI) {
-                                                        // Report for both internal and external functions
+                                                        // Report the call
                                                         errs() << "[CHILD FUNCTION] Constant used in call to "
                                                                << Callee->getName() << " at argument " << ArgIdx
                                                                << getDebugLoc(Call) << "\n";
+
+                                                        // In interproc mode, propagate taint to the parameter
+                                                        if (InterprocMode && !Callee->isDeclaration()) {
+                                                            if (ArgIdx < Callee->arg_size()) {
+                                                                Argument *Param = Callee->getArg(ArgIdx);
+                                                                if (TaintedValues.insert(Param).second) {
+                                                                    Worklist.push_back(Param);
+                                                                    errs() << "[INTERPROC] Propagating taint to parameter in "
+                                                                           << Callee->getName() << ": "
+                                                                           << getValueName(Param) << getDebugLoc(Call) << "\n";
+                                                                }
+                                                            }
+                                                        }
                                                     }
                                                 }
                                             } else {
@@ -186,7 +203,7 @@ found:
                         if (Verbose)
                             errs() << "  [USER] Processing use: " << getValueName(U) << "\n";
 
-                        // --- Check for Sinks (Stop at function calls) ---
+                        // --- Check for Sinks (Stop at function calls in non-interproc mode) ---
                         if (CallInst *Call = dyn_cast<CallInst>(UserInst)) {
                             bool isArg = false;
                             unsigned argIdx = 0;
@@ -200,16 +217,32 @@ found:
                             if (isArg) {
                                 Function *Callee = Call->getCalledFunction();
                                 if (Callee && !Callee->isDeclaration()) {
-                                    // Report but don't propagate into callee
+                                    // Report the call
                                     errs() << "  [CHILD FUNCTION] Tainted value used in call to "
                                            << Callee->getName() << " at argument " << argIdx
                                            << getDebugLoc(Call) << "\n";
+
+                                    // In interproc mode, propagate taint to the parameter
+                                    if (InterprocMode) {
+                                        if (argIdx < Callee->arg_size()) {
+                                            Argument *Param = Callee->getArg(argIdx);
+                                            if (TaintedValues.insert(Param).second) {
+                                                Worklist.push_back(Param);
+                                                errs() << "  [INTERPROC] Propagating taint to parameter in "
+                                                       << Callee->getName() << ": "
+                                                       << getValueName(Param) << getDebugLoc(Call) << "\n";
+                                                changed = true;
+                                            }
+                                        }
+                                    }
                                 } else {
                                     errs() << "  [EXTERNAL CALL] Tainted value used in external/indirect call"
                                            << getDebugLoc(Call) << "\n";
                                 }
-                                // Don't continue - don't propagate the call further
-                                continue;
+                                // In non-interproc mode, don't propagate the call further
+                                if (!InterprocMode) {
+                                    continue;
+                                }
                             }
                         }
                         if (ReturnInst *Ret = dyn_cast<ReturnInst>(UserInst)) {
@@ -377,16 +410,17 @@ llvmGetPassPluginInfo() {
             PB.registerPipelineParsingCallback(
                 [](StringRef Name, ModulePassManager &MPM,
                    ArrayRef<PassBuilder::PipelineElement>) {
-                    // Parse: taint-tracker<function_name;opcode;constant_value;debug>
+                    // Parse: taint-tracker<function_name;opcode;constant_value;debug;interproc>
                     if (Name.consume_front("taint-tracker")) {
                         std::string FunctionName = "gss_fill_context";  // default
                         std::string Opcode = "";  // default (empty means all opcodes)
                         uint64_t Constant = 3600;  // default
                         bool Debug = false;  // default
+                        bool Interproc = false;  // default
 
                         if (Name.consume_front("<") && Name.consume_back(">")) {
                             // Parse parameters separated by semicolons
-                            SmallVector<StringRef, 4> Params;
+                            SmallVector<StringRef, 5> Params;
                             Name.split(Params, ';', -1, true);
 
                             if (Params.size() >= 1 && !Params[0].empty()) {
@@ -406,9 +440,14 @@ llvmGetPassPluginInfo() {
                                 Debug = (DebugStr == "true" || DebugStr == "1" ||
                                         DebugStr == "TRUE" || DebugStr == "yes");
                             }
+                            if (Params.size() >= 5 && !Params[4].empty()) {
+                                StringRef InterprocStr = Params[4];
+                                Interproc = (InterprocStr == "true" || InterprocStr == "1" ||
+                                            InterprocStr == "TRUE" || InterprocStr == "yes");
+                            }
                         }
 
-                        MPM.addPass(TaintTrackerPass(FunctionName, Opcode, Constant, Debug));
+                        MPM.addPass(TaintTrackerPass(FunctionName, Opcode, Constant, Debug, Interproc));
                         return true;
                     }
                     return false;
