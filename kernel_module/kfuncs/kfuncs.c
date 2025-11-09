@@ -9,7 +9,6 @@
 #include <asm/text-patching.h>
 
 MODULE_LICENSE("GPL");
-MODULE_AUTHOR("Zhongjie, Wentao");
 MODULE_DESCRIPTION("A kernel module for loading kfuncs into kernel");
 
 bool ir_kprobes_on = false;
@@ -42,15 +41,6 @@ __bpf_kfunc long kfuncs_probe_write_kernel(void *dst__ign, __u32 dst__sz,
   return copy_to_kernel_nofault(dst__ign, src__ign, copy_size);
   #endif
 }
-#define MAX_INSN_SIZE 8
-__bpf_kfunc int kfuncs_text_poke(void *addr__ign, void *insn__ign, __u32 insn_len__sz) {
-  if (insn_len__sz > MAX_INSN_SIZE)
-  return -EINVAL;
-#ifdef BPF_TEXT_POKE
-  (void)text_poke(addr__ign, insn__ign, insn_len__sz);
-#endif
-  return 0;
-}
 __bpf_kfunc_end_defs();
 
 #if LINUX_VERSION_CODE <= KERNEL_VERSION(6, 9, 0)
@@ -58,18 +48,12 @@ BTF_SET8_START(bpf_kfunc_example_ids_set)
 BTF_ID_FLAGS(func, kfuncs_probe_write_kernel)
 BTF_ID_FLAGS(func, kfuncs_is_ir_kprobes_on)
 BTF_ID_FLAGS(func, kfuncs_get_consistency_mode)
-  #ifdef BPF_TEXT_POKE
-  BTF_ID_FLAGS(func, kfuncs_text_poke)
-  #endif
 BTF_SET8_END(bpf_kfunc_example_ids_set)
 #else
 BTF_KFUNCS_START(bpf_kfunc_example_ids_set)
 BTF_ID_FLAGS(func, kfuncs_probe_write_kernel)
 BTF_ID_FLAGS(func, kfuncs_is_ir_kprobes_on)
 BTF_ID_FLAGS(func, kfuncs_get_consistency_mode)
-  #ifdef BPF_TEXT_POKE
-  BTF_ID_FLAGS(func, kfuncs_text_poke)
-  #endif
 BTF_KFUNCS_END(bpf_kfunc_example_ids_set)
 #endif
 

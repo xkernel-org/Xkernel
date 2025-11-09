@@ -24,7 +24,6 @@ using namespace xkernel;
 DEFINE_string(files, "", "BPF files to load, separated by comma");
 DEFINE_bool(quiet, false, "Quiet mode, do not print any output");
 DEFINE_bool(pin, false, "Pin the BPF objects to the file system");
-DEFINE_bool(one_shot, false, "One shot mode, run BPF programs once and exit");
 
 std::vector<XKernelLoader *> loaders;
 
@@ -59,7 +58,7 @@ int main(int argc, char *argv[]) {
   for (const auto &file : files) {
     std::string BPF_FILE = file;
 
-    loaders.push_back(new XKernelLoader(BPF_FILE.c_str(), FLAGS_one_shot, FLAGS_pin));
+    loaders.push_back(new XKernelLoader(BPF_FILE.c_str(), FLAGS_pin));
 
     int ret = loaders.back()->load_cricial_spans("/dev/shm/xkernel/cs");
     if (ret) {
@@ -67,16 +66,9 @@ int main(int argc, char *argv[]) {
       return 1;
     }
 
-    if (FLAGS_one_shot) {
-      if (loaders.back()->attach_all_progs_one_shot()) {
-        fprintf(stderr, "Failed to attach all programs (one-shot) for %s\n", file.c_str());
-        return 1;
-      }
-    } else {
-      if (loaders.back()->attach_all_progs()) {
-        fprintf(stderr, "Failed to attach all programs for %s\n", file.c_str());
-        return 1;
-      }
+    if (loaders.back()->attach_all_progs()) {
+      fprintf(stderr, "Failed to attach all programs for %s\n", file.c_str());
+      return 1;
     }
   }
 

@@ -29,16 +29,12 @@ struct xkernel_prog_params {
 
 class XKernelLoader {
 public:
-  XKernelLoader(const char *bpf_file, bool one_shot, bool pin);
+  XKernelLoader(const char *bpf_file, bool pin);
   ~XKernelLoader();
 
   void list_progs();
 
   int attach_all_progs();
-
-  int attach_all_progs_one_shot();
-
-  int detach_all_progs_one_shot();
 
   int load_cricial_spans(const char *cs_path);
 
@@ -46,7 +42,6 @@ public:
 
 private:
   ::bpf_object *obj_;
-  bool one_shot_;
 
   bool pin_;
 

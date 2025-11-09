@@ -8,7 +8,12 @@
 
 #### Install dependencies.
 
-`sudo apt-get install clang llvm libbpf-dev pahole libgflags-dev -y`
+`sudo apt-get install clang llvm pahole libgflags-dev pkg-config libelf-dev -y`
+
+```
+# Latest version of libbpf.
+git clone https://github.com/libbpf/libbpf.git && pushd libbpf/src && make -j$(nproc) && sudo make install && sudo cp ./*.so /usr/local/lib/ && sudo ldconfig && popd
+```
 
 ## Quick Start
 
@@ -202,73 +207,6 @@ Options for 'load' command:
 [107846.553322] Task has finished its transition, freeing refcount, time cost: 3917us
 [107846.553336] Task has finished its transition, freeing refcount, time cost: 3884us
 ```
-
-## Text Poke Functionality
-
-Xkernel provides a high-performance API to modify kernel instructions at runtime safely. The eBPF program will be loaded into kernel and executed in a single shot.
-
-### 1. ONE_SHOT_ENV()
-
-The `ONE_SHOT_ENV()` is used to define the environment for text_poke operations. It takes two parameters:
-- **Instruction address**: The memory address of the instruction to be modified
-- **Instruction size**: The size of the instruction in bytes
-
-```c
-ONE_SHOT_ENV(
-    0xffffffffac78ae58, // instruction address
-    3                   // instruction size
-);
-```
-
-### 2. BPF Text Poke Functions
-
-Xkernel provides several BPF helper functions for text_poke operations:
-
-- **BPF_WRITE_INSN()**: Writes new instruction bytes to the target address
-- **BPF_RESTORE_INSN()**: Restores the original instruction bytes
-- **BPF_PRINT_INSN()**: Prints the current instruction bytes for debugging
-
-#### BPF_ONESHOT_INIT and BPF_ONESHOT_EXIT
-
-These are the main entry points for text_poke operations:
-
-- **BPF_ONESHOT_INIT()**: The initialization function that runs when the program is loaded. This is where you perform the instruction modification.
-- **BPF_ONESHOT_EXIT()**: The cleanup function that runs when the program is unloaded. This is where you restore the original instructions.
-
-```c
-BPF_ONESHOT_INIT(test_text_poke) {
-    BPF_PRINT_INSN("Old instruction");
-    
-    unsigned char new_insn[] = {0x83, 0xf8, 0x0b};
-    BPF_WRITE_INSN(new_insn);
-
-    BPF_PRINT_INSN("New instruction");
-    return 0;
-}
-
-BPF_ONESHOT_EXIT(test_text_poke) {
-    BPF_RESTORE_INSN();
-    BPF_PRINT_INSN("Restored instruction");
-    return 0;
-}
-```
-
-The output should be like this:
-```
-[Old instruction]insn: 83 f8 0a
-[New instruction]insn: 83 f8 0b
-[Restored instruction]insn: 83 f8 0a
-```
-
-### 3. Loading Text Poke Programs
-
-To load a text_poke BPF program, use the `--one-shot` flag with the loader:
-
-```bash
-sudo ./kprobe_loader --files test_text_poke.bpf.o --one-shot
-```
-
-The `--one-shot` flag indicates that this is a text_poke program that will modify kernel instructions temporarily and restore them when the program exits.
 
 ## Case Studies
 

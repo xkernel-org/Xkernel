@@ -17,7 +17,7 @@ namespace xkernel {
 
 static uint32_t prog_cnt = 0;
 
-XKernelLoader::XKernelLoader(const char *bpf_file, bool one_shot, bool pin): one_shot_(one_shot), pin_(pin) {
+XKernelLoader::XKernelLoader(const char *bpf_file, bool pin): pin_(pin) {
   obj_ = ::bpf_object__open_file(bpf_file, NULL);
   if (::libbpf_get_error(obj_)) {
     fprintf(stderr, "Failed to open bpf object\n");
@@ -31,33 +31,7 @@ XKernelLoader::XKernelLoader(const char *bpf_file, bool one_shot, bool pin): one
   }
 }
 
-int XKernelLoader::detach_all_progs_one_shot() {
-  struct ::bpf_program *prog;
-  bpf_object__for_each_program(prog, obj_) {
-    auto prog_fd = bpf_program__fd(prog);
-    auto bpf_func_name = bpf_program__name(prog);
-
-    if (strncmp(bpf_func_name, "oneshot_exit_", 13) != 0) {
-      continue;
-    }
-
-    struct bpf_test_run_opts opts = {};
-    opts.sz = sizeof(opts);
-    int err = bpf_prog_test_run_opts(prog_fd, &opts);
-    if (err) {
-      fprintf(stderr, "Failed to run program: %s\n", strerror(-err));
-      return -1;
-    }
-
-    printf("%s returned %d\n", bpf_program__name(prog), opts.retval);
-  }
-  return 0;
-}
-
 XKernelLoader::~XKernelLoader() { 
-  if (one_shot_) {
-    detach_all_progs_one_shot();
-  }
   ::bpf_object__close(obj_);
 }
 
@@ -101,29 +75,6 @@ int XKernelLoader::attach_kprobe(struct ::bpf_program *prog,
     }
   }
 
-  return 0;
-}
-
-int XKernelLoader::attach_all_progs_one_shot() {
-  struct ::bpf_program *prog;
-  bpf_object__for_each_program(prog, obj_) {
-    auto prog_fd = bpf_program__fd(prog);
-    auto bpf_func_name = bpf_program__name(prog);
-
-    if (strncmp(bpf_func_name, "oneshot_init_", 13) != 0) {
-      continue;
-    }
-
-    struct bpf_test_run_opts opts = {};
-    opts.sz = sizeof(opts);
-    int err = bpf_prog_test_run_opts(prog_fd, &opts);
-    if (err) {
-      fprintf(stderr, "Failed to run program: %s\n", strerror(-err));
-      return -1;
-    }
-
-    printf("%s returned %d\n", bpf_program__name(prog), opts.retval);
-  }
   return 0;
 }
 
