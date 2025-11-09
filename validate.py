@@ -35,11 +35,13 @@ propogation_headers = [
     'LOAD',
     'CHILD FUNCTION',
     'GLOBAL',
+    'RETURN',
 ]
 
 external_headers = [
     'CHILD FUNCTION',
     'GLOBAL',
+    'RETURN',
 ]
 
 assert set(propogation_headers) <= set(known_headers)
@@ -278,6 +280,22 @@ class TestTaintTrackerResults(unittest.TestCase):
     def test_4_global_indirect(self):
 
         name = "4_global_indirect"
+        results_file_path = Path(__file__).parent / "tests" / f"{name}.results.txt"
+        source_file_path = Path(__file__).parent / "tests" / f"{name}.c"
+
+        common_checks(self, True, results_file_path, source_file_path)
+
+    def test_5_return(self):
+
+        name = "5_return"
+        results_file_path = Path(__file__).parent / "tests" / f"{name}.results.txt"
+        source_file_path = Path(__file__).parent / "tests" / f"{name}.c"
+
+        common_checks(self, True, results_file_path, source_file_path)
+
+    def test_5_return_indirect(self):
+
+        name = "5_return_indirect"
         results_file_path = Path(__file__).parent / "tests" / f"{name}.results.txt"
         source_file_path = Path(__file__).parent / "tests" / f"{name}.c"
 
