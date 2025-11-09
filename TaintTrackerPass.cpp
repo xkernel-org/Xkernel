@@ -112,7 +112,7 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
                                                 for (unsigned ArgIdx = 0; ArgIdx < Call->arg_size(); ++ArgIdx) {
                                                     if (Call->getArgOperand(ArgIdx) == CI) {
                                                         // Report for both internal and external functions
-                                                        errs() << "[CHILD FUNCTION] Constant used in call to "
+                                                        errs() << "[** CHILD FUNCTION] Constant used in call to "
                                                                << Callee->getName() << " at argument " << ArgIdx
                                                                << getDebugLoc(Call) << "\n";
                                                     }
@@ -121,7 +121,7 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
                                                 // Indirect call
                                                 for (unsigned ArgIdx = 0; ArgIdx < Call->arg_size(); ++ArgIdx) {
                                                     if (Call->getArgOperand(ArgIdx) == CI) {
-                                                        errs() << "[CHILD FUNCTION] Constant used in indirect call at argument " << ArgIdx
+                                                        errs() << "[** CHILD FUNCTION] Constant used in indirect call at argument " << ArgIdx
                                                                << getDebugLoc(Call) << "\n";
                                                     }
                                                 }
