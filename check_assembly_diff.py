@@ -10,7 +10,7 @@ from pathlib import Path
 import re
 
 # --- Configuration ---
-DEFAULT_LINUX_PATH = "~/linux-6.14.0-export-symbol"
+DEFAULT_LINUX_PATH = "~/linux-6.14.0-xkernel"
 REQUIRED_TOOLS = ["gcc", "make", "objdump", "sed", "diff", "grep"]  # Added grep
 BUILD_DIR_NAME = "BUILDO"  # Directory for all output files
 

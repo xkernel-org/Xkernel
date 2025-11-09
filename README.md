@@ -2,7 +2,7 @@
 
 ## Environment Setup
 
-#### Install kernel with `text_poke()` support.
+#### Install Linux kernel 6.14.
 
 `sudo bash install.sh`
 
@@ -10,7 +10,7 @@
 
 `sudo apt-get install clang llvm pahole libgflags-dev pkg-config libelf-dev -y`
 
-```
+```shell
 # Latest version of libbpf.
 git clone https://github.com/libbpf/libbpf.git && pushd libbpf/src && make -j$(nproc) && sudo make install && sudo cp ./*.so /usr/local/lib/ && sudo ldconfig && popd
 ```
@@ -30,8 +30,8 @@ See examples in `check_assembly_diff_examples.csv`.
 # Example
 sudo python check_assembly_diff.py -f block/blk-mq.c -s "BLK_MAX_REQUEST_COUNT" "128" --lines 1371,1372
 # The output should be like this:
--    81e5:      83 e0 e0  and    $0xffffffe0,%eax /users/chenzj/linux-6.14.0-export-symbol/block/blk-mq.c:1371
--    81e8:      83 c0 40  add    $0x40,%eax       /users/chenzj/linux-6.14.0-export-symbol/block/blk-mq.c:1371
+-    81e5:      83 e0 e0  and    $0xffffffe0,%eax /users/chenzj/linux-6.14.0-xkernel/block/blk-mq.c:1371
+-    81e8:      83 c0 40  add    $0x40,%eax       /users/chenzj/linux-6.14.0-xkernel/block/blk-mq.c:1371
 ```
 
 ### 2. Determine the offset to attach

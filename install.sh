@@ -1,5 +1,5 @@
 # Override the variable in Makefile
-export KERNELDIR=$HOME/linux-6.14.0-export-symbol
+export KERNELDIR=$HOME/linux-6.14.0-xkernel
 
 # Download Ubuntu Linux source
 # Instead of "linux-source" package which seems a "moving target", lock the
@@ -14,22 +14,6 @@ mv linux-6.14.0 $KERNELDIR
 cd $KERNELDIR
 rm -r $TMPDIR
 
-# Patch kernel
-patch -p1 << 'EOF'
-diff --git a/arch/x86/kernel/alternative.c b/arch/x86/kernel/alternative.c
-index c71b575..cf2236e 100644
---- a/arch/x86/kernel/alternative.c
-+++ b/arch/x86/kernel/alternative.c
-@@ -2016,6 +2016,7 @@ void *text_poke(void *addr, const void *opcode, size_t len)
-
- 	return __text_poke(text_poke_memcpy, addr, opcode, len);
- }
-+EXPORT_SYMBOL_GPL(text_poke);
-
- /**
-  * text_poke_kgdb - Update instructions on a live kernel by kgdb
-EOF
-
 # Build kernel
 cp /boot/config-$(uname -r) .config
 make olddefconfig
@@ -37,7 +21,7 @@ make olddefconfig
 scripts/config -d CONFIG_SYSTEM_TRUSTED_KEYS
 scripts/config -d CONFIG_SYSTEM_REVOCATION_KEYS
 # Give an identifiable name
-scripts/config --set-str CONFIG_LOCALVERSION "-export-text-poke"
+scripts/config --set-str CONFIG_LOCALVERSION "-xkernel"
 make olddefconfig
 # Some statistics
 # 29:25.19 on c6320
