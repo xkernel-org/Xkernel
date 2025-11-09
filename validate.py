@@ -25,8 +25,7 @@ known_headers = [
 
     'CHILD FUNCTION',
 
-    'TODO INTERPROC',
-    'TODO SINK',
+    'INTERPROC',
 ]
 
 propogation_headers = [
@@ -296,6 +295,14 @@ class TestTaintTrackerResults(unittest.TestCase):
     def test_5_return_indirect(self):
 
         name = "5_return_indirect"
+        results_file_path = Path(__file__).parent / "tests" / f"{name}.results.txt"
+        source_file_path = Path(__file__).parent / "tests" / f"{name}.c"
+
+        common_checks(self, True, results_file_path, source_file_path)
+
+    def test_8_deeper_child(self):
+
+        name = "8_deeper_child"
         results_file_path = Path(__file__).parent / "tests" / f"{name}.results.txt"
         source_file_path = Path(__file__).parent / "tests" / f"{name}.c"
 

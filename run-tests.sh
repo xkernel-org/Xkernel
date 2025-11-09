@@ -11,8 +11,13 @@ if ! command -v opt >/dev/null 2>&1; then
 fi
 
 for file in tests/*.bc; do
+    if [ $file == "tests/8_deeper_child.bc" ]; then
+        interproc=true
+    else
+        interproc=false
+    fi
     opt -load-pass-plugin=build/libTaintTrackerPass.so \
-        -passes="taint-tracker<foo;;3600;false>" \
+        -passes="taint-tracker<foo;;3600;false;$interproc>" \
         -disable-output \
         $file |& tee ${file%.bc}.results.txt
 done
