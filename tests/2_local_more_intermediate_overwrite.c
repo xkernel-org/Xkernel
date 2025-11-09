@@ -1,14 +1,16 @@
+// Intermediate variable overwritten then used in comparison
+
 #define MACRO 3600
 
 int foo() {
-    int a = 100;
-    int b = MACRO;
-    int c, d, e, f, g;
-    int z;
+    int a = 100;       // DONT FINDME
+    int b = MACRO;     // FINDME
+    int c, d, e, f, g; // DONT FINDME
+    int z;             // DONT FINDME
 
-    z = b; // FINDME
+    z = b;     // FINDME
 
-    b = 42; // DONT FINDME
+    b = 42;    // DONT FINDME
 
     c = b + a; // DONT FINDME
     d = c - b; // DONT FINDME
@@ -16,7 +18,7 @@ int foo() {
     f = e / b; // DONT FINDME
     g = f % c; // DONT FINDME
 
-    if (a == g) // DONT FINDME
-        return 1;
-    return 0;
+    if (a == g)   // DONT FINDME
+        return 1; // DONT FINDME
+    return 0;     // DONT FINDME
 }

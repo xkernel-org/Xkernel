@@ -194,10 +194,25 @@ class TestTaintTrackerResults(unittest.TestCase):
         source_file_path = Path(__file__).parent / "tests" / f"{name}.c"
 
         findme_line = extract_findme_line_number(source_file_path)
-        check_findme_in_results(self, results_file_path, "USE", f"{source_file_path.name}:{findme_line}:")
+        for line in findme_line:
+            source_location = f"{source_file_path.name}:{line}"
+            self.assertTrue(
+                check_findme_in_results(results_file_path, source_location),
+                f"[{source_location}] not found in data flow"
+            )
 
-        # TODO: no external effects
-        # TODO: where it stops
+        dont_findme_line = extract_dont_findme_line_number(source_file_path)
+        for line in dont_findme_line:
+            source_location = f"{source_file_path.name}:{line}"
+            self.assertTrue(
+                check_dont_findme_in_results(results_file_path, source_location),
+                f"[{source_location}] found in data flow"
+            )
+
+        self.assertFalse(
+            check_overall_external_effects(results_file_path),
+            "External effects found in results"
+        )
 
     def test_2_local_more_intermediate_overwrite(self):
 
@@ -206,14 +221,25 @@ class TestTaintTrackerResults(unittest.TestCase):
         source_file_path = Path(__file__).parent / "tests" / f"{name}.c"
 
         findme_line = extract_findme_line_number(source_file_path)
-        check_findme_in_results(self, results_file_path, "USE", f"{source_file_path.name}:{findme_line}:")
+        for line in findme_line:
+            source_location = f"{source_file_path.name}:{line}"
+            self.assertTrue(
+                check_findme_in_results(results_file_path, source_location),
+                f"[{source_location}] not found in data flow"
+            )
 
-        dont_findme_lines = extract_dont_findme_line_number(source_file_path)
-        for line in dont_findme_lines:
-            check_dont_findme_in_results(self, results_file_path, f"{source_file_path.name}:{line}:")
+        dont_findme_line = extract_dont_findme_line_number(source_file_path)
+        for line in dont_findme_line:
+            source_location = f"{source_file_path.name}:{line}"
+            self.assertTrue(
+                check_dont_findme_in_results(results_file_path, source_location),
+                f"[{source_location}] found in data flow"
+            )
 
-        # TODO: no external effects
-        # TODO: where it stops
+        self.assertFalse(
+            check_overall_external_effects(results_file_path),
+            "External effects found in results"
+        )
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
