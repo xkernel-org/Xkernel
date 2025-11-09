@@ -94,12 +94,28 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
                                         Worklist.push_back(&I);
                                         errs() << "[SOURCE] Tainting: " << I << getDebugLoc(&I) << "\n";
 
-                                        // If this is a store instruction, also mark the pointer as tainted
+                                        // If this is a store instruction, check what we're storing to
                                         if (StoreInst *Store = dyn_cast<StoreInst>(&I)) {
                                             Value *Ptr = Store->getPointerOperand()->stripPointerCasts();
-                                            if (TaintedPointers.insert(Ptr).second) {
-                                                errs() << "[STORE DESTINATION] Marking pointer as tainted: "
-                                                       << getValueName(Ptr) << getDebugLoc(Store) << "\n";
+
+                                            // Always mark as store destination for data flow tracking
+                                            errs() << "[STORE DESTINATION] Storing constant to: "
+                                                   << getValueName(Ptr) << getDebugLoc(Store) << "\n";
+
+                                            // Check if storing to a global variable or pointer parameter (external effects)
+                                            if (GlobalVariable *GV = dyn_cast<GlobalVariable>(Ptr)) {
+                                                errs() << "[GLOBAL] Constant stored to global variable: "
+                                                       << GV->getName() << getDebugLoc(Store) << "\n";
+                                            } else if (Argument *Arg = dyn_cast<Argument>(Ptr)) {
+                                                if (Arg->getType()->isPointerTy()) {
+                                                    errs() << "[POINTER PARAMETER] Constant stored to pointer parameter: "
+                                                           << Arg->getName() << getDebugLoc(Store) << "\n";
+                                                }
+                                            } else {
+                                                // Local variable - mark pointer as tainted for propagation
+                                                if (TaintedPointers.insert(Ptr).second) {
+                                                    // Already printed STORE DESTINATION above
+                                                }
                                             }
                                         }
 
@@ -198,14 +214,14 @@ found:
                         if (StoreInst *Store = dyn_cast<StoreInst>(UserInst)) {
                             if (Store->getValueOperand() == V) {
                                 Value *Ptr = Store->getPointerOperand()->stripPointerCasts();
-                                if (isa<GlobalVariable>(Ptr)) {
-                                    errs() << "  [GLOBAL] Stop: Tainted value stored in Global Variable: "
-                                           << Ptr->getName() << getDebugLoc(Store) << "\n";
+                                if (GlobalVariable *GV = dyn_cast<GlobalVariable>(Ptr)) {
+                                    errs() << "  [GLOBAL] Tainted value stored to global variable: "
+                                           << GV->getName() << getDebugLoc(Store) << "\n";
                                     continue;
                                 }
                                 if (Argument *Arg = dyn_cast<Argument>(Ptr)) {
                                     if (Arg->getType()->isPointerTy()) {
-                                        errs() << "  [POINTER PARAMETER] Stop: Tainted value stored to Pointer Parameter: "
+                                        errs() << "  [POINTER PARAMETER] Tainted value stored to pointer parameter: "
                                                << Arg->getName() << getDebugLoc(Store) << "\n";
                                         continue;
                                     }
