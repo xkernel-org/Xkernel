@@ -32,13 +32,18 @@ known_headers = [
 propogation_headers = [
     'USE',
     'STORE DESTINATION',
-    'LOAD'
+    'LOAD',
+    'CHILD FUNCTION',
+    'GLOBAL',
 ]
 
 external_headers = [
     'CHILD FUNCTION',
     'GLOBAL',
 ]
+
+assert set(propogation_headers) <= set(known_headers)
+assert set(external_headers) <= set(propogation_headers)
 
 def get_results_files() -> List[Path]:
     tests_dir = Path(__file__).parent / "tests"
@@ -249,6 +254,14 @@ class TestTaintTrackerResults(unittest.TestCase):
     def test_3_child_param_indirect(self):
 
         name = "3_child_param_indirect"
+        results_file_path = Path(__file__).parent / "tests" / f"{name}.results.txt"
+        source_file_path = Path(__file__).parent / "tests" / f"{name}.c"
+
+        common_checks(self, True, results_file_path, source_file_path)
+
+    def test_3_child_extern(self):
+
+        name = "3_child_extern"
         results_file_path = Path(__file__).parent / "tests" / f"{name}.results.txt"
         source_file_path = Path(__file__).parent / "tests" / f"{name}.c"
 
