@@ -16,8 +16,13 @@ for file in tests/*.bc; do
     else
         interproc=false
     fi
+    if [ $file == "tests/7_locate_the_right_target.bc" ]; then
+        occurence=2
+    else
+        occurence=1
+    fi
     opt -load-pass-plugin=build/libTaintTrackerPass.so \
-        -passes="taint-tracker<foo;;3600;false;$interproc>" \
+        -passes="taint-tracker<foo;;3600;false;$interproc;$occurence>" \
         -disable-output \
         $file |& tee ${file%.bc}.results.txt
 done
