@@ -6,6 +6,7 @@ import unittest
 from pathlib import Path
 from typing import List
 
+# TODO
 known_headers = [
     'SOURCE',
 
@@ -20,10 +21,19 @@ known_headers = [
 
     'RETURN',
 
-    'CHILD FUNCTION',
+    '** CHILD FUNCTION',
 
     'TODO INTERPROC',
     'TODO SINK',
+]
+
+propogation_headers = [
+    'USE',
+    'STORE DESTINATION',
+]
+
+external_headers = [
+    '** CHILD FUNCTION',
 ]
 
 def get_results_files() -> List[Path]:
@@ -40,14 +50,15 @@ def extract_headers(file_path: Path) -> List[str]:
         content = f.read()
     return re.findall(r'\[([^\]]+)\]', content)
 
-def extract_findme_line_number(source_file_path: Path) -> int:
+def extract_findme_line_number(source_file_path: Path) -> List[int]:
+    res = []
     with open(source_file_path, 'r') as f:
         for lineno, line in enumerate(f, start=1):
             if '// FINDME' in line:
-                return lineno
-    return -1
+                res.append(lineno)
+    return res
 
-def extract_dont_findme_line_number(source_file_path: Path) -> int:
+def extract_dont_findme_line_number(source_file_path: Path) -> List[int]:
     res = []
     with open(source_file_path, 'r') as f:
         for lineno, line in enumerate(f, start=1):
@@ -55,19 +66,51 @@ def extract_dont_findme_line_number(source_file_path: Path) -> int:
                 res.append(lineno)
     return res
 
-def check_findme_in_results(test_case: unittest.TestCase, results_file_path: Path, header: str, source_location: str):
+# "// FINDME" lines are present in the result data flow with proper headers
+def check_findme_in_results(
+    results_file_path: Path,
+    source_location: str
+) -> bool:
     with open(results_file_path, 'r') as f:
         content = f.read()
 
-    test_case.assertIsNotNone(re.search(f'\[{header}\].*{source_location}', content),
-        f"[{header}] not found at {source_location}")
+    for header in propogation_headers:
+        if re.search(f'\[{header}\][^\n]*{source_location}\:', content):
+            return True
+    return False
 
-def check_dont_findme_in_results(test_case: unittest.TestCase, results_file_path: Path, source_location: str):
+# "// DONT FINDME" lines are not present in the result data flow
+def check_dont_findme_in_results(
+    results_file_path: Path,
+    source_location: str
+) -> bool:
     with open(results_file_path, 'r') as f:
         content = f.read()
 
-    test_case.assertNotIn(source_location, content,
-        f"{source_location} appear in results")
+    return source_location not in content
+
+def check_external_effects_in_results(
+    results_file_path: Path,
+    source_location: str
+) -> bool:
+    with open(results_file_path, 'r') as f:
+        content = f.read()
+
+    for header in external_headers:
+        if re.search(f'\[{header}\][^\n]*{source_location}\:', content):
+            return True
+    return False
+
+def check_overall_external_effects(
+    results_file_path: Path,
+) -> bool:
+    with open(results_file_path, 'r') as f:
+        content = f.read()
+
+    for header in external_headers:
+        if header in content:
+            return True
+    return False
 
 class TestTaintTrackerResults(unittest.TestCase):
 
@@ -97,10 +140,25 @@ class TestTaintTrackerResults(unittest.TestCase):
         source_file_path = Path(__file__).parent / "tests" / f"{name}.c"
 
         findme_line = extract_findme_line_number(source_file_path)
-        check_findme_in_results(self, results_file_path, "USE", f"{source_file_path.name}:{findme_line}:")
+        for line in findme_line:
+            source_location = f"{source_file_path.name}:{line}"
+            self.assertTrue(
+                check_findme_in_results(results_file_path, source_location),
+                f"[{source_location}] not found in data flow"
+            )
 
-        # TODO: no external effects
-        # TODO: where it stops
+        dont_findme_line = extract_dont_findme_line_number(source_file_path)
+        for line in dont_findme_line:
+            source_location = f"{source_file_path.name}:{line}"
+            self.assertTrue(
+                check_dont_findme_in_results(results_file_path, source_location),
+                f"[{source_location}] found in data flow"
+            )
+
+        self.assertFalse(
+            check_overall_external_effects(results_file_path),
+            "External effects found in results"
+        )
 
     def test_2_local(self):
 
@@ -109,10 +167,25 @@ class TestTaintTrackerResults(unittest.TestCase):
         source_file_path = Path(__file__).parent / "tests" / f"{name}.c"
 
         findme_line = extract_findme_line_number(source_file_path)
-        check_findme_in_results(self, results_file_path, "USE", f"{source_file_path.name}:{findme_line}:")
+        for line in findme_line:
+            source_location = f"{source_file_path.name}:{line}"
+            self.assertTrue(
+                check_findme_in_results(results_file_path, source_location),
+                f"[{source_location}] not found in data flow"
+            )
 
-        # TODO: no external effects
-        # TODO: where it stops
+        dont_findme_line = extract_dont_findme_line_number(source_file_path)
+        for line in dont_findme_line:
+            source_location = f"{source_file_path.name}:{line}"
+            self.assertTrue(
+                check_dont_findme_in_results(results_file_path, source_location),
+                f"[{source_location}] found in data flow"
+            )
+
+        self.assertFalse(
+            check_overall_external_effects(results_file_path),
+            "External effects found in results"
+        )
 
     def test_2_local_more_intermediate(self):
 
