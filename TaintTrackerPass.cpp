@@ -21,11 +21,12 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
     uint64_t ConstantToTrack;
     bool Verbose;
     bool InterprocMode;  // Enable interprocedural taint tracking
+    unsigned OccurrenceIndex;  // Which occurrence to track (0 = all, 1 = first, 2 = second, etc.)
 
     // Constructor with parameters
-    TaintTrackerPass(std::string FuncName, std::string Opcode, uint64_t Constant, bool Debug, bool Interproc)
+    TaintTrackerPass(std::string FuncName, std::string Opcode, uint64_t Constant, bool Debug, bool Interproc, unsigned Occurrence)
         : FunctionName(std::move(FuncName)), TargetOpcode(std::move(Opcode)),
-          ConstantToTrack(Constant), Verbose(Debug), InterprocMode(Interproc) {}
+          ConstantToTrack(Constant), Verbose(Debug), InterprocMode(Interproc), OccurrenceIndex(Occurrence) {}
 
     // Helper to print a value
     std::string getValueName(Value *V) {
@@ -67,7 +68,11 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
         errs() << "Opcode: " << TargetOpcode << "\n";
         errs() << "Constant: " << ConstantToTrack << "\n";
         errs() << "Verbose: " << (Verbose ? "ON" : "OFF") << "\n";
-        errs() << "Interproc: " << (InterprocMode ? "ON" : "OFF") << "\n\n";
+        errs() << "Interproc: " << (InterprocMode ? "ON" : "OFF") << "\n";
+        errs() << "Occurrence: " << (OccurrenceIndex == 0 ? "ALL" : std::to_string(OccurrenceIndex)) << "\n\n";
+
+        // Counter for occurrence tracking
+        unsigned currentOccurrence = 0;
 
         for (Function &F : M) {
             if (F.getName() == FunctionName) {
@@ -92,6 +97,16 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
                             }
                             if (ConstantInt *CI = dyn_cast<ConstantInt>(Op)) {
                                 if (CI->getZExtValue() == ConstantToTrack) {
+                                    // Increment occurrence counter
+                                    currentOccurrence++;
+
+                                    // Skip if this is not the desired occurrence
+                                    if (OccurrenceIndex != 0 && currentOccurrence != OccurrenceIndex) {
+                                        if (Verbose)
+                                            errs() << "  Skipping occurrence " << currentOccurrence
+                                                   << " (looking for " << OccurrenceIndex << ")\n";
+                                        continue;
+                                    }
                                     if (TaintedValues.insert(&I).second) {
                                         Worklist.push_back(&I);
                                         errs() << "[SOURCE] Tainting: " << I << getDebugLoc(&I) << "\n";
@@ -410,17 +425,18 @@ llvmGetPassPluginInfo() {
             PB.registerPipelineParsingCallback(
                 [](StringRef Name, ModulePassManager &MPM,
                    ArrayRef<PassBuilder::PipelineElement>) {
-                    // Parse: taint-tracker<function_name;opcode;constant_value;debug;interproc>
+                    // Parse: taint-tracker<function_name;opcode;constant_value;debug;interproc;occurrence>
                     if (Name.consume_front("taint-tracker")) {
                         std::string FunctionName = "gss_fill_context";  // default
                         std::string Opcode = "";  // default (empty means all opcodes)
                         uint64_t Constant = 3600;  // default
                         bool Debug = false;  // default
                         bool Interproc = false;  // default
+                        unsigned Occurrence = 0;  // default (0 = all occurrences)
 
                         if (Name.consume_front("<") && Name.consume_back(">")) {
                             // Parse parameters separated by semicolons
-                            SmallVector<StringRef, 5> Params;
+                            SmallVector<StringRef, 6> Params;
                             Name.split(Params, ';', -1, true);
 
                             if (Params.size() >= 1 && !Params[0].empty()) {
@@ -445,9 +461,15 @@ llvmGetPassPluginInfo() {
                                 Interproc = (InterprocStr == "true" || InterprocStr == "1" ||
                                             InterprocStr == "TRUE" || InterprocStr == "yes");
                             }
+                            if (Params.size() >= 6 && !Params[5].empty()) {
+                                if (Params[5].getAsInteger(10, Occurrence)) {
+                                    errs() << "Warning: Invalid occurrence value, using default 0 (all)\n";
+                                    Occurrence = 0;
+                                }
+                            }
                         }
 
-                        MPM.addPass(TaintTrackerPass(FunctionName, Opcode, Constant, Debug, Interproc));
+                        MPM.addPass(TaintTrackerPass(FunctionName, Opcode, Constant, Debug, Interproc, Occurrence));
                         return true;
                     }
                     return false;
