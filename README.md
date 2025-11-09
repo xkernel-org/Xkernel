@@ -60,3 +60,26 @@ Given a start instruction with a constant in it, e.g. `%15 = select i1 %14, i32 
     2. A pointer parameter of current function
     3. The value is used in a function call
     4. The value is used in return
+
+Usage:
+
+Build the analysis pass
+
+```shell
+bash build-pass.sh
+```
+
+Experiment with small programs
+
+```shell
+bash build-tests.sh
+bash run-tests.sh
+python validate.py
+```
+
+Run with kernel
+
+```shell
+KERNEL_DIR=path/to/your/linux-wllvm \
+bash run-kernel.sh
+```
