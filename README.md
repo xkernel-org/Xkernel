@@ -1,3 +1,22 @@
+Dependencies
+
+```shell
+# General Linux build
+sudo apt install build-essential flex bison libelf-dev libssl-dev
+
+# LLVM
+wget https://apt.llvm.org/llvm.sh -O /tmp/llvm.sh
+chmod +x /tmp/llvm.sh
+sudo /tmp/llvm.sh 20
+
+# wllvm
+sudo apt install python3-pip
+pip install wllvm==1.3.1
+
+# Misc
+sudo apt install cmake bear
+```
+
 Get whole-program LLVM for Linux
 
 ```shell
@@ -37,19 +56,41 @@ EOF
 
 git commit -am 'wllvm: make linker happy'
 
+cat << EOF >> .gitignore
+
+*.bc
+*.ll
+*.mutated
+EOF
+
+git commit -am 'data flow: suppress git diff when we mutate const value to locate it in IR'
+
 export LLVM_COMPILER=clang
+export PATH=/lib/llvm-20/bin:$PATH
 make CC=wllvm AR=llvm-ar HOSTCC=clang defconfig
 ./scripts/config -e LTO_CLANG
 ./scripts/config -e DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT
 make CC=wllvm AR=llvm-ar HOSTCC=clang olddefconfig
-# 2min51s
+# To include some constants in vmlinux
+./scripts/config -e INFINIBAND
+./scripts/config -e SMC
+./scripts/config -e RDS
+./scripts/config -e RDS_RDMA
+./scripts/config -e NET_SCH_PIE
+make CC=wllvm AR=llvm-ar HOSTCC=clang olddefconfig
+# 2min51s 14900k
+# 4min27s c6420
 /usr/bin/time -v make CC=wllvm AR=llvm-ar HOSTCC=clang -j
 
 # TODO check whether it boots
 # TODO check if LTO is necessary; does the result reflect before- or after-LTO
 
-extract-bc vmlinux
-llvm-dis vmlinux.bc -o vmlinux.ll
+# 56s 14900k
+# 2min19s c6420
+/usr/bin/time -v extract-bc vmlinux
+# 5min49s 14900k
+# 14min50s c6420
+/usr/bin/time -v llvm-dis vmlinux.bc -o vmlinux.ll
 ```
 
 Analysis goal:
@@ -75,6 +116,8 @@ bash build-pass.sh
 Experiment with small programs
 
 ```shell
+export LLVM_COMPILER=clang
+export PATH=/lib/llvm-20/bin:$PATH
 bash build-tests.sh
 bash run-tests.sh
 python validate.py
