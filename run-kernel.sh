@@ -20,21 +20,23 @@ fi
 export LLVM_COMPILER=clang
 
 # Pass option: does it stop when seeing child(), or go into it recursively
-INTERPROC=false
+INTERPROC=true
 # Use vmlinux.bc as input (true, slow) or only the object file (false, fast)
-WHOLE_KERNEL=false
+WHOLE_KERNEL=true
 
 ### 1. DFR_MAX (1,2)
 
-# # %163 = icmp slt i32 %162, 301, !dbg !17437
-#
-# SOURCE_FILE=net/sunrpc/cache.c
-# FUNCTION_NAME=cache_check_rcu
-# SOURCE_OP=icmp
-# CONSTANT_VALUE=301
-# OCCURENCE=1
+# %163 = icmp slt i32 %162, 301, !dbg !17437
+# Conclusion: [LOCAL]
+
+SOURCE_FILE=net/sunrpc/cache.c
+FUNCTION_NAME=cache_check_rcu
+SOURCE_OP=icmp
+CONSTANT_VALUE=301
+OCCURENCE=1
 
 # # %166 = icmp sgt i32 %165, 300, !dbg !17442
+# # Conclusion: [LOCAL]
 #
 # SOURCE_FILE=net/sunrpc/cache.c
 # FUNCTION_NAME=cache_check_rcu
@@ -45,6 +47,7 @@ WHOLE_KERNEL=false
 ### 2. GSSD_MIN_TIMEOUT
 
 # # %15 = select i1 %14, i32 3600, i32 %13, !dbg !18545
+# # Conclusion: [INTERPROC, EXTERNAL]
 #
 # SOURCE_FILE=net/sunrpc/auth_gss/auth_gss.c
 # FUNCTION_NAME=gss_fill_context
@@ -59,6 +62,7 @@ WHOLE_KERNEL=false
 # - CONFIG_SMC
 
 # # %144 = call zeroext i1 @mod_delayed_work_on(i32 noundef 64, ptr noundef %142, ptr noundef nonnull %143, i64 noundef 0) #8, !dbg !17462
+# # Conclusion: [INTERPROC]
 #
 # SOURCE_FILE=net/smc/smc_tx.c
 # FUNCTION_NAME=smc_tx_sndbuf_nonempty
@@ -68,6 +72,7 @@ WHOLE_KERNEL=false
 #             #      check we are starting at the right instruction
 
 # # %103 = tail call zeroext i1 @queue_delayed_work_on(i32 noundef 64, ptr noundef %101, ptr noundef nonnull %102, i64 noundef 0) #8, !dbg !18394
+# # Conclusion: [INTERPROC]
 #
 # SOURCE_FILE=net/smc/smc_tx.c
 # FUNCTION_NAME=smc_tx_consumer_update
@@ -79,6 +84,7 @@ WHOLE_KERNEL=false
 ### 4. SMC_LGR_NUM_INCR
 
 # # %326 = add i32 %325, 256, !dbg !22204
+# # Conclusion: [LOCAL]
 #
 # SOURCE_FILE=net/smc/smc_core.c
 # FUNCTION_NAME=smc_conn_create
@@ -93,6 +99,7 @@ WHOLE_KERNEL=false
 # - CONFIG_RDS_RDMA
 
 # # %23 = icmp ult i64 %22, 32, !dbg !15799
+# # Conclusion: [LOCAL]
 #
 # SOURCE_FILE=net/rds/ib_recv
 # FUNCTION_NAME=rds_ib_recv_cache_put
@@ -106,6 +113,7 @@ WHOLE_KERNEL=false
 # - CONFIG_NET_SCH_PIE
 
 # # %25 = icmp ugt i32 %3, 16383, !dbg !12932
+# # Conclusion: [LOCAL]
 #
 # SOURCE_FILE=net/sched/sch_pie.c
 # FUNCTION_NAME=pie_process_dequeue
@@ -114,6 +122,7 @@ WHOLE_KERNEL=false
 # OCCURENCE=1
 
 # # %42 = icmp ugt i64 %41, 16383, !dbg !12949
+# # Conclusion: [LOCAL]
 #
 # SOURCE_FILE=net/sched/sch_pie.c
 # FUNCTION_NAME=pie_process_dequeue
@@ -122,6 +131,7 @@ WHOLE_KERNEL=false
 # OCCURENCE=2
 
 # # %61 = icmp ult i32 %3, 16381, !dbg !12962
+# # Conclusion: [LOCAL]
 #
 # SOURCE_FILE=net/sched/sch_pie.c
 # FUNCTION_NAME=pie_process_dequeue
@@ -132,6 +142,7 @@ WHOLE_KERNEL=false
 ### 7. PIE_SCALE (1,2,3)
 
 # # %39 = lshr i64 %38, 8, !dbg !12658
+# # Conclusion: [LOCAL]
 #
 # SOURCE_FILE=net/sched/sch_pie.c
 # FUNCTION_NAME=pie_dump_stats
@@ -140,6 +151,7 @@ WHOLE_KERNEL=false
 # OCCURENCE=1
 
 # # %14 = shl i32 %2, 8, !dbg !12786
+# # Conclusion: [INTERPROC, EXTERNAL]
 #
 # SOURCE_FILE=net/sched/sch_pie.c
 # FUNCTION_NAME=pie_calculate_probability
@@ -148,6 +160,7 @@ WHOLE_KERNEL=false
 # OCCURENCE=1
 
 # # %51 = shl i32 %50, 8, !dbg !12956
+# # Conclusion: [LOCAL]
 #
 # SOURCE_FILE=net/sched/sch_pie.c
 # FUNCTION_NAME=pie_process_dequeue
@@ -158,6 +171,7 @@ WHOLE_KERNEL=false
 ### 8. BUSY_POLL_BUDGET (1,2,3,4,5)
 
 # # tail call void @napi_busy_loop_rcu(i32 noundef %61, ptr noundef %46, ptr noundef %45, i1 noundef zeroext %63, i16 noundef zeroext 8) #7, !dbg !13037
+# # Conclusion: [INTERPROC, EXTERNAL]
 #
 # SOURCE_FILE=io_uring/napi.c
 # FUNCTION_NAME=__io_napi_busy_loop
@@ -166,6 +180,7 @@ WHOLE_KERNEL=false
 # OCCURENCE=1
 
 # # tail call void @napi_busy_loop_rcu(i32 noundef %71, ptr noundef %46, ptr noundef %45, i1 noundef zeroext %73, i16 noundef zeroext 8) #7, !dbg !13060
+# # Conclusion: [INTERPROC, EXTERNAL]
 #
 # SOURCE_FILE=io_uring/napi.c
 # FUNCTION_NAME=__io_napi_busy_loop
@@ -174,6 +189,7 @@ WHOLE_KERNEL=false
 # OCCURENCE=2
 
 # # tail call void @napi_busy_loop_rcu(i32 noundef %25, ptr noundef null, ptr noundef null, i1 noundef zeroext %27, i16 noundef zeroext 8) #7, !dbg !13518
+# # Conclusion: [INTERPROC, EXTERNAL]
 #
 # SOURCE_FILE=io_uring/napi.c
 # FUNCTION_NAME=io_napi_sqpoll_busy_poll
@@ -182,6 +198,7 @@ WHOLE_KERNEL=false
 # OCCURENCE=1
 
 # # tail call void @napi_busy_loop_rcu(i32 noundef %37, ptr noundef null, ptr noundef null, i1 noundef zeroext %39, i16 noundef zeroext 8) #7, !dbg !13527
+# # Conclusion: [INTERPROC, EXTERNAL]
 #
 # SOURCE_FILE=io_uring/napi.c
 # FUNCTION_NAME=io_napi_sqpoll_busy_poll
@@ -190,6 +207,7 @@ WHOLE_KERNEL=false
 # OCCURENCE=2
 
 # # %227 = select i1 %226, i16 8, i16 %223, !dbg !16238
+# # Conclusion: [INTERPROC, EXTERNAL]
 #
 # SOURCE_FILE=fs/eventpoll.c
 # FUNCTION_NAME=do_epoll_wait
