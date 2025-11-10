@@ -123,6 +123,11 @@ bash run-tests.sh
 python validate.py
 ```
 
+Programs are found `tests/*.c`; IR `tests/*.ll`; analysis results
+`tests/*.results.txt`. If a program is is included in
+[`validate.py`](./validate.py), its analysis results are checked against
+expectation (annotated with `// FINDME`, `// DONT FINDME` etc).
+
 Run with kernel
 
 ```shell
