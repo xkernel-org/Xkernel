@@ -19,6 +19,18 @@ if ! command -v opt >/dev/null 2>&1; then
     fi
 fi
 
+### 1. DFR_MAX
+
+# SOURCE_FILE=net/sunrpc/cache.c
+# DEFINITION_SOURCE_FILE=net/sunrpc/cache.c
+# SED_PATTERN='s|\#define	DFR_MAX	300|#define	DFR_MAX	299|'
+
+### 2. GSSD_MIN_TIMEOUT
+
+# SOURCE_FILE=net/sunrpc/auth_gss/auth_gss.c
+# DEFINITION_SOURCE_FILE=net/sunrpc/auth_gss/auth_gss.c
+# SED_PATTERN='s|\#define GSSD_MIN_TIMEOUT (60 \* 60)|#define GSSD_MIN_TIMEOUT (60 \* 30)|'
+
 ### 3. SMC_TX_WORK_DELAY
 
 # SOURCE_FILE=net/smc/smc_tx.c
