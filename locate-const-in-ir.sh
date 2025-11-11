@@ -99,6 +99,9 @@ mv $BC_FILE{.origin,}
 mv $LL_FILE{.origin,}
 mv $OBJ_FILE{.origin,}
 
-diff -s --color=always $LL_FILE{,.mutated} || true
+diff -s --color=always \
+    <(grep -v '^![0-9]' $LL_FILE         | grep -v '^    #dbg_value') \
+    <(grep -v '^![0-9]' $LL_FILE.mutated | grep -v '^    #dbg_value') \
+    || true
 
 echo $KERNEL_DIR/$LL_FILE
