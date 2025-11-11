@@ -18,13 +18,13 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
     // Pass parameters
     std::string FunctionName;
     std::string TargetOpcode;
-    uint64_t ConstantToTrack;
+    int64_t ConstantToTrack;  // Support both positive and negative constants
     bool Verbose;
     bool InterprocMode;  // Enable interprocedural taint tracking
-    unsigned OccurrenceIndex;  // Which occurrence to track (0 = all, 1 = first, 2 = second, etc.)
+    unsigned OccurrenceIndex;  // Which occurrence to track (1 = first [default], 2 = second, etc., 0 = all)
 
     // Constructor with parameters
-    TaintTrackerPass(std::string FuncName, std::string Opcode, uint64_t Constant, bool Debug, bool Interproc, unsigned Occurrence)
+    TaintTrackerPass(std::string FuncName, std::string Opcode, int64_t Constant, bool Debug, bool Interproc, unsigned Occurrence)
         : FunctionName(std::move(FuncName)), TargetOpcode(std::move(Opcode)),
           ConstantToTrack(Constant), Verbose(Debug), InterprocMode(Interproc), OccurrenceIndex(Occurrence) {}
 
@@ -69,7 +69,11 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
         errs() << "Constant: " << ConstantToTrack << "\n";
         errs() << "Verbose: " << (Verbose ? "ON" : "OFF") << "\n";
         errs() << "Interproc: " << (InterprocMode ? "ON" : "OFF") << "\n";
-        errs() << "Occurrence: " << (OccurrenceIndex == 0 ? "ALL" : std::to_string(OccurrenceIndex)) << "\n\n";
+        if (OccurrenceIndex == 0) {
+            errs() << "Occurrence: ALL\n\n";
+        } else {
+            errs() << "Occurrence: " << OccurrenceIndex << " (of constant " << ConstantToTrack << ")\n\n";
+        }
 
         // Counter for occurrence tracking
         unsigned currentOccurrence = 0;
@@ -96,7 +100,7 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
                                 errs() << "Op " << NumOp << ": " << *Op << "\n";
                             }
                             if (ConstantInt *CI = dyn_cast<ConstantInt>(Op)) {
-                                if (CI->getZExtValue() == ConstantToTrack) {
+                                if (CI->getSExtValue() == ConstantToTrack) {
                                     // Increment occurrence counter
                                     currentOccurrence++;
 
@@ -184,7 +188,11 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
                                             }
                                         }
                                     }
-                                    goto found;
+
+                                    // If tracking a specific occurrence, exit after finding it
+                                    if (OccurrenceIndex != 0) {
+                                        goto found;
+                                    }
                                 }
                             }
                         }
@@ -429,10 +437,10 @@ llvmGetPassPluginInfo() {
                     if (Name.consume_front("taint-tracker")) {
                         std::string FunctionName = "gss_fill_context";  // default
                         std::string Opcode = "";  // default (empty means all opcodes)
-                        uint64_t Constant = 3600;  // default
+                        int64_t Constant = 3600;  // default (supports negative values)
                         bool Debug = false;  // default
                         bool Interproc = false;  // default
-                        unsigned Occurrence = 0;  // default (0 = all occurrences)
+                        unsigned Occurrence = 1;  // default (1 = first occurrence, 0 = all occurrences)
 
                         if (Name.consume_front("<") && Name.consume_back(">")) {
                             // Parse parameters separated by semicolons
@@ -463,8 +471,8 @@ llvmGetPassPluginInfo() {
                             }
                             if (Params.size() >= 6 && !Params[5].empty()) {
                                 if (Params[5].getAsInteger(10, Occurrence)) {
-                                    errs() << "Warning: Invalid occurrence value, using default 0 (all)\n";
-                                    Occurrence = 0;
+                                    errs() << "Warning: Invalid occurrence value, using default 1 (first)\n";
+                                    Occurrence = 1;
                                 }
                             }
                         }
