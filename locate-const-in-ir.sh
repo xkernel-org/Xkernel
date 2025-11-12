@@ -152,12 +152,11 @@ mv $BC_FILE{.origin,}
 mv $LL_FILE{.origin,}
 mv $OBJ_FILE{.origin,}
 
-set +e
+set +e # Allow diff to legitimately fail
 
 diff -s --color=always \
     <(grep -v '^![0-9]' $LL_FILE         | grep -v '^    #dbg_value') \
-    <(grep -v '^![0-9]' $LL_FILE.mutated | grep -v '^    #dbg_value') \
-    || true
+    <(grep -v '^![0-9]' $LL_FILE.mutated | grep -v '^    #dbg_value')
 
 diff -s `#--color=always` \
     <(grep -v '^![0-9]' $LL_FILE         | grep -v '^    #dbg_value') \
