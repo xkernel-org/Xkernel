@@ -22,9 +22,9 @@ fi
 
 ### 1. DFR_MAX
 
-# SOURCE_FILE=net/sunrpc/cache.c
-# DEFINITION_SOURCE_FILE=net/sunrpc/cache.c
-# SED_PATTERN='s|\#define	DFR_MAX	300|#define	DFR_MAX	299|'
+SOURCE_FILE=net/sunrpc/cache.c
+DEFINITION_SOURCE_FILE=net/sunrpc/cache.c
+SED_PATTERN='s|\#define	DFR_MAX	300|#define	DFR_MAX	299|'
 
 ### 2. GSSD_MIN_TIMEOUT
 
