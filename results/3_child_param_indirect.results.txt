@@ -1,0 +1,19 @@
+=== Taint Tracker Configuration ===
+Function: foo
+Opcode: 
+Constant: 3600
+Verbose: OFF
+Interproc: OFF
+Occurrence: 1 (of constant 3600)
+
+[SOURCE] Tainting:   %4 = add nsw i32 3600, %3, !dbg !20 <tests/3_child_param_indirect.c:9:19>
+[USE] Source instruction in data flow <tests/3_child_param_indirect.c:9:19>
+[USE] Processing uses of:   %4 = add nsw i32 3600, %3, !dbg !20
+  [STORE DESTINATION] Marking pointer as tainted:   %2 = alloca i32, align 4 <tests/3_child_param_indirect.c:9:9>
+  [USE] Taint flows to:   store i32 %4, ptr %2, align 4, !dbg !18 <tests/3_child_param_indirect.c:9:9>
+[NO USE] No uses of:   store i32 %4, ptr %2, align 4, !dbg !18
+[LOAD] Tainted load from tracked pointer:   %5 = load i32, ptr %2, align 4, !dbg !21 (  %2 = alloca i32, align 4)  <tests/3_child_param_indirect.c:10:9>
+[USE] Processing uses of:   %5 = load i32, ptr %2, align 4, !dbg !21
+  [CHILD FUNCTION] Tainted value used in call to bar at argument 0 <tests/3_child_param_indirect.c:10:5>
+
+=== Taint Analysis Complete ===

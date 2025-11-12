@@ -1,0 +1,25 @@
+=== Taint Tracker Configuration ===
+Function: foo
+Opcode: 
+Constant: 3600
+Verbose: OFF
+Interproc: OFF
+Occurrence: 1 (of constant 3600)
+
+[SOURCE] Tainting:   store i32 3600, ptr %3, align 4, !dbg !18 <tests/2_local_more_intermediate_overwrite.c:7:9>
+[USE] Source instruction in data flow <tests/2_local_more_intermediate_overwrite.c:7:9>
+[STORE DESTINATION] Storing constant to:   %3 = alloca i32, align 4 <tests/2_local_more_intermediate_overwrite.c:7:9>
+[NO USE] No uses of:   store i32 3600, ptr %3, align 4, !dbg !18
+[KILL] Store overwrites tainted pointer with non-tainted value:   store i32 42, ptr %3, align 4, !dbg !33
+[LOAD] Tainted load from tracked pointer:   %10 = load i32, ptr %3, align 4, !dbg !31 (  %3 = alloca i32, align 4)  <tests/2_local_more_intermediate_overwrite.c:11:9>
+[SKIP] Load after kill, not tainting:   %11 = load i32, ptr %3, align 4, !dbg !34
+[SKIP] Load after kill, not tainting:   %15 = load i32, ptr %3, align 4, !dbg !39
+[SKIP] Load after kill, not tainting:   %21 = load i32, ptr %3, align 4, !dbg !47
+[USE] Processing uses of:   %10 = load i32, ptr %3, align 4, !dbg !31
+  [STORE DESTINATION] Marking pointer as tainted:   %9 = alloca i32, align 4 <tests/2_local_more_intermediate_overwrite.c:11:7>
+  [USE] Taint flows to:   store i32 %10, ptr %9, align 4, !dbg !32 <tests/2_local_more_intermediate_overwrite.c:11:7>
+[NO USE] No uses of:   store i32 %10, ptr %9, align 4, !dbg !32
+[KILL] Store overwrites tainted pointer with non-tainted value:   store i32 42, ptr %3, align 4, !dbg !33
+[KILL] Store overwrites tainted pointer with non-tainted value:   store i32 42, ptr %3, align 4, !dbg !33
+
+=== Taint Analysis Complete ===

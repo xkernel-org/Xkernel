@@ -1,0 +1,17 @@
+=== Taint Tracker Configuration ===
+Function: foo
+Opcode: 
+Constant: 3600
+Verbose: OFF
+Interproc: OFF
+Occurrence: 1 (of constant 3600)
+
+[SOURCE] Tainting:   store i32 3600, ptr %1, align 4, !dbg !16 <tests/5_return_indirect.c:6:9>
+[USE] Source instruction in data flow <tests/5_return_indirect.c:6:9>
+[STORE DESTINATION] Storing constant to:   %1 = alloca i32, align 4 <tests/5_return_indirect.c:6:9>
+[NO USE] No uses of:   store i32 3600, ptr %1, align 4, !dbg !16
+[LOAD] Tainted load from tracked pointer:   %2 = load i32, ptr %1, align 4, !dbg !17 (  %1 = alloca i32, align 4)  <tests/5_return_indirect.c:7:12>
+[USE] Processing uses of:   %2 = load i32, ptr %1, align 4, !dbg !17
+  [RETURN] Stop: Tainted value is returned:   ret i32 %2, !dbg !18 <tests/5_return_indirect.c:7:5>
+
+=== Taint Analysis Complete ===

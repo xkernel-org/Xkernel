@@ -1,0 +1,14 @@
+=== Taint Tracker Configuration ===
+Function: foo
+Opcode: 
+Constant: 3600
+Verbose: OFF
+Interproc: OFF
+Occurrence: 1 (of constant 3600)
+
+[SOURCE] Tainting:   call void @external_func(i32 noundef 3600), !dbg !14 <tests/3_child_extern.c:8:5>
+[USE] Source instruction in data flow <tests/3_child_extern.c:8:5>
+[CHILD FUNCTION] Constant used in call to external_func at argument 0 <tests/3_child_extern.c:8:5>
+[NO USE] No uses of:   call void @external_func(i32 noundef 3600), !dbg !14
+
+=== Taint Analysis Complete ===

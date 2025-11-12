@@ -1,0 +1,61 @@
+=== Taint Tracker Configuration ===
+Function: foo
+Opcode: 
+Constant: 3600
+Verbose: OFF
+Interproc: OFF
+Occurrence: 1 (of constant 3600)
+
+[SOURCE] Tainting:   store i32 3600, ptr %3, align 4, !dbg !18 <tests/2_local_more_intermediate.c:7:9>
+[USE] Source instruction in data flow <tests/2_local_more_intermediate.c:7:9>
+[STORE DESTINATION] Storing constant to:   %3 = alloca i32, align 4 <tests/2_local_more_intermediate.c:7:9>
+[NO USE] No uses of:   store i32 3600, ptr %3, align 4, !dbg !18
+[LOAD] Tainted load from tracked pointer:   %9 = load i32, ptr %3, align 4, !dbg !29 (  %3 = alloca i32, align 4)  <tests/2_local_more_intermediate.c:10:9>
+[LOAD] Tainted load from tracked pointer:   %13 = load i32, ptr %3, align 4, !dbg !34 (  %3 = alloca i32, align 4)  <tests/2_local_more_intermediate.c:11:13>
+[LOAD] Tainted load from tracked pointer:   %19 = load i32, ptr %3, align 4, !dbg !42 (  %3 = alloca i32, align 4)  <tests/2_local_more_intermediate.c:13:13>
+[USE] Processing uses of:   %19 = load i32, ptr %3, align 4, !dbg !42
+  [USE] Taint flows to:   %20 = sdiv i32 %18, %19, !dbg !43 <tests/2_local_more_intermediate.c:13:11>
+[USE] Processing uses of:   %20 = sdiv i32 %18, %19, !dbg !43
+  [STORE DESTINATION] Marking pointer as tainted:   %7 = alloca i32, align 4 <tests/2_local_more_intermediate.c:13:7>
+  [USE] Taint flows to:   store i32 %20, ptr %7, align 4, !dbg !44 <tests/2_local_more_intermediate.c:13:7>
+[NO USE] No uses of:   store i32 %20, ptr %7, align 4, !dbg !44
+[USE] Processing uses of:   %13 = load i32, ptr %3, align 4, !dbg !34
+  [USE] Taint flows to:   %14 = sub nsw i32 %12, %13, !dbg !35 <tests/2_local_more_intermediate.c:11:11>
+[USE] Processing uses of:   %14 = sub nsw i32 %12, %13, !dbg !35
+  [STORE DESTINATION] Marking pointer as tainted:   %5 = alloca i32, align 4 <tests/2_local_more_intermediate.c:11:7>
+  [USE] Taint flows to:   store i32 %14, ptr %5, align 4, !dbg !36 <tests/2_local_more_intermediate.c:11:7>
+[NO USE] No uses of:   store i32 %14, ptr %5, align 4, !dbg !36
+[USE] Processing uses of:   %9 = load i32, ptr %3, align 4, !dbg !29
+  [USE] Taint flows to:   %11 = add nsw i32 %9, %10, !dbg !31 <tests/2_local_more_intermediate.c:10:11>
+[USE] Processing uses of:   %11 = add nsw i32 %9, %10, !dbg !31
+  [STORE DESTINATION] Marking pointer as tainted:   %4 = alloca i32, align 4 <tests/2_local_more_intermediate.c:10:7>
+  [USE] Taint flows to:   store i32 %11, ptr %4, align 4, !dbg !32 <tests/2_local_more_intermediate.c:10:7>
+[NO USE] No uses of:   store i32 %11, ptr %4, align 4, !dbg !32
+[LOAD] Tainted load from tracked pointer:   %12 = load i32, ptr %4, align 4, !dbg !33 (  %4 = alloca i32, align 4)  <tests/2_local_more_intermediate.c:11:9>
+[LOAD] Tainted load from tracked pointer:   %15 = load i32, ptr %5, align 4, !dbg !37 (  %5 = alloca i32, align 4)  <tests/2_local_more_intermediate.c:12:9>
+[LOAD] Tainted load from tracked pointer:   %21 = load i32, ptr %7, align 4, !dbg !45 (  %7 = alloca i32, align 4)  <tests/2_local_more_intermediate.c:14:9>
+[LOAD] Tainted load from tracked pointer:   %22 = load i32, ptr %4, align 4, !dbg !46 (  %4 = alloca i32, align 4)  <tests/2_local_more_intermediate.c:14:13>
+[USE] Processing uses of:   %22 = load i32, ptr %4, align 4, !dbg !46
+  [USE] Taint flows to:   %23 = srem i32 %21, %22, !dbg !47 <tests/2_local_more_intermediate.c:14:11>
+[USE] Processing uses of:   %23 = srem i32 %21, %22, !dbg !47
+  [STORE DESTINATION] Marking pointer as tainted:   %8 = alloca i32, align 4 <tests/2_local_more_intermediate.c:14:7>
+  [USE] Taint flows to:   store i32 %23, ptr %8, align 4, !dbg !48 <tests/2_local_more_intermediate.c:14:7>
+[NO USE] No uses of:   store i32 %23, ptr %8, align 4, !dbg !48
+[USE] Processing uses of:   %21 = load i32, ptr %7, align 4, !dbg !45
+[USE] Processing uses of:   %15 = load i32, ptr %5, align 4, !dbg !37
+  [USE] Taint flows to:   %17 = mul nsw i32 %15, %16, !dbg !39 <tests/2_local_more_intermediate.c:12:11>
+[USE] Processing uses of:   %17 = mul nsw i32 %15, %16, !dbg !39
+  [STORE DESTINATION] Marking pointer as tainted:   %6 = alloca i32, align 4 <tests/2_local_more_intermediate.c:12:7>
+  [USE] Taint flows to:   store i32 %17, ptr %6, align 4, !dbg !40 <tests/2_local_more_intermediate.c:12:7>
+[NO USE] No uses of:   store i32 %17, ptr %6, align 4, !dbg !40
+[USE] Processing uses of:   %12 = load i32, ptr %4, align 4, !dbg !33
+[LOAD] Tainted load from tracked pointer:   %18 = load i32, ptr %6, align 4, !dbg !41 (  %6 = alloca i32, align 4)  <tests/2_local_more_intermediate.c:13:9>
+[LOAD] Tainted load from tracked pointer:   %25 = load i32, ptr %8, align 4, !dbg !51 (  %8 = alloca i32, align 4)  <tests/2_local_more_intermediate.c:16:14>
+[USE] Processing uses of:   %25 = load i32, ptr %8, align 4, !dbg !51
+  [USE] Taint flows to:   %26 = icmp eq i32 %24, %25, !dbg !52 <tests/2_local_more_intermediate.c:16:11>
+[USE] Processing uses of:   %26 = icmp eq i32 %24, %25, !dbg !52
+  [USE] Taint flows to:   br i1 %26, label %27, label %28, !dbg !52 <tests/2_local_more_intermediate.c:16:11>
+[NO USE] No uses of:   br i1 %26, label %27, label %28, !dbg !52
+[USE] Processing uses of:   %18 = load i32, ptr %6, align 4, !dbg !41
+
+=== Taint Analysis Complete ===
