@@ -87,8 +87,7 @@ def find_function_for_instruction(ll_file_path, instruction):
         if func_match:
             current_function = func_match.group(1)
 
-        # Check if the search pattern appears in this line
-        if search_pattern in line:
+        if instruction in line:
             return current_function
 
     return None
