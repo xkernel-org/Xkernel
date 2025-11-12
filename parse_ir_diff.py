@@ -67,9 +67,6 @@ def find_function_for_instruction(ll_file_path, instruction):
 
     var_name = var_match.group(1)
 
-    # Find all function definitions and their content
-    function_pattern = r'define\s+[^@]*@([a-zA-Z0-9_\.]+)\s*\([^)]*\)[^{]*\{([^}]*(?:\{[^}]*\}[^}]*)*)\}'
-
     # Split by function definitions
     lines = content.split('\n')
     current_function = None
@@ -80,11 +77,8 @@ def find_function_for_instruction(ll_file_path, instruction):
         if func_match:
             current_function = func_match.group(1)
 
-        # Check if the instruction appears in this line
-        if var_name in line and '=' in line:
-            # Verify it's the actual instruction we're looking for
-            if var_name + ' =' in line:
-                return current_function
+        if instruction in line:
+            return current_function
 
     return None
 
