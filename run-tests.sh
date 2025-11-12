@@ -13,6 +13,8 @@ fi
 for file in tests/*.bc; do
     if [ $file == "tests/8_deeper_child.bc" ]; then
         interproc=true
+    elif [ $file == "tests/8_deeper_child_with_effect.bc" ]; then
+        interproc=true
     else
         interproc=false
     fi
