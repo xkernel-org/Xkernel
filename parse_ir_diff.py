@@ -61,12 +61,21 @@ def find_function_for_instruction(ll_file_path, instruction):
     with open(ll_file_path, 'r') as f:
         content = f.read()
 
-    # Extract the variable assignment from instruction (e.g., "%28" from "%28 = or...")
+    # For instructions with variable assignments (e.g., "%28 = or...")
     var_match = re.match(r'^\s*(%\d+)\s*=', instruction)
-    if not var_match:
-        return None
-
-    var_name = var_match.group(1)
+    if var_match:
+        var_name = var_match.group(1)
+        search_pattern = f"{var_name} ="
+    else:
+        # For instructions without assignments (e.g., "store i32 200, ptr...")
+        # Extract a unique part of the instruction to search for
+        # For store instructions, use the opcode and first few tokens
+        parts = instruction.split()
+        if len(parts) >= 3:
+            # Use first 3 tokens as search pattern (e.g., "store i32 200")
+            search_pattern = ' '.join(parts[:3])
+        else:
+            search_pattern = instruction
 
     # Split by function definitions
     lines = content.split('\n')
@@ -78,7 +87,8 @@ def find_function_for_instruction(ll_file_path, instruction):
         if func_match:
             current_function = func_match.group(1)
 
-        if instruction in line:
+        # Check if the search pattern appears in this line
+        if search_pattern in line:
             return current_function
 
     return None
@@ -86,10 +96,21 @@ def find_function_for_instruction(ll_file_path, instruction):
 
 def extract_opcode(instruction):
     """Extract the opcode from an IR instruction."""
-    # Pattern: %var = opcode ...
+    # Pattern 1: %var = [tail] call ... (handle special case for tail call)
+    match = re.search(r'%\d+\s*=\s*(?:tail\s+)?(call)', instruction)
+    if match:
+        return match.group(1)
+
+    # Pattern 2: %var = opcode ... (e.g., "%6 = icmp ...")
     match = re.search(r'%\d+\s*=\s*(\w+)', instruction)
     if match:
         return match.group(1)
+
+    # Pattern 3: opcode at the start (e.g., "store i32 200, ...")
+    match = re.match(r'^\s*(\w+)', instruction)
+    if match:
+        return match.group(1)
+
     return None
 
 
