@@ -29,11 +29,8 @@
 //   return 0;
 // }
 
-SEC("kprobe/blk_add_rq_to_plug+0x118")
-int BPF_KPROBE(blk_add_rq_to_plug_0x118, struct blk_plug *plug, struct request *rq) {
+SEC("kprobe/blk_add_rq_to_plug+0xcb")
+int BPF_KPROBE(blk_add_rq_to_plug_0xcb, struct blk_plug *plug, struct request *rq) {
   BPF_SET_EAX(ctx, NEW_BLK_MAX_REQUEST_COUNT);
-  // u16 r15 = BPF_R15(ctx);
-  // u16 ax = BPF_AX(ctx);
-  // LOG_CPU("ax = %d, r15 = %d", ax, r15);
   return 0;
 }

@@ -82,7 +82,7 @@ def process_file(kernel_path, build_path, file_path, is_original=True):
     orig_obj_file = build_path / f"{file_hash}_{'original' if is_original else 'recompiled'}.orig.o"
 
     print_color(f"Compiling {rel_path}...", "blue")
-    if not run_command(["make", str(obj_rel_path)], cwd=kernel_path):
+    if not run_command(["make", "KCFLAGS=-ffunction-sections -fdata-sections", str(obj_rel_path)], cwd=kernel_path):
         raise RuntimeError(f"Compilation failed for {rel_path}")
     
     if obj_abs_path.exists():
@@ -94,7 +94,7 @@ def process_file(kernel_path, build_path, file_path, is_original=True):
         raise RuntimeError(f"Build artifact {obj_abs_path} not found")
 
     print_color(f"Generating disassembly for {rel_path}...", "blue")
-    objdump_cmd = ["objdump", "-d", str(dest_obj_file)]
+    objdump_cmd = ["objdump", "-S", str(dest_obj_file)]
     disassembly_content = run_command(objdump_cmd, cwd=kernel_path, capture_output=True)
     if disassembly_content is False:
         raise RuntimeError(f"Disassembly failed for {rel_path}")
