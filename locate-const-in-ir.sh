@@ -5,6 +5,7 @@ set -ex
 export LLVM_COMPILER=clang
 
 KERNEL_DIR=${KERNEL_DIR:-../linux-wllvm-defconfig}
+THIS_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 if [[ ! -d $KERNEL_DIR ]]; then
     echo "KERNEL_DIR not set or does not exist"
@@ -99,9 +100,20 @@ mv $BC_FILE{.origin,}
 mv $LL_FILE{.origin,}
 mv $OBJ_FILE{.origin,}
 
+set +e
+
 diff -s --color=always \
     <(grep -v '^![0-9]' $LL_FILE         | grep -v '^    #dbg_value') \
     <(grep -v '^![0-9]' $LL_FILE.mutated | grep -v '^    #dbg_value') \
     || true
+
+diff -s `#--color=always` \
+    <(grep -v '^![0-9]' $LL_FILE         | grep -v '^    #dbg_value') \
+    <(grep -v '^![0-9]' $LL_FILE.mutated | grep -v '^    #dbg_value') \
+    > $LL_FILE.diff
+
+set -e
+
+python $THIS_DIR/parse_ir_diff.py $LL_FILE.diff $KERNEL_DIR/$LL_FILE
 
 echo $KERNEL_DIR/$LL_FILE
