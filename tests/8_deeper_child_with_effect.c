@@ -1,4 +1,4 @@
-// Deeper child function
+// Deeper child function, with external effect in grandchild
 
 #define MACRO 3600
 
