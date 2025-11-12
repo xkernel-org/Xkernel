@@ -215,6 +215,194 @@ OCCURENCE=1
 # CONSTANT_VALUE=8
 # OCCURENCE=1
 
+### 15. TCP_ATO_MIN
+
+# # %19 = or disjoint i32 %18, 40, !dbg !13077
+# # Conclusion: []
+#
+# SOURCE_FILE=net/dccp/output.c
+# FUNCTION_NAME=dccp_send_ack
+# SOURCE_OP="or"
+# CONSTANT_VALUE=40
+# OCCURENCE=1
+
+# # %58 = or disjoint i32 %57, 40, !dbg !12925
+# # Conclusion: []
+#
+# SOURCE_FILE=net/dccp/timer.c
+# FUNCTION_NAME=dccp_delack_timer
+# SOURCE_OP="or"
+# CONSTANT_VALUE=40
+# OCCURENCE=1
+
+# # %260 = or disjoint i32 %259, 40, !dbg !14536
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp_input.c
+# FUNCTION_NAME=tcp_rcv_state_process
+# SOURCE_OP="or"
+# CONSTANT_VALUE=40
+# OCCURENCE=1
+
+# # %530 = or disjoint i32 %529, 40, !dbg !20138
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp_input.c
+# FUNCTION_NAME=tcp_data_queue
+# SOURCE_OP="or"
+# CONSTANT_VALUE=40
+# OCCURENCE=1
+
+# # %176 = or disjoint i32 %156, 40, !dbg !22150
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp_input.c
+# FUNCTION_NAME=tcp_event_data_recv
+# SOURCE_OP="or"
+# CONSTANT_VALUE=40
+# OCCURENCE=1
+
+# # %181 = icmp ult i32 %180, 21, !dbg !22155
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp_input.c
+# FUNCTION_NAME=tcp_event_data_recv
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=21
+# OCCURENCE=1
+
+# # %184 = add nuw nsw i32 %183, 20, !dbg !22159
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp_input.c
+# FUNCTION_NAME=tcp_event_data_recv
+# SOURCE_OP="add"
+# CONSTANT_VALUE=20
+# OCCURENCE=1
+
+# # %36 = or disjoint i32 %35, 40, !dbg !22517
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp_input.c
+# FUNCTION_NAME=tcp_ecn_check_ce
+# SOURCE_OP="or"
+# CONSTANT_VALUE=40
+# OCCURENCE=1
+
+# # %76 = or disjoint i32 %75, 40, !dbg !22577
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp_input.c
+# FUNCTION_NAME=tcp_ecn_check_ce
+# SOURCE_OP="or"
+# CONSTANT_VALUE=40
+# OCCURENCE=2
+
+# # %40 = or disjoint i32 %39, 40, !dbg !24216
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp_input.c
+# FUNCTION_NAME=tcp_send_dupack
+# SOURCE_OP="or"
+# CONSTANT_VALUE=40
+# OCCURENCE=1
+
+# # %28 = or disjoint i32 %27, 40, !dbg !14261
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp_output.c
+# FUNCTION_NAME=__tcp_send_ack
+# SOURCE_OP="or"
+# CONSTANT_VALUE=40
+# OCCURENCE=1
+
+# # %532 = or disjoint i32 %531, 40, !dbg !15353
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp_output.c
+# FUNCTION_NAME=__tcp_transmit_skb
+# SOURCE_OP="or"
+# CONSTANT_VALUE=40
+# OCCURENCE=1
+
+# # %53 = or disjoint i32 %52, 40, !dbg !12849
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp_timer.c
+# FUNCTION_NAME=tcp_delack_timer_handler
+# SOURCE_OP="or"
+# CONSTANT_VALUE=40
+# OCCURENCE=1
+
+### 16. TCP_TIMEOUT_MIN
+
+# # %29 = icmp ult i64 %28, -199, !dbg !17271
+# # Conclusion: []
+#
+# SOURCE_FILE=net/core/filter.c
+# FUNCTION_NAME=bpf_sol_tcp_setsockopt
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=-199
+# OCCURENCE=1
+
+# # %36 = icmp ult i64 %35, -199, !dbg !17280
+# # Conclusion: []
+#
+# SOURCE_FILE=net/core/filter.c
+# FUNCTION_NAME=bpf_sol_tcp_setsockopt
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=-199
+# OCCURENCE=2
+
+# # %76 = add i64 %75, 2, !dbg !14179
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp_input.c
+# FUNCTION_NAME=tcp_rcv_state_process
+# SOURCE_OP="add"
+# CONSTANT_VALUE=2
+# OCCURENCE=1
+
+# # %21 = tail call i32 @llvm.umax.i32(i32 %20, i32 2), !dbg !12753
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp_timer.c
+# FUNCTION_NAME=tcp_clamp_probe0_to_user_timeout
+# SOURCE_OP="call"
+# CONSTANT_VALUE=2
+# OCCURENCE=1
+
+### 17. TCP_TIMEOUT_MIN_US
+
+# # %36 = phi i32 [ %34, %33 ], [ 2000, %30 ]
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp_output.c
+# FUNCTION_NAME=tcp_schedule_loss_probe
+# SOURCE_OP="phi"
+# CONSTANT_VALUE=2000
+# OCCURENCE=1
+
+# # %12 = add i32 %9, 2000, !dbg !12402
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp_recovery.c
+# FUNCTION_NAME=tcp_rack_mark_lost
+# SOURCE_OP="add"
+# CONSTANT_VALUE=2000
+# OCCURENCE=1
+
+### 18. MAX_GRO_SKBS
+
+# # %357 = icmp sgt i32 %356, 7, !dbg !13079
+# # Conclusion: []
+#
+# SOURCE_FILE=net/core/gro.c
+# FUNCTION_NAME=dev_gro_receive
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=7
+# OCCURENCE=1
+
 OBJ_FILE=$(dirname $SOURCE_FILE)/$(basename $SOURCE_FILE .c).o
 BC_FILE=$(dirname $SOURCE_FILE)/$(basename $SOURCE_FILE .c).bc
 LL_FILE=$(dirname $SOURCE_FILE)/$(basename $SOURCE_FILE .c).ll

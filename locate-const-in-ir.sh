@@ -72,6 +72,58 @@ fi
 # DEFINITION_SOURCE_FILE=include/net/busy_poll.h
 # SED_PATTERN='s|\#define BUSY_POLL_BUDGET 8|\#define BUSY_POLL_BUDGET 7|'
 
+### 15. TCP_ATO_MIN
+
+# SOURCE_FILE=net/dccp/output.c
+# DEFINITION_SOURCE_FILE=include/net/tcp.h
+# SED_PATTERN='s|\#define TCP_ATO_MIN	((unsigned)(HZ/25))|\#define TCP_ATO_MIN	10|'
+
+# SOURCE_FILE=net/dccp/timer.c
+# DEFINITION_SOURCE_FILE=include/net/tcp.h
+# SED_PATTERN='s|\#define TCP_ATO_MIN	((unsigned)(HZ/25))|\#define TCP_ATO_MIN	10|'
+
+# SOURCE_FILE=net/ipv4/tcp_input.c
+# DEFINITION_SOURCE_FILE=include/net/tcp.h
+# SED_PATTERN='s|\#define TCP_ATO_MIN	((unsigned)(HZ/25))|\#define TCP_ATO_MIN	10|'
+
+# SOURCE_FILE=net/ipv4/tcp_output.c
+# DEFINITION_SOURCE_FILE=include/net/tcp.h
+# SED_PATTERN='s|\#define TCP_ATO_MIN	((unsigned)(HZ/25))|\#define TCP_ATO_MIN	10|'
+
+# SOURCE_FILE=net/ipv4/tcp_timer.c
+# DEFINITION_SOURCE_FILE=include/net/tcp.h
+# SED_PATTERN='s|\#define TCP_ATO_MIN	((unsigned)(HZ/25))|\#define TCP_ATO_MIN	10|'
+
+### 16. TCP_TIMEOUT_MIN
+
+# SOURCE_FILE=net/core/filter.c
+# DEFINITION_SOURCE_FILE=include/net/tcp.h
+# SED_PATTERN='s|\#define TCP_TIMEOUT_MIN	(2U)|\#define TCP_TIMEOUT_MIN	10|'
+
+# SOURCE_FILE=net/ipv4/tcp_input.c
+# DEFINITION_SOURCE_FILE=include/net/tcp.h
+# SED_PATTERN='s|\#define TCP_TIMEOUT_MIN	(2U)|\#define TCP_TIMEOUT_MIN	10|'
+
+# SOURCE_FILE=net/ipv4/tcp_timer.c
+# DEFINITION_SOURCE_FILE=include/net/tcp.h
+# SED_PATTERN='s|\#define TCP_TIMEOUT_MIN	(2U)|\#define TCP_TIMEOUT_MIN	10|'
+
+### 17. TCP_TIMEOUT_MIN_US
+
+# SOURCE_FILE=net/ipv4/tcp_output.c
+# DEFINITION_SOURCE_FILE=include/net/tcp.h
+# SED_PATTERN='s|\#define TCP_TIMEOUT_MIN_US (2\*USEC_PER_MSEC)|\#define TCP_TIMEOUT_MIN_US 10|'
+
+# SOURCE_FILE=net/ipv4/tcp_recovery.c
+# DEFINITION_SOURCE_FILE=include/net/tcp.h
+# SED_PATTERN='s|\#define TCP_TIMEOUT_MIN_US (2\*USEC_PER_MSEC)|\#define TCP_TIMEOUT_MIN_US 10|'
+
+### 18. MAX_GRO_SKBS
+
+# SOURCE_FILE=net/core/gro.c
+# DEFINITION_SOURCE_FILE=net/core/gro.c
+# SED_PATTERN='s|\#define MAX_GRO_SKBS 8|\#define MAX_GRO_SKBS 7|'
+
 OBJ_FILE=$(dirname $SOURCE_FILE)/$(basename $SOURCE_FILE .c).o
 BC_FILE=$(dirname $SOURCE_FILE)/$(basename $SOURCE_FILE .c).bc
 LL_FILE=$(dirname $SOURCE_FILE)/$(basename $SOURCE_FILE .c).ll
