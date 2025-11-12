@@ -197,3 +197,15 @@ Steps of adding more kernel cases:
    Double check the analysis indeed starts with an instruction that
    previously showed up in diff. Occasionally the analysis starts with an
    unwanted instruction, in this case, try higher `OCCURENCE` values.
+
+   If no starting instruction is found, check if the parsed
+   `CONSTANT_VALUE` is correct.
+
+Known limits of the diff approach: raw diff would include something like
+
+```diff
+17021c17021
+<   %63 = tail call i32 @llvm.umin.i32(i32 %61, i32 range(i32 2, 17) 2), !dbg !22565
+---
+>   %63 = tail call i32 @llvm.umin.i32(i32 %61, i32 range(i32 2, 16) 2), !dbg !22565
+```
