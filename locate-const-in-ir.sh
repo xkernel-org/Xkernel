@@ -59,12 +59,12 @@ mv $OBJ_FILE{.origin,}
 set +e # Allow diff to legitimately fail
 
 diff -s --color=always \
-    <(grep -v '^![0-9]' $LL_FILE         | grep -v '^    #dbg_value') \
-    <(grep -v '^![0-9]' $LL_FILE.mutated | grep -v '^    #dbg_value')
+    <(grep -v '^![0-9]' $LL_FILE         | grep -v '^    #dbg_value' | awk '{print; print ""}') \
+    <(grep -v '^![0-9]' $LL_FILE.mutated | grep -v '^    #dbg_value' | awk '{print; print ""}')
 
 diff -s `#--color=always` \
-    <(grep -v '^![0-9]' $LL_FILE         | grep -v '^    #dbg_value') \
-    <(grep -v '^![0-9]' $LL_FILE.mutated | grep -v '^    #dbg_value') \
+    <(grep -v '^![0-9]' $LL_FILE         | grep -v '^    #dbg_value' | awk '{print; print ""}') \
+    <(grep -v '^![0-9]' $LL_FILE.mutated | grep -v '^    #dbg_value' | awk '{print; print ""}') \
     > $LL_FILE.diff
 
 set -e
