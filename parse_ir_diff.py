@@ -39,8 +39,9 @@ def parse_diff(diff_content):
                     new_line = lines[i].strip()[1:].strip()  # Remove '>' prefix
 
                     # Extract constant values from both lines
-                    old_match = re.search(r',\s*(\d+),', old_line)
-                    new_match = re.search(r',\s*(\d+),', new_line)
+                    # Match patterns like ", 40," or "i32 40)" or " 40, !dbg"
+                    old_match = re.search(r'(?:,|\s)\s*(\d+)\s*[,)]', old_line)
+                    new_match = re.search(r'(?:,|\s)\s*(\d+)\s*[,)]', new_line)
 
                     if old_match and new_match:
                         old_value = old_match.group(1)
