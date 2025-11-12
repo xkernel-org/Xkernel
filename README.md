@@ -123,10 +123,12 @@ bash run-tests.sh
 python validate.py
 ```
 
-Programs are found `tests/*.c`; IR `tests/*.ll`; analysis results
-`tests/*.results.txt`. If a program is is included in
-[`validate.py`](./validate.py), its analysis results are checked against
-expectation (annotated with `// FINDME`, `// DONT FINDME` etc).
+Programs are found [`tests/*.c`](./tests/).
+After running the above steps, IR for each is found as `tests/*.ll`;
+analysis results of our pass as `tests/*.results.txt`.
+If a program is included in [`validate.py`](./validate.py), its analysis
+results are checked against expectation (annotated in the program itself
+with `// FINDME`, `// DONT FINDME` etc).
 
 Run with kernel
 
@@ -134,3 +136,64 @@ Run with kernel
 KERNEL_DIR=path/to/your/linux-wllvm \
 bash run-kernel.sh
 ```
+
+Steps of adding more kernel cases:
+
+1. Pick up a constant from https://gist.github.com/zhongjiechen/6ab1bc5e5ec2b28499592f817c344b8a.
+   E.g., `TCP_DELACK_MIN`.
+2. Find the file where it's defined (`include/net/tcp.h`) and the file(s)
+   where it's used (`net/dccp/{timer,tcp_output}.c`).
+3. For each file where it's used, add the following to
+   [`./locate-const-in-ir.sh`](./locate-const-in-ir.sh) and run the script.
+
+   ```shell
+   DEFINITION_SOURCE_FILE=include/net/tcp.h
+   SOURCE_FILE=net/dccp/timer.c
+   SED_PATTERN='s|\#define TCP_DELACK_MIN	((unsigned)(HZ/25))|\#define TCP_DELACK_MIN	10|'
+   ```
+
+4. The results would include two parts, first the IR diff
+
+   ```diff
+   386c386
+   <   %14 = add i64 %13, 40, !dbg !12866
+   ---
+   >   %14 = add i64 %13, 10, !dbg !12866
+   ```
+
+   Second, automatically generated parameters to tell the LLVM pass how to
+   find this instruction in the whole bitcode:
+
+   ```shell
+   # # %14 = add i64 %13, 40, !dbg !12866
+   # # Conclusion: []
+   #
+   # SOURCE_FILE=net/dccp/timer.c
+   # FUNCTION_NAME=dccp_delack_timer
+   # SOURCE_OP="add"
+   # CONSTANT_VALUE=40
+   # OCCURENCE=1
+   ```
+
+5. Put the second part in [`run-kernel.sh`](./run-kernel.sh) and run it
+
+   ```text
+   === Taint Tracker Configuration ===
+   Function: dccp_delack_timer
+   Opcode: add
+   Constant: 40
+   Verbose: OFF
+   Interproc: OFF
+   Occurrence: 1 (of constant 40)
+
+   [SOURCE] Tainting:   %14 = add i64 %13, 40, !dbg !12338 <net/dccp/timer.c:181:19>
+   [USE] Source instruction in data flow <net/dccp/timer.c:181:19>
+   [USE] Processing uses of:   %14 = add i64 %13, 40, !dbg !12338
+     [EXTERNAL CALL] Tainted value used in external/indirect call <net/dccp/timer.c:180:3>
+
+   === Taint Analysis Complete ===
+   ```
+
+   Double check the analysis indeed starts with an instruction that
+   previously showed up in diff. Occasionally the analysis starts with an
+   unwanted instruction, in this case, try higher `OCCURENCE` values.
