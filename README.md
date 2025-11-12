@@ -61,6 +61,7 @@ cat << EOF >> .gitignore
 *.bc
 *.ll
 *.mutated
+*.diff
 EOF
 
 git commit -am 'data flow: suppress git diff when we mutate const value to locate it in IR'
