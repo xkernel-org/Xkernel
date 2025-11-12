@@ -50,6 +50,85 @@
 # DEFINITION_SOURCE_FILE=include/net/busy_poll.h
 # SED_PATTERN='s|\#define BUSY_POLL_BUDGET 8|\#define BUSY_POLL_BUDGET 7|'
 
+### 9. MLD_MAX_QUEUE
+
+# FIXME huge diff
+
+# SOURCE_FILE=net/ipv6/mcast.c
+# DEFINITION_SOURCE_FILE=include/net/mld.h
+# SED_PATTERN='s|\#define MLD_MAX_QUEUE		8|\#define MLD_MAX_QUEUE		16|'
+
+### 10. MLD_MAX_SKBS
+
+# SOURCE_FILE=net/ipv6/mcast.c
+# DEFINITION_SOURCE_FILE=include/net/mld.h
+# SED_PATTERN='s|\#define MLD_MAX_SKBS		32|\#define MLD_MAX_SKBS		16|'
+
+### 11. TCP_MAX_QUICKACKS
+
+# SOURCE_FILE=net/ipv4/tcp_input.c
+# DEFINITION_SOURCE_FILE=include/net/tcp.h
+# SED_PATTERN='s|\#define TCP_MAX_QUICKACKS	16U|\#define TCP_MAX_QUICKACKS	15U|'
+
+### 12. TCP_MAX_WSCALE
+
+# SOURCE_FILE=net/core/filter.c
+# DEFINITION_SOURCE_FILE=include/net/tcp.h
+# SED_PATTERN='s|\#define TCP_MAX_WSCALE		14U|\#define TCP_MAX_WSCALE		13U|'
+
+# SOURCE_FILE=net/ipv4/tcp.c
+# DEFINITION_SOURCE_FILE=include/net/tcp.h
+# SED_PATTERN='s|\#define TCP_MAX_WSCALE		14U|\#define TCP_MAX_WSCALE		13U|'
+
+# SOURCE_FILE=net/ipv4/tcp_input.c
+# DEFINITION_SOURCE_FILE=include/net/tcp.h
+# SED_PATTERN='s|\#define TCP_MAX_WSCALE		14U|\#define TCP_MAX_WSCALE		13U|'
+
+# SOURCE_FILE=net/ipv4/tcp_output.c
+# DEFINITION_SOURCE_FILE=include/net/tcp.h
+# SED_PATTERN='s|\#define TCP_MAX_WSCALE		14U|\#define TCP_MAX_WSCALE		13U|'
+
+# SOURCE_FILE=net/netfilter/nf_conntrack_proto_tcp.c
+# DEFINITION_SOURCE_FILE=include/net/tcp.h
+# SED_PATTERN='s|\#define TCP_MAX_WSCALE		14U|\#define TCP_MAX_WSCALE		13U|'
+
+# SOURCE_FILE=net/netfilter/nf_synproxy_core.c
+# DEFINITION_SOURCE_FILE=include/net/tcp.h
+# SED_PATTERN='s|\#define TCP_MAX_WSCALE		14U|\#define TCP_MAX_WSCALE		13U|'
+
+### 13. TCP_DELACK_MAX
+
+# SOURCE_FILE=net/core/filter.c
+# DEFINITION_SOURCE_FILE=include/net/tcp.h
+# SED_PATTERN='s|\#define TCP_DELACK_MAX	((unsigned)(HZ/5))|\#define TCP_DELACK_MAX	10|'
+
+# SOURCE_FILE=net/dccp/output.c
+# DEFINITION_SOURCE_FILE=include/net/tcp.h
+# SED_PATTERN='s|\#define TCP_DELACK_MAX	((unsigned)(HZ/5))|\#define TCP_DELACK_MAX	10|'
+
+# SOURCE_FILE=net/ipv4/tcp.c
+# DEFINITION_SOURCE_FILE=include/net/tcp.h
+# SED_PATTERN='s|\#define TCP_DELACK_MAX	((unsigned)(HZ/5))|\#define TCP_DELACK_MAX	10|'
+
+# SOURCE_FILE=net/ipv4/tcp_input.c
+# DEFINITION_SOURCE_FILE=include/net/tcp.h
+# SED_PATTERN='s|\#define TCP_DELACK_MAX	((unsigned)(HZ/5))|\#define TCP_DELACK_MAX	10|'
+
+# FIXME huge diff
+# SOURCE_FILE=net/ipv4/tcp_output.c
+# DEFINITION_SOURCE_FILE=include/net/tcp.h
+# SED_PATTERN='s|\#define TCP_DELACK_MAX	((unsigned)(HZ/5))|\#define TCP_DELACK_MAX	10|'
+
+### 14. TCP_DELACK_MIN
+
+# SOURCE_FILE=net/dccp/timer.c
+# DEFINITION_SOURCE_FILE=include/net/tcp.h
+# SED_PATTERN='s|\#define TCP_DELACK_MIN	((unsigned)(HZ/25))|\#define TCP_DELACK_MIN	10|'
+
+# SOURCE_FILE=net/ipv4/tcp_output.c
+# DEFINITION_SOURCE_FILE=include/net/tcp.h
+# SED_PATTERN='s|\#define TCP_DELACK_MIN	((unsigned)(HZ/25))|\#define TCP_DELACK_MIN	10|'
+
 ### 15. TCP_ATO_MIN
 
 # SOURCE_FILE=net/dccp/output.c

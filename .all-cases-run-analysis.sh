@@ -189,6 +189,310 @@
 # CONSTANT_VALUE=8
 # OCCURENCE=1
 
+### 9. MLD_MAX_QUEUE
+
+# FIXME there was a huge diff during IR localization
+
+### 10. MLD_MAX_SKBS
+
+# # %15 = icmp ult i32 %14, 32, !dbg !18374
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv6/mcast.c
+# FUNCTION_NAME=igmp6_event_query
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=32
+# OCCURENCE=1
+
+# # %15 = icmp ult i32 %14, 32, !dbg !18493
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv6/mcast.c
+# FUNCTION_NAME=igmp6_event_report
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=32
+# OCCURENCE=1
+
+### 11. TCP_MAX_QUICKACKS
+
+# # %247 = call i32 @llvm.umin.i32(i32 %245, i32 range(i32 2, 17) 16), !dbg !14518
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp_input.c
+# FUNCTION_NAME=tcp_rcv_state_process
+# SOURCE_OP="call"
+# CONSTANT_VALUE=16
+# OCCURENCE=1
+
+# # %517 = tail call i32 @llvm.umin.i32(i32 %515, i32 range(i32 2, 17) 16), !dbg !20126
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp_input.c
+# FUNCTION_NAME=tcp_data_queue
+# SOURCE_OP="call"
+# CONSTANT_VALUE=16
+# OCCURENCE=1
+
+# # %167 = tail call i32 @llvm.umin.i32(i32 %165, i32 16), !dbg !22143
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp_input.c
+# FUNCTION_NAME=tcp_event_data_recv
+# SOURCE_OP="call"
+# CONSTANT_VALUE=16
+# OCCURENCE=1
+
+# # %212 = tail call i32 @llvm.umin.i32(i32 %210, i32 16), !dbg !22186
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp_input.c
+# FUNCTION_NAME=tcp_event_data_recv
+# SOURCE_OP="call"
+# CONSTANT_VALUE=16
+# OCCURENCE=2
+
+# # %27 = tail call i32 @llvm.umin.i32(i32 %25, i32 range(i32 2, 17) 16), !dbg !24204
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp_input.c
+# FUNCTION_NAME=tcp_send_dupack
+# SOURCE_OP="call"
+# CONSTANT_VALUE=16
+# OCCURENCE=1
+
+### 12. TCP_MAX_WSCALE
+
+# # %61 = icmp ugt i8 %60, 14, !dbg !32910
+# # Conclusion: []
+#
+# SOURCE_FILE=net/core/filter.c
+# FUNCTION_NAME=bpf_sk_assign_tcp_reqsk
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=14
+# OCCURENCE=1
+
+# # %65 = icmp ugt i8 %64, 14, !dbg !32913
+# # Conclusion: []
+#
+# SOURCE_FILE=net/core/filter.c
+# FUNCTION_NAME=bpf_sk_assign_tcp_reqsk
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=14
+# OCCURENCE=2
+
+# # %34 = and i32 %33, 65535, !dbg !16421
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp.c
+# FUNCTION_NAME=tcp_repair_options_est
+# SOURCE_OP="and"
+# CONSTANT_VALUE=65535
+# OCCURENCE=1
+
+# # %35 = icmp samesign ult i32 %34, 15, !dbg !16423
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp.c
+# FUNCTION_NAME=tcp_repair_options_est
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=15
+# OCCURENCE=1
+
+# # %36 = icmp ult i32 %33, 983040
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp.c
+# FUNCTION_NAME=tcp_repair_options_est
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=983040
+# OCCURENCE=1
+
+# # %90 = icmp ugt i8 %86, 14, !dbg !15205
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp_input.c
+# FUNCTION_NAME=tcp_parse_options
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=14
+# OCCURENCE=1
+
+# # %95 = tail call i32 (ptr, ...) @_printk(ptr noundef nonnull @.str.1, ptr noundef nonnull @__func__.tcp_parse_options, i32 noundef %89, i32 noundef 14) #27, !dbg !15210
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp_input.c
+# FUNCTION_NAME=tcp_parse_options
+# SOURCE_OP="call"
+# CONSTANT_VALUE=14
+# OCCURENCE=1
+
+# # %97 = phi i8 [ %86, %85 ], [ 14, %94 ], [ 14, %91 ], !dbg !15201
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp_input.c
+# FUNCTION_NAME=tcp_parse_options
+# SOURCE_OP="phi"
+# CONSTANT_VALUE=14
+# OCCURENCE=1
+
+# # %12 = select i1 %11, i32 1073725440, i32 %10, !dbg !13613
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp_output.c
+# FUNCTION_NAME=tcp_select_initial_window
+# SOURCE_OP="select"
+# CONSTANT_VALUE=1073725440
+# OCCURENCE=1
+
+# # %42 = icmp sgt i32 %41, 13, !dbg !13667
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp_output.c
+# FUNCTION_NAME=tcp_select_initial_window
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=13
+# OCCURENCE=1
+
+# # %45 = select i1 %42, i8 14, i8 %44, !dbg !13667
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp_output.c
+# FUNCTION_NAME=tcp_select_initial_window
+# SOURCE_OP="select"
+# CONSTANT_VALUE=14
+# OCCURENCE=1
+
+# # %255 = select i1 %254, i32 1073725440, i32 %253, !dbg !23001
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp_output.c
+# FUNCTION_NAME=tcp_connect
+# SOURCE_OP="select"
+# CONSTANT_VALUE=1073725440
+# OCCURENCE=1
+
+# # %282 = icmp sgt i32 %281, 13, !dbg !23033
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp_output.c
+# FUNCTION_NAME=tcp_connect
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=13
+# OCCURENCE=1
+
+# # %285 = select i1 %282, i8 14, i8 %284, !dbg !23033
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp_output.c
+# FUNCTION_NAME=tcp_connect
+# SOURCE_OP="select"
+# CONSTANT_VALUE=14
+# OCCURENCE=1
+
+# # %68 = call i8 @llvm.umin.i8(i8 %67, i8 14), !dbg !14069
+# # Conclusion: []
+#
+# SOURCE_FILE=net/netfilter/nf_conntrack_proto_tcp.c
+# FUNCTION_NAME=tcp_options
+# SOURCE_OP="call"
+# CONSTANT_VALUE=14
+# OCCURENCE=1
+
+# # %69 = call i8 @llvm.umin.i8(i8 %68, i8 14), !dbg !14125
+# # Conclusion: []
+#
+# SOURCE_FILE=net/netfilter/nf_synproxy_core.c
+# FUNCTION_NAME=synproxy_parse_options
+# SOURCE_OP="call"
+# CONSTANT_VALUE=14
+# OCCURENCE=1
+
+### 13. TCP_DELACK_MAX
+
+# # %28 = add i64 %27, -201, !dbg !17271
+# # Conclusion: []
+#
+# SOURCE_FILE=net/core/filter.c
+# FUNCTION_NAME=bpf_sol_tcp_setsockopt
+# SOURCE_OP="add"
+# CONSTANT_VALUE=-201
+# OCCURENCE=1
+
+# # %29 = icmp ult i64 %28, -199, !dbg !17271
+# # Conclusion: []
+#
+# SOURCE_FILE=net/core/filter.c
+# FUNCTION_NAME=bpf_sol_tcp_setsockopt
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=-199
+# OCCURENCE=1
+
+# # %23 = add i64 %22, 200, !dbg !13091
+# # Conclusion: []
+#
+# SOURCE_FILE=net/dccp/output.c
+# FUNCTION_NAME=dccp_send_ack
+# SOURCE_OP="add"
+# CONSTANT_VALUE=200
+# OCCURENCE=1
+
+# # store i32 200, ptr %16, align 8, !dbg !22232
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp.c
+# FUNCTION_NAME=tcp_init_sock
+# SOURCE_OP="store"
+# CONSTANT_VALUE=200
+# OCCURENCE=1
+
+# # store i32 200, ptr %147, align 8, !dbg !26222
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp.c
+# FUNCTION_NAME=tcp_disconnect
+# SOURCE_OP="store"
+# CONSTANT_VALUE=200
+# OCCURENCE=2
+
+# # %264 = add i64 %263, 200, !dbg !14548
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp_input.c
+# FUNCTION_NAME=tcp_rcv_state_process
+# SOURCE_OP="add"
+# CONSTANT_VALUE=200
+# OCCURENCE=1
+
+# FIXME there was a huge diff during IR localization
+
+### 14. TCP_DELACK_MIN
+
+# # %14 = add i64 %13, 40, !dbg !12866
+# # Conclusion: []
+#
+# SOURCE_FILE=net/dccp/timer.c
+# FUNCTION_NAME=dccp_delack_timer
+# SOURCE_OP="add"
+# CONSTANT_VALUE=40
+# OCCURENCE=1
+
+# # %6 = icmp samesign ugt i32 %5, 40, !dbg !25718
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp_output.c
+# FUNCTION_NAME=tcp_send_delayed_ack
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=40
+# OCCURENCE=1
+
+# # %30 = tail call i32 @llvm.smax.i32(i32 %28, i32 40), !dbg !25750
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp_output.c
+# FUNCTION_NAME=tcp_send_delayed_ack
+# SOURCE_OP="call"
+# CONSTANT_VALUE=40
+# OCCURENCE=1
+
 ### 15. TCP_ATO_MIN
 
 # # %19 = or disjoint i32 %18, 40, !dbg !13077
