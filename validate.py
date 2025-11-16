@@ -27,6 +27,9 @@ known_headers = [
 
     'CHILD FUNCTION',
 
+    'INDIRECT CALL',
+    'INDIRECT TARGET',
+
     'INTERPROC',
 ]
 
@@ -35,6 +38,7 @@ propogation_headers = [
     'STORE DESTINATION',
     'LOAD',
     'CHILD FUNCTION',
+    'INDIRECT CALL',
     'GLOBAL',
     'POINTER PARAMETER',
     'RETURN',
@@ -42,6 +46,7 @@ propogation_headers = [
 
 external_headers = [
     'CHILD FUNCTION',
+    'INDIRECT CALL',
     'GLOBAL',
     'POINTER PARAMETER',
     'RETURN',
@@ -339,6 +344,30 @@ class TestTaintTrackerResults(unittest.TestCase):
     def test_8_deeper_child_with_effect(self):
 
         name = "8_deeper_child_with_effect"
+        results_file_path = Path(__file__).parent / "tests" / f"{name}.results.txt"
+        source_file_path = Path(__file__).parent / "tests" / f"{name}.c"
+
+        common_checks(self, True, results_file_path, source_file_path)
+
+    def test_9_func_ptr(self):
+
+        name = "9_func_ptr"
+        results_file_path = Path(__file__).parent / "tests" / f"{name}.results.txt"
+        source_file_path = Path(__file__).parent / "tests" / f"{name}.c"
+
+        common_checks(self, True, results_file_path, source_file_path)
+
+    def test_9_func_ptr_global(self):
+
+        name = "9_func_ptr_global"
+        results_file_path = Path(__file__).parent / "tests" / f"{name}.results.txt"
+        source_file_path = Path(__file__).parent / "tests" / f"{name}.c"
+
+        common_checks(self, True, results_file_path, source_file_path)
+
+    def test_9_func_ptr_approximate(self):
+
+        name = "9_func_ptr_approximate"
         results_file_path = Path(__file__).parent / "tests" / f"{name}.results.txt"
         source_file_path = Path(__file__).parent / "tests" / f"{name}.c"
 
