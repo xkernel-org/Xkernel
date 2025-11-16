@@ -21,12 +21,13 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
     int64_t ConstantToTrack;  // Support both positive and negative constants
     bool Verbose;
     bool InterprocMode;  // Enable interprocedural taint tracking
+    bool IndirectCallMode;  // Enable indirect call (function pointer) analysis
     unsigned OccurrenceIndex;  // Which occurrence to track (1 = first [default], 2 = second, etc., 0 = all)
 
     // Constructor with parameters
-    TaintTrackerPass(std::string FuncName, std::string Opcode, int64_t Constant, bool Debug, bool Interproc, unsigned Occurrence)
+    TaintTrackerPass(std::string FuncName, std::string Opcode, int64_t Constant, bool Debug, bool Interproc, bool IndirectCall, unsigned Occurrence)
         : FunctionName(std::move(FuncName)), TargetOpcode(std::move(Opcode)),
-          ConstantToTrack(Constant), Verbose(Debug), InterprocMode(Interproc), OccurrenceIndex(Occurrence) {}
+          ConstantToTrack(Constant), Verbose(Debug), InterprocMode(Interproc), IndirectCallMode(IndirectCall), OccurrenceIndex(Occurrence) {}
 
     // Helper to print a value
     std::string getValueName(Value *V) {
@@ -90,6 +91,9 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
         DenseSet<Value*> TaintedPointers;  // Track pointers that hold tainted values
         DenseSet<Instruction*> KilledStores;  // Track stores that kill taint (overwrite with non-tainted value)
 
+        // Map from function pointer (alloca or global) to set of possible function targets
+        DenseMap<Value*, SmallVector<Function*, 4>> FunctionPointerTargets;
+
         // --- 1. Seed the Worklist ---
         // Find the starting point based on function name, opcode, and constant value
         errs() << "=== Taint Tracker Configuration ===\n";
@@ -98,10 +102,41 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
         errs() << "Constant: " << ConstantToTrack << "\n";
         errs() << "Verbose: " << (Verbose ? "ON" : "OFF") << "\n";
         errs() << "Interproc: " << (InterprocMode ? "ON" : "OFF") << "\n";
+        errs() << "IndirectCall: " << (IndirectCallMode ? "ON" : "OFF") << "\n";
         if (OccurrenceIndex == 0) {
             errs() << "Occurrence: ALL\n\n";
         } else {
             errs() << "Occurrence: " << OccurrenceIndex << " (of constant " << ConstantToTrack << ")\n\n";
+        }
+
+        // --- Build function pointer target map (if indirect call mode is enabled) ---
+        if (IndirectCallMode) {
+            if (Verbose) errs() << "=== Building Function Pointer Target Map ===\n";
+
+            for (Function &F : M) {
+                if (F.isDeclaration()) continue;
+
+                for (BasicBlock &BB : F) {
+                    for (Instruction &I : BB) {
+                        // Look for stores where the value being stored is a function
+                        if (StoreInst *Store = dyn_cast<StoreInst>(&I)) {
+                            Value *StoredVal = Store->getValueOperand();
+                            Value *Ptr = Store->getPointerOperand()->stripPointerCasts();
+
+                            // Check if storing a function pointer
+                            if (Function *Func = dyn_cast<Function>(StoredVal)) {
+                                FunctionPointerTargets[Ptr].push_back(Func);
+                                if (Verbose) {
+                                    errs() << "  Found function pointer assignment: "
+                                           << getValueName(Ptr) << " <- " << Func->getName() << "\n";
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (Verbose) errs() << "\n";
         }
 
         // Counter for occurrence tracking
@@ -267,6 +302,7 @@ found:
                             if (isArg) {
                                 Function *Callee = Call->getCalledFunction();
                                 if (Callee && !Callee->isDeclaration()) {
+                                    // Direct call to a defined function
                                     // Report the call
                                     errs() << "  [CHILD FUNCTION] Tainted value used in call to "
                                            << Callee->getName() << " at argument " << argIdx
@@ -284,6 +320,46 @@ found:
                                                 changed = true;
                                             }
                                         }
+                                    }
+                                } else if (!Callee && IndirectCallMode && InterprocMode) {
+                                    // Indirect call (function pointer) - try to resolve targets
+                                    Value *CalledValue = Call->getCalledOperand();
+
+                                    // Try to trace back to the function pointer
+                                    SmallVector<Function*, 4> Targets;
+
+                                    // Check if it's a direct load from a tracked pointer
+                                    if (LoadInst *Load = dyn_cast<LoadInst>(CalledValue)) {
+                                        Value *LoadPtr = Load->getPointerOperand()->stripPointerCasts();
+                                        if (FunctionPointerTargets.count(LoadPtr)) {
+                                            Targets = FunctionPointerTargets[LoadPtr];
+                                        }
+                                    }
+
+                                    if (!Targets.empty()) {
+                                        errs() << "  [INDIRECT CALL] Tainted value used in indirect call"
+                                               << getDebugLoc(Call) << " (resolved to " << Targets.size() << " target(s))\n";
+
+                                        // Propagate to all possible targets
+                                        for (Function *Target : Targets) {
+                                            if (Target->isDeclaration()) continue;
+
+                                            errs() << "    [INDIRECT TARGET] " << Target->getName() << "\n";
+
+                                            if (argIdx < Target->arg_size()) {
+                                                Argument *Param = Target->getArg(argIdx);
+                                                if (TaintedValues.insert(Param).second) {
+                                                    Worklist.push_back(Param);
+                                                    errs() << "    [INTERPROC] Propagating taint to parameter in "
+                                                           << Target->getName() << ": "
+                                                           << getValueName(Param) << getDebugLoc(Call) << "\n";
+                                                    changed = true;
+                                                }
+                                            }
+                                        }
+                                    } else {
+                                        errs() << "  [EXTERNAL CALL] Tainted value used in external/unresolved indirect call"
+                                               << getDebugLoc(Call) << "\n";
                                     }
                                 } else {
                                     errs() << "  [EXTERNAL CALL] Tainted value used in external/indirect call"
@@ -458,18 +534,19 @@ llvmGetPassPluginInfo() {
             PB.registerPipelineParsingCallback(
                 [](StringRef Name, ModulePassManager &MPM,
                    ArrayRef<PassBuilder::PipelineElement>) {
-                    // Parse: taint-tracker<function_name;opcode;constant_value;debug;interproc;occurrence>
+                    // Parse: taint-tracker<function_name;opcode;constant_value;debug;interproc;indirectcall;occurrence>
                     if (Name.consume_front("taint-tracker")) {
                         std::string FunctionName = "gss_fill_context";  // default
                         std::string Opcode = "";  // default (empty means all opcodes)
                         int64_t Constant = 3600;  // default (supports negative values)
                         bool Debug = false;  // default
                         bool Interproc = false;  // default
+                        bool IndirectCall = false;  // default
                         unsigned Occurrence = 1;  // default (1 = first occurrence, 0 = all occurrences)
 
                         if (Name.consume_front("<") && Name.consume_back(">")) {
                             // Parse parameters separated by semicolons
-                            SmallVector<StringRef, 6> Params;
+                            SmallVector<StringRef, 7> Params;
                             Name.split(Params, ';', -1, true);
 
                             if (Params.size() >= 1 && !Params[0].empty()) {
@@ -495,14 +572,19 @@ llvmGetPassPluginInfo() {
                                             InterprocStr == "TRUE" || InterprocStr == "yes");
                             }
                             if (Params.size() >= 6 && !Params[5].empty()) {
-                                if (Params[5].getAsInteger(10, Occurrence)) {
+                                StringRef IndirectCallStr = Params[5];
+                                IndirectCall = (IndirectCallStr == "true" || IndirectCallStr == "1" ||
+                                               IndirectCallStr == "TRUE" || IndirectCallStr == "yes");
+                            }
+                            if (Params.size() >= 7 && !Params[6].empty()) {
+                                if (Params[6].getAsInteger(10, Occurrence)) {
                                     errs() << "Warning: Invalid occurrence value, using default 1 (first)\n";
                                     Occurrence = 1;
                                 }
                             }
                         }
 
-                        MPM.addPass(TaintTrackerPass(FunctionName, Opcode, Constant, Debug, Interproc, Occurrence));
+                        MPM.addPass(TaintTrackerPass(FunctionName, Opcode, Constant, Debug, Interproc, IndirectCall, Occurrence));
                         return true;
                     }
                     return false;
