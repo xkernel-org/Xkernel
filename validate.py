@@ -21,6 +21,8 @@ known_headers = [
 
     'GLOBAL',
 
+    'POINTER PARAMETER',
+
     'RETURN',
 
     'CHILD FUNCTION',
@@ -34,12 +36,14 @@ propogation_headers = [
     'LOAD',
     'CHILD FUNCTION',
     'GLOBAL',
+    'POINTER PARAMETER',
     'RETURN',
 ]
 
 external_headers = [
     'CHILD FUNCTION',
     'GLOBAL',
+    'POINTER PARAMETER',
     'RETURN',
 ]
 
@@ -295,6 +299,22 @@ class TestTaintTrackerResults(unittest.TestCase):
     def test_5_return_indirect(self):
 
         name = "5_return_indirect"
+        results_file_path = Path(__file__).parent / "tests" / f"{name}.results.txt"
+        source_file_path = Path(__file__).parent / "tests" / f"{name}.c"
+
+        common_checks(self, True, results_file_path, source_file_path)
+
+    def test_6_this_param(self):
+
+        name = "6_this_param"
+        results_file_path = Path(__file__).parent / "tests" / f"{name}.results.txt"
+        source_file_path = Path(__file__).parent / "tests" / f"{name}.c"
+
+        common_checks(self, True, results_file_path, source_file_path)
+
+    def test_6_this_param_indirect(self):
+
+        name = "6_this_param_indirect"
         results_file_path = Path(__file__).parent / "tests" / f"{name}.results.txt"
         source_file_path = Path(__file__).parent / "tests" / f"{name}.c"
 
