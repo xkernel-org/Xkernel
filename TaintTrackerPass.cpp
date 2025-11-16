@@ -54,6 +54,35 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
         return os.str();
     }
 
+    // Helper to check if a value derives from a function parameter (pointer type)
+    bool derivesFromPointerParameter(Value *V) {
+        if (!V) return false;
+
+        // Direct parameter check
+        if (isa<Argument>(V) && V->getType()->isPointerTy()) {
+            return true;
+        }
+
+        // If it's a load instruction, check what it loads from
+        if (LoadInst *LI = dyn_cast<LoadInst>(V)) {
+            Value *LoadPtr = LI->getPointerOperand();
+            // Check if we're loading from an alloca that stores a parameter
+            if (AllocaInst *AI = dyn_cast<AllocaInst>(LoadPtr)) {
+                // Look for stores to this alloca
+                for (User *U : AI->users()) {
+                    if (StoreInst *SI = dyn_cast<StoreInst>(U)) {
+                        Value *StoredVal = SI->getValueOperand();
+                        if (isa<Argument>(StoredVal) && StoredVal->getType()->isPointerTy()) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
     PreservedAnalyses run(Module &M, ModuleAnalysisManager &MAM) {
 
         SmallVector<Value*, 64> Worklist;
@@ -138,11 +167,9 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
                                             if (GlobalVariable *GV = dyn_cast<GlobalVariable>(Ptr)) {
                                                 errs() << "[GLOBAL] Constant stored to global variable: "
                                                        << GV->getName() << getDebugLoc(Store) << "\n";
-                                            } else if (Argument *Arg = dyn_cast<Argument>(Ptr)) {
-                                                if (Arg->getType()->isPointerTy()) {
-                                                    errs() << "[POINTER PARAMETER] Constant stored to pointer parameter: "
-                                                           << Arg->getName() << getDebugLoc(Store) << "\n";
-                                                }
+                                            } else if (derivesFromPointerParameter(Store->getPointerOperand())) {
+                                                errs() << "[POINTER PARAMETER] Constant stored through pointer parameter"
+                                                       << getDebugLoc(Store) << "\n";
                                             } else {
                                                 // Local variable - mark pointer as tainted for propagation
                                                 if (TaintedPointers.insert(Ptr).second) {
@@ -283,12 +310,10 @@ found:
                                            << GV->getName() << getDebugLoc(Store) << "\n";
                                     continue;
                                 }
-                                if (Argument *Arg = dyn_cast<Argument>(Ptr)) {
-                                    if (Arg->getType()->isPointerTy()) {
-                                        errs() << "  [POINTER PARAMETER] Tainted value stored to pointer parameter: "
-                                               << Arg->getName() << getDebugLoc(Store) << "\n";
-                                        continue;
-                                    }
+                                if (derivesFromPointerParameter(Store->getPointerOperand())) {
+                                    errs() << "  [POINTER PARAMETER] Tainted value stored through pointer parameter"
+                                           << getDebugLoc(Store) << "\n";
+                                    continue;
                                 }
                                 // For local variables, mark the pointer as tainted
                                 // This allows us to track through variable assignments
