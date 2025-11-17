@@ -2,9 +2,9 @@
 
 #define MACRO 3600
 
-extern void external_func(int x); // DONT FINDME // FIXME L=1 for now
+extern void external_func(int x);
 
 int foo() {
-    external_func(MACRO); // FINDME // EXTERNAL
+    external_func(MACRO); // FINDME // INTERPROC
     return 0;
 }

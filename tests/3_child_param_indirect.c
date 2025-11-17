@@ -2,11 +2,11 @@
 
 #define MACRO 3600
 
-int bar(int x) { return -x; } // DONT FINDME // FIXME L=1 for now
+int bar(int x) { return -x; } // FINDME // EXTERNAL
 
 int foo() {
     int b = 100;        // DONT FINDME
     int a = MACRO + b;  // FINDME // NOT EXTERNAL
-    bar(a);             // FINDME // EXTERNAL
+    bar(a);             // FINDME // INTERPROC
     return 0;
 }
