@@ -1,7 +1,7 @@
 ### 1. DFR_MAX (1,2)
 
-# %163 = icmp slt i32 %162, 301, !dbg !17437
-# Conclusion: [LOCAL]
+# # %163 = icmp slt i32 %162, 301, !dbg !17437
+# # Conclusion: [LOCAL]
 
 # SOURCE_FILE=net/sunrpc/cache.c
 # FUNCTION_NAME=cache_check_rcu
