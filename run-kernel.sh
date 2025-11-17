@@ -23,6 +23,8 @@ export LLVM_COMPILER=clang
 INTERPROC=true
 # Use vmlinux.bc as input (true, slow) or only the object file (false, fast)
 WHOLE_KERNEL=true
+# Track into indirect calls
+INDIRECT_CALL=true
 
 ### 1. DFR_MAX (1,2)
 
@@ -66,7 +68,7 @@ else
 fi
 
 opt -load-pass-plugin=build/libTaintTrackerPass.so \
-    -passes="taint-tracker<$FUNCTION_NAME;$SOURCE_OP;$CONSTANT_VALUE;false;$INTERPROC;$OCCURENCE>" \
+    -passes="taint-tracker<$FUNCTION_NAME;$SOURCE_OP;$CONSTANT_VALUE;false;$INTERPROC;$INDIRECT_CALL;$OCCURENCE>" \
     -disable-output \
     $INPUT_BC_FILE
 
