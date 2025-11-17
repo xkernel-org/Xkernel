@@ -358,12 +358,14 @@ found:
                                             }
                                         }
                                     } else {
-                                        errs() << "  [EXTERNAL CALL] Tainted value used in external/unresolved indirect call"
-                                               << getDebugLoc(Call) << "\n";
+                                        // IndirectCallMode is ON but couldn't resolve targets (unknown assignment)
+                                        errs() << "  [EXTERNAL CALL] Tainted value used in external/unresolved indirect call: "
+                                               << *Call << getDebugLoc(Call) << "\n";
                                     }
                                 } else {
-                                    errs() << "  [EXTERNAL CALL] Tainted value used in external/indirect call"
-                                           << getDebugLoc(Call) << "\n";
+                                    // Either external function, or indirect call without analysis enabled
+                                    errs() << "  [EXTERNAL CALL] Tainted value used in external/indirect call: "
+                                           << *Call << getDebugLoc(Call) << "\n";
                                 }
                                 // In non-interproc mode, don't propagate the call further
                                 if (!InterprocMode) {
