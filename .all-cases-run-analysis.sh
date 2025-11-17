@@ -680,3 +680,202 @@
 # SOURCE_OP="icmp"
 # CONSTANT_VALUE=7
 # OCCURENCE=1
+
+### 19. BLK_MQ_CPU_WORK_BATCH
+
+# # store i32 8, ptr %251, align 4, !dbg !10731
+# # Conclusion: []
+#
+# SOURCE_FILE=block/blk-mq.c
+# FUNCTION_NAME=blk_mq_map_swqueue
+# SOURCE_OP="store"
+# CONSTANT_VALUE=8
+# OCCURENCE=1
+
+# # store i32 8, ptr %23, align 4, !dbg !11737
+# # Conclusion: []
+#
+# SOURCE_FILE=block/blk-mq.c
+# FUNCTION_NAME=blk_mq_delay_run_hw_queue
+# SOURCE_OP="store"
+# CONSTANT_VALUE=8
+# OCCURENCE=1
+
+### 20. TCP_THIN_LINEAR_RETRIES
+
+# # %572 = icmp ult i8 %571, 7, !dbg !13927
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp_timer.c
+# FUNCTION_NAME=tcp_retransmit_timer
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=7
+# OCCURENCE=1
+
+### 21. TCP_INIT_CWND
+
+# # store i32 10, ptr %26, align 4, !dbg !22266
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp.c
+# FUNCTION_NAME=tcp_init_sock
+# SOURCE_OP="store"
+# CONSTANT_VALUE=10
+# OCCURENCE=1
+
+# # store i32 10, ptr %149, align 4, !dbg !26228
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp.c
+# FUNCTION_NAME=tcp_disconnect
+# SOURCE_OP="store"
+# CONSTANT_VALUE=10
+# OCCURENCE=1
+
+# # %213 = phi i32 [ %211, %201 ], [ 11, %198 ], !dbg !13118
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp_bbr.c
+# FUNCTION_NAME=bbr_main
+# SOURCE_OP="phi"
+# CONSTANT_VALUE=11
+# OCCURENCE=1
+
+# # %258 = phi i32 [ %256, %247 ], [ 11, %244 ], !dbg !13167
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp_bbr.c
+# FUNCTION_NAME=bbr_main
+# SOURCE_OP="phi"
+# CONSTANT_VALUE=11
+# OCCURENCE=2
+
+# # %355 = phi i32 [ %353, %342 ], [ 11, %338 ], !dbg !13285
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp_bbr.c
+# FUNCTION_NAME=bbr_main
+# SOURCE_OP="phi"
+# CONSTANT_VALUE=11
+# OCCURENCE=3
+
+# # %452 = phi i32 [ %450, %439 ], [ 11, %428 ], !dbg !13386
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp_bbr.c
+# FUNCTION_NAME=bbr_main
+# SOURCE_OP="phi"
+# CONSTANT_VALUE=11
+# OCCURENCE=4
+
+# # %753 = phi i32 [ %751, %742 ], [ 11, %739 ], !dbg !13780
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp_bbr.c
+# FUNCTION_NAME=bbr_main
+# SOURCE_OP="phi"
+# CONSTANT_VALUE=11
+# OCCURENCE=5
+
+# # %808 = icmp ult i32 %807, 10, !dbg !13867
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp_bbr.c
+# FUNCTION_NAME=bbr_main
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=10
+# OCCURENCE=1
+
+# # %80 = tail call i32 @llvm.umax.i32(i32 %79, i32 10), !dbg !18178
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp_input.c
+# FUNCTION_NAME=tcp_check_space
+# SOURCE_OP="call"
+# CONSTANT_VALUE=10
+# OCCURENCE=1
+
+# # %31 = phi i32 [ 10, %29 ], [ %27, %20 ], !dbg !19003
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp_input.c
+# FUNCTION_NAME=tcp_init_transfer
+# SOURCE_OP="phi"
+# CONSTANT_VALUE=10
+# OCCURENCE=1
+
+# # %82 = tail call i32 @llvm.umax.i32(i32 %81, i32 10), !dbg !19108
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp_input.c
+# FUNCTION_NAME=tcp_init_transfer
+# SOURCE_OP="call"
+# CONSTANT_VALUE=10
+# OCCURENCE=1
+
+# # %160 = mul nuw nsw i32 %159, 10, !dbg !19197
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp_input.c
+# FUNCTION_NAME=tcp_init_transfer
+# SOURCE_OP="mul"
+# CONSTANT_VALUE=10
+# OCCURENCE=1
+
+# # %15 = phi i32 [ 10, %13 ], [ %11, %4 ], !dbg !31092
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp_input.c
+# FUNCTION_NAME=tcp_init_cwnd
+# SOURCE_OP="phi"
+# CONSTANT_VALUE=10
+# OCCURENCE=1
+
+# # %26 = shl i32 %19, 8, !dbg !12774
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp_dctcp.c
+# FUNCTION_NAME=dctcp_update_alpha
+# SOURCE_OP="shl"
+# CONSTANT_VALUE=8
+# OCCURENCE=1
+
+### 22. TCP_PLB_SCALE
+
+# # %26 = shl i32 %19, 8, !dbg !12774
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp_dctcp.c
+# FUNCTION_NAME=dctcp_update_alpha
+# SOURCE_OP="shl"
+# CONSTANT_VALUE=8
+# OCCURENCE=1
+
+# # store i32 128, ptr %98, align 4, !dbg !24126
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp_ipv4.c
+# FUNCTION_NAME=tcp_sk_init
+# SOURCE_OP="store"
+# CONSTANT_VALUE=128
+# OCCURENCE=1
+
+### 23. AMT_DISCOVERY_TIMEOUT
+
+# # %23 = tail call zeroext i1 @mod_delayed_work_on(i32 noundef 64, ptr noundef %22, ptr noundef %0, i64 noundef 5000) #15, !dbg !13691
+# # Conclusion: []
+#
+# SOURCE_FILE=drivers/net/amt.c
+# FUNCTION_NAME=amt_discovery_work
+# SOURCE_OP="call"
+# CONSTANT_VALUE=64
+# OCCURENCE=2
+
+# # %540 = call zeroext i1 @mod_delayed_work_on(i32 noundef 64, ptr noundef %539, ptr noundef nonnull %38, i64 noundef 5000) #15, !dbg !15018
+# # Conclusion: []
+#
+# SOURCE_FILE=drivers/net/amt.c
+# FUNCTION_NAME=amt_event_work
+# SOURCE_OP="call"
+# CONSTANT_VALUE=64
+# OCCURENCE=2

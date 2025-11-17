@@ -180,3 +180,49 @@
 # SOURCE_FILE=net/core/gro.c
 # DEFINITION_SOURCE_FILE=net/core/gro.c
 # SED_PATTERN='s|\#define MAX_GRO_SKBS 8|\#define MAX_GRO_SKBS 7|'
+
+### 19. BLK_MQ_CPU_WORK_BATCH
+
+# SOURCE_FILE=block/blk-mq.c
+# DEFINITION_SOURCE_FILE=block/blk-mq.h
+# SED_PATTERN='s|\#define BLK_MQ_CPU_WORK_BATCH	(8)|\#define BLK_MQ_CPU_WORK_BATCH	(7)|'
+
+### 20. TCP_THIN_LINEAR_RETRIES
+
+# SOURCE_FILE=net/ipv4/tcp_timer.c
+# DEFINITION_SOURCE_FILE=include/net/tcp.h
+# SED_PATTERN='s|\#define TCP_THIN_LINEAR_RETRIES 6|\#define TCP_THIN_LINEAR_RETRIES 5|'
+
+### 21. TCP_INIT_CWND
+
+# SOURCE_FILE=net/ipv4/tcp.c
+# DEFINITION_SOURCE_FILE=include/net/tcp.h
+# SED_PATTERN='s|\#define TCP_INIT_CWND		10|\#define TCP_INIT_CWND		9|'
+
+# SOURCE_FILE=net/ipv4/tcp_bbr.c
+# DEFINITION_SOURCE_FILE=include/net/tcp.h
+# SED_PATTERN='s|\#define TCP_INIT_CWND		10|\#define TCP_INIT_CWND		9|'
+
+# SOURCE_FILE=net/ipv4/tcp_input.c
+# DEFINITION_SOURCE_FILE=include/net/tcp.h
+# SED_PATTERN='s|\#define TCP_INIT_CWND		10|\#define TCP_INIT_CWND		9|'
+
+# SOURCE_FILE=net/mptcp/protocol.c
+# DEFINITION_SOURCE_FILE=include/net/tcp.h
+# SED_PATTERN='s|\#define TCP_INIT_CWND		10|\#define TCP_INIT_CWND		9|'
+
+### 22. TCP_PLB_SCALE
+
+# SOURCE_FILE=net/ipv4/tcp_dctcp.c
+# DEFINITION_SOURCE_FILE=include/net/tcp.h
+# SED_PATTERN='s|\#define TCP_PLB_SCALE 8|\#define TCP_PLB_SCALE 7|'
+
+# SOURCE_FILE=net/ipv4/tcp_ipv4.c
+# DEFINITION_SOURCE_FILE=include/net/tcp.h
+# SED_PATTERN='s|\#define TCP_PLB_SCALE 8|\#define TCP_PLB_SCALE 7|'
+
+### 23. AMT_DISCOVERY_TIMEOUT
+
+# SOURCE_FILE=drivers/net/amt.c
+# DEFINITION_SOURCE_FILE=include/net/amt.h
+# SED_PATTERN='s|\#define AMT_DISCOVERY_TIMEOUT	5000|\#define AMT_DISCOVERY_TIMEOUT	10|'
