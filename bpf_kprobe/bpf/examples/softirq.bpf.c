@@ -18,7 +18,7 @@ int BPF_KPROBE(handle_softirqs) {
 
   if (value == 0xa) {
     value = 0x1;
-    kfuncs_probe_write_kernel(addr, sizeof(u64), &value, sizeof(u64));
+    bpf_probe_read_kernel(addr, sizeof(u64), &value);
   }
 
   return 0;

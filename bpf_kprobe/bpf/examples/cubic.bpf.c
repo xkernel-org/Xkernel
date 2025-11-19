@@ -33,7 +33,7 @@ SEC("kprobe/hystart_update+0xcc")
 int BPF_KPROBE(hystart_update_0xcc) {
   u64 eax = (u64)(ctx->ax) & 0xffffffff;
   eax <<= 4;
-  kfuncs_probe_write_kernel(&ctx->ax, sizeof(eax), &eax, sizeof(eax));
+  bpf_probe_write_kernel(&ctx->ax, sizeof(eax), &eax);
 
   return 0;
 }
@@ -42,7 +42,7 @@ SEC("kprobe/hystart_update+0xd9")
 int BPF_KPROBE(hystart_update_0xd9) {
   u64 ecx = (u64)(ctx->cx) & 0xffffffff;
   ecx <<= 1;
-  kfuncs_probe_write_kernel(&ctx->cx, sizeof(ecx), &ecx, sizeof(ecx));
+  bpf_probe_write_kernel(&ctx->cx, sizeof(ecx), &ecx);
 
   return 0;
 }
@@ -55,7 +55,7 @@ int BPF_KPROBE(hystart_update_0xd9) {
 
 //     u64 eax = (u64)(ctx->ax) & 0xffffffff;
 //     eax <<= 3;
-//     kfuncs_probe_write_kernel(&ctx->ax, sizeof(eax), &eax, sizeof(eax));
+//     bpf_probe_write_kernel(&ctx->ax, sizeof(eax), &eax);
 
 //     return 0;
 // }
@@ -67,7 +67,7 @@ int BPF_KPROBE(hystart_update_0xd9) {
 
 //     u64 ecx = (u64)(ctx->cx) & 0xffffffff;
 //     ecx <<= 1;
-//     kfuncs_probe_write_kernel(&ctx->cx, sizeof(ecx), &ecx, sizeof(ecx));
+//     bpf_probe_write_kernel(&ctx->cx, sizeof(ecx), &ecx);
 
 //     return 0;
 // }
