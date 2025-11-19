@@ -6,8 +6,8 @@
 
 #include "xkernel.bpf.h"
 
-SEC("kprobe/check_extent_item+0x31")
-int BPF_KPROBE(check_extent_item_0x31){
+SEC("kprobe/check_extent_item+0x38")
+int BPF_KPROBE(check_extent_item_0x38){
     u64 r14 = BPF_R14(ctx);
     if(r14 > 0x200){
         BPF_SET_JA_TRUE(ctx);
