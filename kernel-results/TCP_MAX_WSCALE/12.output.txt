@@ -1,0 +1,40 @@
+=== Taint Tracker Configuration ===
+Function: tcp_connect
+Opcode: select
+Constant: 1073725440
+Verbose: OFF
+Interproc: OFF
+IndirectCall: OFF
+Occurrence: 1 (of constant 1073725440)
+
+[SOURCE] Tainting:   %255 = select i1 %254, i32 1073725440, i32 %253, !dbg !14041 <net/ipv4/tcp_output.c:216:19>
+[USE] Source instruction in data flow <net/ipv4/tcp_output.c:216:19>
+[USE] Processing uses of:   %255 = select i1 %254, i32 1073725440, i32 %253, !dbg !14041
+  [EXTERNAL CALL] Tainted value used in external/indirect call <net/ipv4/tcp_output.c:250:2>
+  [EXTERNAL CALL] Tainted value used in external/indirect call <net/ipv4/tcp_output.c:245:11>
+  [EXTERNAL CALL] Tainted value used in external/indirect call <net/ipv4/tcp_output.c:218:10>
+
+=== Taint Analysis Complete ===
+	Command being timed: "opt -load-pass-plugin=build/libTaintTrackerPass.so -passes=taint-tracker<tcp_connect;select;1073725440;false;false;false;1> -disable-output ../linux-wllvm-defconfig/net/ipv4/tcp_output.bc"
+	User time (seconds): 0.03
+	System time (seconds): 0.00
+	Percent of CPU this job got: 97%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.04
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 71184
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 6136
+	Voluntary context switches: 1
+	Involuntary context switches: 2
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 0
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

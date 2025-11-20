@@ -1,0 +1,53 @@
+=== Taint Tracker Configuration ===
+Function: tcp_rcv_state_process
+Opcode: call
+Constant: 16
+Verbose: OFF
+Interproc: OFF
+IndirectCall: OFF
+Occurrence: 1 (of constant 16)
+
+[SOURCE] Tainting:   %247 = call i32 @llvm.umin.i32(i32 %245, i32 range(i32 2, 17) 16), !dbg !14191 <net/ipv4/tcp_input.c:313:14>
+[USE] Source instruction in data flow <net/ipv4/tcp_input.c:313:14>
+[CHILD FUNCTION] Constant used in call to llvm.umin.i32 at argument 1 <net/ipv4/tcp_input.c:313:14>
+[USE] Processing uses of:   %247 = call i32 @llvm.umin.i32(i32 %245, i32 range(i32 2, 17) 16), !dbg !14191
+  [USE] Taint flows to:   %248 = select i1 %246, i32 2, i32 %247, !dbg !14188 <net/ipv4/tcp_input.c:311:16>
+[USE] Processing uses of:   %248 = select i1 %246, i32 2, i32 %247, !dbg !14188
+  [USE] Taint flows to:   %254 = trunc nuw nsw i32 %248 to i8, !dbg !14196 <net/ipv4/tcp_input.c:315:26>
+  [USE] Taint flows to:   %252 = icmp samesign ugt i32 %248, %251, !dbg !14195 <net/ipv4/tcp_input.c:314:16>
+[USE] Processing uses of:   %252 = icmp samesign ugt i32 %248, %251, !dbg !14195
+  [USE] Taint flows to:   br i1 %252, label %253, label %255, !dbg !14195 <net/ipv4/tcp_input.c:314:16>
+[NO USE] No uses of:   br i1 %252, label %253, label %255, !dbg !14195
+[USE] Processing uses of:   %254 = trunc nuw nsw i32 %248 to i8, !dbg !14196
+  [STORE DESTINATION] Marking pointer as tainted:   %249 = getelementptr inbounds nuw i8, ptr %0, i64 1241, !dbg !14192 <net/ipv4/tcp_input.c:315:24>
+  [USE] Taint flows to:   store i8 %254, ptr %249, align 1, !dbg !14197 <net/ipv4/tcp_input.c:315:24>
+[NO USE] No uses of:   store i8 %254, ptr %249, align 1, !dbg !14197
+[LOAD] Tainted load from tracked pointer:   %250 = load i8, ptr %249, align 1, !dbg !14192 (  %249 = getelementptr inbounds nuw i8, ptr %0, i64 1241, !dbg !14192)  <net/ipv4/tcp_input.c:314:33>
+[USE] Processing uses of:   %250 = load i8, ptr %249, align 1, !dbg !14192
+  [USE] Taint flows to:   %251 = zext i8 %250 to i32, !dbg !14194 <net/ipv4/tcp_input.c:314:18>
+[USE] Processing uses of:   %251 = zext i8 %250 to i32, !dbg !14194
+
+=== Taint Analysis Complete ===
+	Command being timed: "opt -load-pass-plugin=build/libTaintTrackerPass.so -passes=taint-tracker<tcp_rcv_state_process;call;16;false;false;false;1> -disable-output ../linux-wllvm-defconfig/net/ipv4/tcp_input.bc"
+	User time (seconds): 0.04
+	System time (seconds): 0.01
+	Percent of CPU this job got: 96%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.05
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 73884
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 5976
+	Voluntary context switches: 1
+	Involuntary context switches: 3
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 0
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

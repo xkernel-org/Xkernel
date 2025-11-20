@@ -1,0 +1,143 @@
+=== Taint Tracker Configuration ===
+Function: pie_calculate_probability
+Opcode: shl
+Constant: 8
+Verbose: OFF
+Interproc: OFF
+IndirectCall: OFF
+Occurrence: 1 (of constant 8)
+
+[SOURCE] Tainting:   %14 = shl i32 %2, 8, !dbg !11157 <net/sched/sch_pie.c:318:22>
+[USE] Source instruction in data flow <net/sched/sch_pie.c:318:22>
+[USE] Processing uses of:   %14 = shl i32 %2, 8, !dbg !11157
+  [USE] Taint flows to:   %15 = udiv i32 %14, %11, !dbg !11158 <net/sched/sch_pie.c:318:36>
+[USE] Processing uses of:   %15 = udiv i32 %14, %11, !dbg !11158
+  [USE] Taint flows to:   %16 = zext i32 %15 to i64, !dbg !11159 <net/sched/sch_pie.c:318:13>
+[USE] Processing uses of:   %16 = zext i32 %15 to i64, !dbg !11159
+  [USE] Taint flows to:   %20 = phi i64 [ %16, %13 ], [ %7, %17 ], [ 0, %9 ], !dbg !11151 <net/sched/sch_pie.c:0>
+[USE] Processing uses of:   %20 = phi i64 [ %16, %13 ], [ %7, %17 ], [ 0, %9 ], !dbg !11151
+  [USE] Taint flows to:   %97 = icmp ult i64 %20, %96, !dbg !11238 <net/sched/sch_pie.c:413:20>
+  [STORE DESTINATION] Marking pointer as tainted:   %119 = getelementptr inbounds nuw i8, ptr %1, i64 8, !dbg !11269 <net/sched/sch_pie.c:421:20>
+  [USE] Taint flows to:   store i64 %20, ptr %119, align 8, !dbg !11270 <net/sched/sch_pie.c:421:20>
+  [POINTER PARAMETER] Tainted value stored through pointer parameter <net/sched/sch_pie.c:404:15>
+  [USE] Taint flows to:   %72 = icmp ugt i64 %20, 3906250, !dbg !11214 <net/sched/sch_pie.c:374:13>
+  [USE] Taint flows to:   %66 = sub i64 %20, %21, !dbg !11209 <net/sched/sch_pie.c:360:26>
+  [USE] Taint flows to:   %64 = sub i64 %20, %63, !dbg !11207 <net/sched/sch_pie.c:359:27>
+  [USE] Taint flows to:   %22 = icmp ne i64 %20, 0, !dbg !11163 <net/sched/sch_pie.c:329:13>
+[USE] Processing uses of:   %22 = icmp ne i64 %20, 0, !dbg !11163
+  [USE] Taint flows to:   %85 = select i1 %22, i1 true, i1 %84, !dbg !11227 <net/sched/sch_pie.c:400:18>
+[USE] Processing uses of:   %85 = select i1 %22, i1 true, i1 %84, !dbg !11227
+  [USE] Taint flows to:   %86 = or i1 %85, %23, !dbg !11227 <net/sched/sch_pie.c:400:18>
+[USE] Processing uses of:   %86 = or i1 %85, %23, !dbg !11227
+  [USE] Taint flows to:   br i1 %86, label %92, label %87, !dbg !11227 <net/sched/sch_pie.c:400:18>
+[NO USE] No uses of:   br i1 %86, label %92, label %87, !dbg !11227
+[USE] Processing uses of:   %64 = sub i64 %20, %63, !dbg !11207
+  [USE] Taint flows to:   %65 = mul i64 %64, %61, !dbg !11208 <net/sched/sch_pie.c:359:17>
+[USE] Processing uses of:   %65 = mul i64 %64, %61, !dbg !11208
+  [USE] Taint flows to:   %68 = add i64 %65, %67, !dbg !11211 <net/sched/sch_pie.c:360:8>
+[USE] Processing uses of:   %68 = add i64 %65, %67, !dbg !11211
+  [USE] Taint flows to:   %71 = select i1 %69, i64 %70, i64 %68, !dbg !11212 <net/sched/sch_pie.c:365:42>
+  [EXTERNAL CALL] Tainted value used in external/indirect call <net/sched/sch_pie.c:365:42>
+[USE] Processing uses of:   %71 = select i1 %69, i64 %70, i64 %68, !dbg !11212
+  [USE] Taint flows to:   %73 = add i64 %71, 1441151880758558, !dbg !11214 <net/sched/sch_pie.c:374:13>
+  [USE] Taint flows to:   %74 = select i1 %72, i64 %73, i64 %71, !dbg !11214 <net/sched/sch_pie.c:374:13>
+[USE] Processing uses of:   %74 = select i1 %72, i64 %73, i64 %71, !dbg !11214
+  [USE] Taint flows to:   %75 = add i64 %74, %35, !dbg !11216 <net/sched/sch_pie.c:377:13>
+  [USE] Taint flows to:   %76 = icmp sgt i64 %74, 0, !dbg !11217 <net/sched/sch_pie.c:379:12>
+[USE] Processing uses of:   %76 = icmp sgt i64 %74, 0, !dbg !11217
+  [USE] Taint flows to:   br i1 %76, label %77, label %79, !dbg !11217 <net/sched/sch_pie.c:379:12>
+[NO USE] No uses of:   br i1 %76, label %77, label %79, !dbg !11217
+[USE] Processing uses of:   %75 = add i64 %74, %35, !dbg !11216
+  [USE] Taint flows to:   %83 = phi i64 [ %75, %77 ], [ 0, %81 ], [ %75, %79 ]
+  [USE] Taint flows to:   %80 = icmp ugt i64 %75, %35, !dbg !11222 <net/sched/sch_pie.c:392:18>
+  [USE] Taint flows to:   %78 = icmp ult i64 %75, %35, !dbg !11219 <net/sched/sch_pie.c:381:18>
+  [STORE DESTINATION] Marking pointer as tainted:   %34 = getelementptr inbounds nuw i8, ptr %1, i64 32, !dbg !11173 <net/sched/sch_pie.c:377:13>
+  [USE] Taint flows to:   store i64 %75, ptr %34, align 8, !dbg !11216 <net/sched/sch_pie.c:377:13>
+[NO USE] No uses of:   store i64 %75, ptr %34, align 8, !dbg !11216
+[USE] Processing uses of:   %78 = icmp ult i64 %75, %35, !dbg !11219
+  [USE] Taint flows to:   br i1 %78, label %90, label %82, !dbg !11219 <net/sched/sch_pie.c:381:18>
+[NO USE] No uses of:   br i1 %78, label %90, label %82, !dbg !11219
+[USE] Processing uses of:   %80 = icmp ugt i64 %75, %35, !dbg !11222
+  [USE] Taint flows to:   br i1 %80, label %81, label %82, !dbg !11222 <net/sched/sch_pie.c:392:18>
+[NO USE] No uses of:   br i1 %80, label %81, label %82, !dbg !11222
+[USE] Processing uses of:   %83 = phi i64 [ %75, %77 ], [ 0, %81 ], [ %75, %79 ]
+  [USE] Taint flows to:   %89 = sub i64 %83, %88, !dbg !11230 <net/sched/sch_pie.c:402:14>
+  [USE] Taint flows to:   %88 = lshr i64 %83, 6, !dbg !11229 <net/sched/sch_pie.c:402:28>
+  [USE] Taint flows to:   %93 = phi i64 [ %83, %82 ], [ %91, %90 ]
+[USE] Processing uses of:   %93 = phi i64 [ %83, %82 ], [ %91, %90 ]
+  [USE] Taint flows to:   %100 = icmp eq i64 %93, 0
+[USE] Processing uses of:   %100 = icmp eq i64 %93, 0
+  [USE] Taint flows to:   %101 = and i1 %99, %100, !dbg !11239 <net/sched/sch_pie.c:413:42>
+[USE] Processing uses of:   %101 = and i1 %99, %100, !dbg !11239
+  [USE] Taint flows to:   br i1 %101, label %102, label %115, !dbg !11239 <net/sched/sch_pie.c:413:42>
+[NO USE] No uses of:   br i1 %101, label %102, label %115, !dbg !11239
+[USE] Processing uses of:   %88 = lshr i64 %83, 6, !dbg !11229
+[USE] Processing uses of:   %89 = sub i64 %83, %88, !dbg !11230
+  [USE] Taint flows to:   %91 = phi i64 [ %89, %87 ], [ 72057594037927935, %77 ]
+[USE] Processing uses of:   %91 = phi i64 [ %89, %87 ], [ 72057594037927935, %77 ]
+  [USE] Taint flows to:   store i64 %91, ptr %34, align 8, !dbg !11147 <net/sched/sch_pie.c:0>
+[NO USE] No uses of:   store i64 %91, ptr %34, align 8, !dbg !11147
+[USE] Processing uses of:   %73 = add i64 %71, 1441151880758558, !dbg !11214
+[USE] Processing uses of:   %66 = sub i64 %20, %21, !dbg !11209
+  [USE] Taint flows to:   %67 = mul i64 %62, %66, !dbg !11210 <net/sched/sch_pie.c:360:16>
+[USE] Processing uses of:   %67 = mul i64 %62, %66, !dbg !11210
+[USE] Processing uses of:   %72 = icmp ugt i64 %20, 3906250, !dbg !11214
+[NO USE] No uses of:   store i64 %20, ptr %119, align 8, !dbg !11270
+[USE] Processing uses of:   %97 = icmp ult i64 %20, %96, !dbg !11238
+  [USE] Taint flows to:   %99 = select i1 %97, i1 %98, i1 false, !dbg !11239 <net/sched/sch_pie.c:413:42>
+[USE] Processing uses of:   %99 = select i1 %97, i1 %98, i1 false, !dbg !11239
+[KILL] Store overwrites tainted pointer with non-tainted value:   store i64 0, ptr %34, align 8, !dbg !11225
+[LOAD] Tainted load from tracked pointer:   %35 = load i64, ptr %34, align 8, !dbg !11173 (  %34 = getelementptr inbounds nuw i8, ptr %1, i64 32, !dbg !11173)  <net/sched/sch_pie.c:345:12>
+[USE] Processing uses of:   %35 = load i64, ptr %34, align 8, !dbg !11173
+  [USE] Taint flows to:   %56 = icmp samesign ult i64 %35, 72057594037, !dbg !11198 <net/sched/sch_pie.c:350:21>
+  [USE] Taint flows to:   %52 = icmp samesign ult i64 %35, 720575940379, !dbg !11198 <net/sched/sch_pie.c:350:21>
+  [USE] Taint flows to:   %48 = icmp samesign ult i64 %35, 7205759403792, !dbg !11198 <net/sched/sch_pie.c:350:21>
+  [USE] Taint flows to:   %40 = icmp samesign ult i64 %35, 720575940379279, !dbg !11198 <net/sched/sch_pie.c:350:21>
+  [USE] Taint flows to:   %69 = icmp ugt i64 %35, 7205759403792792
+  [USE] Taint flows to:   %44 = icmp samesign ult i64 %35, 72057594037927, !dbg !11198 <net/sched/sch_pie.c:350:21>
+  [USE] Taint flows to:   %36 = icmp ult i64 %35, 7205759403792793, !dbg !11175 <net/sched/sch_pie.c:345:17>
+[USE] Processing uses of:   %36 = icmp ult i64 %35, 7205759403792793, !dbg !11175
+  [USE] Taint flows to:   br i1 %36, label %37, label %60, !dbg !11175 <net/sched/sch_pie.c:345:17>
+[NO USE] No uses of:   br i1 %36, label %37, label %60, !dbg !11175
+[USE] Processing uses of:   %44 = icmp samesign ult i64 %35, 72057594037927, !dbg !11198
+  [USE] Taint flows to:   br i1 %44, label %45, label %60, !dbg !11199, !llvm.loop !11203 <net/sched/sch_pie.c:350:3>
+[NO USE] No uses of:   br i1 %44, label %45, label %60, !dbg !11199, !llvm.loop !11203
+[USE] Processing uses of:   %69 = icmp ugt i64 %35, 7205759403792792
+[USE] Processing uses of:   %40 = icmp samesign ult i64 %35, 720575940379279, !dbg !11198
+  [USE] Taint flows to:   br i1 %40, label %41, label %60, !dbg !11199 <net/sched/sch_pie.c:350:3>
+[NO USE] No uses of:   br i1 %40, label %41, label %60, !dbg !11199
+[USE] Processing uses of:   %48 = icmp samesign ult i64 %35, 7205759403792, !dbg !11198
+  [USE] Taint flows to:   br i1 %48, label %49, label %60, !dbg !11199, !llvm.loop !11203 <net/sched/sch_pie.c:350:3>
+[NO USE] No uses of:   br i1 %48, label %49, label %60, !dbg !11199, !llvm.loop !11203
+[USE] Processing uses of:   %52 = icmp samesign ult i64 %35, 720575940379, !dbg !11198
+  [USE] Taint flows to:   br i1 %52, label %53, label %60, !dbg !11199, !llvm.loop !11203 <net/sched/sch_pie.c:350:3>
+[NO USE] No uses of:   br i1 %52, label %53, label %60, !dbg !11199, !llvm.loop !11203
+[USE] Processing uses of:   %56 = icmp samesign ult i64 %35, 72057594037, !dbg !11198
+  [USE] Taint flows to:   br i1 %56, label %57, label %60, !dbg !11199, !llvm.loop !11203 <net/sched/sch_pie.c:350:3>
+[NO USE] No uses of:   br i1 %56, label %57, label %60, !dbg !11199, !llvm.loop !11203
+[KILL] Store overwrites tainted pointer with non-tainted value:   store i64 0, ptr %34, align 8, !dbg !11225
+
+=== Taint Analysis Complete ===
+	Command being timed: "opt -load-pass-plugin=build/libTaintTrackerPass.so -passes=taint-tracker<pie_calculate_probability;shl;8;false;false;false;1> -disable-output ../linux-wllvm-defconfig/net/sched/sch_pie.bc"
+	User time (seconds): 0.05
+	System time (seconds): 0.01
+	Percent of CPU this job got: 98%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.07
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 66500
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 14100
+	Voluntary context switches: 1
+	Involuntary context switches: 4
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 0
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

@@ -1,0 +1,53 @@
+=== Taint Tracker Configuration ===
+Function: tcp_send_dupack
+Opcode: call
+Constant: 16
+Verbose: OFF
+Interproc: OFF
+IndirectCall: OFF
+Occurrence: 1 (of constant 16)
+
+[SOURCE] Tainting:   %27 = tail call i32 @llvm.umin.i32(i32 %25, i32 range(i32 2, 17) 16), !dbg !13674 <net/ipv4/tcp_input.c:313:14>
+[USE] Source instruction in data flow <net/ipv4/tcp_input.c:313:14>
+[CHILD FUNCTION] Constant used in call to llvm.umin.i32 at argument 1 <net/ipv4/tcp_input.c:313:14>
+[USE] Processing uses of:   %27 = tail call i32 @llvm.umin.i32(i32 %25, i32 range(i32 2, 17) 16), !dbg !13674
+  [USE] Taint flows to:   %28 = select i1 %26, i32 2, i32 %27, !dbg !13671 <net/ipv4/tcp_input.c:311:16>
+[USE] Processing uses of:   %28 = select i1 %26, i32 2, i32 %27, !dbg !13671
+  [USE] Taint flows to:   %34 = trunc nuw nsw i32 %28 to i8, !dbg !13679 <net/ipv4/tcp_input.c:315:26>
+  [USE] Taint flows to:   %32 = icmp samesign ugt i32 %28, %31, !dbg !13678 <net/ipv4/tcp_input.c:314:16>
+[USE] Processing uses of:   %32 = icmp samesign ugt i32 %28, %31, !dbg !13678
+  [USE] Taint flows to:   br i1 %32, label %33, label %35, !dbg !13678 <net/ipv4/tcp_input.c:314:16>
+[NO USE] No uses of:   br i1 %32, label %33, label %35, !dbg !13678
+[USE] Processing uses of:   %34 = trunc nuw nsw i32 %28 to i8, !dbg !13679
+  [STORE DESTINATION] Marking pointer as tainted:   %29 = getelementptr inbounds nuw i8, ptr %0, i64 1241, !dbg !13675 <net/ipv4/tcp_input.c:315:24>
+  [USE] Taint flows to:   store i8 %34, ptr %29, align 1, !dbg !13680 <net/ipv4/tcp_input.c:315:24>
+[NO USE] No uses of:   store i8 %34, ptr %29, align 1, !dbg !13680
+[LOAD] Tainted load from tracked pointer:   %30 = load i8, ptr %29, align 1, !dbg !13675 (  %29 = getelementptr inbounds nuw i8, ptr %0, i64 1241, !dbg !13675)  <net/ipv4/tcp_input.c:314:33>
+[USE] Processing uses of:   %30 = load i8, ptr %29, align 1, !dbg !13675
+  [USE] Taint flows to:   %31 = zext i8 %30 to i32, !dbg !13677 <net/ipv4/tcp_input.c:314:18>
+[USE] Processing uses of:   %31 = zext i8 %30 to i32, !dbg !13677
+
+=== Taint Analysis Complete ===
+	Command being timed: "opt -load-pass-plugin=build/libTaintTrackerPass.so -passes=taint-tracker<tcp_send_dupack;call;16;false;false;false;1> -disable-output ../linux-wllvm-defconfig/net/ipv4/tcp_input.bc"
+	User time (seconds): 0.04
+	System time (seconds): 0.00
+	Percent of CPU this job got: 98%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.05
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 73204
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 5978
+	Voluntary context switches: 1
+	Involuntary context switches: 2
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 0
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

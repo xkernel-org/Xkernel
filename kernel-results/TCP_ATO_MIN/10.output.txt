@@ -1,0 +1,61 @@
+=== Taint Tracker Configuration ===
+Function: tcp_send_dupack
+Opcode: or
+Constant: 40
+Verbose: OFF
+Interproc: OFF
+IndirectCall: OFF
+Occurrence: 1 (of constant 40)
+
+[SOURCE] Tainting:   %40 = or disjoint i32 %39, 40, !dbg !13692 <net/ipv4/tcp_input.c:324:21>
+[USE] Source instruction in data flow <net/ipv4/tcp_input.c:324:21>
+[USE] Processing uses of:   %40 = or disjoint i32 %39, 40, !dbg !13692
+  [STORE DESTINATION] Marking pointer as tainted:   %37 = getelementptr inbounds nuw i8, ptr %0, i64 1244, !dbg !13691 <net/ipv4/tcp_input.c:324:21>
+  [USE] Taint flows to:   store i32 %40, ptr %37, align 4, !dbg !13692 <net/ipv4/tcp_input.c:324:21>
+[NO USE] No uses of:   store i32 %40, ptr %37, align 4, !dbg !13692
+[KILL] Store overwrites tainted pointer with non-tainted value:   store i32 %105, ptr %37, align 4, !dbg !13829
+[LOAD] Tainted load from tracked pointer:   %38 = load i32, ptr %37, align 4, !dbg !13692 (  %37 = getelementptr inbounds nuw i8, ptr %0, i64 1244, !dbg !13691)  <net/ipv4/tcp_input.c:324:21>
+[LOAD] Tainted load from tracked pointer:   %101 = load i32, ptr %37, align 4, !dbg !13829 (  %37 = getelementptr inbounds nuw i8, ptr %0, i64 1244, !dbg !13691)  <net/ipv4/tcp_input.c:806:33>
+[USE] Processing uses of:   %101 = load i32, ptr %37, align 4, !dbg !13829
+  [USE] Taint flows to:   %104 = and i32 %101, -268435201, !dbg !13829 <net/ipv4/tcp_input.c:806:33>
+[USE] Processing uses of:   %104 = and i32 %101, -268435201, !dbg !13829
+  [USE] Taint flows to:   %105 = or disjoint i32 %103, %104, !dbg !13829 <net/ipv4/tcp_input.c:806:33>
+[USE] Processing uses of:   %105 = or disjoint i32 %103, %104, !dbg !13829
+  [USE] Taint flows to:   store i32 %105, ptr %37, align 4, !dbg !13829 <net/ipv4/tcp_input.c:806:33>
+[NO USE] No uses of:   store i32 %105, ptr %37, align 4, !dbg !13829
+[USE] Processing uses of:   %38 = load i32, ptr %37, align 4, !dbg !13692
+  [USE] Taint flows to:   %61 = lshr i32 %38, 8, !dbg !13734 <net/ipv4/tcp_input.c:4702:38>
+  [USE] Taint flows to:   %39 = and i32 %38, -256, !dbg !13692 <net/ipv4/tcp_input.c:324:21>
+[USE] Processing uses of:   %39 = and i32 %38, -256, !dbg !13692
+[USE] Processing uses of:   %61 = lshr i32 %38, 8, !dbg !13734
+  [USE] Taint flows to:   %62 = and i32 %61, 1048575, !dbg !13734 <net/ipv4/tcp_input.c:4702:38>
+[USE] Processing uses of:   %62 = and i32 %61, 1048575, !dbg !13734
+  [USE] Taint flows to:   %72 = icmp eq i32 %62, %71, !dbg !13764 <net/ipv4/tcp_input.c:4702:53>
+[USE] Processing uses of:   %72 = icmp eq i32 %62, %71, !dbg !13764
+  [USE] Taint flows to:   br i1 %72, label %88, label %73, !dbg !13765 <net/ipv4/tcp_input.c:4703:44>
+[NO USE] No uses of:   br i1 %72, label %88, label %73, !dbg !13765
+
+=== Taint Analysis Complete ===
+	Command being timed: "opt -load-pass-plugin=build/libTaintTrackerPass.so -passes=taint-tracker<tcp_send_dupack;or;40;false;false;false;1> -disable-output ../linux-wllvm-defconfig/net/ipv4/tcp_input.bc"
+	User time (seconds): 0.05
+	System time (seconds): 0.00
+	Percent of CPU this job got: 98%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.06
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 73516
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 5977
+	Voluntary context switches: 1
+	Involuntary context switches: 3
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 0
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

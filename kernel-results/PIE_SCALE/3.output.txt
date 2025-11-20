@@ -1,0 +1,56 @@
+=== Taint Tracker Configuration ===
+Function: pie_process_dequeue
+Opcode: shl
+Constant: 8
+Verbose: OFF
+Interproc: OFF
+IndirectCall: OFF
+Occurrence: 1 (of constant 8)
+
+[SOURCE] Tainting:   %51 = shl i32 %50, 8, !dbg !11217 <net/sched/sch_pie.c:258:16>
+[USE] Source instruction in data flow <net/sched/sch_pie.c:258:16>
+[USE] Processing uses of:   %51 = shl i32 %50, 8, !dbg !11217
+  [USE] Taint flows to:   %52 = udiv i32 %51, %47, !dbg !11218 <net/sched/sch_pie.c:265:18>
+[USE] Processing uses of:   %52 = udiv i32 %51, %47, !dbg !11218
+  [USE] Taint flows to:   %60 = select i1 %55, i32 %52, i32 %59, !dbg !11221 <net/sched/sch_pie.c:267:26>
+  [USE] Taint flows to:   %57 = lshr i32 %52, 3, !dbg !11221 <net/sched/sch_pie.c:267:26>
+[USE] Processing uses of:   %57 = lshr i32 %52, 3, !dbg !11221
+  [USE] Taint flows to:   %58 = add i32 %57, %54, !dbg !11221 <net/sched/sch_pie.c:267:26>
+[USE] Processing uses of:   %58 = add i32 %57, %54, !dbg !11221
+  [USE] Taint flows to:   %59 = sub i32 %58, %56, !dbg !11221 <net/sched/sch_pie.c:267:26>
+[USE] Processing uses of:   %59 = sub i32 %58, %56, !dbg !11221
+[USE] Processing uses of:   %60 = select i1 %55, i32 %52, i32 %59, !dbg !11221
+  [STORE DESTINATION] Marking pointer as tainted:   %53 = getelementptr inbounds nuw i8, ptr %2, i64 56, !dbg !11219 <net/sched/sch_pie.c:0>
+  [USE] Taint flows to:   store i32 %60, ptr %53, align 8, !dbg !11222 <net/sched/sch_pie.c:0>
+[NO USE] No uses of:   store i32 %60, ptr %53, align 8, !dbg !11222
+[LOAD] Tainted load from tracked pointer:   %54 = load i32, ptr %53, align 8, !dbg !11219 (  %53 = getelementptr inbounds nuw i8, ptr %2, i64 56, !dbg !11219)  <net/sched/sch_pie.c:267:14>
+[USE] Processing uses of:   %54 = load i32, ptr %53, align 8, !dbg !11219
+  [USE] Taint flows to:   %56 = lshr i32 %54, 3, !dbg !11221 <net/sched/sch_pie.c:267:26>
+  [USE] Taint flows to:   %55 = icmp eq i32 %54, 0, !dbg !11221 <net/sched/sch_pie.c:267:26>
+[USE] Processing uses of:   %55 = icmp eq i32 %54, 0, !dbg !11221
+[USE] Processing uses of:   %56 = lshr i32 %54, 3, !dbg !11221
+
+=== Taint Analysis Complete ===
+	Command being timed: "opt -load-pass-plugin=build/libTaintTrackerPass.so -passes=taint-tracker<pie_process_dequeue;shl;8;false;false;false;1> -disable-output ../linux-wllvm-defconfig/net/sched/sch_pie.bc"
+	User time (seconds): 0.02
+	System time (seconds): 0.00
+	Percent of CPU this job got: 96%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.03
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 66580
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 6282
+	Voluntary context switches: 1
+	Involuntary context switches: 1
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 0
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

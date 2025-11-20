@@ -1,0 +1,5 @@
+SOURCE_FILE=net/ipv6/mcast.c
+FUNCTION_NAME=igmp6_event_query
+SOURCE_OP="icmp"
+CONSTANT_VALUE=32
+OCCURENCE=1

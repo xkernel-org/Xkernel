@@ -1,0 +1,38 @@
+=== Taint Tracker Configuration ===
+Function: tcp_init_sock
+Opcode: store
+Constant: 10
+Verbose: OFF
+Interproc: OFF
+IndirectCall: OFF
+Occurrence: 1 (of constant 10)
+
+[SOURCE] Tainting:   store i32 10, ptr %26, align 4, !dbg !14140 <./include/net/tcp.h:1337:15>
+[USE] Source instruction in data flow <./include/net/tcp.h:1337:15>
+[STORE DESTINATION] Storing constant to:   %26 = getelementptr inbounds nuw i8, ptr %0, i64 1444, !dbg !14139 <./include/net/tcp.h:1337:15>
+[NO USE] No uses of:   store i32 10, ptr %26, align 4, !dbg !14140
+
+=== Taint Analysis Complete ===
+	Command being timed: "opt -load-pass-plugin=build/libTaintTrackerPass.so -passes=taint-tracker<tcp_init_sock;store;10;false;false;false;1> -disable-output ../linux-wllvm-defconfig/net/ipv4/tcp.bc"
+	User time (seconds): 0.03
+	System time (seconds): 0.00
+	Percent of CPU this job got: 100%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.04
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 72468
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 6683
+	Voluntary context switches: 1
+	Involuntary context switches: 2
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 0
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

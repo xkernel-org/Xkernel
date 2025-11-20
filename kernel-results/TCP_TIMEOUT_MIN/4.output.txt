@@ -1,0 +1,39 @@
+=== Taint Tracker Configuration ===
+Function: tcp_clamp_probe0_to_user_timeout
+Opcode: call
+Constant: 2
+Verbose: OFF
+Interproc: OFF
+IndirectCall: OFF
+Occurrence: 1 (of constant 2)
+
+[SOURCE] Tainting:   %21 = tail call i32 @llvm.umax.i32(i32 %20, i32 2), !dbg !12636 <net/ipv4/tcp_timer.c:63:14>
+[USE] Source instruction in data flow <net/ipv4/tcp_timer.c:63:14>
+[CHILD FUNCTION] Constant used in call to llvm.umax.i32 at argument 1 <net/ipv4/tcp_timer.c:63:14>
+[USE] Processing uses of:   %21 = tail call i32 @llvm.umax.i32(i32 %20, i32 2), !dbg !12636
+  [EXTERNAL CALL] Tainted value used in external/indirect call <net/ipv4/tcp_timer.c:65:9>
+
+=== Taint Analysis Complete ===
+	Command being timed: "opt -load-pass-plugin=build/libTaintTrackerPass.so -passes=taint-tracker<tcp_clamp_probe0_to_user_timeout;call;2;false;false;false;1> -disable-output ../linux-wllvm-defconfig/net/ipv4/tcp_timer.bc"
+	User time (seconds): 0.01
+	System time (seconds): 0.00
+	Percent of CPU this job got: 100%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.02
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 67312
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 4802
+	Voluntary context switches: 1
+	Involuntary context switches: 1
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 0
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

@@ -1,0 +1,43 @@
+=== Taint Tracker Configuration ===
+Function: tcp_send_delayed_ack
+Opcode: call
+Constant: 40
+Verbose: OFF
+Interproc: OFF
+IndirectCall: OFF
+Occurrence: 1 (of constant 40)
+
+[SOURCE] Tainting:   %30 = tail call i32 @llvm.smax.i32(i32 %28, i32 40), !dbg !13512 <net/ipv4/tcp_output.c:4207:12>
+[USE] Source instruction in data flow <net/ipv4/tcp_output.c:4207:12>
+[CHILD FUNCTION] Constant used in call to llvm.smax.i32 at argument 1 <net/ipv4/tcp_output.c:4207:12>
+[USE] Processing uses of:   %30 = tail call i32 @llvm.smax.i32(i32 %28, i32 40), !dbg !13512
+  [USE] Taint flows to:   %31 = select i1 %29, i32 %30, i32 %21, !dbg !13512 <net/ipv4/tcp_output.c:4207:12>
+[USE] Processing uses of:   %31 = select i1 %29, i32 %30, i32 %21, !dbg !13512
+  [USE] Taint flows to:   %33 = phi i32 [ %31, %25 ], [ %21, %20 ], !dbg !13460 <net/ipv4/tcp_output.c:0>
+[USE] Processing uses of:   %33 = phi i32 [ %31, %25 ], [ %21, %20 ], !dbg !13460
+  [EXTERNAL CALL] Tainted value used in external/indirect call <net/ipv4/tcp_output.c:4211:9>
+
+=== Taint Analysis Complete ===
+	Command being timed: "opt -load-pass-plugin=build/libTaintTrackerPass.so -passes=taint-tracker<tcp_send_delayed_ack;call;40;false;false;false;1> -disable-output ../linux-wllvm-defconfig/net/ipv4/tcp_output.bc"
+	User time (seconds): 0.02
+	System time (seconds): 0.01
+	Percent of CPU this job got: 97%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.04
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 70924
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 6966
+	Voluntary context switches: 1
+	Involuntary context switches: 3
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 0
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

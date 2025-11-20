@@ -1,0 +1,44 @@
+=== Taint Tracker Configuration ===
+Function: __tcp_transmit_skb
+Opcode: or
+Constant: 40
+Verbose: OFF
+Interproc: OFF
+IndirectCall: OFF
+Occurrence: 1 (of constant 40)
+
+[SOURCE] Tainting:   %532 = or disjoint i32 %531, 40, !dbg !14507 <./include/net/tcp.h:369:25>
+[USE] Source instruction in data flow <./include/net/tcp.h:369:25>
+[USE] Processing uses of:   %532 = or disjoint i32 %531, 40, !dbg !14507
+  [STORE DESTINATION] Marking pointer as tainted:   %529 = getelementptr inbounds nuw i8, ptr %0, i64 1244, !dbg !14506 <./include/net/tcp.h:369:25>
+  [USE] Taint flows to:   store i32 %532, ptr %529, align 4, !dbg !14507 <./include/net/tcp.h:369:25>
+[NO USE] No uses of:   store i32 %532, ptr %529, align 4, !dbg !14507
+[LOAD] Tainted load from tracked pointer:   %530 = load i32, ptr %529, align 4, !dbg !14507 (  %529 = getelementptr inbounds nuw i8, ptr %0, i64 1244, !dbg !14506)  <./include/net/tcp.h:369:25>
+[USE] Processing uses of:   %530 = load i32, ptr %529, align 4, !dbg !14507
+  [USE] Taint flows to:   %531 = and i32 %530, -256, !dbg !14507 <./include/net/tcp.h:369:25>
+[USE] Processing uses of:   %531 = and i32 %530, -256, !dbg !14507
+
+=== Taint Analysis Complete ===
+	Command being timed: "opt -load-pass-plugin=build/libTaintTrackerPass.so -passes=taint-tracker<__tcp_transmit_skb;or;40;false;false;false;1> -disable-output ../linux-wllvm-defconfig/net/ipv4/tcp_output.bc"
+	User time (seconds): 0.03
+	System time (seconds): 0.00
+	Percent of CPU this job got: 97%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.04
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 71244
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 7798
+	Voluntary context switches: 1
+	Involuntary context switches: 2
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 0
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

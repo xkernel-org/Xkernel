@@ -1,0 +1,51 @@
+=== Taint Tracker Configuration ===
+Function: bbr_main
+Opcode: phi
+Constant: 11
+Verbose: OFF
+Interproc: OFF
+IndirectCall: OFF
+Occurrence: 1 (of constant 11)
+
+[SOURCE] Tainting:   %213 = phi i32 [ %211, %201 ], [ 11, %198 ], !dbg !12839 <net/ipv4/tcp_bbr.c:0>
+[USE] Source instruction in data flow <net/ipv4/tcp_bbr.c:0>
+[USE] Processing uses of:   %213 = phi i32 [ %211, %201 ], [ 11, %198 ], !dbg !12839
+  [USE] Taint flows to:   %229 = add i32 %228, %213, !dbg !12876 <net/ipv4/tcp_bbr.c:403:15>
+[USE] Processing uses of:   %229 = add i32 %228, %213, !dbg !12876
+  [USE] Taint flows to:   %230 = and i32 %229, -2, !dbg !12877 <net/ipv4/tcp_bbr.c:403:20>
+[USE] Processing uses of:   %230 = and i32 %229, -2, !dbg !12877
+  [USE] Taint flows to:   %241 = phi i32 [ %230, %212 ], [ %239, %234 ], !dbg !12863 <net/ipv4/tcp_bbr.c:0>
+  [USE] Taint flows to:   %239 = select i1 %237, i32 %238, i32 %230, !dbg !12881 <net/ipv4/tcp_bbr.c:406:32>
+  [USE] Taint flows to:   %238 = add i32 %230, 2
+[USE] Processing uses of:   %238 = add i32 %230, 2
+[USE] Processing uses of:   %239 = select i1 %237, i32 %238, i32 %230, !dbg !12881
+[USE] Processing uses of:   %241 = phi i32 [ %230, %212 ], [ %239, %234 ], !dbg !12863
+  [USE] Taint flows to:   %242 = icmp ult i32 %189, %241, !dbg !12884 <net/ipv4/tcp_bbr.c:581:14>
+[USE] Processing uses of:   %242 = icmp ult i32 %189, %241, !dbg !12884
+  [USE] Taint flows to:   br i1 %242, label %296, label %289, !dbg !12692 <net/ipv4/tcp_bbr.c:606:32>
+[NO USE] No uses of:   br i1 %242, label %296, label %289, !dbg !12692
+
+=== Taint Analysis Complete ===
+	Command being timed: "opt -load-pass-plugin=build/libTaintTrackerPass.so -passes=taint-tracker<bbr_main;phi;11;false;false;false;1> -disable-output ../linux-wllvm-defconfig/net/ipv4/tcp_bbr.bc"
+	User time (seconds): 0.02
+	System time (seconds): 0.00
+	Percent of CPU this job got: 100%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.03
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 66876
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 7682
+	Voluntary context switches: 1
+	Involuntary context switches: 2
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 0
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

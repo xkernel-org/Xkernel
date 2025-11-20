@@ -1,0 +1,5 @@
+SOURCE_FILE=net/sched/sch_pie.c
+FUNCTION_NAME=pie_process_dequeue
+SOURCE_OP=icmp
+CONSTANT_VALUE=16384
+OCCURENCE=1

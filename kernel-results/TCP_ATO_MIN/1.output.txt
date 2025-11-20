@@ -1,0 +1,44 @@
+=== Taint Tracker Configuration ===
+Function: dccp_send_ack
+Opcode: or
+Constant: 40
+Verbose: OFF
+Interproc: OFF
+IndirectCall: OFF
+Occurrence: 1 (of constant 40)
+
+[SOURCE] Tainting:   %19 = or disjoint i32 %18, 40, !dbg !12599 <net/dccp/output.c:590:31>
+[USE] Source instruction in data flow <net/dccp/output.c:590:31>
+[USE] Processing uses of:   %19 = or disjoint i32 %18, 40, !dbg !12599
+  [STORE DESTINATION] Marking pointer as tainted:   %16 = getelementptr inbounds nuw i8, ptr %0, i64 1244, !dbg !12598 <net/dccp/output.c:590:31>
+  [USE] Taint flows to:   store i32 %19, ptr %16, align 4, !dbg !12599 <net/dccp/output.c:590:31>
+[NO USE] No uses of:   store i32 %19, ptr %16, align 4, !dbg !12599
+[LOAD] Tainted load from tracked pointer:   %17 = load i32, ptr %16, align 4, !dbg !12599 (  %16 = getelementptr inbounds nuw i8, ptr %0, i64 1244, !dbg !12598)  <net/dccp/output.c:590:31>
+[USE] Processing uses of:   %17 = load i32, ptr %16, align 4, !dbg !12599
+  [USE] Taint flows to:   %18 = and i32 %17, -256, !dbg !12599 <net/dccp/output.c:590:31>
+[USE] Processing uses of:   %18 = and i32 %17, -256, !dbg !12599
+
+=== Taint Analysis Complete ===
+	Command being timed: "opt -load-pass-plugin=build/libTaintTrackerPass.so -passes=taint-tracker<dccp_send_ack;or;40;false;false;false;1> -disable-output ../linux-wllvm-defconfig/net/dccp/output.bc"
+	User time (seconds): 0.02
+	System time (seconds): 0.00
+	Percent of CPU this job got: 96%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.03
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 67040
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 6477
+	Voluntary context switches: 1
+	Involuntary context switches: 2
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 0
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

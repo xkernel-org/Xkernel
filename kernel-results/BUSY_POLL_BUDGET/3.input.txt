@@ -1,0 +1,5 @@
+SOURCE_FILE=io_uring/napi.c
+FUNCTION_NAME=io_napi_sqpoll_busy_poll
+SOURCE_OP="call"
+CONSTANT_VALUE=8
+OCCURENCE=1

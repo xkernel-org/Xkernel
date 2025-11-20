@@ -1,0 +1,44 @@
+=== Taint Tracker Configuration ===
+Function: pie_dump_stats
+Opcode: lshr
+Constant: 8
+Verbose: OFF
+Interproc: OFF
+IndirectCall: OFF
+Occurrence: 1 (of constant 8)
+
+[SOURCE] Tainting:   %39 = lshr i64 %38, 8, !dbg !11181 <net/sched/sch_pie.c:518:29>
+[USE] Source instruction in data flow <net/sched/sch_pie.c:518:29>
+[USE] Processing uses of:   %39 = lshr i64 %38, 8, !dbg !11181
+  [USE] Taint flows to:   %40 = trunc i64 %39 to i32, !dbg !11179 <net/sched/sch_pie.c:517:20>
+[USE] Processing uses of:   %40 = trunc i64 %39 to i32, !dbg !11179
+  [STORE DESTINATION] Marking pointer as tainted:   %13 = getelementptr inbounds nuw i8, ptr %3, i64 12, !dbg !11154 <net/sched/sch_pie.c:517:18>
+  [USE] Taint flows to:   store i32 %40, ptr %13, align 4, !dbg !11182, !DIAssignID !11183 <net/sched/sch_pie.c:517:18>
+[NO USE] No uses of:   store i32 %40, ptr %13, align 4, !dbg !11182, !DIAssignID !11183
+[KILL] Store overwrites tainted pointer with non-tainted value:   store i32 0, ptr %13, align 4, !dbg !11154, !DIAssignID !11159
+[KILL] Store overwrites tainted pointer with non-tainted value:   store i32 0, ptr %13, align 4, !dbg !11154, !DIAssignID !11159
+
+=== Taint Analysis Complete ===
+	Command being timed: "opt -load-pass-plugin=build/libTaintTrackerPass.so -passes=taint-tracker<pie_dump_stats;lshr;8;false;false;false;1> -disable-output ../linux-wllvm-defconfig/net/sched/sch_pie.bc"
+	User time (seconds): 0.02
+	System time (seconds): 0.00
+	Percent of CPU this job got: 96%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.02
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 66800
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 5087
+	Voluntary context switches: 1
+	Involuntary context switches: 1
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 0
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
