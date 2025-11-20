@@ -1,0 +1,99 @@
+(base) yltang@node-0:~/sdb/Xkernel$ sudo python objdump.py --func  io_task_refs_refill
+Symbol  : io_task_refs_refill  [vmlinux]
+Start   : 0xffffffff9a177380
+Stop    : 0xffffffff9a177430  (source: next text sym in same module)
+Syms    : /proc/kallsyms
+
+--- Disassembly ---
+(+0x0)ffffffff9a177380 <load1+0xb77380>:
+(+0x0)ffffffff9a177380: 0f 1f 44 00 00          nopl   0x0(%rax,%rax,1)
+(+0x5)ffffffff9a177385: 55                      push   %rbp
+(+0x6)ffffffff9a177386: 8b 15 0c 89 f0 01       mov    0x1f0890c(%rip),%edx        # 0xffffffff9c07fc98
+(+0xc)ffffffff9a17738c: 48 89 e5                mov    %rsp,%rbp
+(+0xf)ffffffff9a17738f: 41 54                   push   %r12
+--- (+0x11)ffffffff9a177391:        41 bc 00 04 00 00       mov    $0x400,%r12d
+--- mov    $0x400,%r12d 
+(+0x17)ffffffff9a177397:        53                      push   %rbx
+(+0x18)ffffffff9a177398:        44 2b 27                sub    (%rdi),%r12d
+(+0x1b)ffffffff9a17739b:        48 89 fb                mov    %rdi,%rbx
+(+0x1e)ffffffff9a17739e:        48 81 c7 d0 00 00 00    add    $0xd0,%rdi
+(+0x25)ffffffff9a1773a5:        44 89 e6                mov    %r12d,%esi
+(+0x28)ffffffff9a1773a8:        e8 83 9d 10 00          call   0xffffffff9a281130
+(+0x2d)ffffffff9a1773ad:        65 48 8b 15 4b ee eb    mov    %gs:0x65ebee4b(%rip),%rdx        # 0x36200
+(+0x34)ffffffff9a1773b4:        65 
+(+0x35)ffffffff9a1773b5:        44 89 e0                mov    %r12d,%eax
+(+0x38)ffffffff9a1773b8:        48 8d 7a 28             lea    0x28(%rdx),%rdi
+(+0x3c)ffffffff9a1773bc:        f0 0f c1 42 28          lock xadd %eax,0x28(%rdx)
+(+0x41)ffffffff9a1773c1:        85 c0                   test   %eax,%eax
+(+0x43)ffffffff9a1773c3:        74 3a                   je     0xffffffff9a1773ff
+(+0x45)ffffffff9a1773c5:        41 8d 14 04             lea    (%r12,%rax,1),%edx
+(+0x49)ffffffff9a1773c9:        09 c2                   or     %eax,%edx
+(+0x4b)ffffffff9a1773cb:        78 14                   js     0xffffffff9a1773e1
+(+0x4d)ffffffff9a1773cd:        44 01 23                add    %r12d,(%rbx)
+(+0x50)ffffffff9a1773d0:        5b                      pop    %rbx
+(+0x51)ffffffff9a1773d1:        41 5c                   pop    %r12
+(+0x53)ffffffff9a1773d3:        5d                      pop    %rbp
+(+0x54)ffffffff9a1773d4:        31 c0                   xor    %eax,%eax
+(+0x56)ffffffff9a1773d6:        31 d2                   xor    %edx,%edx
+(+0x58)ffffffff9a1773d8:        31 f6                   xor    %esi,%esi
+(+0x5a)ffffffff9a1773da:        31 ff                   xor    %edi,%edi
+(+0x5c)ffffffff9a1773dc:        c3                      ret
+(+0x5d)ffffffff9a1773dd:        cc                      int3
+(+0x5e)ffffffff9a1773de:        cc                      int3
+(+0x5f)ffffffff9a1773df:        cc                      int3
+(+0x60)ffffffff9a1773e0:        cc                      int3
+(+0x61)ffffffff9a1773e1:        be 01 00 00 00          mov    $0x1,%esi
+(+0x66)ffffffff9a1773e6:        e8 25 ca 04 00          call   0xffffffff9a1c3e10
+(+0x6b)ffffffff9a1773eb:        44 01 23                add    %r12d,(%rbx)
+(+0x6e)ffffffff9a1773ee:        5b                      pop    %rbx
+(+0x6f)ffffffff9a1773ef:        41 5c                   pop    %r12
+(+0x71)ffffffff9a1773f1:        5d                      pop    %rbp
+(+0x72)ffffffff9a1773f2:        31 c0                   xor    %eax,%eax
+(+0x74)ffffffff9a1773f4:        31 d2                   xor    %edx,%edx
+(+0x76)ffffffff9a1773f6:        31 f6                   xor    %esi,%esi
+(+0x78)ffffffff9a1773f8:        31 ff                   xor    %edi,%edi
+(+0x7a)ffffffff9a1773fa:        c3                      ret
+(+0x7b)ffffffff9a1773fb:        cc                      int3
+(+0x7c)ffffffff9a1773fc:        cc                      int3
+(+0x7d)ffffffff9a1773fd:        cc                      int3
+(+0x7e)ffffffff9a1773fe:        cc                      int3
+(+0x7f)ffffffff9a1773ff:        be 02 00 00 00          mov    $0x2,%esi
+(+0x84)ffffffff9a177404:        e8 07 ca 04 00          call   0xffffffff9a1c3e10
+(+0x89)ffffffff9a177409:        44 01 23                add    %r12d,(%rbx)
+(+0x8c)ffffffff9a17740c:        5b                      pop    %rbx
+(+0x8d)ffffffff9a17740d:        41 5c                   pop    %r12
+(+0x8f)ffffffff9a17740f:        5d                      pop    %rbp
+(+0x90)ffffffff9a177410:        31 c0                   xor    %eax,%eax
+(+0x92)ffffffff9a177412:        31 d2                   xor    %edx,%edx
+(+0x94)ffffffff9a177414:        31 f6                   xor    %esi,%esi
+(+0x96)ffffffff9a177416:        31 ff                   xor    %edi,%edi
+(+0x98)ffffffff9a177418:        c3                      ret
+(+0x99)ffffffff9a177419:        cc                      int3
+(+0x9a)ffffffff9a17741a:        cc                      int3
+(+0x9b)ffffffff9a17741b:        cc                      int3
+(+0x9c)ffffffff9a17741c:        cc                      int3
+(+0x9d)ffffffff9a17741d:        0f 1f 00                nopl   (%rax)
+(+0xa0)ffffffff9a177420:        90                      nop
+(+0xa1)ffffffff9a177421:        90                      nop
+(+0xa2)ffffffff9a177422:        90                      nop
+(+0xa3)ffffffff9a177423:        90                      nop
+(+0xa4)ffffffff9a177424:        90                      nop
+(+0xa5)ffffffff9a177425:        90                      nop
+(+0xa6)ffffffff9a177426:        90                      nop
+(+0xa7)ffffffff9a177427:        90                      nop
+(+0xa8)ffffffff9a177428:        90                      nop
+(+0xa9)ffffffff9a177429:        90                      nop
+(+0xaa)ffffffff9a17742a:        90                      nop
+(+0xab)ffffffff9a17742b:        90                      nop
+(+0xac)ffffffff9a17742c:        90                      nop
+(+0xad)ffffffff9a17742d:        90                      nop
+(+0xae)ffffffff9a17742e:        90                      nop
+(+0xaf)ffffffff9a17742f:        90                      nop
+
+
+--- Diff for io_uring/io_uring.c ---
+--- /users/yltang/sdb/linux-6.14/BUILDO/io_uring_io_uring_c_original.disas.txt  2025-11-20 04:07:56.165720832 -0500
++++ /users/yltang/sdb/linux-6.14/BUILDO/io_uring_io_uring_c_recompiled.disas.txt     2025-11-20 04:08:00.825978449 -0500
+@@ -8325 +8325 @@
+-    5421:      41 bc 00 04 00 00       mov    $0x400,%r12d
++    5421:      41 bc 00 08 00 00       mov    $0x800,%r12d

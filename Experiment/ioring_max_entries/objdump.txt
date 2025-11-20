@@ -1,0 +1,156 @@
+(base) yltang@node-0:~/sdb/Xkernel$ sudo python objdump.py --func io_uring_fill_params
+Symbol  : io_uring_fill_params  [vmlinux]
+Start   : 0xffffffff9a17b400
+Stop    : 0xffffffff9a17b5c0  (source: next text sym in same module)
+Syms    : /proc/kallsyms
+
+--- Disassembly ---
+(+0x0)ffffffff9a17b400 <load1+0xb7b400>:
+(+0x0)ffffffff9a17b400: 0f 1f 44 00 00          nopl   0x0(%rax,%rax,1)
+(+0x5)ffffffff9a17b405: 85 ff                   test   %edi,%edi
+(+0x7)ffffffff9a17b407: 0f 84 8c 01 00 00       je     0xffffffff9a17b599
+(+0xd)ffffffff9a17b40d: 55                      push   %rbp
+(+0xe)ffffffff9a17b40e: 48 89 e5                mov    %rsp,%rbp
+(+0x11)ffffffff9a17b411:        53                      push   %rbx
+(+0x12)ffffffff9a17b412:        48 89 f3                mov    %rsi,%rbx
+(+0x15)ffffffff9a17b415:        48 83 ec 08             sub    $0x8,%rsp
+(+0x19)ffffffff9a17b419:        8b 56 08                mov    0x8(%rsi),%edx
+--- (+0x1c)ffffffff9a17b41c:        81 ff 00 80 00 00       cmp    $0x8000,%edi
+--- cmp    $0x4000,%edi 
+(+0x22)ffffffff9a17b422:        76 0e                   jbe    0xffffffff9a17b432
+(+0x24)ffffffff9a17b424:        f6 c2 10                test   $0x10,%dl
+(+0x27)ffffffff9a17b427:        0f 84 65 01 00 00       je     0xffffffff9a17b592
+--- (+0x2d)ffffffff9a17b42d:        bf 00 80 00 00          mov    $0x8000,%edi
+--- mov $0x4000, %edi
+(+0x32)ffffffff9a17b432:        89 d0                   mov    %edx,%eax
+(+0x34)ffffffff9a17b434:        25 00 c0 00 00          and    $0xc000,%eax
+(+0x39)ffffffff9a17b439:        3d 00 80 00 00          cmp    $0x8000,%eax
+(+0x3e)ffffffff9a17b43e:        0f 84 4e 01 00 00       je     0xffffffff9a17b592
+(+0x44)ffffffff9a17b444:        89 ff                   mov    %edi,%edi
+(+0x46)ffffffff9a17b446:        b9 ff ff ff ff          mov    $0xffffffff,%ecx
+(+0x4b)ffffffff9a17b44b:        48 83 ef 01             sub    $0x1,%rdi
+(+0x4f)ffffffff9a17b44f:        48 0f bd cf             bsr    %rdi,%rcx
+(+0x53)ffffffff9a17b453:        83 c1 01                add    $0x1,%ecx
+(+0x56)ffffffff9a17b456:        83 f9 3f                cmp    $0x3f,%ecx
+(+0x59)ffffffff9a17b459:        0f 87 e8 65 6e ff       ja     0xffffffff99861a47
+(+0x5f)ffffffff9a17b45f:        b8 01 00 00 00          mov    $0x1,%eax
+(+0x64)ffffffff9a17b464:        48 d3 e0                shl    %cl,%rax
+(+0x67)ffffffff9a17b467:        89 03                   mov    %eax,(%rbx)
+(+0x69)ffffffff9a17b469:        89 c6                   mov    %eax,%esi
+(+0x6b)ffffffff9a17b46b:        f6 c2 08                test   $0x8,%dl
+(+0x6e)ffffffff9a17b46e:        74 47                   je     0xffffffff9a17b4b7
+(+0x70)ffffffff9a17b470:        8b 43 04                mov    0x4(%rbx),%eax
+(+0x73)ffffffff9a17b473:        85 c0                   test   %eax,%eax
+(+0x75)ffffffff9a17b475:        0f 84 17 01 00 00       je     0xffffffff9a17b592
+(+0x7b)ffffffff9a17b47b:        3d 00 00 01 00          cmp    $0x10000,%eax
+(+0x80)ffffffff9a17b480:        0f 87 f6 00 00 00       ja     0xffffffff9a17b57c
+(+0x86)ffffffff9a17b486:        48 83 e8 01             sub    $0x1,%rax
+(+0x8a)ffffffff9a17b48a:        b9 ff ff ff ff          mov    $0xffffffff,%ecx
+(+0x8f)ffffffff9a17b48f:        48 0f bd c8             bsr    %rax,%rcx
+(+0x93)ffffffff9a17b493:        83 c1 01                add    $0x1,%ecx
+(+0x96)ffffffff9a17b496:        83 f9 3f                cmp    $0x3f,%ecx
+(+0x99)ffffffff9a17b499:        0f 87 c9 65 6e ff       ja     0xffffffff99861a68
+(+0x9f)ffffffff9a17b49f:        b8 01 00 00 00          mov    $0x1,%eax
+(+0xa4)ffffffff9a17b4a4:        48 d3 e0                shl    %cl,%rax
+(+0xa7)ffffffff9a17b4a7:        89 43 04                mov    %eax,0x4(%rbx)
+(+0xaa)ffffffff9a17b4aa:        39 f0                   cmp    %esi,%eax
+(+0xac)ffffffff9a17b4ac:        0f 82 e0 00 00 00       jb     0xffffffff9a17b592
+(+0xb2)ffffffff9a17b4b2:        8b 53 08                mov    0x8(%rbx),%edx
+(+0xb5)ffffffff9a17b4b5:        eb 05                   jmp    0xffffffff9a17b4bc
+(+0xb7)ffffffff9a17b4b7:        01 c0                   add    %eax,%eax
+(+0xb9)ffffffff9a17b4b9:        89 43 04                mov    %eax,0x4(%rbx)
+(+0xbc)ffffffff9a17b4bc:        48 b8 00 00 00 00 04    movabs $0x400000000,%rax
+(+0xc3)ffffffff9a17b4c3:        00 00 00 
+(+0xc6)ffffffff9a17b4c6:        c7 43 44 00 00 00 00    movl   $0x0,0x44(%rbx)
+(+0xcd)ffffffff9a17b4cd:        48 89 43 28             mov    %rax,0x28(%rbx)
+(+0xd1)ffffffff9a17b4d1:        48 b8 10 00 00 00 18    movabs $0x1800000010,%rax
+(+0xd8)ffffffff9a17b4d8:        00 00 00 
+(+0xdb)ffffffff9a17b4db:        48 89 43 30             mov    %rax,0x30(%rbx)
+(+0xdf)ffffffff9a17b4df:        48 b8 24 00 00 00 20    movabs $0x2000000024,%rax
+(+0xe6)ffffffff9a17b4e6:        00 00 00 
+(+0xe9)ffffffff9a17b4e9:        48 89 43 38             mov    %rax,0x38(%rbx)
+(+0xed)ffffffff9a17b4ed:        80 e6 40                and    $0x40,%dh
+(+0xf0)ffffffff9a17b4f0:        75 56                   jne    0xffffffff9a17b548
+(+0xf2)ffffffff9a17b4f2:        48 b8 08 00 00 00 0c    movabs $0xc00000008,%rax
+(+0xf9)ffffffff9a17b4f9:        00 00 00 
+(+0xfc)ffffffff9a17b4fc:        48 c7 43 48 00 00 00    movq   $0x0,0x48(%rbx)
+(+0x103)ffffffff9a17b503:       00 
+(+0x104)ffffffff9a17b504:       48 89 43 50             mov    %rax,0x50(%rbx)
+(+0x108)ffffffff9a17b508:       48 b8 14 00 00 00 1c    movabs $0x1c00000014,%rax
+(+0x10f)ffffffff9a17b50f:       00 00 00 
+(+0x112)ffffffff9a17b512:       48 89 43 58             mov    %rax,0x58(%rbx)
+(+0x116)ffffffff9a17b516:       48 b8 2c 00 00 00 40    movabs $0x400000002c,%rax
+(+0x11d)ffffffff9a17b51d:       00 00 00 
+(+0x120)ffffffff9a17b520:       48 89 43 60             mov    %rax,0x60(%rbx)
+(+0x124)ffffffff9a17b524:       48 c7 43 68 28 00 00    movq   $0x28,0x68(%rbx)
+(+0x12b)ffffffff9a17b52b:       00 
+(+0x12c)ffffffff9a17b52c:       48 c7 43 70 00 00 00    movq   $0x0,0x70(%rbx)
+(+0x133)ffffffff9a17b533:       00 
+(+0x134)ffffffff9a17b534:       31 c0                   xor    %eax,%eax
+(+0x136)ffffffff9a17b536:       48 8b 5d f8             mov    -0x8(%rbp),%rbx
+(+0x13a)ffffffff9a17b53a:       c9                      leave
+(+0x13b)ffffffff9a17b53b:       31 d2                   xor    %edx,%edx
+(+0x13d)ffffffff9a17b53d:       31 c9                   xor    %ecx,%ecx
+(+0x13f)ffffffff9a17b53f:       31 f6                   xor    %esi,%esi
+(+0x141)ffffffff9a17b541:       31 ff                   xor    %edi,%edi
+(+0x143)ffffffff9a17b543:       c3                      ret
+(+0x144)ffffffff9a17b544:       cc                      int3
+(+0x145)ffffffff9a17b545:       cc                      int3
+(+0x146)ffffffff9a17b546:       cc                      int3
+(+0x147)ffffffff9a17b547:       cc                      int3
+(+0x148)ffffffff9a17b548:       48 b8 08 00 00 00 0c    movabs $0xc00000008,%rax
+(+0x14f)ffffffff9a17b54f:       00 00 00 
+(+0x152)ffffffff9a17b552:       48 c7 43 68 28 00 00    movq   $0x28,0x68(%rbx)
+(+0x159)ffffffff9a17b559:       00 
+(+0x15a)ffffffff9a17b55a:       48 89 43 50             mov    %rax,0x50(%rbx)
+(+0x15e)ffffffff9a17b55e:       48 b8 14 00 00 00 1c    movabs $0x1c00000014,%rax
+(+0x165)ffffffff9a17b565:       00 00 00 
+(+0x168)ffffffff9a17b568:       48 89 43 58             mov    %rax,0x58(%rbx)
+(+0x16c)ffffffff9a17b56c:       48 b8 2c 00 00 00 40    movabs $0x400000002c,%rax
+(+0x173)ffffffff9a17b573:       00 00 00 
+(+0x176)ffffffff9a17b576:       48 89 43 60             mov    %rax,0x60(%rbx)
+(+0x17a)ffffffff9a17b57a:       eb b8                   jmp    0xffffffff9a17b534
+(+0x17c)ffffffff9a17b57c:       83 e2 10                and    $0x10,%edx
+(+0x17f)ffffffff9a17b57f:       74 11                   je     0xffffffff9a17b592
+(+0x181)ffffffff9a17b581:       c7 43 04 00 00 01 00    movl   $0x10000,0x4(%rbx)
+(+0x188)ffffffff9a17b588:       b8 ff ff 00 00          mov    $0xffff,%eax
+(+0x18d)ffffffff9a17b58d:       e9 f8 fe ff ff          jmp    0xffffffff9a17b48a
+(+0x192)ffffffff9a17b592:       b8 ea ff ff ff          mov    $0xffffffea,%eax
+(+0x197)ffffffff9a17b597:       eb 9d                   jmp    0xffffffff9a17b536
+(+0x199)ffffffff9a17b599:       b8 ea ff ff ff          mov    $0xffffffea,%eax
+(+0x19e)ffffffff9a17b59e:       31 d2                   xor    %edx,%edx
+(+0x1a0)ffffffff9a17b5a0:       31 c9                   xor    %ecx,%ecx
+(+0x1a2)ffffffff9a17b5a2:       31 f6                   xor    %esi,%esi
+(+0x1a4)ffffffff9a17b5a4:       31 ff                   xor    %edi,%edi
+(+0x1a6)ffffffff9a17b5a6:       c3                      ret
+(+0x1a7)ffffffff9a17b5a7:       cc                      int3
+(+0x1a8)ffffffff9a17b5a8:       cc                      int3
+(+0x1a9)ffffffff9a17b5a9:       cc                      int3
+(+0x1aa)ffffffff9a17b5aa:       cc                      int3
+(+0x1ab)ffffffff9a17b5ab:       0f 1f 44 00 00          nopl   0x0(%rax,%rax,1)
+(+0x1b0)ffffffff9a17b5b0:       90                      nop
+(+0x1b1)ffffffff9a17b5b1:       90                      nop
+(+0x1b2)ffffffff9a17b5b2:       90                      nop
+(+0x1b3)ffffffff9a17b5b3:       90                      nop
+(+0x1b4)ffffffff9a17b5b4:       90                      nop
+(+0x1b5)ffffffff9a17b5b5:       90                      nop
+(+0x1b6)ffffffff9a17b5b6:       90                      nop
+(+0x1b7)ffffffff9a17b5b7:       90                      nop
+(+0x1b8)ffffffff9a17b5b8:       90                      nop
+(+0x1b9)ffffffff9a17b5b9:       90                      nop
+(+0x1ba)ffffffff9a17b5ba:       90                      nop
+(+0x1bb)ffffffff9a17b5bb:       90                      nop
+(+0x1bc)ffffffff9a17b5bc:       90                      nop
+(+0x1bd)ffffffff9a17b5bd:       90                      nop
+(+0x1be)ffffffff9a17b5be:       90                      nop
+(+0x1bf)ffffffff9a17b5bf:       90                      nop
+
+--- Diff for io_uring/io_uring.c ---
+--- /users/yltang/sdb/linux-6.14/BUILDO/io_uring_io_uring_c_original.disas.txt  2025-11-20 07:16:08.552597984 -0500
++++ /users/yltang/sdb/linux-6.14/BUILDO/io_uring_io_uring_c_recompiled.disas.txt     2025-11-20 07:16:13.268306881 -0500
+@@ -15119 +15119 @@
+-    addc:      81 ff 00 80 00 00       cmp    $0x8000,%edi
++    addc:      81 ff 00 40 00 00       cmp    $0x4000,%edi
+@@ -15123 +15123 @@
+-    aded:      bf 00 80 00 00          mov    $0x8000,%edi
++    aded:      bf 00 40 00 00          mov    $0x4000,%edi
