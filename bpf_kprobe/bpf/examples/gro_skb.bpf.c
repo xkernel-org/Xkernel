@@ -8,11 +8,11 @@
 
 #define NEW_MAX_GRO_SKBS 32
 
-SEC("kprobe/dev_gro_receive+0x539")
-int BPF_KPROBE(dev_gro_receive_0x539) {
-  if (!transition_done(ctx)) {
-    return 0;
-  }
+SEC("kprobe/dev_gro_receive+0x210")
+int BPF_KPROBE(dev_gro_receive_0x210) {
+  // if (!transition_done(ctx)) {
+  //   return 0;
+  // }
   u64 eax = BPF_EAX(ctx);
   bpf_printk("gro list size: %d", eax);
   if (eax >= NEW_MAX_GRO_SKBS) {
