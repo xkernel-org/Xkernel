@@ -1566,3 +1566,520 @@
 # SOURCE_OP="store"
 # CONSTANT_VALUE=604800
 # OCCURENCE=1
+
+### 48. RCU_JIFFIES_FQS_DIV
+
+# # %20 = lshr i32 %19, 8, !dbg !11201
+# # Conclusion: []
+#
+# SOURCE_FILE=kernel/rcu/tree.c
+# FUNCTION_NAME=param_set_next_fqs_jiffies
+# SOURCE_OP="lshr"
+# CONSTANT_VALUE=8
+# OCCURENCE=1
+
+# # %19 = lshr i32 %18, 8, !dbg !11248
+# # Conclusion: []
+#
+# SOURCE_FILE=kernel/rcu/tree.c
+# FUNCTION_NAME=param_set_first_fqs_jiffies
+# SOURCE_OP="lshr"
+# CONSTANT_VALUE=8
+# OCCURENCE=1
+
+# # %12 = lshr i32 %10, 8, !dbg !29158
+# # Conclusion: []
+#
+# SOURCE_FILE=kernel/rcu/tree.c
+# FUNCTION_NAME=rcu_init_geometry
+# SOURCE_OP="lshr"
+# CONSTANT_VALUE=8
+# OCCURENCE=1
+
+### 49. BLK_MAX_REQUEST_COUNT
+
+# # %9 = tail call i16 @llvm.umin.i16(i16 %1, i16 32), !dbg !15975
+# # Conclusion: []
+#
+# SOURCE_FILE=block/blk-core.c
+# FUNCTION_NAME=blk_start_plug_nr_ios
+# SOURCE_OP="call"
+# CONSTANT_VALUE=32
+# OCCURENCE=1
+
+# # %33 = select i1 %32, i16 64, i16 32, !dbg !18839
+# # Conclusion: []
+#
+# SOURCE_FILE=block/blk-mq.c
+# FUNCTION_NAME=blk_add_rq_to_plug
+# SOURCE_OP="select"
+# CONSTANT_VALUE=64
+# OCCURENCE=1
+
+### 50. PEEK_MAX_IMPORT
+
+# # %39 = tail call i64 @llvm.umin.i64(i64 %37, i64 256), !dbg !7213
+# # Conclusion: []
+#
+# SOURCE_FILE=io_uring/kbuf.c
+# FUNCTION_NAME=io_ring_buffers_peek
+# SOURCE_OP="call"
+# CONSTANT_VALUE=256
+# OCCURENCE=1
+
+# # %40 = select i1 %38, i64 256, i64 %39, !dbg !7213
+# # Conclusion: []
+#
+# SOURCE_FILE=io_uring/kbuf.c
+# FUNCTION_NAME=io_ring_buffers_peek
+# SOURCE_OP="select"
+# CONSTANT_VALUE=256
+# OCCURENCE=1
+
+### 51. IO_POLL_REF_BIAS
+
+# # %74 = icmp sgt i32 %73, 127, !dbg !13567
+# # Conclusion: []
+#
+# SOURCE_FILE=io_uring/poll.c
+# FUNCTION_NAME=__io_arm_poll_handler
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=127
+# OCCURENCE=1
+
+# # %149 = icmp sgt i32 %148, 127, !dbg !13738
+# # Conclusion: []
+#
+# SOURCE_FILE=io_uring/poll.c
+# FUNCTION_NAME=__io_arm_poll_handler
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=127
+# OCCURENCE=2
+
+# # %27 = icmp sgt i32 %26, 127, !dbg !14002
+# # Conclusion: []
+#
+# SOURCE_FILE=io_uring/poll.c
+# FUNCTION_NAME=io_poll_wake
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=127
+# OCCURENCE=1
+
+# # %9 = icmp sgt i32 %8, 127, !dbg !14134
+# # Conclusion: []
+#
+# SOURCE_FILE=io_uring/poll.c
+# FUNCTION_NAME=io_poll_can_finish_inline
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=127
+# OCCURENCE=1
+
+# # %5 = icmp sgt i32 %4, 127, !dbg !14265
+# # Conclusion: []
+#
+# SOURCE_FILE=io_uring/poll.c
+# FUNCTION_NAME=io_pollfree_wake
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=127
+# OCCURENCE=1
+
+# # %4 = icmp sgt i32 %3, 127, !dbg !14606
+# # Conclusion: []
+#
+# SOURCE_FILE=io_uring/poll.c
+# FUNCTION_NAME=io_poll_cancel_req
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=127
+# OCCURENCE=1
+
+# # %49 = icmp sgt i32 %48, 127, !dbg !15046
+# # Conclusion: []
+#
+# SOURCE_FILE=io_uring/poll.c
+# FUNCTION_NAME=io_poll_remove
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=127
+# OCCURENCE=1
+
+### 52. APOLL_MAX_RETRY
+
+# # store i32 128, ptr %77, align 4, !dbg !13272
+# # Conclusion: []
+#
+# SOURCE_FILE=io_uring/poll.c
+# FUNCTION_NAME=io_arm_poll_handler
+# SOURCE_OP="store"
+# CONSTANT_VALUE=128
+# OCCURENCE=1
+
+### 53. IO_TCTX_REFS_CACHE_NR
+
+# # %3 = sub i32 1024, %2, !dbg !23482
+# # Conclusion: []
+#
+# SOURCE_FILE=io_uring/io_uring.c
+# FUNCTION_NAME=io_task_refs_refill
+# SOURCE_OP="sub"
+# CONSTANT_VALUE=1024
+# OCCURENCE=1
+
+### 54. IORING_MAX_ENTRIES
+
+# # %5 = icmp ugt i32 %0, 32768, !dbg !27519
+# # Conclusion: []
+#
+# SOURCE_FILE=io_uring/io_uring.c
+# FUNCTION_NAME=io_uring_fill_params
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=32768
+# OCCURENCE=1
+
+# # %12 = phi i32 [ 32768, %8 ], [ %0, %4 ]
+# # Conclusion: []
+#
+# SOURCE_FILE=io_uring/io_uring.c
+# FUNCTION_NAME=io_uring_fill_params
+# SOURCE_OP="phi"
+# CONSTANT_VALUE=32768
+# OCCURENCE=1
+
+# # %32 = icmp ugt i32 %29, 65536, !dbg !27565
+# # Conclusion: []
+#
+# SOURCE_FILE=io_uring/io_uring.c
+# FUNCTION_NAME=io_uring_fill_params
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=65536
+# OCCURENCE=1
+
+# # %37 = phi i32 [ %29, %31 ], [ 65536, %33 ], !dbg !27571
+# # Conclusion: []
+#
+# SOURCE_FILE=io_uring/io_uring.c
+# FUNCTION_NAME=io_uring_fill_params
+# SOURCE_OP="phi"
+# CONSTANT_VALUE=65536
+# OCCURENCE=1
+
+### 55. IO_LOCAL_TW_DEFAULT_MAX
+
+# # %15 = call fastcc i32 @__io_run_local_work(ptr noundef %0, ptr noundef nonnull %2, i32 noundef 2147483647, i32 noundef 20) #30, !dbg !25496
+# # Conclusion: []
+#
+# SOURCE_FILE=io_uring/io_uring.c
+# FUNCTION_NAME=io_run_task_work_sig
+# SOURCE_OP="call"
+# CONSTANT_VALUE=2147483647
+# OCCURENCE=1
+
+# # %170 = call i32 @llvm.smax.i32(i32 %136, i32 20)
+# # Conclusion: []
+#
+# SOURCE_FILE=io_uring/io_uring.c
+# FUNCTION_NAME=__se_sys_io_uring_enter
+# SOURCE_OP="call"
+# CONSTANT_VALUE=20
+# OCCURENCE=1
+
+# # %348 = call i32 @llvm.smax.i32(i32 %327, i32 20), !dbg !26588
+# # Conclusion: []
+#
+# SOURCE_FILE=io_uring/io_uring.c
+# FUNCTION_NAME=__se_sys_io_uring_enter
+# SOURCE_OP="call"
+# CONSTANT_VALUE=20
+# OCCURENCE=2
+
+# # %12 = tail call i32 @llvm.smax.i32(i32 %1, i32 20), !dbg !27272
+# # Conclusion: []
+#
+# SOURCE_FILE=io_uring/io_uring.c
+# FUNCTION_NAME=io_run_local_work_locked
+# SOURCE_OP="call"
+# CONSTANT_VALUE=20
+# OCCURENCE=1
+
+### 56. WORKER_INIT_LIMIT
+
+# # %54 = icmp sgt i32 %52, 2, !dbg !8220
+# # Conclusion: []
+#
+# SOURCE_FILE=io_uring/io-wq.c
+# FUNCTION_NAME=create_worker_cont
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=2
+# OCCURENCE=1
+
+# # %70 = icmp sgt i32 %68, 2, !dbg !10343
+# # Conclusion: []
+#
+# SOURCE_FILE=io_uring/io-wq.c
+# FUNCTION_NAME=create_io_worker
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=2
+# OCCURENCE=2
+
+### 57. MULTISHOT_MAX_RETRY
+
+# # %89 = icmp ult i32 %87, 32, !dbg !13549
+# # Conclusion: []
+#
+# SOURCE_FILE=io_uring/net.c
+# FUNCTION_NAME=io_recv_finish
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=32
+# OCCURENCE=1
+
+### 58. EP_MAX_NESTS
+
+# # %10 = icmp samesign ugt i32 %1, 4
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/eventpoll.c
+# FUNCTION_NAME=ep_loop_check_proc
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=4
+# OCCURENCE=1
+
+# # %3 = icmp samesign ugt i32 %1, 4, !dbg !15208
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/eventpoll.c
+# FUNCTION_NAME=reverse_path_check_proc
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=4
+# OCCURENCE=1
+
+### 59. MAX_SLACK
+
+# # %30 = udiv i32 100000000, %29, !dbg !12583
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/select.c
+# FUNCTION_NAME=select_estimate_accuracy
+# SOURCE_OP="udiv"
+# CONSTANT_VALUE=100000000
+# OCCURENCE=1
+
+# # %38 = call i64 @llvm.smin.i64(i64 %37, i64 100000000), !dbg !12562
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/select.c
+# FUNCTION_NAME=select_estimate_accuracy
+# SOURCE_OP="call"
+# CONSTANT_VALUE=100000000
+# OCCURENCE=1
+
+# # %40 = phi i64 [ 0, %9 ], [ 100000000, %22 ], [ %38, %33 ], !dbg !12562
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/select.c
+# FUNCTION_NAME=select_estimate_accuracy
+# SOURCE_OP="phi"
+# CONSTANT_VALUE=0
+# OCCURENCE=1
+
+# # %140 = udiv i32 100000000, %139, !dbg !13223
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/select.c
+# FUNCTION_NAME=do_select
+# SOURCE_OP="udiv"
+# CONSTANT_VALUE=100000000
+# OCCURENCE=1
+
+# # %148 = call i64 @llvm.smin.i64(i64 %147, i64 100000000), !dbg !13212
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/select.c
+# FUNCTION_NAME=do_select
+# SOURCE_OP="call"
+# CONSTANT_VALUE=100000000
+# OCCURENCE=1
+
+# # %150 = phi i64 [ 0, %119 ], [ 100000000, %132 ], [ %148, %143 ], !dbg !13212
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/select.c
+# FUNCTION_NAME=do_select
+# SOURCE_OP="phi"
+# CONSTANT_VALUE=100000000
+# OCCURENCE=1
+
+# # %90 = udiv i32 100000000, %89, !dbg !14353
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/select.c
+# FUNCTION_NAME=do_sys_poll
+# SOURCE_OP="udiv"
+# CONSTANT_VALUE=100000000
+# OCCURENCE=1
+
+# # %98 = call i64 @llvm.smin.i64(i64 %97, i64 100000000), !dbg !14342
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/select.c
+# FUNCTION_NAME=do_sys_poll
+# SOURCE_OP="call"
+# CONSTANT_VALUE=100000000
+# OCCURENCE=1
+
+# # %100 = phi i64 [ 0, %69 ], [ 100000000, %82 ], [ %98, %93 ], !dbg !14342
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/select.c
+# FUNCTION_NAME=do_sys_poll
+# SOURCE_OP="phi"
+# CONSTANT_VALUE=0
+# OCCURENCE=1
+
+### 60. SYNC_SHRINK_BATCH
+
+# # %23 = tail call fastcc i64 @mb_cache_shrink(ptr noundef %0, i64 noundef 64) #13, !dbg !1450
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/mbcache.c
+# FUNCTION_NAME=mb_cache_entry_create
+# SOURCE_OP="call"
+# CONSTANT_VALUE=64
+# OCCURENCE=2
+
+### 61. SHRINK_DIVISOR
+
+# # %5 = lshr i64 %4, 4, !dbg !2063
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/mbcache.c
+# FUNCTION_NAME=mb_cache_shrink_worker
+# SOURCE_OP="lshr"
+# CONSTANT_VALUE=4
+# OCCURENCE=1
+
+### 62. PIPE_MIN_DEF_BUFFERS
+
+# # %41 = sub nsw i64 2, %28, !dbg !9368
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/pipe.c
+# FUNCTION_NAME=alloc_pipe_info
+# SOURCE_OP="sub"
+# CONSTANT_VALUE=2
+# OCCURENCE=1
+
+# # %46 = phi i64 [ 2, %40 ], [ %28, %38 ], [ %28, %27 ], [ %28, %36 ], !dbg !9225
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/pipe.c
+# FUNCTION_NAME=alloc_pipe_info
+# SOURCE_OP="phi"
+# CONSTANT_VALUE=2
+# OCCURENCE=2
+
+### 63. AIO_PLUG_THRESHOLD
+
+# # %15 = icmp samesign ugt i64 %14, 2, !dbg !11277
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/aio.c
+# FUNCTION_NAME=__se_sys_io_submit
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=2
+# OCCURENCE=1
+
+# # %21 = icmp samesign ugt i32 %20, 2, !dbg !13765
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/aio.c
+# FUNCTION_NAME=__ia32_compat_sys_io_submit
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=2
+# OCCURENCE=1
+
+### 64. LAST_INO_BATCH
+
+# # %5 = and i32 %4, 1023, !dbg !14456
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/inode.c
+# FUNCTION_NAME=get_next_ino
+# SOURCE_OP="and"
+# CONSTANT_VALUE=1023
+# OCCURENCE=1
+
+# # %8 = tail call i32 asm sideeffect ".pushsection .smp_locks,\22a\22\0A.balign 4\0A.long 671f - .\0A.popsection\0A671:\0A\09lock; xaddl $0, $1\0A", "=r,=*m,0,*m,~{memory},~{cc},~{dirflag},~{fpsr},~{flags}"(ptr nonnull elementtype(i32) @get_next_ino.shared_last_ino, i32 1024, ptr nonnull elementtype(i32) @get_next_ino.shared_last_ino) #20, !dbg !14468, !srcloc !14092
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/inode.c
+# FUNCTION_NAME=get_next_ino
+# SOURCE_OP="call"
+# CONSTANT_VALUE=1024
+# OCCURENCE=1
+
+### 65. IWALK_MAX_INODE_PREFETCH
+
+# # %17 = tail call i32 @llvm.umin.i32(i32 %5, i32 2048), !dbg !7165
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/xfs/xfs_iwalk.c
+# FUNCTION_NAME=xfs_iwalk
+# SOURCE_OP="call"
+# CONSTANT_VALUE=2048
+# OCCURENCE=1
+
+# # %24 = select i1 %16, i32 40, i32 %23, !dbg !7162
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/xfs/xfs_iwalk.c
+# FUNCTION_NAME=xfs_iwalk
+# SOURCE_OP="select"
+# CONSTANT_VALUE=40
+# OCCURENCE=1
+
+# # %20 = call i32 @llvm.umin.i32(i32 %4, i32 2048)
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/xfs/xfs_iwalk.c
+# FUNCTION_NAME=xfs_iwalk_threaded
+# SOURCE_OP="call"
+# CONSTANT_VALUE=2048
+# OCCURENCE=1
+
+# # %27 = select i1 %19, i32 40, i32 %26
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/xfs/xfs_iwalk.c
+# FUNCTION_NAME=xfs_iwalk_threaded
+# SOURCE_OP="select"
+# CONSTANT_VALUE=40
+# OCCURENCE=1
+
+### 66. MAX_INOBT_WALK_PREFETCH
+
+# # %18 = tail call i32 @llvm.umin.i32(i32 %17, i32 256), !dbg !8513
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/xfs/xfs_iwalk.c
+# FUNCTION_NAME=xfs_inobt_walk
+# SOURCE_OP="call"
+# CONSTANT_VALUE=256
+# OCCURENCE=1
+
+# # %19 = select i1 %16, i32 256, i32 %18, !dbg !8508
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/xfs/xfs_iwalk.c
+# FUNCTION_NAME=xfs_inobt_walk
+# SOURCE_OP="select"
+# CONSTANT_VALUE=256
+# OCCURENCE=1
+
+### 67. XFS_DISCARD_MAX_EXAMINE
+
+# # %68 = phi i32 [ %73, %64 ], [ 100, %56 ]
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/xfs/xfs_discard.c
+# FUNCTION_NAME=xfs_trim_gather_extents
+# SOURCE_OP="phi"
+# CONSTANT_VALUE=100
+# OCCURENCE=1

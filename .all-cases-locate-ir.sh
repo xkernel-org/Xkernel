@@ -391,3 +391,131 @@ SED_PATTERN='s|\#define AMT_INIT_REQ_TIMEOUT	1|\#define AMT_INIT_REQ_TIMEOUT	10|
 # SOURCE_FILE=mm/shmem_quota.c
 # DEFINITION_SOURCE_FILE=mm/shmem_quota.c
 # SED_PATTERN='s|\#define SHMEM_MAX_DQ_TIME 604800|\#define SHMEM_MAX_DQ_TIME 604801|'
+
+### 48. RCU_JIFFIES_FQS_DIV
+
+# SOURCE_FILE=kernel/rcu/tree.c
+# DEFINITION_SOURCE_FILE=kernel/rcu/tree.h
+# SED_PATTERN='s|\#define RCU_JIFFIES_FQS_DIV	256|\#define RCU_JIFFIES_FQS_DIV	128|'
+
+### 49. BLK_MAX_REQUEST_COUNT
+
+# SOURCE_FILE=block/blk-core.c
+# DEFINITION_SOURCE_FILE=block/blk.h
+# SED_PATTERN='s|\#define BLK_MAX_REQUEST_COUNT	32|\#define BLK_MAX_REQUEST_COUNT	16|'
+
+# SOURCE_FILE=block/blk-mq.c
+# DEFINITION_SOURCE_FILE=block/blk.h
+# SED_PATTERN='s|\#define BLK_MAX_REQUEST_COUNT	32|\#define BLK_MAX_REQUEST_COUNT	16|'
+
+### 50. PEEK_MAX_IMPORT
+
+# SOURCE_FILE=io_uring/kbuf.c
+# DEFINITION_SOURCE_FILE=io_uring/kbuf.c
+# SED_PATTERN='s|\#define PEEK_MAX_IMPORT		256|\#define PEEK_MAX_IMPORT		128|'
+
+### 51. IO_POLL_REF_BIAS
+
+# SOURCE_FILE=io_uring/poll.c
+# DEFINITION_SOURCE_FILE=io_uring/poll.c
+# SED_PATTERN='s|\#define IO_POLL_REF_BIAS	128|\#define IO_POLL_REF_BIAS	64|'
+
+### 52. APOLL_MAX_RETRY
+
+# SOURCE_FILE=io_uring/poll.c
+# DEFINITION_SOURCE_FILE=io_uring/poll.c
+# SED_PATTERN='s|\#define APOLL_MAX_RETRY		128|\#define APOLL_MAX_RETRY		64|'
+
+### 53. IO_TCTX_REFS_CACHE_NR
+
+# SOURCE_FILE=io_uring/io_uring.c
+# DEFINITION_SOURCE_FILE=io_uring/io_uring.c
+# SED_PATTERN='s|\#define IO_TCTX_REFS_CACHE_NR	(1U << 10)|\#define IO_TCTX_REFS_CACHE_NR	(1U << 9)|'
+
+### 54. IORING_MAX_ENTRIES
+
+# SOURCE_FILE=io_uring/io_uring.c
+# DEFINITION_SOURCE_FILE=io_uring/io_uring.h
+# SED_PATTERN='s|\#define IORING_MAX_ENTRIES	32768|\#define IORING_MAX_ENTRIES	16384|'
+
+# SOURCE_FILE=io_uring/io_uring.c
+# DEFINITION_SOURCE_FILE=io_uring/io_uring.h
+# SED_PATTERN='s|\#define IORING_MAX_CQ_ENTRIES	(2 \* IORING_MAX_ENTRIES)|\#define IORING_MAX_CQ_ENTRIES	32768|'
+
+### 55. IO_LOCAL_TW_DEFAULT_MAX
+
+# SOURCE_FILE=io_uring/io_uring.c
+# DEFINITION_SOURCE_FILE=io_uring/io_uring.c
+# SED_PATTERN='s|\#define IO_LOCAL_TW_DEFAULT_MAX		20|\#define IO_LOCAL_TW_DEFAULT_MAX		19|'
+
+### 56. WORKER_INIT_LIMIT
+
+# SOURCE_FILE=io_uring/io-wq.c
+# DEFINITION_SOURCE_FILE=io_uring/io-wq.c
+# SED_PATTERN='s|\#define WORKER_INIT_LIMIT	3|\#define WORKER_INIT_LIMIT	7|'
+
+### 57. MULTISHOT_MAX_RETRY
+
+# SOURCE_FILE=io_uring/net.c
+# DEFINITION_SOURCE_FILE=io_uring/net.c
+# SED_PATTERN='s|\#define MULTISHOT_MAX_RETRY	32|\#define MULTISHOT_MAX_RETRY	16|'
+
+### 58. EP_MAX_NESTS
+
+# SOURCE_FILE=fs/eventpoll.c
+# DEFINITION_SOURCE_FILE=fs/eventpoll.c
+# SED_PATTERN='s|\#define EP_MAX_NESTS 4|\#define EP_MAX_NESTS 3|'
+
+### 59. MAX_SLACK
+
+# SOURCE_FILE=fs/select.c
+# DEFINITION_SOURCE_FILE=fs/select.c
+# SED_PATTERN='s|\#define MAX_SLACK	(100 \* NSEC_PER_MSEC)|\#define MAX_SLACK	(50 \* NSEC_PER_MSEC)|'
+
+### 60. SYNC_SHRINK_BATCH
+
+# SOURCE_FILE=fs/mbcache.c
+# DEFINITION_SOURCE_FILE=fs/mbcache.c
+# SED_PATTERN='s|\#define SYNC_SHRINK_BATCH 64|\#define SYNC_SHRINK_BATCH 32|'
+
+### 61. SHRINK_DIVISOR
+
+# SOURCE_FILE=fs/mbcache.c
+# DEFINITION_SOURCE_FILE=fs/mbcache.c
+# SED_PATTERN='s|\#define SHRINK_DIVISOR 16|\#define SHRINK_DIVISOR 8|'
+
+### 62. PIPE_MIN_DEF_BUFFERS
+
+# SOURCE_FILE=fs/pipe.c
+# DEFINITION_SOURCE_FILE=fs/pipe.c
+# SED_PATTERN='s|\#define PIPE_MIN_DEF_BUFFERS 2|\#define PIPE_MIN_DEF_BUFFERS 3|'
+
+### 63. AIO_PLUG_THRESHOLD
+
+# SOURCE_FILE=fs/aio.c
+# DEFINITION_SOURCE_FILE=fs/aio.c
+# SED_PATTERN='s|\#define AIO_PLUG_THRESHOLD	2|\#define AIO_PLUG_THRESHOLD	3|'
+
+### 64. LAST_INO_BATCH
+
+# SOURCE_FILE=fs/inode.c
+# DEFINITION_SOURCE_FILE=fs/inode.c
+# SED_PATTERN='s|\#define LAST_INO_BATCH 1024|\#define LAST_INO_BATCH 512|'
+
+### 65. IWALK_MAX_INODE_PREFETCH
+
+# SOURCE_FILE=fs/xfs/xfs_iwalk.c
+# DEFINITION_SOURCE_FILE=fs/xfs/xfs_iwalk.c
+# SED_PATTERN='s|\#define IWALK_MAX_INODE_PREFETCH	(2048U)|\#define IWALK_MAX_INODE_PREFETCH	(1024U)|'
+
+### 66. MAX_INOBT_WALK_PREFETCH
+
+# SOURCE_FILE=fs/xfs/xfs_iwalk.c
+# DEFINITION_SOURCE_FILE=fs/xfs/xfs_iwalk.c
+# SED_PATTERN='s|	(PAGE_SIZE / sizeof(struct xfs_inobt_rec_incore))|	(PAGE_SIZE / 2 / sizeof(struct xfs_inobt_rec_incore))|'
+
+### 67. XFS_DISCARD_MAX_EXAMINE
+
+# SOURCE_FILE=fs/xfs/xfs_discard.c
+# DEFINITION_SOURCE_FILE=fs/xfs/xfs_discard.c
+# SED_PATTERN='s|\#define XFS_DISCARD_MAX_EXAMINE	(100)|\#define XFS_DISCARD_MAX_EXAMINE	(99)|'
