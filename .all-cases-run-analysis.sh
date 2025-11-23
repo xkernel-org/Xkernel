@@ -879,3 +879,605 @@
 # SOURCE_OP="call"
 # CONSTANT_VALUE=64
 # OCCURENCE=2
+
+### 24. AMT_INIT_REQ_TIMEOUT
+
+# # store i8 1, ptr %13, align 1, !dbg !15035
+# # Conclusion: []
+#
+# SOURCE_FILE=drivers/net/amt.c
+# FUNCTION_NAME=amt_event_work
+# SOURCE_OP="store"
+# CONSTANT_VALUE=1
+# OCCURENCE=8
+
+### 25. AMT_MAX_REQ_TIMEOUT
+
+# # %563 = call i32 @llvm.umin.i32(i32 %562, i32 120), !dbg !15073
+# # Conclusion: []
+#
+# SOURCE_FILE=drivers/net/amt.c
+# FUNCTION_NAME=amt_event_work
+# SOURCE_OP="call"
+# CONSTANT_VALUE=120
+# OCCURENCE=1
+
+### 26. AMT_MAX_REQ_COUNT
+
+# # %546 = icmp ugt i8 %544, 3, !dbg !15033
+# # Conclusion: []
+#
+# SOURCE_FILE=drivers/net/amt.c
+# FUNCTION_NAME=amt_event_work
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=3
+# OCCURENCE=1
+
+### 27. AMT_SECRET_TIMEOUT
+
+# # %5 = tail call zeroext i1 @mod_delayed_work_on(i32 noundef 64, ptr noundef %4, ptr noundef %0, i64 noundef 60000) #15, !dbg !13761
+# # Conclusion: []
+#
+# SOURCE_FILE=drivers/net/amt.c
+# FUNCTION_NAME=amt_secret_work
+# SOURCE_OP="call"
+# CONSTANT_VALUE=64
+# OCCURENCE=1
+
+# # %46 = phi i64 [ 0, %40 ], [ 60000, %32 ]
+# # Conclusion: []
+#
+# SOURCE_FILE=drivers/net/amt.c
+# FUNCTION_NAME=amt_dev_open
+# SOURCE_OP="phi"
+# CONSTANT_VALUE=0
+# OCCURENCE=1
+
+### TODO CONFIG_IP_VS {{{
+### 28. IPVS_SYNC_WAKEUP_RATE
+
+### 29. IPVS_SYNC_SEND_DELAY
+
+### 30. IPVS_SYNC_CHECK_PERIOD
+
+### 31. IPVS_SYNC_FLUSH_TIME
+
+### }}}
+
+### 32. TCP_RACK_RECOVERY_THRESH
+
+# # %381 = tail call i8 @llvm.umin.i8(i8 %380, i8 15), !dbg !26375
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp_input.c
+# FUNCTION_NAME=tcp_fastretrans_alert
+# SOURCE_OP="call"
+# CONSTANT_VALUE=15
+# OCCURENCE=1
+
+# # %713 = tail call i8 @llvm.umin.i8(i8 %712, i8 15), !dbg !26841
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp_input.c
+# FUNCTION_NAME=tcp_fastretrans_alert
+# SOURCE_OP="call"
+# CONSTANT_VALUE=15
+# OCCURENCE=2
+
+# # %34 = or disjoint i8 %33, 16, !dbg !12830
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp_recovery.c
+# FUNCTION_NAME=tcp_rack_update_reo_wnd
+# SOURCE_OP="or"
+# CONSTANT_VALUE=16
+# OCCURENCE=1
+
+### 33. SBQ_WAKE_BATCH
+
+# # %15 = icmp ugt i32 %14, 63, !dbg !4367
+# # Conclusion: []
+#
+# SOURCE_FILE=lib/sbitmap.c
+# FUNCTION_NAME=sbitmap_queue_resize
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=63
+# OCCURENCE=1
+
+# # %18 = select i1 %15, i32 8, i32 %17, !dbg !4367
+# # Conclusion: []
+#
+# SOURCE_FILE=lib/sbitmap.c
+# FUNCTION_NAME=sbitmap_queue_resize
+# SOURCE_OP="select"
+# CONSTANT_VALUE=8
+# OCCURENCE=1
+
+# # %7 = icmp ugt i32 %6, 63, !dbg !4433
+# # Conclusion: []
+#
+# SOURCE_FILE=lib/sbitmap.c
+# FUNCTION_NAME=sbitmap_queue_recalculate_wake_batch
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=63
+# OCCURENCE=1
+
+# # %10 = select i1 %7, i32 8, i32 %9, !dbg !4433
+# # Conclusion: []
+#
+# SOURCE_FILE=lib/sbitmap.c
+# FUNCTION_NAME=sbitmap_queue_recalculate_wake_batch
+# SOURCE_OP="select"
+# CONSTANT_VALUE=8
+# OCCURENCE=1
+
+# # %15 = icmp ugt i32 %14, 63, !dbg !4458
+# # Conclusion: []
+#
+# SOURCE_FILE=lib/sbitmap.c
+# FUNCTION_NAME=sbitmap_queue_min_shallow_depth
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=63
+# OCCURENCE=1
+
+# # %18 = select i1 %15, i32 8, i32 %17, !dbg !4458
+# # Conclusion: []
+#
+# SOURCE_FILE=lib/sbitmap.c
+# FUNCTION_NAME=sbitmap_queue_min_shallow_depth
+# SOURCE_OP="select"
+# CONSTANT_VALUE=8
+# OCCURENCE=1
+
+# # %20 = icmp ugt i32 %19, 63, !dbg !4479
+# # Conclusion: []
+#
+# SOURCE_FILE=lib/sbitmap.c
+# FUNCTION_NAME=sbitmap_queue_init_node
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=63
+# OCCURENCE=1
+
+# # %23 = select i1 %20, i32 8, i32 %22, !dbg !4479
+# # Conclusion: []
+#
+# SOURCE_FILE=lib/sbitmap.c
+# FUNCTION_NAME=sbitmap_queue_init_node
+# SOURCE_OP="select"
+# CONSTANT_VALUE=8
+# OCCURENCE=1
+
+### 34. BLK_MQ_MAX_DEPTH
+
+# # %27 = icmp ugt i32 %7, 10240, !dbg !16457
+# # Conclusion: []
+#
+# SOURCE_FILE=block/blk-mq.c
+# FUNCTION_NAME=blk_mq_alloc_tag_set
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=10240
+# OCCURENCE=1
+
+# # %29 = tail call i32 (ptr, ...) @_printk(ptr noundef nonnull @.str.9, i32 noundef 10240) #26, !dbg !16459
+# # Conclusion: []
+#
+# SOURCE_FILE=block/blk-mq.c
+# FUNCTION_NAME=blk_mq_alloc_tag_set
+# SOURCE_OP="call"
+# CONSTANT_VALUE=10240
+# OCCURENCE=1
+
+# # store i32 10240, ptr %6, align 8, !dbg !16462
+# # Conclusion: []
+#
+# SOURCE_FILE=block/blk-mq.c
+# FUNCTION_NAME=blk_mq_alloc_tag_set
+# SOURCE_OP="store"
+# CONSTANT_VALUE=10240
+# OCCURENCE=1
+
+# # %31 = phi i32 [ 10240, %28 ], [ %7, %26 ]
+# # Conclusion: []
+#
+# SOURCE_FILE=block/blk-mq.c
+# FUNCTION_NAME=blk_mq_alloc_tag_set
+# SOURCE_OP="phi"
+# CONSTANT_VALUE=10240
+# OCCURENCE=1
+
+# # %10 = tail call i32 @__dm_get_module_param(ptr noundef nonnull @dm_mq_queue_depth, i32 noundef 2048, i32 noundef 10240) #14, !dbg !6487
+# # Conclusion: []
+#
+# SOURCE_FILE=drivers/md/dm-rq.c
+# FUNCTION_NAME=dm_mq_init_request_queue
+# SOURCE_OP="call"
+# CONSTANT_VALUE=2048
+# OCCURENCE=1
+
+# # %10 = tail call i16 @llvm.umin.i16(i16 %9, i16 10239), !dbg !23446
+# # Conclusion: []
+#
+# SOURCE_FILE=drivers/nvme/host/core.c
+# FUNCTION_NAME=nvme_alloc_io_tag_set
+# SOURCE_OP="call"
+# CONSTANT_VALUE=10239
+# OCCURENCE=1
+
+### 35. BLK_MIN_SG_TIMEOUT
+
+# # %146 = call range(i32 7000, 0) i32 @llvm.umax.i32(i32 %145, i32 7000), !dbg !5814
+# # Conclusion: []
+#
+# SOURCE_FILE=block/bsg.c
+# FUNCTION_NAME=bsg_ioctl
+# SOURCE_OP="call"
+# CONSTANT_VALUE=7000
+# OCCURENCE=1
+
+# # %63 = icmp ult i32 %62, 7000, !dbg !7759
+# # Conclusion: []
+#
+# SOURCE_FILE=drivers/scsi/scsi_ioctl.c
+# FUNCTION_NAME=sg_io
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=7000
+# OCCURENCE=1
+
+# # %65 = phi i32 [ 60000, %57 ], [ 7000, %61 ]
+# # Conclusion: []
+#
+# SOURCE_FILE=drivers/scsi/scsi_ioctl.c
+# FUNCTION_NAME=sg_io
+# SOURCE_OP="phi"
+# CONSTANT_VALUE=60000
+# OCCURENCE=1
+
+### 36. NFS_JUKEBOX_RETRY_TIME
+
+# TODO CONFIG_PNFS_FLEXFILE_LAYOUT
+
+# # %27 = call i64 @schedule_timeout(i64 noundef 5000) #12, !dbg !12672
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/nfs/nfs3proc.c
+# FUNCTION_NAME=nfs3_proc_getattr
+# SOURCE_OP="call"
+# CONSTANT_VALUE=5000
+# OCCURENCE=1
+
+# # %45 = call i64 @schedule_timeout(i64 noundef 5000) #12, !dbg !12871
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/nfs/nfs3proc.c
+# FUNCTION_NAME=nfs3_proc_setattr
+# SOURCE_OP="call"
+# CONSTANT_VALUE=5000
+# OCCURENCE=1
+
+# # %32 = call i64 @schedule_timeout(i64 noundef 5000) #12, !dbg !13063
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/nfs/nfs3proc.c
+# FUNCTION_NAME=nfs3_proc_access
+# SOURCE_OP="call"
+# CONSTANT_VALUE=5000
+# OCCURENCE=1
+
+# # %32 = call i64 @schedule_timeout(i64 noundef 5000) #12, !dbg !13170
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/nfs/nfs3proc.c
+# FUNCTION_NAME=nfs3_proc_readlink
+# SOURCE_OP="call"
+# CONSTANT_VALUE=5000
+# OCCURENCE=1
+
+# # %31 = call i64 @schedule_timeout(i64 noundef 5000) #12, !dbg !13638
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/nfs/nfs3proc.c
+# FUNCTION_NAME=nfs3_proc_remove
+# SOURCE_OP="call"
+# CONSTANT_VALUE=5000
+# OCCURENCE=1
+
+# # tail call void @rpc_delay(ptr noundef %0, i64 noundef 5000) #12, !dbg !13743
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/nfs/nfs3proc.c
+# FUNCTION_NAME=nfs3_proc_unlink_done
+# SOURCE_OP="call"
+# CONSTANT_VALUE=5000
+# OCCURENCE=1
+
+# # tail call void @rpc_delay(ptr noundef %0, i64 noundef 5000) #12, !dbg !13792
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/nfs/nfs3proc.c
+# FUNCTION_NAME=nfs3_proc_rename_done
+# SOURCE_OP="call"
+# CONSTANT_VALUE=5000
+# OCCURENCE=1
+
+# # %42 = call i64 @schedule_timeout(i64 noundef 5000) #12, !dbg !13876
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/nfs/nfs3proc.c
+# FUNCTION_NAME=nfs3_proc_link
+# SOURCE_OP="call"
+# CONSTANT_VALUE=5000
+# OCCURENCE=1
+
+# # %33 = call i64 @schedule_timeout(i64 noundef 5000) #12, !dbg !14195
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/nfs/nfs3proc.c
+# FUNCTION_NAME=nfs3_proc_rmdir
+# SOURCE_OP="call"
+# CONSTANT_VALUE=5000
+# OCCURENCE=1
+
+# # %59 = call i64 @schedule_timeout(i64 noundef 5000) #12, !dbg !14327
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/nfs/nfs3proc.c
+# FUNCTION_NAME=nfs3_proc_readdir
+# SOURCE_OP="call"
+# CONSTANT_VALUE=5000
+# OCCURENCE=1
+
+# # %19 = call i64 @schedule_timeout(i64 noundef 5000) #12, !dbg !14544
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/nfs/nfs3proc.c
+# FUNCTION_NAME=nfs3_proc_statfs
+# SOURCE_OP="call"
+# CONSTANT_VALUE=5000
+# OCCURENCE=1
+
+# # %19 = call i64 @schedule_timeout(i64 noundef 5000) #12, !dbg !14618
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/nfs/nfs3proc.c
+# FUNCTION_NAME=nfs3_proc_pathconf
+# SOURCE_OP="call"
+# CONSTANT_VALUE=5000
+# OCCURENCE=1
+
+# # tail call void @rpc_delay(ptr noundef %0, i64 noundef 5000) #12, !dbg !14719
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/nfs/nfs3proc.c
+# FUNCTION_NAME=nfs3_read_done
+# SOURCE_OP="call"
+# CONSTANT_VALUE=5000
+# OCCURENCE=1
+
+# # tail call void @rpc_delay(ptr noundef %0, i64 noundef 5000) #12, !dbg !14774
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/nfs/nfs3proc.c
+# FUNCTION_NAME=nfs3_write_done
+# SOURCE_OP="call"
+# CONSTANT_VALUE=5000
+# OCCURENCE=1
+
+# # tail call void @rpc_delay(ptr noundef %0, i64 noundef 5000) #12, !dbg !14831
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/nfs/nfs3proc.c
+# FUNCTION_NAME=nfs3_commit_done
+# SOURCE_OP="call"
+# CONSTANT_VALUE=5000
+# OCCURENCE=1
+
+# # %17 = call i64 @schedule_timeout(i64 noundef 5000) #12, !dbg !14970
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/nfs/nfs3proc.c
+# FUNCTION_NAME=do_proc_fsinfo
+# SOURCE_OP="call"
+# CONSTANT_VALUE=5000
+# OCCURENCE=1
+
+# # %18 = tail call i64 @schedule_timeout(i64 noundef 5000) #12, !dbg !15031
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/nfs/nfs3proc.c
+# FUNCTION_NAME=nfs3_do_create
+# SOURCE_OP="call"
+# CONSTANT_VALUE=5000
+# OCCURENCE=1
+
+# # %38 = call i64 @schedule_timeout(i64 noundef 5000) #12, !dbg !15168
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/nfs/nfs3proc.c
+# FUNCTION_NAME=__nfs3_proc_lookup
+# SOURCE_OP="call"
+# CONSTANT_VALUE=5000
+# OCCURENCE=1
+
+# # %75 = call i64 @schedule_timeout(i64 noundef 5000) #12, !dbg !15225
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/nfs/nfs3proc.c
+# FUNCTION_NAME=__nfs3_proc_lookup
+# SOURCE_OP="call"
+# CONSTANT_VALUE=5000
+# OCCURENCE=2
+
+# # %17 = call i64 @schedule_timeout(i64 noundef 5000) #12, !dbg !15286
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/nfs/nfs3proc.c
+# FUNCTION_NAME=do_proc_get_root
+# SOURCE_OP="call"
+# CONSTANT_VALUE=5000
+# OCCURENCE=1
+
+# # %45 = call i64 @schedule_timeout(i64 noundef 5000) #12, !dbg !15331
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/nfs/nfs3proc.c
+# FUNCTION_NAME=do_proc_get_root
+# SOURCE_OP="call"
+# CONSTANT_VALUE=5000
+# OCCURENCE=2
+
+### 37. MAX_NR_FOLIOS_PER_FREE
+
+# # %76 = tail call i32 @llvm.umin.i32(i32 %75, i32 512), !dbg !6877
+# # Conclusion: []
+#
+# SOURCE_FILE=mm/mmu_gather.c
+# FUNCTION_NAME=tlb_flush_mmu
+# SOURCE_OP="call"
+# CONSTANT_VALUE=512
+# OCCURENCE=1
+
+# # %109 = icmp ult i32 %106, 512, !dbg !6904
+# # Conclusion: []
+#
+# SOURCE_FILE=mm/mmu_gather.c
+# FUNCTION_NAME=tlb_flush_mmu
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=512
+# OCCURENCE=1
+
+### 38. PCPU_SLOT_FAIL_THRESHOLD
+
+# # %101 = icmp sgt i32 %95, 2
+# # Conclusion: []
+#
+# SOURCE_FILE=mm/percpu.c
+# FUNCTION_NAME=pcpu_alloc_noprof
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=2
+# OCCURENCE=1
+
+### 39. NR_MAX_MIGRATE_PAGES_RETRY
+
+# # %243 = icmp samesign ult i32 %49, 9, !dbg !12963
+# # Conclusion: []
+#
+# SOURCE_FILE=mm/migrate.c
+# FUNCTION_NAME=migrate_pages
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=9
+# OCCURENCE=1
+
+# # %324 = call fastcc i32 @migrate_pages_batch(ptr noundef nonnull %12, ptr noundef %1, ptr noundef %2, i64 noundef %3, i32 noundef 0, i32 noundef %5, ptr noundef nonnull %13, ptr noundef nonnull %14, ptr noundef nonnull %15, i32 noundef 10) #11, !dbg !13112
+# # Conclusion: []
+#
+# SOURCE_FILE=mm/migrate.c
+# FUNCTION_NAME=migrate_pages
+# SOURCE_OP="call"
+# CONSTANT_VALUE=10
+# OCCURENCE=1
+
+# # %374 = call fastcc i32 @migrate_pages_batch(ptr noundef nonnull %8, ptr noundef readonly %1, ptr noundef %2, i64 noundef %3, i32 noundef range(i32 1, 0) %4, i32 noundef %5, ptr noundef nonnull %13, ptr noundef nonnull %14, ptr noundef nonnull %15, i32 noundef 7) #11, !dbg !13230
+# # Conclusion: []
+#
+# SOURCE_FILE=mm/migrate.c
+# FUNCTION_NAME=migrate_pages
+# SOURCE_OP="call"
+# CONSTANT_VALUE=7
+# OCCURENCE=1
+
+### 40. SHRINK_BATCH
+
+# # %43 = select i1 %42, i64 128, i64 %41, !dbg !6489
+# # Conclusion: []
+#
+# SOURCE_FILE=mm/shrinker.c
+# FUNCTION_NAME=shrink_slab
+# SOURCE_OP="select"
+# CONSTANT_VALUE=128
+# OCCURENCE=1
+
+### 41.MMAP_LOTSAMISS
+
+# # %33 = icmp ult i32 %32, 1000, !dbg !12770
+# # Conclusion: []
+#
+# SOURCE_FILE=mm/filemap.c
+# FUNCTION_NAME=do_sync_mmap_readahead
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=1000
+# OCCURENCE=1
+
+# # %36 = icmp samesign ugt i32 %32, 99, !dbg !12775
+# # Conclusion: []
+#
+# SOURCE_FILE=mm/filemap.c
+# FUNCTION_NAME=do_sync_mmap_readahead
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=99
+# OCCURENCE=1
+
+### 42. GET_PAGE_MAX_RETRY_NUM TODO CONFIG_MEMORY_FAILURE
+
+### 43. MAX_MADVISE_GUARD_RETRIES TODO huge diff...
+
+### 44. MAX_OOM_REAP_RETRIES
+
+# # %162 = icmp eq i32 %161, 11, !dbg !11089
+# # Conclusion: []
+#
+# SOURCE_FILE=mm/oom_kill.c
+# FUNCTION_NAME=oom_reaper
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=11
+# OCCURENCE=1
+
+### 45. OOM_REAPER_DELAY
+
+# # %42 = add i64 %41, 2000, !dbg !12071
+# # Conclusion: []
+#
+# SOURCE_FILE=mm/oom_kill.c
+# FUNCTION_NAME=out_of_memory
+# SOURCE_OP="add"
+# CONSTANT_VALUE=2000
+# OCCURENCE=1
+
+# # %29 = add i64 %28, 2000, !dbg !13498
+# # Conclusion: []
+#
+# SOURCE_FILE=mm/oom_kill.c
+# FUNCTION_NAME=oom_kill_process
+# SOURCE_OP="add"
+# CONSTANT_VALUE=2000
+# OCCURENCE=1
+
+# # %210 = add i64 %209, 2000, !dbg !13837
+# # Conclusion: []
+#
+# SOURCE_FILE=mm/oom_kill.c
+# FUNCTION_NAME=oom_kill_process
+# SOURCE_OP="add"
+# CONSTANT_VALUE=2000
+# OCCURENCE=2
+
+### 46. SHMEM_MAX_IQ_TIME
+
+# # store i32 604800, ptr %14, align 4, !dbg !5812
+# # Conclusion: []
+#
+# SOURCE_FILE=mm/shmem_quota.c
+# FUNCTION_NAME=shmem_read_file_info
+# SOURCE_OP="store"
+# CONSTANT_VALUE=604800
+# OCCURENCE=2
+
+### 47. SHMEM_MAX_DQ_TIME
+
+# # store i32 604800, ptr %13, align 8, !dbg !5810
+# # Conclusion: []
+#
+# SOURCE_FILE=mm/shmem_quota.c
+# FUNCTION_NAME=shmem_read_file_info
+# SOURCE_OP="store"
+# CONSTANT_VALUE=604800
+# OCCURENCE=1
