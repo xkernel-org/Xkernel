@@ -84,6 +84,42 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
         return false;
     }
 
+    // Helper to check if two GEP instructions access the same struct field pattern
+    bool sameGEPPattern(GetElementPtrInst *GEP1, GetElementPtrInst *GEP2) {
+        if (!GEP1 || !GEP2) return false;
+
+        // Check if they have the same number of indices
+        if (GEP1->getNumIndices() != GEP2->getNumIndices()) return false;
+
+        // Check if they access the same source element type
+        if (GEP1->getSourceElementType() != GEP2->getSourceElementType()) {
+            return false;
+        }
+
+        // Compare all indices - for struct field access, indices must match
+        auto Idx1 = GEP1->idx_begin();
+        auto Idx2 = GEP2->idx_begin();
+        for (; Idx1 != GEP1->idx_end(); ++Idx1, ++Idx2) {
+            // Try to compare constant indices
+            if (ConstantInt *C1 = dyn_cast<ConstantInt>(&**Idx1)) {
+                if (ConstantInt *C2 = dyn_cast<ConstantInt>(&**Idx2)) {
+                    if (C1->getSExtValue() != C2->getSExtValue()) {
+                        return false;
+                    }
+                } else {
+                    return false;  // One constant, one not
+                }
+            } else if (isa<ConstantInt>(&**Idx2)) {
+                return false;  // One constant, one not
+            }
+            // If both are non-constant, we conservatively assume they might match
+        }
+
+        // If we get here, the GEPs access the same field of the same struct type
+        // This is a conservative match - could be same struct or different instances
+        return true;
+    }
+
     PreservedAnalyses run(Module &M, ModuleAnalysisManager &MAM) {
 
         SmallVector<Value*, 64> Worklist;
@@ -121,11 +157,18 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
                         // Look for stores where the value being stored is a function
                         if (StoreInst *Store = dyn_cast<StoreInst>(&I)) {
                             Value *StoredVal = Store->getValueOperand();
-                            Value *Ptr = Store->getPointerOperand()->stripPointerCasts();
+                            Value *Ptr = Store->getPointerOperand();
+                            Value *PtrStripped = Ptr->stripPointerCasts();
 
                             // Check if storing a function pointer
                             if (Function *Func = dyn_cast<Function>(StoredVal)) {
-                                FunctionPointerTargets[Ptr].push_back(Func);
+                                // Track both the original pointer and stripped version
+                                // This handles both direct allocas and GEP-based struct fields
+                                FunctionPointerTargets[PtrStripped].push_back(Func);
+                                if (Ptr != PtrStripped) {
+                                    // Also track the GEP result itself for struct field pattern
+                                    FunctionPointerTargets[Ptr].push_back(Func);
+                                }
                                 if (Verbose) {
                                     errs() << "  Found function pointer assignment: "
                                            << getValueName(Ptr) << " <- " << Func->getName() << "\n";
@@ -330,9 +373,25 @@ found:
 
                                     // Check if it's a direct load from a tracked pointer
                                     if (LoadInst *Load = dyn_cast<LoadInst>(CalledValue)) {
-                                        Value *LoadPtr = Load->getPointerOperand()->stripPointerCasts();
+                                        Value *LoadPtr = Load->getPointerOperand();
+                                        Value *LoadPtrStripped = LoadPtr->stripPointerCasts();
+
+                                        // Try both the original pointer (for GEP/struct fields) and stripped version
                                         if (FunctionPointerTargets.count(LoadPtr)) {
                                             Targets = FunctionPointerTargets[LoadPtr];
+                                        } else if (FunctionPointerTargets.count(LoadPtrStripped)) {
+                                            Targets = FunctionPointerTargets[LoadPtrStripped];
+                                        } else if (GetElementPtrInst *LoadGEP = dyn_cast<GetElementPtrInst>(LoadPtr)) {
+                                            // For GEP-based loads (struct fields), try to match the pattern
+                                            for (auto &Entry : FunctionPointerTargets) {
+                                                if (GetElementPtrInst *StoreGEP = dyn_cast<GetElementPtrInst>(Entry.first)) {
+                                                    if (sameGEPPattern(LoadGEP, StoreGEP)) {
+                                                        // Found a matching GEP pattern
+                                                        Targets = Entry.second;
+                                                        break;
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
 
