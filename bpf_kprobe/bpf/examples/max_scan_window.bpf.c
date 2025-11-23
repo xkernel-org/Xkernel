@@ -48,7 +48,6 @@ int BPF_KPROBE(task_scan_max_0x2e){
 
 
 // update_task_scan_period
-// task_scan_max
 SEC("kprobe/update_task_scan_period+0x8e")
 int BPF_KPROBE(update_task_scan_period_0x8e){
     u64 ecx = BPF_ECX(ctx);
@@ -67,6 +66,5 @@ int BPF_KPROBE(update_task_scan_period_0x95){
     return 0;
 }
 
-// auto trigger
 
 

@@ -1,0 +1,110 @@
+(base) yltang@node-0:~/sdb/Xkernel$ sudo python objdump.py --func __tlb_batch_free_encoded_pages
+Symbol  : __tlb_batch_free_encoded_pages  [vmlinux]
+Start   : 0xffffffff99d69240
+Stop    : 0xffffffff99d69310  (source: next text sym in same module)
+Syms    : /proc/kallsyms
+
+--- Disassembly ---
+(+0x0)ffffffff99d69240 <load1+0x769240>:
+(+0x0)ffffffff99d69240: 0f 1f 44 00 00          nopl   0x0(%rax,%rax,1)
+(+0x5)ffffffff99d69245: 8b 4f 08                mov    0x8(%rdi),%ecx
+(+0x8)ffffffff99d69248: 85 c9                   test   %ecx,%ecx
+(+0xa)ffffffff99d6924a: 0f 84 9d 00 00 00       je     0xffffffff99d692ed
+(+0x10)ffffffff99d69250:        55                      push   %rbp
+(+0x11)ffffffff99d69251:        48 89 e5                mov    %rsp,%rbp
+(+0x14)ffffffff99d69254:        41 55                   push   %r13
+(+0x16)ffffffff99d69256:        4c 8d 6f 10             lea    0x10(%rdi),%r13
+(+0x1a)ffffffff99d6925a:        41 54                   push   %r12
+(+0x1c)ffffffff99d6925c:        49 89 fc                mov    %rdi,%r12
+(+0x1f)ffffffff99d6925f:        53                      push   %rbx
+(+0x20)ffffffff99d69260:        66 90                   xchg   %ax,%ax
+(+0x22)ffffffff99d69262:        66 90                   xchg   %ax,%ax
+(+0x24)ffffffff99d69264:        bb 00 02 00 00          mov    $0x200,%ebx
+(+0x29)ffffffff99d69269:        39 d9                   cmp    %ebx,%ecx
+(+0x2b)ffffffff99d6926b:        0f 46 d9                cmovbe %ecx,%ebx
+(+0x2e)ffffffff99d6926e:        8d 43 ff                lea    -0x1(%rbx),%eax
+(+0x31)ffffffff99d69271:        49 8b 44 c5 00          mov    0x0(%r13,%rax,8),%rax
+(+0x36)ffffffff99d69276:        83 e0 02                and    $0x2,%eax
+(+0x39)ffffffff99d69279:        48 83 f8 01             cmp    $0x1,%rax
+(+0x3d)ffffffff99d6927d:        83 db ff                sbb    $0xffffffff,%ebx
+(+0x40)ffffffff99d69280:        4c 89 ef                mov    %r13,%rdi
+(+0x43)ffffffff99d69283:        89 de                   mov    %ebx,%esi
+(+0x45)ffffffff99d69285:        e8 96 7f 04 00          call   0xffffffff99db1220
+(+0x4a)ffffffff99d6928a:        41 29 5c 24 08          sub    %ebx,0x8(%r12)
+(+0x4f)ffffffff99d6928f:        89 d8                   mov    %ebx,%eax
+(+0x51)ffffffff99d69291:        4d 8d 6c c5 00          lea    0x0(%r13,%rax,8),%r13
+(+0x56)ffffffff99d69296:        e8 f5 46 dd 00          call   0xffffffff9ab3d990
+(+0x5b)ffffffff99d6929b:        41 8b 4c 24 08          mov    0x8(%r12),%ecx
+(+0x60)ffffffff99d692a0:        85 c9                   test   %ecx,%ecx
+(+0x62)ffffffff99d692a2:        75 bc                   jne    0xffffffff99d69260
+(+0x64)ffffffff99d692a4:        5b                      pop    %rbx
+(+0x65)ffffffff99d692a5:        41 5c                   pop    %r12
+(+0x67)ffffffff99d692a7:        41 5d                   pop    %r13
+(+0x69)ffffffff99d692a9:        5d                      pop    %rbp
+(+0x6a)ffffffff99d692aa:        31 c0                   xor    %eax,%eax
+(+0x6c)ffffffff99d692ac:        31 d2                   xor    %edx,%edx
+(+0x6e)ffffffff99d692ae:        31 c9                   xor    %ecx,%ecx
+(+0x70)ffffffff99d692b0:        31 f6                   xor    %esi,%esi
+(+0x72)ffffffff99d692b2:        31 ff                   xor    %edi,%edi
+(+0x74)ffffffff99d692b4:        c3                      ret
+(+0x75)ffffffff99d692b5:        cc                      int3
+(+0x76)ffffffff99d692b6:        cc                      int3
+(+0x77)ffffffff99d692b7:        cc                      int3
+(+0x78)ffffffff99d692b8:        cc                      int3
+(+0x79)ffffffff99d692b9:        31 c0                   xor    %eax,%eax
+(+0x7b)ffffffff99d692bb:        31 db                   xor    %ebx,%ebx
+(+0x7d)ffffffff99d692bd:        eb 11                   jmp    0xffffffff99d692d0
+(+0x7f)ffffffff99d692bf:        83 c0 01                add    $0x1,%eax
+(+0x82)ffffffff99d692c2:        83 c3 01                add    $0x1,%ebx
+(+0x85)ffffffff99d692c5:        39 cb                   cmp    %ecx,%ebx
+(+0x87)ffffffff99d692c7:        73 b7                   jae    0xffffffff99d69280
+(+0x89)ffffffff99d692c9:        3d ff 01 00 00          cmp    $0x1ff,%eax
+(+0x8e)ffffffff99d692ce:        77 b0                   ja     0xffffffff99d69280
+(+0x90)ffffffff99d692d0:        89 da                   mov    %ebx,%edx
+(+0x92)ffffffff99d692d2:        41 f6 44 d5 00 02       testb  $0x2,0x0(%r13,%rdx,8)
+(+0x98)ffffffff99d692d8:        74 e5                   je     0xffffffff99d692bf
+(+0x9a)ffffffff99d692da:        8d 53 01                lea    0x1(%rbx),%edx
+(+0x9d)ffffffff99d692dd:        48 89 d3                mov    %rdx,%rbx
+(+0xa0)ffffffff99d692e0:        49 8b 54 d5 00          mov    0x0(%r13,%rdx,8),%rdx
+(+0xa5)ffffffff99d692e5:        48 c1 ea 02             shr    $0x2,%rdx
+(+0xa9)ffffffff99d692e9:        01 d0                   add    %edx,%eax
+(+0xab)ffffffff99d692eb:        eb d5                   jmp    0xffffffff99d692c2
+(+0xad)ffffffff99d692ed:        31 c0                   xor    %eax,%eax
+(+0xaf)ffffffff99d692ef:        31 d2                   xor    %edx,%edx
+(+0xb1)ffffffff99d692f1:        31 c9                   xor    %ecx,%ecx
+(+0xb3)ffffffff99d692f3:        31 f6                   xor    %esi,%esi
+(+0xb5)ffffffff99d692f5:        31 ff                   xor    %edi,%edi
+(+0xb7)ffffffff99d692f7:        c3                      ret
+(+0xb8)ffffffff99d692f8:        cc                      int3
+(+0xb9)ffffffff99d692f9:        cc                      int3
+(+0xba)ffffffff99d692fa:        cc                      int3
+(+0xbb)ffffffff99d692fb:        cc                      int3
+(+0xbc)ffffffff99d692fc:        0f 1f 40 00             nopl   0x0(%rax)
+(+0xc0)ffffffff99d69300:        90                      nop
+(+0xc1)ffffffff99d69301:        90                      nop
+(+0xc2)ffffffff99d69302:        90                      nop
+(+0xc3)ffffffff99d69303:        90                      nop
+(+0xc4)ffffffff99d69304:        90                      nop
+(+0xc5)ffffffff99d69305:        90                      nop
+(+0xc6)ffffffff99d69306:        90                      nop
+(+0xc7)ffffffff99d69307:        90                      nop
+(+0xc8)ffffffff99d69308:        90                      nop
+(+0xc9)ffffffff99d69309:        90                      nop
+(+0xca)ffffffff99d6930a:        90                      nop
+(+0xcb)ffffffff99d6930b:        90                      nop
+(+0xcc)ffffffff99d6930c:        90                      nop
+(+0xcd)ffffffff99d6930d:        90                      nop
+(+0xce)ffffffff99d6930e:        90                      nop
+(+0xcf)ffffffff99d6930f:        90                      nop
+
+--- Diff for mm/mmu_gather.c ---
+--- /users/yltang/sdb/linux-6.14/BUILDO/mm_mmu_gather_c_original.disas.txt      2025-11-22 04:57:10.032931030 -0500
++++ /users/yltang/sdb/linux-6.14/BUILDO/mm_mmu_gather_c_recompiled.disas.txt    2025-11-22 04:57:12.090726307 -0500
+@@ -154 +154 @@
+- 124:  bb 00 02 00 00          mov    $0x200,%ebx
++ 124:  bb 00 01 00 00          mov    $0x100,%ebx
+@@ -187 +187 @@
+- 181:  3d ff 01 00 00          cmp    $0x1ff,%eax
++ 181:  3d ff 00 00 00          cmp    $0xff,%eax
+
+auto trigger, or trigger it with the setup of `nr_max_batched_migration`

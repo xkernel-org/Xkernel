@@ -1,0 +1,95 @@
+(base) yltang@node-0:~/sdb/Xkernel$ sudo python objdump.py --func __schedule_delayed_m
+onitor_work
+Symbol  : __schedule_delayed_monitor_work  [vmlinux]
+Start   : 0xffffffff99d37260
+Stop    : 0xffffffff99d37320  (source: next text sym in same module)
+Syms    : /proc/kallsyms
+
+--- Disassembly ---
+(+0x0)ffffffff99d37260 <load1+0x737260>:
+(+0x0)ffffffff99d37260: 0f 1f 44 00 00          nopl   0x0(%rax,%rax,1)
+(+0x5)ffffffff99d37265: 55                      push   %rbp
+(+0x6)ffffffff99d37266: 8b 47 10                mov    0x10(%rdi),%eax
+(+0x9)ffffffff99d37269: 8b 57 38                mov    0x38(%rdi),%edx
+(+0xc)ffffffff99d3726c: 01 d0                   add    %edx,%eax
+(+0xe)ffffffff99d3726e: 8b 57 3c                mov    0x3c(%rdi),%edx
+(+0x11)ffffffff99d37271:        48 89 e5                mov    %rsp,%rbp
+(+0x14)ffffffff99d37274:        01 d0                   add    %edx,%eax
+(+0x16)ffffffff99d37276:        48 8d 97 38 01 00 00    lea    0x138(%rdi),%rdx
+(+0x1d)ffffffff99d3727d:        3d fb 01 00 00          cmp    $0x1fb,%eax
+(+0x22)ffffffff99d37282:        48 8b 87 38 01 00 00    mov    0x138(%rdi),%rax
+(+0x29)ffffffff99d37289:        48 19 c9                sbb    %rcx,%rcx
+(+0x2c)ffffffff99d3728c:        81 e1 87 13 00 00       and    $0x1387,%ecx
+(+0x32)ffffffff99d37292:        48 83 c1 01             add    $0x1,%rcx
+(+0x36)ffffffff99d37296:        a8 01                   test   $0x1,%al
+(+0x38)ffffffff99d37298:        74 26                   je     0xffffffff99d372c0
+(+0x3a)ffffffff99d3729a:        48 8b 35 1f 17 ed 01    mov    0x1ed171f(%rip),%rsi        # 0xffffffff9bc089c0
+(+0x41)ffffffff99d372a1:        48 8b 87 68 01 00 00    mov    0x168(%rdi),%rax
+(+0x48)ffffffff99d372a8:        48 29 f0                sub    %rsi,%rax
+(+0x4b)ffffffff99d372ab:        48 39 c1                cmp    %rax,%rcx
+(+0x4e)ffffffff99d372ae:        7c 31                   jl     0xffffffff99d372e1
+(+0x50)ffffffff99d372b0:        5d                      pop    %rbp
+(+0x51)ffffffff99d372b1:        31 c0                   xor    %eax,%eax
+(+0x53)ffffffff99d372b3:        31 d2                   xor    %edx,%edx
+(+0x55)ffffffff99d372b5:        31 c9                   xor    %ecx,%ecx
+(+0x57)ffffffff99d372b7:        31 f6                   xor    %esi,%esi
+(+0x59)ffffffff99d372b9:        31 ff                   xor    %edi,%edi
+(+0x5b)ffffffff99d372bb:        c3                      ret
+(+0x5c)ffffffff99d372bc:        cc                      int3
+(+0x5d)ffffffff99d372bd:        cc                      int3
+(+0x5e)ffffffff99d372be:        cc                      int3
+(+0x5f)ffffffff99d372bf:        cc                      int3
+(+0x60)ffffffff99d372c0:        48 8b 35 81 5f 99 02    mov    0x2995f81(%rip),%rsi        # 0xffffffff9c6cd248
+(+0x67)ffffffff99d372c7:        bf 00 20 00 00          mov    $0x2000,%edi
+(+0x6c)ffffffff99d372cc:        e8 7f 60 cf ff          call   0xffffffff99a2d350
+(+0x71)ffffffff99d372d1:        5d                      pop    %rbp
+(+0x72)ffffffff99d372d2:        31 c0                   xor    %eax,%eax
+(+0x74)ffffffff99d372d4:        31 d2                   xor    %edx,%edx
+(+0x76)ffffffff99d372d6:        31 c9                   xor    %ecx,%ecx
+(+0x78)ffffffff99d372d8:        31 f6                   xor    %esi,%esi
+(+0x7a)ffffffff99d372da:        31 ff                   xor    %edi,%edi
+(+0x7c)ffffffff99d372dc:        c3                      ret
+(+0x7d)ffffffff99d372dd:        cc                      int3
+(+0x7e)ffffffff99d372de:        cc                      int3
+(+0x7f)ffffffff99d372df:        cc                      int3
+(+0x80)ffffffff99d372e0:        cc                      int3
+(+0x81)ffffffff99d372e1:        48 8b 35 60 5f 99 02    mov    0x2995f60(%rip),%rsi        # 0xffffffff9c6cd248
+(+0x88)ffffffff99d372e8:        bf 00 20 00 00          mov    $0x2000,%edi
+(+0x8d)ffffffff99d372ed:        e8 fe 60 cf ff          call   0xffffffff99a2d3f0
+(+0x92)ffffffff99d372f2:        5d                      pop    %rbp
+(+0x93)ffffffff99d372f3:        31 c0                   xor    %eax,%eax
+(+0x95)ffffffff99d372f5:        31 d2                   xor    %edx,%edx
+(+0x97)ffffffff99d372f7:        31 c9                   xor    %ecx,%ecx
+(+0x99)ffffffff99d372f9:        31 f6                   xor    %esi,%esi
+(+0x9b)ffffffff99d372fb:        31 ff                   xor    %edi,%edi
+(+0x9d)ffffffff99d372fd:        c3                      ret
+(+0x9e)ffffffff99d372fe:        cc                      int3
+(+0x9f)ffffffff99d372ff:        cc                      int3
+(+0xa0)ffffffff99d37300:        cc                      int3
+(+0xa1)ffffffff99d37301:        cc                      int3
+(+0xa2)ffffffff99d37302:        66 66 2e 0f 1f 84 00    data16 cs nopw 0x0(%rax,%rax,1)
+(+0xa9)ffffffff99d37309:        00 00 00 00 
+(+0xad)ffffffff99d3730d:        0f 1f 00                nopl   (%rax)
+(+0xb0)ffffffff99d37310:        90                      nop
+(+0xb1)ffffffff99d37311:        90                      nop
+(+0xb2)ffffffff99d37312:        90                      nop
+(+0xb3)ffffffff99d37313:        90                      nop
+(+0xb4)ffffffff99d37314:        90                      nop
+(+0xb5)ffffffff99d37315:        90                      nop
+(+0xb6)ffffffff99d37316:        90                      nop
+(+0xb7)ffffffff99d37317:        90                      nop
+(+0xb8)ffffffff99d37318:        90                      nop
+(+0xb9)ffffffff99d37319:        90                      nop
+(+0xba)ffffffff99d3731a:        90                      nop
+(+0xbb)ffffffff99d3731b:        90                      nop
+(+0xbc)ffffffff99d3731c:        90                      nop
+(+0xbd)ffffffff99d3731d:        90                      nop
+(+0xbe)ffffffff99d3731e:        90                      nop
+(+0xbf)ffffffff99d3731f:        90                      nop
+
+--- Diff for mm/slab_common.c ---
+--- /users/yltang/sdb/linux-6.14/BUILDO/mm_slab_common_c_original.disas.txt     2025-11-22 05:25:27.494836966 -0500
++++ /users/yltang/sdb/linux-6.14/BUILDO/mm_slab_common_c_recompiled.disas.txt   2025-11-22 05:25:32.577593432 -0500
+@@ -1311 +1311 @@
+-     abc:      81 e1 87 13 00 00       and    $0x1387,%ecx
++     abc:      81 e1 e7 03 00 00       and    $0x3e7,%ecx

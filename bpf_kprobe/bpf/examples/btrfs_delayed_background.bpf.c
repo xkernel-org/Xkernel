@@ -12,7 +12,7 @@ int BPF_KPROBE(finish_one_item_0x1f){
     u64 eax = BPF_EAX(ctx);
     if(eax <= 0x3f){
         BPF_SET_JLE_TRUE(ctx);
-        // bpf_printk("0x1f\n");
+        bpf_printk("0x1f\n");
     }
     bpf_printk("0x1f\n");
     return 0;
@@ -24,7 +24,7 @@ int BPF_KPROBE(btrfs_async_run_delayed_root_0x50){
     u64 eax = BPF_EAX(ctx);
     if(eax <= 0x1f){
         BPF_SET_JLE_TRUE(ctx);
-        // bpf_printk("0x50\n");
+        bpf_printk("0x50\n");
     }
     bpf_printk("0x50\n");
     return 0;
@@ -35,7 +35,7 @@ int BPF_KPROBE(btrfs_async_run_delayed_root_0x213){
     u64 eax = BPF_EAX(ctx);
     if(eax <= 0x1f){
         BPF_SET_JG_TRUE(ctx);
-        // bpf_printk("0x213\n");
+        bpf_printk("0x213\n");
     }
     bpf_printk("0x213\n");
     return 0;
@@ -48,7 +48,7 @@ int BPF_KPROBE(btrfs_balance_delayed_items_0x32){
     u64 eax = BPF_EAX(ctx);
     if(eax <= 0x3f){
         BPF_SET_JG_TRUE(ctx);
-        // bpf_printk("0x32\n");
+        bpf_printk("0x32\n");
     }
     bpf_printk("0x32\n");
     return 0; 
@@ -59,7 +59,7 @@ int BPF_KPROBE(btrfs_balance_delayed_items_0xba){
     u64 eax = BPF_EAX(ctx);
     if(eax <= 0x3f){
         BPF_SET_JLE_TRUE(ctx);
-        /// bpf_printk("0x32\n");
+        bpf_printk("0x32\n");
     }
     bpf_printk("0x32\n");
     return 0; 
@@ -70,7 +70,7 @@ int BPF_KPROBE(btrfs_balance_delayed_items_0x121){
     u64 edx = BPF_EDX(ctx);
     if(edx <= 0x3f){
         BPF_SET_JLE_TRUE(ctx);
-        /// bpf_printk("0x121\n");
+        bpf_printk("0x121\n");
     }
     bpf_printk("0x121\n");
     return 0; 

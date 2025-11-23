@@ -1,0 +1,28 @@
+(base) yltang@node-0:~/sdb/Xkernel$ python objdump.py --func ext4_xattr_create_cache
+Start address: 0xffffffffb25986c0
+Stop address:  0xffffffffb25986e0
+(+0x0)ffffffffb25986c0 <load1+0x9986c0>
+(+0x0)ffffffffb25986c0: 0f 1f 44 00 00          nopl   0x0(%rax,%rax,1)
+(+0x5)ffffffffb25986c5: 55                      push   %rbp
+--- (+0x6)ffffffffb25986c6: bf 0a 00 00 00          mov    $0xa,%edi
+--- mov $0x8, %edi
+(+0xb)ffffffffb25986cb: 48 89 e5                mov    %rsp,%rbp
+(+0xe)ffffffffb25986ce: e8 7d dc f3 ff          call   0xffffffffb24d6350
+(+0x13)ffffffffb25986d3:        5d                      pop    %rbp
+(+0x14)ffffffffb25986d4:        31 ff                   xor    %edi,%edi
+(+0x16)ffffffffb25986d6:        c3                      ret
+(+0x17)ffffffffb25986d7:        cc                      int3
+(+0x18)ffffffffb25986d8:        cc                      int3
+(+0x19)ffffffffb25986d9:        cc                      int3
+(+0x1a)ffffffffb25986da:        cc                      int3
+(+0x1b)ffffffffb25986db:        0f 1f 44 00 00          nopl   0x0(%rax,%rax,1)
+
+
+--- Diff for fs/ext4/xattr.c ---
+--- /users/yltang/sdb/linux-6.14/BUILDO/fs_ext4_xattr_c_original.disas.txt      2025-10-31 03:48:43.142107297 -0400
++++ /users/yltang/sdb/linux-6.14/BUILDO/fs_ext4_xattr_c_recompiled.disas.txt    2025-10-31 03:48:46.564734328 -0400
+@@ -6963 +6963 @@
+-    6266:      bf 0a 00 00 00          mov    $0xa,%edi
++    6266:      bf 08 00 00 00          mov    $0x8,%edi
+
+follow the README.md of `sync_shrink_batch`

@@ -15,7 +15,7 @@ int BPF_KPROBE(unlock_stripe_0x282){
 
     if(value <= 0x200){
         BPF_SET_JLE_TRUE(ctx);
-        // bpf_printk("0x282\n");
+        bpf_printk("0x282\n");
     }
     bpf_printk("0x282\n");
     return 0;

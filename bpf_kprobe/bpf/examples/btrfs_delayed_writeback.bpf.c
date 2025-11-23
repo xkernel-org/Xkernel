@@ -14,7 +14,7 @@ int BPF_KPROBE(btrfs_async_run_delayed_root_0x1b6){
     bpf_probe_read_kernel(&value, sizeof(u64), addr);
     if(value <= 0xff){
         BPF_SET_JLE_TRUE(ctx);
-        // bpf_printk("0x1b6\n");
+        bpf_printk("0x1b6\n");
     }
     bpf_printk("0x1b6\n");
     return 0;
@@ -25,7 +25,7 @@ int BPF_KPROBE(btrfs_balance_delayed_items_0x7f){
     u64 eax = BPF_EAX(ctx);
     if(eax <= 0xff){
         BPF_SET_JLE_TRUE(ctx);
-        // bpf_printk("0x7f\n");
+        bpf_printk("0x7f\n");
     }
     bpf_printk("0x7f\n");
     return 0;

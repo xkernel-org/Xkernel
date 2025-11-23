@@ -16,3 +16,11 @@ int BPF_KPROBE(task_numa_compare_0x3df){
     bpf_printk("0x3df\n");
     return 0;
 }
+
+/*
+SEC("kprobe/task_numa_compare")
+int BPF_KPROBE(task_numa_compare_entry){
+    bpf_printk("entry\n");
+    return 0;
+}
+*/
