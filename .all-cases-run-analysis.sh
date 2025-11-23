@@ -933,16 +933,67 @@
 # CONSTANT_VALUE=0
 # OCCURENCE=1
 
-### TODO CONFIG_IP_VS {{{
 ### 28. IPVS_SYNC_WAKEUP_RATE
+
+# # %32 = icmp eq i32 %31, 8, !dbg !13215
+# # Conclusion: []
+#
+# SOURCE_FILE=net/netfilter/ipvs/ip_vs_sync.c
+# FUNCTION_NAME=sb_queue_tail
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=8
+# OCCURENCE=1
+
+# # %12 = icmp ult i32 %11, 8, !dbg !14991
+# # Conclusion: []
+#
+# SOURCE_FILE=net/netfilter/ipvs/ip_vs_sync.c
+# FUNCTION_NAME=master_wakeup_work_handler
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=8
+# OCCURENCE=1
+
+# # store i32 8, ptr %10, align 8, !dbg !14995
+# # Conclusion: []
+#
+# SOURCE_FILE=net/netfilter/ipvs/ip_vs_sync.c
+# FUNCTION_NAME=master_wakeup_work_handler
+# SOURCE_OP="store"
+# CONSTANT_VALUE=8
+# OCCURENCE=1
 
 ### 29. IPVS_SYNC_SEND_DELAY
 
+# # %21 = tail call zeroext i1 @queue_delayed_work_on(i32 noundef 64, ptr noundef %20, ptr noundef nonnull %19, i64 noundef 20) #14, !dbg !13184
+# # Conclusion: []
+#
+# SOURCE_FILE=net/netfilter/ipvs/ip_vs_sync.c
+# FUNCTION_NAME=sb_queue_tail
+# SOURCE_OP="call"
+# CONSTANT_VALUE=64
+# OCCURENCE=1
+
 ### 30. IPVS_SYNC_CHECK_PERIOD
+
+# # %73 = call i64 @schedule_timeout(i64 noundef 1000) #14, !dbg !14783
+# # Conclusion: []
+#
+# SOURCE_FILE=net/netfilter/ipvs/ip_vs_sync.c
+# FUNCTION_NAME=sync_thread_master
+# SOURCE_OP="call"
+# CONSTANT_VALUE=1000
+# OCCURENCE=1
 
 ### 31. IPVS_SYNC_FLUSH_TIME
 
-### }}}
+# # %56 = add i64 %53, -2000, !dbg !14761
+# # Conclusion: []
+#
+# SOURCE_FILE=net/netfilter/ipvs/ip_vs_sync.c
+# FUNCTION_NAME=sync_thread_master
+# SOURCE_OP="add"
+# CONSTANT_VALUE=-2000
+# OCCURENCE=1
 
 ### 32. TCP_RACK_RECOVERY_THRESH
 
@@ -1134,7 +1185,14 @@
 
 ### 36. NFS_JUKEBOX_RETRY_TIME
 
-# TODO CONFIG_PNFS_FLEXFILE_LAYOUT
+# # tail call void @rpc_delay(ptr noundef %0, i64 noundef 5000) #22, !dbg !18881
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/nfs/flexfilelayout/flexfilelayout.c
+# FUNCTION_NAME=ff_layout_async_handle_error
+# SOURCE_OP="call"
+# CONSTANT_VALUE=5000
+# OCCURENCE=1
 
 # # %27 = call i64 @schedule_timeout(i64 noundef 5000) #12, !dbg !12672
 # # Conclusion: []
@@ -1416,7 +1474,34 @@
 # CONSTANT_VALUE=99
 # OCCURENCE=1
 
-### 42. GET_PAGE_MAX_RETRY_NUM TODO CONFIG_MEMORY_FAILURE
+### 42. GET_PAGE_MAX_RETRY_NUM
+
+# # %385 = icmp samesign ult i32 %142, 3, !dbg !8370
+# # Conclusion: []
+#
+# SOURCE_FILE=mm/memory-failure.c
+# FUNCTION_NAME=get_hwpoison_page
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=3
+# OCCURENCE=1
+
+# # %415 = icmp samesign ult i32 %142, 3, !dbg !8414
+# # Conclusion: []
+#
+# SOURCE_FILE=mm/memory-failure.c
+# FUNCTION_NAME=get_hwpoison_page
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=3
+# OCCURENCE=2
+
+# # %532 = icmp samesign ult i32 %142, 3, !dbg !8592
+# # Conclusion: []
+#
+# SOURCE_FILE=mm/memory-failure.c
+# FUNCTION_NAME=get_hwpoison_page
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=3
+# OCCURENCE=4
 
 ### 43. MAX_MADVISE_GUARD_RETRIES TODO huge diff...
 

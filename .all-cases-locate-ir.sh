@@ -253,28 +253,24 @@ SED_PATTERN='s|\#define AMT_INIT_REQ_TIMEOUT	1|\#define AMT_INIT_REQ_TIMEOUT	10|
 
 ### 28. IPVS_SYNC_WAKEUP_RATE
 
-# TODO CONFIG_IP_VS
 # SOURCE_FILE=net/netfilter/ipvs/ip_vs_sync.c
 # DEFINITION_SOURCE_FILE=include/net/ip_vs.h
 # SED_PATTERN='s|\#define IPVS_SYNC_WAKEUP_RATE	8|\#define IPVS_SYNC_WAKEUP_RATE	7|'
 
 ### 29. IPVS_SYNC_SEND_DELAY
 
-# TODO CONFIG_IP_VS
 # SOURCE_FILE=net/netfilter/ipvs/ip_vs_sync.c
 # DEFINITION_SOURCE_FILE=include/net/ip_vs.h
 # SED_PATTERN='s|\#define IPVS_SYNC_SEND_DELAY	(HZ / 50)|\#define IPVS_SYNC_SEND_DELAY	10|'
 
 ### 30. IPVS_SYNC_CHECK_PERIOD
 
-# TODO CONFIG_IP_VS
 # SOURCE_FILE=net/netfilter/ipvs/ip_vs_sync.c
 # DEFINITION_SOURCE_FILE=include/net/ip_vs.h
 # SED_PATTERN='s|\#define IPVS_SYNC_CHECK_PERIOD	HZ|\#define IPVS_SYNC_CHECK_PERIOD	2 \* HZ|'
 
 ### 31. IPVS_SYNC_FLUSH_TIME
 
-# TODO CONFIG_IP_VS
 # SOURCE_FILE=net/netfilter/ipvs/ip_vs_sync.c
 # DEFINITION_SOURCE_FILE=include/net/ip_vs.h
 # SED_PATTERN='s|\#define IPVS_SYNC_FLUSH_TIME	(HZ \* 2)|\#define IPVS_SYNC_FLUSH_TIME	(HZ \* 3)|'
@@ -321,7 +317,6 @@ SED_PATTERN='s|\#define AMT_INIT_REQ_TIMEOUT	1|\#define AMT_INIT_REQ_TIMEOUT	10|
 
 ### 36. NFS_JUKEBOX_RETRY_TIME
 
-# TODO CONFIG_PNFS_FLEXFILE_LAYOUT
 # SOURCE_FILE=fs/nfs/flexfilelayout/flexfilelayout.c
 # DEFINITION_SOURCE_FILE=include/linux/nfs_fs.h
 # SED_PATTERN='s|\#define NFS_JUKEBOX_RETRY_TIME (5 \* HZ)|\#define NFS_JUKEBOX_RETRY_TIME (7 \* HZ)|'
@@ -362,7 +357,6 @@ SED_PATTERN='s|\#define AMT_INIT_REQ_TIMEOUT	1|\#define AMT_INIT_REQ_TIMEOUT	10|
 
 ### 42. GET_PAGE_MAX_RETRY_NUM
 
-# TODO CONFIG_MEMORY_FAILURE
 # SOURCE_FILE=mm/memory-failure.c
 # DEFINITION_SOURCE_FILE=mm/memory-failure.c
 # SED_PATTERN='s|\#define GET_PAGE_MAX_RETRY_NUM 3|\#define GET_PAGE_MAX_RETRY_NUM 7|'

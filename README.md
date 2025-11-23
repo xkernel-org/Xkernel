@@ -79,6 +79,10 @@ make CC=wllvm AR=llvm-ar HOSTCC=clang olddefconfig
 ./scripts/config -e RDS_RDMA
 ./scripts/config -e NET_SCH_PIE
 ./scripts/config -e AMT
+./scripts/config -e IP_VS
+./scripts/config -e NFS_V4_1
+./scripts/config -e PNFS_FLEXFILE_LAYOUT
+./scripts/config -e MEMORY_FAILURE
 make CC=wllvm AR=llvm-ar HOSTCC=clang olddefconfig
 # 2min51s 14900k
 # 4min27s c6420
