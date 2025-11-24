@@ -4,5 +4,5 @@
 
 int foo() {
     int a = MACRO; // FINDME // NOT EXTERNAL
-    return a;      // FINDME // EXTERNAL
+    return a;      // FINDME // UPWARD-INTERPROC
 }

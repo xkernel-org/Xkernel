@@ -2,7 +2,7 @@
 
 #define MACRO 3600
 
-int bar(int x) { return -x; } // FINDME // EXTERNAL
+int bar(int x) { return -x; } // FINDME // UPWARD-INTERPROC
 
 int foo() {
     int b = 100;        // DONT FINDME

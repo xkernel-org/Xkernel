@@ -13,6 +13,7 @@ fi
 for file in tests/*.bc; do
     interproc=false
     indirectcall=false
+    upward_interproc=false
 
     if [ $file == "tests/3_child_param.bc" ]; then
         interproc=true
@@ -34,6 +35,8 @@ for file in tests/*.bc; do
     elif [ $file == "tests/10_func_ptr_struct.bc" ]; then
         interproc=true
         indirectcall=true
+    elif [ $file == "tests/5_return_parent.bc" ]; then
+        upward_interproc=true
     fi
 
     if [ $file == "tests/7_locate_the_right_target.bc" ]; then
@@ -42,7 +45,7 @@ for file in tests/*.bc; do
         occurence=1
     fi
     opt -load-pass-plugin=build/libTaintTrackerPass.so \
-        -passes="taint-tracker<foo;;3600;false;$interproc;$indirectcall;$occurence>" \
+        -passes="taint-tracker<foo;;3600;false;$interproc;$indirectcall;$upward_interproc;$occurence>" \
         -disable-output \
         $file |& tee ${file%.bc}.results.txt
 done

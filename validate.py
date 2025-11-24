@@ -31,6 +31,7 @@ known_headers = [
     'INDIRECT TARGET',
 
     'INTERPROC',
+    'UPWARD-INTERPROC',
 ]
 
 propogation_headers = [
@@ -39,6 +40,7 @@ propogation_headers = [
     'LOAD',
     'CHILD FUNCTION',
     'INDIRECT CALL',
+    'UPWARD-INTERPROC',
     'GLOBAL',
     'POINTER PARAMETER',
     'RETURN',
@@ -51,16 +53,21 @@ interproc_headers = [
     'INDIRECT CALL',
 ]
 
+upward_interproc_headers = [
+    'UPWARD-INTERPROC',
+    'RETURN',
+]
+
 # Effect has propagated outside the current function, and we stop
 # tracking the effect for now.
 external_headers = [
     'GLOBAL',
     'POINTER PARAMETER',
-    'RETURN',
 ]
 
 assert set(propogation_headers) <= set(known_headers)
 assert set(interproc_headers) <= set(propogation_headers)
+assert set(upward_interproc_headers) <= set(propogation_headers)
 assert set(external_headers) <= set(propogation_headers)
 
 def get_results_files() -> List[Path]:
@@ -315,7 +322,7 @@ class TestTaintTrackerResults(unittest.TestCase):
         results_file_path = Path(__file__).parent / "tests" / f"{name}.results.txt"
         source_file_path = Path(__file__).parent / "tests" / f"{name}.c"
 
-        common_checks(self, True, True, results_file_path, source_file_path)
+        common_checks(self, True, False, results_file_path, source_file_path)
 
     def test_3_child_param_indirect(self):
 
@@ -323,7 +330,7 @@ class TestTaintTrackerResults(unittest.TestCase):
         results_file_path = Path(__file__).parent / "tests" / f"{name}.results.txt"
         source_file_path = Path(__file__).parent / "tests" / f"{name}.c"
 
-        common_checks(self, True, True, results_file_path, source_file_path)
+        common_checks(self, True, False, results_file_path, source_file_path)
 
     def test_3_child_extern(self):
 
@@ -355,7 +362,7 @@ class TestTaintTrackerResults(unittest.TestCase):
         results_file_path = Path(__file__).parent / "tests" / f"{name}.results.txt"
         source_file_path = Path(__file__).parent / "tests" / f"{name}.c"
 
-        common_checks(self, False, True, results_file_path, source_file_path)
+        common_checks(self, False, False, results_file_path, source_file_path)
 
     def test_5_return_indirect(self):
 
@@ -363,7 +370,15 @@ class TestTaintTrackerResults(unittest.TestCase):
         results_file_path = Path(__file__).parent / "tests" / f"{name}.results.txt"
         source_file_path = Path(__file__).parent / "tests" / f"{name}.c"
 
-        common_checks(self, False, True, results_file_path, source_file_path)
+        common_checks(self, False, False, results_file_path, source_file_path)
+
+    def test_5_return_parent(self):
+
+        name = "5_return_parent"
+        results_file_path = Path(__file__).parent / "tests" / f"{name}.results.txt"
+        source_file_path = Path(__file__).parent / "tests" / f"{name}.c"
+
+        common_checks(self, False, False, results_file_path, source_file_path)
 
     def test_6_this_param(self):
 

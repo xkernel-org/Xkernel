@@ -3,5 +3,5 @@
 #define MACRO 3600
 
 int foo() {
-    return MACRO; // FINDME // EXTERNAL
+    return MACRO; // FINDME // UPWARD-INTERPROC
 }
