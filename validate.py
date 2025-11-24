@@ -429,5 +429,13 @@ class TestTaintTrackerResults(unittest.TestCase):
 
         common_checks(self, True, False, results_file_path, source_file_path)
 
+    def test_10_func_ptr_struct(self):
+
+        name = "10_func_ptr_struct"
+        results_file_path = Path(__file__).parent / "tests" / f"{name}.results.txt"
+        source_file_path = Path(__file__).parent / "tests" / f"{name}.c"
+
+        common_checks(self, True, False, results_file_path, source_file_path)
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

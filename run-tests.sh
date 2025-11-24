@@ -11,6 +11,9 @@ if ! command -v opt >/dev/null 2>&1; then
 fi
 
 for file in tests/*.bc; do
+    interproc=false
+    indirectcall=false
+
     if [ $file == "tests/3_child_param.bc" ]; then
         interproc=true
     elif [ $file == "tests/3_child_param_indirect.bc" ]; then
@@ -21,22 +24,16 @@ for file in tests/*.bc; do
         interproc=true
     elif [ $file == "tests/9_func_ptr.bc" ]; then
         interproc=true
-    elif [ $file == "tests/9_func_ptr_global.bc" ]; then
-        interproc=true
-    elif [ $file == "tests/9_func_ptr_approximate.bc" ]; then
-        interproc=true
-    else
-        interproc=false
-    fi
-
-    if [ $file == "tests/9_func_ptr.bc" ]; then
         indirectcall=true
     elif [ $file == "tests/9_func_ptr_global.bc" ]; then
+        interproc=true
         indirectcall=true
     elif [ $file == "tests/9_func_ptr_approximate.bc" ]; then
+        interproc=true
         indirectcall=true
-    else
-        indirectcall=false
+    elif [ $file == "tests/10_func_ptr_struct.bc" ]; then
+        interproc=true
+        indirectcall=true
     fi
 
     if [ $file == "tests/7_locate_the_right_target.bc" ]; then
