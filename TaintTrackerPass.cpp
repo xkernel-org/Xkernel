@@ -20,14 +20,15 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
     std::string TargetOpcode;
     int64_t ConstantToTrack;  // Support both positive and negative constants
     bool Verbose;
-    bool InterprocMode;  // Enable interprocedural taint tracking
+    bool InterprocMode;  // Enable downward interprocedural taint tracking (caller -> callee)
     bool IndirectCallMode;  // Enable indirect call (function pointer) analysis
+    bool UpwardInterprocMode;  // Enable upward interprocedural taint tracking (callee -> caller)
     unsigned OccurrenceIndex;  // Which occurrence to track (1 = first [default], 2 = second, etc., 0 = all)
 
     // Constructor with parameters
-    TaintTrackerPass(std::string FuncName, std::string Opcode, int64_t Constant, bool Debug, bool Interproc, bool IndirectCall, unsigned Occurrence)
+    TaintTrackerPass(std::string FuncName, std::string Opcode, int64_t Constant, bool Debug, bool Interproc, bool IndirectCall, bool UpwardInterproc, unsigned Occurrence)
         : FunctionName(std::move(FuncName)), TargetOpcode(std::move(Opcode)),
-          ConstantToTrack(Constant), Verbose(Debug), InterprocMode(Interproc), IndirectCallMode(IndirectCall), OccurrenceIndex(Occurrence) {}
+          ConstantToTrack(Constant), Verbose(Debug), InterprocMode(Interproc), IndirectCallMode(IndirectCall), UpwardInterprocMode(UpwardInterproc), OccurrenceIndex(Occurrence) {}
 
     // Helper to print a value
     std::string getValueName(Value *V) {
@@ -126,6 +127,7 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
         DenseSet<Value*> TaintedValues;
         DenseSet<Value*> TaintedPointers;  // Track pointers that hold tainted values
         DenseSet<Instruction*> KilledStores;  // Track stores that kill taint (overwrite with non-tainted value)
+        DenseSet<Function*> FunctionsReturningTaint;  // Track functions that return tainted values
 
         // Map from function pointer (alloca or global) to set of possible function targets
         DenseMap<Value*, SmallVector<Function*, 4>> FunctionPointerTargets;
@@ -137,7 +139,8 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
         errs() << "Opcode: " << TargetOpcode << "\n";
         errs() << "Constant: " << ConstantToTrack << "\n";
         errs() << "Verbose: " << (Verbose ? "ON" : "OFF") << "\n";
-        errs() << "Interproc: " << (InterprocMode ? "ON" : "OFF") << "\n";
+        errs() << "Interproc (downward): " << (InterprocMode ? "ON" : "OFF") << "\n";
+        errs() << "Interproc (upward): " << (UpwardInterprocMode ? "ON" : "OFF") << "\n";
         errs() << "IndirectCall: " << (IndirectCallMode ? "ON" : "OFF") << "\n";
         if (OccurrenceIndex == 0) {
             errs() << "Occurrence: ALL\n\n";
@@ -230,6 +233,11 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
                                             if (Ret->getReturnValue() == CI) {
                                                 errs() << "[RETURN] Constant is returned directly"
                                                        << getDebugLoc(Ret) << "\n";
+                                                // Track that this function returns a tainted value
+                                                Function *ContainingFunc = Ret->getFunction();
+                                                if (ContainingFunc) {
+                                                    FunctionsReturningTaint.insert(ContainingFunc);
+                                                }
                                             }
                                         }
 
@@ -436,6 +444,11 @@ found:
                             if (Ret->getReturnValue() == V) {
                                 errs() << "  [RETURN] Stop: Tainted value is returned: "
                                        << getValueName(Ret) << getDebugLoc(Ret) << "\n";
+                                // Track that this function returns a tainted value
+                                Function *ContainingFunc = Ret->getFunction();
+                                if (ContainingFunc) {
+                                    FunctionsReturningTaint.insert(ContainingFunc);
+                                }
                                 continue;
                             }
                         }
@@ -579,6 +592,123 @@ found:
             }
         }
 
+        // --- 5. Upward Interprocedural Taint Tracking (Callee -> Caller) ---
+        if (UpwardInterprocMode && !FunctionsReturningTaint.empty()) {
+            if (Verbose) errs() << "=== Upward Interprocedural Tracking ===\n";
+
+            // Find all call sites to functions that return tainted values
+            for (Function *TaintedFunc : FunctionsReturningTaint) {
+                if (Verbose) {
+                    errs() << "Finding callers of: " << TaintedFunc->getName() << "\n";
+                }
+
+                // Scan all functions for calls to TaintedFunc
+                for (Function &F : M) {
+                    if (F.isDeclaration()) continue;
+
+                    for (BasicBlock &BB : F) {
+                        for (Instruction &I : BB) {
+                            if (CallInst *Call = dyn_cast<CallInst>(&I)) {
+                                Function *Callee = Call->getCalledFunction();
+                                if (Callee == TaintedFunc) {
+                                    // This call site returns a tainted value
+                                    if (!TaintedValues.count(Call)) {
+                                        errs() << "[UPWARD-INTERPROC] Call to " << TaintedFunc->getName()
+                                               << " returns tainted value" << getDebugLoc(Call) << "\n";
+                                        TaintedValues.insert(Call);
+                                        Worklist.push_back(Call);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Process the new worklist items (call sites that return tainted values)
+            // This uses the same propagation logic as the main worklist
+            DenseSet<Value*> UpwardScannedPointers;
+
+            // Loop: process worklist, then scan for loads, repeat until fixed point
+            while (true) {
+                // Process worklist items
+                while (!Worklist.empty()) {
+                    Value *V = Worklist.back();
+                    Worklist.pop_back();
+
+                    if (Verbose) errs() << "[USE] Processing uses of: " << getValueName(V) << "\n";
+
+                    bool hasUses = false;
+                    for (User *U : V->users()) {
+                        Instruction *UserInst = dyn_cast<Instruction>(U);
+                        if (!UserInst) continue;
+
+                        if (TaintedValues.count(UserInst)) {
+                            if (Verbose) errs() << "  [SKIP] Already tainted: " << getValueName(UserInst) << "\n";
+                            continue;
+                        }
+
+                        hasUses = true;
+                        errs() << "  [USE] Taint flows to: " << getValueName(UserInst) << getDebugLoc(UserInst) << "\n";
+                        TaintedValues.insert(UserInst);
+
+                        // Handle store instructions - mark destination pointer as tainted
+                        if (StoreInst *Store = dyn_cast<StoreInst>(UserInst)) {
+                            if (Store->getValueOperand() == V) {
+                                Value *Ptr = Store->getPointerOperand()->stripPointerCasts();
+                                TaintedPointers.insert(Ptr);
+                            }
+                        }
+
+                        Worklist.push_back(UserInst);
+                    }
+
+                    if (!hasUses && Verbose) {
+                        errs() << "[NO USE] No uses of: " << getValueName(V) << "\n";
+                    }
+                }
+
+                // Scan for loads from tainted pointers
+                SmallVector<Value*, 16> PointersToScan;
+                for (Value *Ptr : TaintedPointers) {
+                    if (!UpwardScannedPointers.count(Ptr)) {
+                        PointersToScan.push_back(Ptr);
+                    }
+                }
+
+                if (PointersToScan.empty()) break;  // Fixed point reached
+
+                for (Value *Ptr : PointersToScan) {
+                    for (Function &F : M) {
+                        if (F.isDeclaration()) continue;
+
+                        for (BasicBlock &BB : F) {
+                            for (Instruction &I : BB) {
+                                if (LoadInst *Load = dyn_cast<LoadInst>(&I)) {
+                                    Value *LoadPtr = Load->getPointerOperand()->stripPointerCasts();
+                                    if (LoadPtr == Ptr) {
+                                        if (!TaintedValues.count(Load)) {
+                                            errs() << "[LOAD] Tainted load from tracked pointer: "
+                                                   << getValueName(Load) << " (" << getValueName(Ptr) << ") "
+                                                   << getDebugLoc(Load) << "\n";
+                                            TaintedValues.insert(Load);
+                                            Worklist.push_back(Load);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                for (Value *Ptr : PointersToScan) {
+                    UpwardScannedPointers.insert(Ptr);
+                }
+            }
+
+            if (Verbose) errs() << "\n";
+        }
+
         errs() << "\n=== Taint Analysis Complete ===\n";
 
         // Return PreservedAnalyses::all() because we didn't modify the IR
@@ -595,19 +725,20 @@ llvmGetPassPluginInfo() {
             PB.registerPipelineParsingCallback(
                 [](StringRef Name, ModulePassManager &MPM,
                    ArrayRef<PassBuilder::PipelineElement>) {
-                    // Parse: taint-tracker<function_name;opcode;constant_value;debug;interproc;indirectcall;occurrence>
+                    // Parse: taint-tracker<function_name;opcode;constant_value;debug;interproc;indirectcall;upward_interproc;occurrence>
                     if (Name.consume_front("taint-tracker")) {
                         std::string FunctionName = "gss_fill_context";  // default
                         std::string Opcode = "";  // default (empty means all opcodes)
                         int64_t Constant = 3600;  // default (supports negative values)
                         bool Debug = false;  // default
-                        bool Interproc = false;  // default
+                        bool Interproc = false;  // default (downward: caller -> callee)
                         bool IndirectCall = false;  // default
+                        bool UpwardInterproc = false;  // default (upward: callee -> caller)
                         unsigned Occurrence = 1;  // default (1 = first occurrence, 0 = all occurrences)
 
                         if (Name.consume_front("<") && Name.consume_back(">")) {
                             // Parse parameters separated by semicolons
-                            SmallVector<StringRef, 7> Params;
+                            SmallVector<StringRef, 8> Params;
                             Name.split(Params, ';', -1, true);
 
                             if (Params.size() >= 1 && !Params[0].empty()) {
@@ -638,14 +769,19 @@ llvmGetPassPluginInfo() {
                                                IndirectCallStr == "TRUE" || IndirectCallStr == "yes");
                             }
                             if (Params.size() >= 7 && !Params[6].empty()) {
-                                if (Params[6].getAsInteger(10, Occurrence)) {
+                                StringRef UpwardInterprocStr = Params[6];
+                                UpwardInterproc = (UpwardInterprocStr == "true" || UpwardInterprocStr == "1" ||
+                                                  UpwardInterprocStr == "TRUE" || UpwardInterprocStr == "yes");
+                            }
+                            if (Params.size() >= 8 && !Params[7].empty()) {
+                                if (Params[7].getAsInteger(10, Occurrence)) {
                                     errs() << "Warning: Invalid occurrence value, using default 1 (first)\n";
                                     Occurrence = 1;
                                 }
                             }
                         }
 
-                        MPM.addPass(TaintTrackerPass(FunctionName, Opcode, Constant, Debug, Interproc, IndirectCall, Occurrence));
+                        MPM.addPass(TaintTrackerPass(FunctionName, Opcode, Constant, Debug, Interproc, IndirectCall, UpwardInterproc, Occurrence));
                         return true;
                     }
                     return false;
