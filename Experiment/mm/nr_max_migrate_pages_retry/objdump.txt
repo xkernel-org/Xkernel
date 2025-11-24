@@ -1,0 +1,721 @@
+(base) yltang@node-0:~/sdb/Xkernel$ sudo python objdump.py --func  migrate_hugetlbs
+Symbol  : migrate_hugetlbs  [vmlinux]
+Start   : 0xffffffff99de4e20
+Stop    : 0xffffffff99de5030  (source: next text sym in same module)
+Syms    : /proc/kallsyms
+
+--- Disassembly ---
+(+0x0)ffffffff99de4e20 <load1+0x7e4e20>:
+(+0x0)ffffffff99de4e20: 0f 1f 44 00 00          nopl   0x0(%rax,%rax,1)
+(+0x5)ffffffff99de4e25: 55                      push   %rbp
+(+0x6)ffffffff99de4e26: 48 89 e5                mov    %rsp,%rbp
+(+0x9)ffffffff99de4e29: 41 57                   push   %r15
+(+0xb)ffffffff99de4e2b: 41 56                   push   %r14
+(+0xd)ffffffff99de4e2d: 49 89 fe                mov    %rdi,%r14
+(+0x10)ffffffff99de4e30:        31 ff                   xor    %edi,%edi
+(+0x12)ffffffff99de4e32:        41 55                   push   %r13
+(+0x14)ffffffff99de4e34:        41 54                   push   %r12
+(+0x16)ffffffff99de4e36:        53                      push   %rbx
+(+0x17)ffffffff99de4e37:        4c 89 f3                mov    %r14,%rbx
+(+0x1a)ffffffff99de4e3a:        48 83 ec 40             sub    $0x40,%rsp
+(+0x1e)ffffffff99de4e3e:        48 89 55 c0             mov    %rdx,-0x40(%rbp)
+(+0x22)ffffffff99de4e42:        44 89 45 d0             mov    %r8d,-0x30(%rbp)
+(+0x26)ffffffff99de4e46:        44 89 4d b4             mov    %r9d,-0x4c(%rbp)
+(+0x2a)ffffffff99de4e4a:        89 7d b0                mov    %edi,-0x50(%rbp)
+(+0x2d)ffffffff99de4e4d:        48 89 4d b8             mov    %rcx,-0x48(%rbp)
+(+0x31)ffffffff99de4e51:        31 c9                   xor    %ecx,%ecx
+(+0x33)ffffffff99de4e53:        48 89 75 c8             mov    %rsi,-0x38(%rbp)
+(+0x37)ffffffff99de4e57:        89 ce                   mov    %ecx,%esi
+(+0x39)ffffffff99de4e59:        4c 8b 03                mov    (%rbx),%r8
+(+0x3c)ffffffff99de4e5c:        49 8b 00                mov    (%r8),%rax
+(+0x3f)ffffffff99de4e5f:        4d 8d 78 f8             lea    -0x8(%r8),%r15
+(+0x43)ffffffff99de4e63:        4c 8d 60 f8             lea    -0x8(%rax),%r12
+(+0x47)ffffffff99de4e67:        4c 39 c3                cmp    %r8,%rbx
+(+0x4a)ffffffff99de4e6a:        0f 84 95 01 00 00       je     0xffffffff99de5005
+(+0x50)ffffffff99de4e70:        31 c0                   xor    %eax,%eax
+(+0x52)ffffffff99de4e72:        83 fe 02                cmp    $0x2,%esi
+(+0x55)ffffffff99de4e75:        c7 45 ac 00 00 00 00    movl   $0x0,-0x54(%rbp)
+(+0x5c)ffffffff99de4e7c:        0f 9f c0                setg   %al
+(+0x5f)ffffffff99de4e7f:        c7 45 a8 00 00 00 00    movl   $0x0,-0x58(%rbp)
+(+0x66)ffffffff99de4e86:        89 45 d4                mov    %eax,-0x2c(%rbp)
+(+0x69)ffffffff99de4e89:        4c 89 f8                mov    %r15,%rax
+(+0x6c)ffffffff99de4e8c:        4d 89 c7                mov    %r8,%r15
+(+0x6f)ffffffff99de4e8f:        89 75 a4                mov    %esi,-0x5c(%rbp)
+(+0x72)ffffffff99de4e92:        49 89 c5                mov    %rax,%r13
+(+0x75)ffffffff99de4e95:        eb 53                   jmp    0xffffffff99de4eea
+(+0x77)ffffffff99de4e97:        48 8b 45 10             mov    0x10(%rbp),%rax
+(+0x7b)ffffffff99de4e9b:        48 8b 75 18             mov    0x18(%rbp),%rsi
+(+0x7f)ffffffff99de4e9f:        83 45 b0 01             addl   $0x1,-0x50(%rbp)
+(+0x83)ffffffff99de4ea3:        44 01 70 04             add    %r14d,0x4(%rax)
+(+0x87)ffffffff99de4ea7:        49 8b 45 10             mov    0x10(%r13),%rax
+(+0x8b)ffffffff99de4eab:        49 8b 55 08             mov    0x8(%r13),%rdx
+(+0x8f)ffffffff99de4eaf:        48 89 42 08             mov    %rax,0x8(%rdx)
+(+0x93)ffffffff99de4eb3:        48 89 10                mov    %rdx,(%rax)
+(+0x96)ffffffff99de4eb6:        48 8b 45 18             mov    0x18(%rbp),%rax
+(+0x9a)ffffffff99de4eba:        48 8b 40 08             mov    0x8(%rax),%rax
+(+0x9e)ffffffff99de4ebe:        4c 89 7e 08             mov    %r15,0x8(%rsi)
+(+0xa2)ffffffff99de4ec2:        49 89 75 08             mov    %rsi,0x8(%r13)
+(+0xa6)ffffffff99de4ec6:        49 89 45 10             mov    %rax,0x10(%r13)
+(+0xaa)ffffffff99de4eca:        4c 89 38                mov    %r15,(%rax)
+(+0xad)ffffffff99de4ecd:        49 8b 44 24 08          mov    0x8(%r12),%rax
+(+0xb2)ffffffff99de4ed2:        4d 8d 7c 24 08          lea    0x8(%r12),%r15
+(+0xb7)ffffffff99de4ed7:        4d 89 e5                mov    %r12,%r13
+(+0xba)ffffffff99de4eda:        48 83 e8 08             sub    $0x8,%rax
+(+0xbe)ffffffff99de4ede:        49 39 df                cmp    %rbx,%r15
+(+0xc1)ffffffff99de4ee1:        0f 84 fb 00 00 00       je     0xffffffff99de4fe2
+(+0xc7)ffffffff99de4ee7:        49 89 c4                mov    %rax,%r12
+(+0xca)ffffffff99de4eea:        41 80 7d 33 f4          cmpb   $0xf4,0x33(%r13)
+(+0xcf)ffffffff99de4eef:        75 dc                   jne    0xffffffff99de4ecd
+(+0xd1)ffffffff99de4ef1:        49 8b 45 00             mov    0x0(%r13),%rax
+(+0xd5)ffffffff99de4ef5:        41 be 01 00 00 00       mov    $0x1,%r14d
+(+0xdb)ffffffff99de4efb:        a8 40                   test   $0x40,%al
+(+0xdd)ffffffff99de4efd:        74 04                   je     0xffffffff99de4f03
+(+0xdf)ffffffff99de4eff:        45 8b 75 60             mov    0x60(%r13),%r14d
+(+0xe3)ffffffff99de4f03:        e8 88 8a d5 00          call   0xffffffff9ab3d990
+(+0xe8)ffffffff99de4f08:        49 8b 55 00             mov    0x0(%r13),%rdx
+(+0xec)ffffffff99de4f0c:        b8 00 10 00 00          mov    $0x1000,%eax
+(+0xf1)ffffffff99de4f11:        83 e2 40                and    $0x40,%edx
+(+0xf4)ffffffff99de4f14:        74 16                   je     0xffffffff99de4f2c
+(+0xf6)ffffffff99de4f16:        49 8b 4d 40             mov    0x40(%r13),%rcx
+(+0xfa)ffffffff99de4f1a:        0f b6 d1                movzbl %cl,%edx
+(+0xfd)ffffffff99de4f1d:        48 d3 e0                shl    %cl,%rax
+(+0x100)ffffffff99de4f20:       81 e1 c0 00 00 00       and    $0xc0,%ecx
+(+0x106)ffffffff99de4f26:       0f 85 d0 c7 a5 ff       jne    0xffffffff998416fc
+(+0x10c)ffffffff99de4f2c:       48 89 c7                mov    %rax,%rdi
+(+0x10f)ffffffff99de4f2f:       e8 fc d9 fd ff          call   0xffffffff99dc2930
+(+0x114)ffffffff99de4f34:       8b 40 28                mov    0x28(%rax),%eax
+--- (+0x117)ffffffff99de4f37:       83 f8 09                cmp    $0x9,%eax
+--- cmp $0x13, %eax
+(+0x11a)ffffffff99de4f3a:       74 14                   je     0xffffffff99de4f50
+(+0x11c)ffffffff99de4f3c:       83 f8 12                cmp    $0x12,%eax
+(+0x11f)ffffffff99de4f3f:       74 0f                   je     0xffffffff99de4f50
+(+0x121)ffffffff99de4f41:       83 c0 0c                add    $0xc,%eax
+(+0x124)ffffffff99de4f44:       3b 05 2a 57 64 01       cmp    0x164572a(%rip),%eax        # 0xffffffff9b42a674
+(+0x12a)ffffffff99de4f4a:       0f 85 47 ff ff ff       jne    0xffffffff99de4e97
+(+0x130)ffffffff99de4f50:       ff 75 18                push   0x18(%rbp)
+(+0x133)ffffffff99de4f53:       8b 45 b4                mov    -0x4c(%rbp),%eax
+(+0x136)ffffffff99de4f56:       4c 89 e9                mov    %r13,%rcx
+(+0x139)ffffffff99de4f59:       50                      push   %rax
+(+0x13a)ffffffff99de4f5a:       48 8b 55 b8             mov    -0x48(%rbp),%rdx
+(+0x13e)ffffffff99de4f5e:       44 8b 4d d0             mov    -0x30(%rbp),%r9d
+(+0x142)ffffffff99de4f62:       44 8b 45 d4             mov    -0x2c(%rbp),%r8d
+(+0x146)ffffffff99de4f66:       48 8b 75 c0             mov    -0x40(%rbp),%rsi
+(+0x14a)ffffffff99de4f6a:       48 8b 7d c8             mov    -0x38(%rbp),%rdi
+(+0x14e)ffffffff99de4f6e:       e8 1d fb ff ff          call   0xffffffff99de4a90
+(+0x153)ffffffff99de4f73:       5a                      pop    %rdx
+(+0x154)ffffffff99de4f74:       59                      pop    %rcx
+(+0x155)ffffffff99de4f75:       83 f8 f5                cmp    $0xfffffff5,%eax
+(+0x158)ffffffff99de4f78:       74 1a                   je     0xffffffff99de4f94
+(+0x15a)ffffffff99de4f7a:       85 c0                   test   %eax,%eax
+(+0x15c)ffffffff99de4f7c:       74 58                   je     0xffffffff99de4fd6
+(+0x15e)ffffffff99de4f7e:       83 f8 f4                cmp    $0xfffffff4,%eax
+(+0x161)ffffffff99de4f81:       74 1e                   je     0xffffffff99de4fa1
+(+0x163)ffffffff99de4f83:       48 8b 45 10             mov    0x10(%rbp),%rax
+(+0x167)ffffffff99de4f87:       83 45 b0 01             addl   $0x1,-0x50(%rbp)
+(+0x16b)ffffffff99de4f8b:       44 01 70 04             add    %r14d,0x4(%rax)
+(+0x16f)ffffffff99de4f8f:       e9 39 ff ff ff          jmp    0xffffffff99de4ecd
+(+0x174)ffffffff99de4f94:       83 45 a8 01             addl   $0x1,-0x58(%rbp)
+(+0x178)ffffffff99de4f98:       44 01 75 ac             add    %r14d,-0x54(%rbp)
+(+0x17c)ffffffff99de4f9c:       e9 2c ff ff ff          jmp    0xffffffff99de4ecd
+(+0x181)ffffffff99de4fa1:       48 8b 75 10             mov    0x10(%rbp),%rsi
+(+0x185)ffffffff99de4fa5:       8b 55 ac                mov    -0x54(%rbp),%edx
+(+0x188)ffffffff99de4fa8:       03 56 04                add    0x4(%rsi),%edx
+(+0x18b)ffffffff99de4fab:       44 01 f2                add    %r14d,%edx
+(+0x18e)ffffffff99de4fae:       48 8b 75 10             mov    0x10(%rbp),%rsi
+(+0x192)ffffffff99de4fb2:       89 56 04                mov    %edx,0x4(%rsi)
+(+0x195)ffffffff99de4fb5:       48 8d 65 d8             lea    -0x28(%rbp),%rsp
+(+0x199)ffffffff99de4fb9:       5b                      pop    %rbx
+(+0x19a)ffffffff99de4fba:       41 5c                   pop    %r12
+(+0x19c)ffffffff99de4fbc:       41 5d                   pop    %r13
+(+0x19e)ffffffff99de4fbe:       41 5e                   pop    %r14
+(+0x1a0)ffffffff99de4fc0:       41 5f                   pop    %r15
+(+0x1a2)ffffffff99de4fc2:       5d                      pop    %rbp
+(+0x1a3)ffffffff99de4fc3:       31 d2                   xor    %edx,%edx
+(+0x1a5)ffffffff99de4fc5:       31 c9                   xor    %ecx,%ecx
+(+0x1a7)ffffffff99de4fc7:       31 f6                   xor    %esi,%esi
+(+0x1a9)ffffffff99de4fc9:       31 ff                   xor    %edi,%edi
+(+0x1ab)ffffffff99de4fcb:       45 31 c0                xor    %r8d,%r8d
+(+0x1ae)ffffffff99de4fce:       45 31 c9                xor    %r9d,%r9d
+(+0x1b1)ffffffff99de4fd1:       c3                      ret
+(+0x1b2)ffffffff99de4fd2:       cc                      int3
+(+0x1b3)ffffffff99de4fd3:       cc                      int3
+(+0x1b4)ffffffff99de4fd4:       cc                      int3
+(+0x1b5)ffffffff99de4fd5:       cc                      int3
+(+0x1b6)ffffffff99de4fd6:       48 8b 45 10             mov    0x10(%rbp),%rax
+(+0x1ba)ffffffff99de4fda:       44 01 30                add    %r14d,(%rax)
+(+0x1bd)ffffffff99de4fdd:       e9 eb fe ff ff          jmp    0xffffffff99de4ecd
+(+0x1c2)ffffffff99de4fe2:       8b 75 a4                mov    -0x5c(%rbp),%esi
+(+0x1c5)ffffffff99de4fe5:       83 c6 01                add    $0x1,%esi
+(+0x1c8)ffffffff99de4fe8:       83 fe 0a                cmp    $0xa,%esi
+(+0x1cb)ffffffff99de4feb:       74 0b                   je     0xffffffff99de4ff8
+(+0x1cd)ffffffff99de4fed:       8b 45 a8                mov    -0x58(%rbp),%eax
+(+0x1d0)ffffffff99de4ff0:       85 c0                   test   %eax,%eax
+(+0x1d2)ffffffff99de4ff2:       0f 85 61 fe ff ff       jne    0xffffffff99de4e59
+(+0x1d8)ffffffff99de4ff8:       8b 7d b0                mov    -0x50(%rbp),%edi
+(+0x1db)ffffffff99de4ffb:       8b 45 a8                mov    -0x58(%rbp),%eax
+(+0x1de)ffffffff99de4ffe:       8b 55 ac                mov    -0x54(%rbp),%edx
+(+0x1e1)ffffffff99de5001:       01 c7                   add    %eax,%edi
+(+0x1e3)ffffffff99de5003:       eb 05                   jmp    0xffffffff99de500a
+(+0x1e5)ffffffff99de5005:       8b 7d b0                mov    -0x50(%rbp),%edi
+(+0x1e8)ffffffff99de5008:       31 d2                   xor    %edx,%edx
+(+0x1ea)ffffffff99de500a:       48 8b 45 10             mov    0x10(%rbp),%rax
+(+0x1ee)ffffffff99de500e:       03 50 04                add    0x4(%rax),%edx
+(+0x1f1)ffffffff99de5011:       89 f8                   mov    %edi,%eax
+(+0x1f3)ffffffff99de5013:       eb 99                   jmp    0xffffffff99de4fae
+(+0x1f5)ffffffff99de5015:       66 66 2e 0f 1f 84 00    data16 cs nopw 0x0(%rax,%rax,1)
+(+0x1fc)ffffffff99de501c:       00 00 00 00 
+(+0x200)ffffffff99de5020:       90                      nop
+(+0x201)ffffffff99de5021:       90                      nop
+(+0x202)ffffffff99de5022:       90                      nop
+(+0x203)ffffffff99de5023:       90                      nop
+(+0x204)ffffffff99de5024:       90                      nop
+(+0x205)ffffffff99de5025:       90                      nop
+(+0x206)ffffffff99de5026:       90                      nop
+(+0x207)ffffffff99de5027:       90                      nop
+(+0x208)ffffffff99de5028:       90                      nop
+(+0x209)ffffffff99de5029:       90                      nop
+(+0x20a)ffffffff99de502a:       90                      nop
+(+0x20b)ffffffff99de502b:       90                      nop
+(+0x20c)ffffffff99de502c:       90                      nop
+(+0x20d)ffffffff99de502d:       90                      nop
+(+0x20e)ffffffff99de502e:       90                      nop
+(+0x20f)ffffffff99de502f:       90                      nop
+
+
+(base) yltang@node-0:~/sdb/Xkernel$ sudo python objdump.py --func  migrate_pages
+Symbol  : migrate_pages  [vmlinux]
+Start   : 0xffffffff99de6df0
+Stop    : 0xffffffff99de72d0  (source: next text sym in same module)
+Syms    : /proc/kallsyms
+
+--- Disassembly ---
+(+0x0)ffffffff99de6df0 <load1+0x7e6df0>:
+(+0x0)ffffffff99de6df0: 0f 1f 44 00 00          nopl   0x0(%rax,%rax,1)
+(+0x5)ffffffff99de6df5: 55                      push   %rbp
+(+0x6)ffffffff99de6df6: 48 89 e5                mov    %rsp,%rbp
+(+0x9)ffffffff99de6df9: 41 57                   push   %r15
+(+0xb)ffffffff99de6dfb: 41 56                   push   %r14
+(+0xd)ffffffff99de6dfd: 4c 8d 7d a8             lea    -0x58(%rbp),%r15
+(+0x11)ffffffff99de6e01:        41 55                   push   %r13
+(+0x13)ffffffff99de6e03:        41 54                   push   %r12
+(+0x15)ffffffff99de6e05:        4c 8d 65 98             lea    -0x68(%rbp),%r12
+(+0x19)ffffffff99de6e09:        53                      push   %rbx
+(+0x1a)ffffffff99de6e0a:        48 89 fb                mov    %rdi,%rbx
+(+0x1d)ffffffff99de6e0d:        48 83 c4 80             add    $0xffffffffffffff80,%rsp
+(+0x21)ffffffff99de6e11:        48 8b 45 10             mov    0x10(%rbp),%rax
+(+0x25)ffffffff99de6e15:        44 89 45 84             mov    %r8d,-0x7c(%rbp)
+(+0x29)ffffffff99de6e19:        48 89 b5 78 ff ff ff    mov    %rsi,-0x88(%rbp)
+(+0x30)ffffffff99de6e20:        48 89 95 70 ff ff ff    mov    %rdx,-0x90(%rbp)
+(+0x37)ffffffff99de6e27:        48 89 8d 68 ff ff ff    mov    %rcx,-0x98(%rbp)
+(+0x3e)ffffffff99de6e2e:        44 89 4d 80             mov    %r9d,-0x80(%rbp)
+(+0x42)ffffffff99de6e32:        48 89 85 58 ff ff ff    mov    %rax,-0xa8(%rbp)
+(+0x49)ffffffff99de6e39:        65 4c 8b 2c 25 28 00    mov    %gs:0x28,%r13
+(+0x50)ffffffff99de6e40:        00 00 
+(+0x52)ffffffff99de6e42:        4c 89 6d d0             mov    %r13,-0x30(%rbp)
+(+0x56)ffffffff99de6e46:        4c 8d 6d 88             lea    -0x78(%rbp),%r13
+(+0x5a)ffffffff99de6e4a:        4c 89 65 98             mov    %r12,-0x68(%rbp)
+(+0x5e)ffffffff99de6e4e:        4c 89 65 a0             mov    %r12,-0x60(%rbp)
+(+0x62)ffffffff99de6e52:        4c 89 7d a8             mov    %r15,-0x58(%rbp)
+(+0x66)ffffffff99de6e56:        4c 89 7d b0             mov    %r15,-0x50(%rbp)
+(+0x6a)ffffffff99de6e5a:        48 c7 45 b8 00 00 00    movq   $0x0,-0x48(%rbp)
+(+0x71)ffffffff99de6e61:        00 
+(+0x72)ffffffff99de6e62:        48 c7 45 c0 00 00 00    movq   $0x0,-0x40(%rbp)
+(+0x79)ffffffff99de6e69:        00 
+(+0x7a)ffffffff99de6e6a:        4c 89 6d 88             mov    %r13,-0x78(%rbp)
+(+0x7e)ffffffff99de6e6e:        4c 89 6d 90             mov    %r13,-0x70(%rbp)
+(+0x82)ffffffff99de6e72:        48 c7 45 c8 00 00 00    movq   $0x0,-0x38(%rbp)
+(+0x89)ffffffff99de6e79:        00 
+(+0x8a)ffffffff99de6e7a:        0f 1f 44 00 00          nopl   0x0(%rax,%rax,1)
+(+0x8f)ffffffff99de6e7f:        48 8d 45 b8             lea    -0x48(%rbp),%rax
+(+0x93)ffffffff99de6e83:        48 c7 45 b8 00 00 00    movq   $0x0,-0x48(%rbp)
+(+0x9a)ffffffff99de6e8a:        00 
+(+0x9b)ffffffff99de6e8b:        48 89 df                mov    %rbx,%rdi
+(+0x9e)ffffffff99de6e8e:        48 c7 45 c0 00 00 00    movq   $0x0,-0x40(%rbp)
+(+0xa5)ffffffff99de6e95:        00 
+(+0xa6)ffffffff99de6e96:        48 c7 45 c8 00 00 00    movq   $0x0,-0x38(%rbp)
+(+0xad)ffffffff99de6e9d:        00 
+(+0xae)ffffffff99de6e9e:        41 54                   push   %r12
+(+0xb0)ffffffff99de6ea0:        50                      push   %rax
+(+0xb1)ffffffff99de6ea1:        48 8b 8d 68 ff ff ff    mov    -0x98(%rbp),%rcx
+(+0xb8)ffffffff99de6ea8:        48 8b 95 70 ff ff ff    mov    -0x90(%rbp),%rdx
+(+0xbf)ffffffff99de6eaf:        44 8b 4d 80             mov    -0x80(%rbp),%r9d
+(+0xc3)ffffffff99de6eb3:        44 8b 45 84             mov    -0x7c(%rbp),%r8d
+(+0xc7)ffffffff99de6eb7:        48 8b b5 78 ff ff ff    mov    -0x88(%rbp),%rsi
+(+0xce)ffffffff99de6ebe:        e8 5d df ff ff          call   0xffffffff99de4e20
+(+0xd3)ffffffff99de6ec3:        5a                      pop    %rdx
+(+0xd4)ffffffff99de6ec4:        59                      pop    %rcx
+(+0xd5)ffffffff99de6ec5:        41 89 c3                mov    %eax,%r11d
+(+0xd8)ffffffff99de6ec8:        85 c0                   test   %eax,%eax
+(+0xda)ffffffff99de6eca:        0f 88 af 01 00 00       js     0xffffffff99de707f
+(+0xe0)ffffffff99de6ed0:        41 89 c6                mov    %eax,%r14d
+(+0xe3)ffffffff99de6ed3:        48 8b 3b                mov    (%rbx),%rdi
+(+0xe6)ffffffff99de6ed6:        48 8b 17                mov    (%rdi),%rdx
+(+0xe9)ffffffff99de6ed9:        48 8d 47 f8             lea    -0x8(%rdi),%rax
+(+0xed)ffffffff99de6edd:        48 8d 4a f8             lea    -0x8(%rdx),%rcx
+(+0xf1)ffffffff99de6ee1:        48 39 fb                cmp    %rdi,%rbx
+(+0xf4)ffffffff99de6ee4:        74 74                   je     0xffffffff99de6f5a
+(+0xf6)ffffffff99de6ee6:        31 d2                   xor    %edx,%edx
+(+0xf8)ffffffff99de6ee8:        eb 3a                   jmp    0xffffffff99de6f24
+(+0xfa)ffffffff99de6eea:        48 8b 38                mov    (%rax),%rdi
+(+0xfd)ffffffff99de6eed:        be 01 00 00 00          mov    $0x1,%esi
+(+0x102)ffffffff99de6ef2:       83 e7 40                and    $0x40,%edi
+(+0x105)ffffffff99de6ef5:       74 03                   je     0xffffffff99de6efa
+(+0x107)ffffffff99de6ef7:       8b 70 60                mov    0x60(%rax),%esi
+(+0x10a)ffffffff99de6efa:       48 63 c2                movslq %edx,%rax
+(+0x10d)ffffffff99de6efd:       48 01 f0                add    %rsi,%rax
+(+0x110)ffffffff99de6f00:       89 c2                   mov    %eax,%edx
+(+0x112)ffffffff99de6f02:       3d ff 01 00 00          cmp    $0x1ff,%eax
+(+0x117)ffffffff99de6f07:       0f 8f 6c 02 00 00       jg     0xffffffff99de7179
+(+0x11d)ffffffff99de6f0d:       48 8b 41 08             mov    0x8(%rcx),%rax
+(+0x121)ffffffff99de6f11:       48 8d 79 08             lea    0x8(%rcx),%rdi
+(+0x125)ffffffff99de6f15:       48 8d 70 f8             lea    -0x8(%rax),%rsi
+(+0x129)ffffffff99de6f19:       48 89 c8                mov    %rcx,%rax
+(+0x12c)ffffffff99de6f1c:       48 39 df                cmp    %rbx,%rdi
+(+0x12f)ffffffff99de6f1f:       74 2d                   je     0xffffffff99de6f4e
+(+0x131)ffffffff99de6f21:       48 89 f1                mov    %rsi,%rcx
+(+0x134)ffffffff99de6f24:       80 78 33 f4             cmpb   $0xf4,0x33(%rax)
+(+0x138)ffffffff99de6f28:       75 c0                   jne    0xffffffff99de6eea
+(+0x13a)ffffffff99de6f2a:       4c 8b 40 08             mov    0x8(%rax),%r8
+(+0x13e)ffffffff99de6f2e:       48 8b 70 10             mov    0x10(%rax),%rsi
+(+0x142)ffffffff99de6f32:       49 89 70 08             mov    %rsi,0x8(%r8)
+(+0x146)ffffffff99de6f36:       4c 89 06                mov    %r8,(%rsi)
+(+0x149)ffffffff99de6f39:       48 8b 75 a0             mov    -0x60(%rbp),%rsi
+(+0x14d)ffffffff99de6f3d:       48 89 7d a0             mov    %rdi,-0x60(%rbp)
+(+0x151)ffffffff99de6f41:       48 89 70 10             mov    %rsi,0x10(%rax)
+(+0x155)ffffffff99de6f45:       4c 89 60 08             mov    %r12,0x8(%rax)
+(+0x159)ffffffff99de6f49:       48 89 3e                mov    %rdi,(%rsi)
+(+0x15c)ffffffff99de6f4c:       eb bf                   jmp    0xffffffff99de6f0d
+(+0x15e)ffffffff99de6f4e:       81 fa ff 01 00 00       cmp    $0x1ff,%edx
+(+0x164)ffffffff99de6f54:       0f 8f 1c 02 00 00       jg     0xffffffff99de7176
+(+0x16a)ffffffff99de6f5a:       48 8b 03                mov    (%rbx),%rax
+(+0x16d)ffffffff99de6f5d:       48 39 c3                cmp    %rax,%rbx
+(+0x170)ffffffff99de6f60:       74 21                   je     0xffffffff99de6f83
+(+0x172)ffffffff99de6f62:       48 8b 0b                mov    (%rbx),%rcx
+(+0x175)ffffffff99de6f65:       48 8b 53 08             mov    0x8(%rbx),%rdx
+(+0x179)ffffffff99de6f69:       48 8b 45 88             mov    -0x78(%rbp),%rax
+(+0x17d)ffffffff99de6f6d:       4c 89 69 08             mov    %r13,0x8(%rcx)
+(+0x181)ffffffff99de6f71:       48 89 4d 88             mov    %rcx,-0x78(%rbp)
+(+0x185)ffffffff99de6f75:       48 89 02                mov    %rax,(%rdx)
+(+0x188)ffffffff99de6f78:       48 89 50 08             mov    %rdx,0x8(%rax)
+(+0x18c)ffffffff99de6f7c:       48 89 1b                mov    %rbx,(%rbx)
+(+0x18f)ffffffff99de6f7f:       48 89 5b 08             mov    %rbx,0x8(%rbx)
+(+0x193)ffffffff99de6f83:       8b 45 84                mov    -0x7c(%rbp),%eax
+(+0x196)ffffffff99de6f86:       85 c0                   test   %eax,%eax
+(+0x198)ffffffff99de6f88:       0f 85 ae 01 00 00       jne    0xffffffff99de713c
+(+0x19e)ffffffff99de6f8e:       48 8d 45 b8             lea    -0x48(%rbp),%rax
+--- (+0x1a2)ffffffff99de6f92:       6a 0a                   push   $0xa
+--- push $0x14
+(+0x1a4)ffffffff99de6f94:       45 31 c0                xor    %r8d,%r8d
+(+0x1a7)ffffffff99de6f97:       4c 89 ef                mov    %r13,%rdi
+(+0x1aa)ffffffff99de6f9a:       50                      push   %rax
+(+0x1ab)ffffffff99de6f9b:       41 57                   push   %r15
+(+0x1ad)ffffffff99de6f9d:       41 54                   push   %r12
+(+0x1af)ffffffff99de6f9f:       44 8b 4d 80             mov    -0x80(%rbp),%r9d
+(+0x1b3)ffffffff99de6fa3:       48 8b 8d 68 ff ff ff    mov    -0x98(%rbp),%rcx
+(+0x1ba)ffffffff99de6faa:       48 8b 95 70 ff ff ff    mov    -0x90(%rbp),%rdx
+(+0x1c1)ffffffff99de6fb1:       48 8b b5 78 ff ff ff    mov    -0x88(%rbp),%rsi
+(+0x1c8)ffffffff99de6fb8:       e8 73 e0 ff ff          call   0xffffffff99de5030
+(+0x1cd)ffffffff99de6fbd:       41 89 c3                mov    %eax,%r11d
+(+0x1d0)ffffffff99de6fc0:       48 83 c4 20             add    $0x20,%rsp
+(+0x1d4)ffffffff99de6fc4:       48 8b 45 88             mov    -0x78(%rbp),%rax
+(+0x1d8)ffffffff99de6fc8:       4c 39 e8                cmp    %r13,%rax
+(+0x1db)ffffffff99de6fcb:       74 22                   je     0xffffffff99de6fef
+(+0x1dd)ffffffff99de6fcd:       48 8b 45 90             mov    -0x70(%rbp),%rax
+(+0x1e1)ffffffff99de6fd1:       48 8b 55 a0             mov    -0x60(%rbp),%rdx
+(+0x1e5)ffffffff99de6fd5:       48 8b 4d 88             mov    -0x78(%rbp),%rcx
+(+0x1e9)ffffffff99de6fd9:       48 89 51 08             mov    %rdx,0x8(%rcx)
+(+0x1ed)ffffffff99de6fdd:       48 89 0a                mov    %rcx,(%rdx)
+(+0x1f0)ffffffff99de6fe0:       4c 89 20                mov    %r12,(%rax)
+(+0x1f3)ffffffff99de6fe3:       4c 89 6d 88             mov    %r13,-0x78(%rbp)
+(+0x1f7)ffffffff99de6fe7:       48 89 45 a0             mov    %rax,-0x60(%rbp)
+(+0x1fb)ffffffff99de6feb:       4c 89 6d 90             mov    %r13,-0x70(%rbp)
+(+0x1ff)ffffffff99de6fef:       45 85 db                test   %r11d,%r11d
+(+0x202)ffffffff99de6ff2:       0f 88 85 02 00 00       js     0xffffffff99de727d
+(+0x208)ffffffff99de6ff8:       48 8b 45 a8             mov    -0x58(%rbp),%rax
+(+0x20c)ffffffff99de6ffc:       4c 39 f8                cmp    %r15,%rax
+(+0x20f)ffffffff99de6fff:       74 6c                   je     0xffffffff99de706d
+(+0x211)ffffffff99de7001:       48 8d 45 b8             lea    -0x48(%rbp),%rax
+(+0x215)ffffffff99de7005:       44 89 9d 64 ff ff ff    mov    %r11d,-0x9c(%rbp)
+(+0x21c)ffffffff99de700c:       45 31 c0                xor    %r8d,%r8d
+(+0x21f)ffffffff99de700f:       4c 89 ff                mov    %r15,%rdi
+(+0x222)ffffffff99de7012:       6a 01                   push   $0x1
+(+0x224)ffffffff99de7014:       50                      push   %rax
+(+0x225)ffffffff99de7015:       6a 00                   push   $0x0
+(+0x227)ffffffff99de7017:       41 54                   push   %r12
+(+0x229)ffffffff99de7019:       44 8b 4d 80             mov    -0x80(%rbp),%r9d
+(+0x22d)ffffffff99de701d:       48 8b 8d 68 ff ff ff    mov    -0x98(%rbp),%rcx
+(+0x234)ffffffff99de7024:       48 8b 95 70 ff ff ff    mov    -0x90(%rbp),%rdx
+(+0x23b)ffffffff99de702b:       48 8b b5 78 ff ff ff    mov    -0x88(%rbp),%rsi
+(+0x242)ffffffff99de7032:       e8 f9 df ff ff          call   0xffffffff99de5030
+(+0x247)ffffffff99de7037:       48 8b 45 a8             mov    -0x58(%rbp),%rax
+(+0x24b)ffffffff99de703b:       44 8b 9d 64 ff ff ff    mov    -0x9c(%rbp),%r11d
+(+0x252)ffffffff99de7042:       48 83 c4 20             add    $0x20,%rsp
+(+0x256)ffffffff99de7046:       4c 39 f8                cmp    %r15,%rax
+(+0x259)ffffffff99de7049:       74 22                   je     0xffffffff99de706d
+(+0x25b)ffffffff99de704b:       48 8b 45 b0             mov    -0x50(%rbp),%rax
+(+0x25f)ffffffff99de704f:       48 8b 55 a0             mov    -0x60(%rbp),%rdx
+(+0x263)ffffffff99de7053:       48 8b 4d a8             mov    -0x58(%rbp),%rcx
+(+0x267)ffffffff99de7057:       48 89 51 08             mov    %rdx,0x8(%rcx)
+(+0x26b)ffffffff99de705b:       48 89 0a                mov    %rcx,(%rdx)
+(+0x26e)ffffffff99de705e:       4c 89 20                mov    %r12,(%rax)
+(+0x271)ffffffff99de7061:       4c 89 7d a8             mov    %r15,-0x58(%rbp)
+(+0x275)ffffffff99de7065:       48 89 45 a0             mov    %rax,-0x60(%rbp)
+(+0x279)ffffffff99de7069:       4c 89 7d b0             mov    %r15,-0x50(%rbp)
+(+0x27d)ffffffff99de706d:       48 8b 03                mov    (%rbx),%rax
+(+0x280)ffffffff99de7070:       45 01 de                add    %r11d,%r14d
+(+0x283)ffffffff99de7073:       48 39 c3                cmp    %rax,%rbx
+(+0x286)ffffffff99de7076:       0f 85 57 fe ff ff       jne    0xffffffff99de6ed3
+(+0x28c)ffffffff99de707c:       45 89 f3                mov    %r14d,%r11d
+(+0x28f)ffffffff99de707f:       48 8b 45 98             mov    -0x68(%rbp),%rax
+(+0x293)ffffffff99de7083:       4c 39 e0                cmp    %r12,%rax
+(+0x296)ffffffff99de7086:       74 19                   je     0xffffffff99de70a1
+(+0x298)ffffffff99de7088:       48 8b 03                mov    (%rbx),%rax
+(+0x29b)ffffffff99de708b:       48 8b 4d 98             mov    -0x68(%rbp),%rcx
+(+0x29f)ffffffff99de708f:       48 8b 55 a0             mov    -0x60(%rbp),%rdx
+(+0x2a3)ffffffff99de7093:       48 89 59 08             mov    %rbx,0x8(%rcx)
+(+0x2a7)ffffffff99de7097:       48 89 0b                mov    %rcx,(%rbx)
+(+0x2aa)ffffffff99de709a:       48 89 02                mov    %rax,(%rdx)
+(+0x2ad)ffffffff99de709d:       48 89 50 08             mov    %rdx,0x8(%rax)
+(+0x2b1)ffffffff99de70a1:       48 8b 03                mov    (%rbx),%rax
+(+0x2b4)ffffffff99de70a4:       48 39 c3                cmp    %rax,%rbx
+(+0x2b7)ffffffff99de70a7:       b8 00 00 00 00          mov    $0x0,%eax
+(+0x2bc)ffffffff99de70ac:       44 0f 44 d8             cmove  %eax,%r11d
+(+0x2c0)ffffffff99de70b0:       48 63 45 b8             movslq -0x48(%rbp),%rax
+(+0x2c4)ffffffff99de70b4:       65 48 01 05 e4 ac 24    add    %rax,%gs:0x6624ace4(%rip)        # 0x31da0
+(+0x2cb)ffffffff99de70bb:       66 
+(+0x2cc)ffffffff99de70bc:       48 63 45 bc             movslq -0x44(%rbp),%rax
+(+0x2d0)ffffffff99de70c0:       65 48 01 05 e0 ac 24    add    %rax,%gs:0x6624ace0(%rip)        # 0x31da8
+(+0x2d7)ffffffff99de70c7:       66 
+(+0x2d8)ffffffff99de70c8:       48 63 45 c0             movslq -0x40(%rbp),%rax
+(+0x2dc)ffffffff99de70cc:       65 48 01 05 dc ac 24    add    %rax,%gs:0x6624acdc(%rip)        # 0x31db0
+(+0x2e3)ffffffff99de70d3:       66 
+(+0x2e4)ffffffff99de70d4:       48 63 45 c4             movslq -0x3c(%rbp),%rax
+(+0x2e8)ffffffff99de70d8:       65 48 01 05 d8 ac 24    add    %rax,%gs:0x6624acd8(%rip)        # 0x31db8
+(+0x2ef)ffffffff99de70df:       66 
+(+0x2f0)ffffffff99de70e0:       48 63 45 c8             movslq -0x38(%rbp),%rax
+(+0x2f4)ffffffff99de70e4:       65 48 01 05 d4 ac 24    add    %rax,%gs:0x6624acd4(%rip)        # 0x31dc0
+(+0x2fb)ffffffff99de70eb:       66 
+(+0x2fc)ffffffff99de70ec:       0f 1f 44 00 00          nopl   0x0(%rax,%rax,1)
+(+0x301)ffffffff99de70f1:       48 8b 9d 58 ff ff ff    mov    -0xa8(%rbp),%rbx
+(+0x308)ffffffff99de70f8:       48 85 db                test   %rbx,%rbx
+(+0x30b)ffffffff99de70fb:       74 05                   je     0xffffffff99de7102
+(+0x30d)ffffffff99de70fd:       8b 45 b8                mov    -0x48(%rbp),%eax
+(+0x310)ffffffff99de7100:       89 03                   mov    %eax,(%rbx)
+(+0x312)ffffffff99de7102:       48 8b 45 d0             mov    -0x30(%rbp),%rax
+(+0x316)ffffffff99de7106:       65 48 2b 04 25 28 00    sub    %gs:0x28,%rax
+(+0x31d)ffffffff99de710d:       00 00 
+(+0x31f)ffffffff99de710f:       0f 85 9a 01 00 00       jne    0xffffffff99de72af
+(+0x325)ffffffff99de7115:       48 8d 65 d8             lea    -0x28(%rbp),%rsp
+(+0x329)ffffffff99de7119:       44 89 d8                mov    %r11d,%eax
+(+0x32c)ffffffff99de711c:       5b                      pop    %rbx
+(+0x32d)ffffffff99de711d:       41 5c                   pop    %r12
+(+0x32f)ffffffff99de711f:       41 5d                   pop    %r13
+(+0x331)ffffffff99de7121:       41 5e                   pop    %r14
+(+0x333)ffffffff99de7123:       41 5f                   pop    %r15
+(+0x335)ffffffff99de7125:       5d                      pop    %rbp
+(+0x336)ffffffff99de7126:       31 d2                   xor    %edx,%edx
+(+0x338)ffffffff99de7128:       31 c9                   xor    %ecx,%ecx
+(+0x33a)ffffffff99de712a:       31 f6                   xor    %esi,%esi
+(+0x33c)ffffffff99de712c:       31 ff                   xor    %edi,%edi
+(+0x33e)ffffffff99de712e:       45 31 c0                xor    %r8d,%r8d
+(+0x341)ffffffff99de7131:       45 31 c9                xor    %r9d,%r9d
+(+0x344)ffffffff99de7134:       45 31 db                xor    %r11d,%r11d
+(+0x347)ffffffff99de7137:       c3                      ret
+(+0x348)ffffffff99de7138:       cc                      int3
+(+0x349)ffffffff99de7139:       cc                      int3
+(+0x34a)ffffffff99de713a:       cc                      int3
+(+0x34b)ffffffff99de713b:       cc                      int3
+(+0x34c)ffffffff99de713c:       48 8d 45 b8             lea    -0x48(%rbp),%rax
+(+0x350)ffffffff99de7140:       4c 89 ef                mov    %r13,%rdi
+(+0x353)ffffffff99de7143:       50                      push   %rax
+(+0x354)ffffffff99de7144:       41 57                   push   %r15
+(+0x356)ffffffff99de7146:       41 54                   push   %r12
+(+0x358)ffffffff99de7148:       44 8b 4d 80             mov    -0x80(%rbp),%r9d
+(+0x35c)ffffffff99de714c:       44 8b 45 84             mov    -0x7c(%rbp),%r8d
+(+0x360)ffffffff99de7150:       48 8b 8d 68 ff ff ff    mov    -0x98(%rbp),%rcx
+(+0x367)ffffffff99de7157:       48 8b 95 70 ff ff ff    mov    -0x90(%rbp),%rdx
+(+0x36e)ffffffff99de715e:       48 8b b5 78 ff ff ff    mov    -0x88(%rbp),%rsi
+(+0x375)ffffffff99de7165:       e8 46 e9 ff ff          call   0xffffffff99de5ab0
+(+0x37a)ffffffff99de716a:       41 89 c3                mov    %eax,%r11d
+(+0x37d)ffffffff99de716d:       48 83 c4 18             add    $0x18,%rsp
+(+0x381)ffffffff99de7171:       e9 4e fe ff ff          jmp    0xffffffff99de6fc4
+(+0x386)ffffffff99de7176:       48 89 f1                mov    %rsi,%rcx
+(+0x389)ffffffff99de7179:       48 8b 03                mov    (%rbx),%rax
+(+0x38c)ffffffff99de717c:       48 8d 51 08             lea    0x8(%rcx),%rdx
+(+0x390)ffffffff99de7180:       48 39 c2                cmp    %rax,%rdx
+(+0x393)ffffffff99de7183:       74 1f                   je     0xffffffff99de71a4
+(+0x395)ffffffff99de7185:       4c 89 68 08             mov    %r13,0x8(%rax)
+(+0x399)ffffffff99de7189:       48 89 45 88             mov    %rax,-0x78(%rbp)
+(+0x39d)ffffffff99de718d:       48 8b 41 10             mov    0x10(%rcx),%rax
+(+0x3a1)ffffffff99de7191:       48 89 45 90             mov    %rax,-0x70(%rbp)
+(+0x3a5)ffffffff99de7195:       4c 89 28                mov    %r13,(%rax)
+(+0x3a8)ffffffff99de7198:       48 89 13                mov    %rdx,(%rbx)
+(+0x3ab)ffffffff99de719b:       48 89 59 10             mov    %rbx,0x10(%rcx)
+(+0x3af)ffffffff99de719f:       e9 df fd ff ff          jmp    0xffffffff99de6f83
+(+0x3b4)ffffffff99de71a4:       4c 89 6d 88             mov    %r13,-0x78(%rbp)
+(+0x3b8)ffffffff99de71a8:       4c 89 6d 90             mov    %r13,-0x70(%rbp)
+(+0x3bc)ffffffff99de71ac:       e9 d2 fd ff ff          jmp    0xffffffff99de6f83
+(+0x3c1)ffffffff99de71b1:       48 63 7d cc             movslq -0x34(%rbp),%rdi
+(+0x3c5)ffffffff99de71b5:       4c 63 4d c8             movslq -0x38(%rbp),%r9
+(+0x3c9)ffffffff99de71b9:       4c 63 45 c4             movslq -0x3c(%rbp),%r8
+(+0x3cd)ffffffff99de71bd:       48 63 4d c0             movslq -0x40(%rbp),%rcx
+(+0x3d1)ffffffff99de71c1:       48 63 55 bc             movslq -0x44(%rbp),%rdx
+(+0x3d5)ffffffff99de71c5:       48 63 75 b8             movslq -0x48(%rbp),%rsi
+(+0x3d9)ffffffff99de71c9:       65 8b 05 3c f0 24 66    mov    %gs:0x6624f03c(%rip),%eax        # 0x3620c
+(+0x3e0)ffffffff99de71d0:       48 0f a3 05 88 43 29    bt     %rax,0x2294388(%rip)        # 0xffffffff9c07b560
+(+0x3e7)ffffffff99de71d7:       02 
+(+0x3e8)ffffffff99de71d8:       0f 83 13 ff ff ff       jae    0xffffffff99de70f1
+(+0x3ee)ffffffff99de71de:       65 ff 05 23 f0 24 66    incl   %gs:0x6624f023(%rip)        # 0x36208
+(+0x3f5)ffffffff99de71e5:       48 8b 05 cc 8b 24 02    mov    0x2248bcc(%rip),%rax        # 0xffffffff9c02fdb8
+(+0x3fc)ffffffff99de71ec:       48 85 c0                test   %rax,%rax
+(+0x3ff)ffffffff99de71ef:       74 27                   je     0xffffffff99de7218
+(+0x401)ffffffff99de71f1:       8b 5d 80                mov    -0x80(%rbp),%ebx
+(+0x404)ffffffff99de71f4:       48 8b 40 08             mov    0x8(%rax),%rax
+(+0x408)ffffffff99de71f8:       44 89 9d 78 ff ff ff    mov    %r11d,-0x88(%rbp)
+(+0x40f)ffffffff99de71ff:       53                      push   %rbx
+(+0x410)ffffffff99de7200:       8b 5d 84                mov    -0x7c(%rbp),%ebx
+(+0x413)ffffffff99de7203:       53                      push   %rbx
+(+0x414)ffffffff99de7204:       57                      push   %rdi
+(+0x415)ffffffff99de7205:       48 89 c7                mov    %rax,%rdi
+(+0x418)ffffffff99de7208:       e8 a3 bc f8 ff          call   0xffffffff99d72eb0
+(+0x41d)ffffffff99de720d:       44 8b 9d 78 ff ff ff    mov    -0x88(%rbp),%r11d
+(+0x424)ffffffff99de7214:       48 83 c4 18             add    $0x18,%rsp
+(+0x428)ffffffff99de7218:       65 ff 0d e9 ef 24 66    decl   %gs:0x6624efe9(%rip)        # 0x36208
+(+0x42f)ffffffff99de721f:       0f 85 cc fe ff ff       jne    0xffffffff99de70f1
+(+0x435)ffffffff99de7225:       0f 1f 44 00 00          nopl   0x0(%rax,%rax,1)
+(+0x43a)ffffffff99de722a:       e9 c2 fe ff ff          jmp    0xffffffff99de70f1
+(+0x43f)ffffffff99de722f:       65 8b 05 d6 ef 24 66    mov    %gs:0x6624efd6(%rip),%eax        # 0x3620c
+(+0x446)ffffffff99de7236:       48 0f a3 05 22 43 29    bt     %rax,0x2294322(%rip)        # 0xffffffff9c07b560
+(+0x44d)ffffffff99de723d:       02 
+(+0x44e)ffffffff99de723e:       0f 83 3b fc ff ff       jae    0xffffffff99de6e7f
+(+0x454)ffffffff99de7244:       65 ff 05 bd ef 24 66    incl   %gs:0x6624efbd(%rip)        # 0x36208
+(+0x45b)ffffffff99de724b:       48 8b 05 06 8b 24 02    mov    0x2248b06(%rip),%rax        # 0xffffffff9c02fd58
+(+0x462)ffffffff99de7252:       48 85 c0                test   %rax,%rax
+(+0x465)ffffffff99de7255:       74 0f                   je     0xffffffff99de7266
+(+0x467)ffffffff99de7257:       48 8b 78 08             mov    0x8(%rax),%rdi
+(+0x46b)ffffffff99de725b:       8b 55 80                mov    -0x80(%rbp),%edx
+(+0x46e)ffffffff99de725e:       8b 75 84                mov    -0x7c(%rbp),%esi
+(+0x471)ffffffff99de7261:       e8 1a bd f8 ff          call   0xffffffff99d72f80
+(+0x476)ffffffff99de7266:       65 ff 0d 9b ef 24 66    decl   %gs:0x6624ef9b(%rip)        # 0x36208
+(+0x47d)ffffffff99de726d:       0f 85 0c fc ff ff       jne    0xffffffff99de6e7f
+(+0x483)ffffffff99de7273:       0f 1f 44 00 00          nopl   0x0(%rax,%rax,1)
+(+0x488)ffffffff99de7278:       e9 02 fc ff ff          jmp    0xffffffff99de6e7f
+(+0x48d)ffffffff99de727d:       48 8b 45 a8             mov    -0x58(%rbp),%rax
+(+0x491)ffffffff99de7281:       45 89 de                mov    %r11d,%r14d
+(+0x494)ffffffff99de7284:       4c 39 f8                cmp    %r15,%rax
+(+0x497)ffffffff99de7287:       0f 84 ef fd ff ff       je     0xffffffff99de707c
+(+0x49d)ffffffff99de728d:       48 8b 55 a0             mov    -0x60(%rbp),%rdx
+(+0x4a1)ffffffff99de7291:       48 8b 45 b0             mov    -0x50(%rbp),%rax
+(+0x4a5)ffffffff99de7295:       45 89 f3                mov    %r14d,%r11d
+(+0x4a8)ffffffff99de7298:       48 8b 4d a8             mov    -0x58(%rbp),%rcx
+(+0x4ac)ffffffff99de729c:       48 89 51 08             mov    %rdx,0x8(%rcx)
+(+0x4b0)ffffffff99de72a0:       48 89 0a                mov    %rcx,(%rdx)
+(+0x4b3)ffffffff99de72a3:       4c 89 20                mov    %r12,(%rax)
+(+0x4b6)ffffffff99de72a6:       48 89 45 a0             mov    %rax,-0x60(%rbp)
+(+0x4ba)ffffffff99de72aa:       e9 d0 fd ff ff          jmp    0xffffffff99de707f
+(+0x4bf)ffffffff99de72af:       e8 8c f2 d4 00          call   0xffffffff9ab36540
+(+0x4c4)ffffffff99de72b4:       66 66 2e 0f 1f 84 00    data16 cs nopw 0x0(%rax,%rax,1)
+(+0x4cb)ffffffff99de72bb:       00 00 00 00 
+(+0x4cf)ffffffff99de72bf:       90                      nop
+(+0x4d0)ffffffff99de72c0:       90                      nop
+(+0x4d1)ffffffff99de72c1:       90                      nop
+(+0x4d2)ffffffff99de72c2:       90                      nop
+(+0x4d3)ffffffff99de72c3:       90                      nop
+(+0x4d4)ffffffff99de72c4:       90                      nop
+(+0x4d5)ffffffff99de72c5:       90                      nop
+(+0x4d6)ffffffff99de72c6:       90                      nop
+(+0x4d7)ffffffff99de72c7:       90                      nop
+(+0x4d8)ffffffff99de72c8:       90                      nop
+(+0x4d9)ffffffff99de72c9:       90                      nop
+(+0x4da)ffffffff99de72ca:       90                      nop
+(+0x4db)ffffffff99de72cb:       90                      nop
+(+0x4dc)ffffffff99de72cc:       90                      nop
+(+0x4dd)ffffffff99de72cd:       90                      nop
+(+0x4de)ffffffff99de72ce:       90                      nop
+(+0x4df)ffffffff99de72cf:       90                      nop
+
+(base) yltang@node-0:~/sdb/Xkernel$ sudo python objdump.py --func migrate_pages_sync
+Symbol  : migrate_pages_sync  [vmlinux]
+Start   : 0xffffffff99de5ab0
+Stop    : 0xffffffff99de5cb0  (source: next text sym in same module)
+Syms    : /proc/kallsyms
+
+--- Disassembly ---
+(+0x0)ffffffff99de5ab0 <load1+0x7e5ab0>:
+(+0x0)ffffffff99de5ab0: 0f 1f 44 00 00          nopl   0x0(%rax,%rax,1)
+(+0x5)ffffffff99de5ab5: 55                      push   %rbp
+(+0x6)ffffffff99de5ab6: 48 89 e5                mov    %rsp,%rbp
+(+0x9)ffffffff99de5ab9: 41 57                   push   %r15
+(+0xb)ffffffff99de5abb: 41 56                   push   %r14
+(+0xd)ffffffff99de5abd: 48 8d 45 b8             lea    -0x48(%rbp),%rax
+(+0x11)ffffffff99de5ac1:        41 55                   push   %r13
+(+0x13)ffffffff99de5ac3:        41 54                   push   %r12
+(+0x15)ffffffff99de5ac5:        49 89 fc                mov    %rdi,%r12
+(+0x18)ffffffff99de5ac8:        53                      push   %rbx
+(+0x19)ffffffff99de5ac9:        48 8d 5d a8             lea    -0x58(%rbp),%rbx
+(+0x1d)ffffffff99de5acd:        48 83 ec 58             sub    $0x58,%rsp
+(+0x21)ffffffff99de5ad1:        48 8b 7d 18             mov    0x18(%rbp),%rdi
+(+0x25)ffffffff99de5ad5:        48 89 55 98             mov    %rdx,-0x68(%rbp)
+(+0x29)ffffffff99de5ad9:        48 89 4d 90             mov    %rcx,-0x70(%rbp)
+(+0x2d)ffffffff99de5add:        4c 8b 75 10             mov    0x10(%rbp),%r14
+(+0x31)ffffffff99de5ae1:        48 89 75 a0             mov    %rsi,-0x60(%rbp)
+(+0x35)ffffffff99de5ae5:        44 89 45 8c             mov    %r8d,-0x74(%rbp)
+(+0x39)ffffffff99de5ae9:        45 31 c0                xor    %r8d,%r8d
+(+0x3c)ffffffff99de5aec:        44 89 4d 88             mov    %r9d,-0x78(%rbp)
+(+0x40)ffffffff99de5af0:        48 89 7d 80             mov    %rdi,-0x80(%rbp)
+(+0x44)ffffffff99de5af4:        65 4c 8b 3c 25 28 00    mov    %gs:0x28,%r15
+(+0x4b)ffffffff99de5afb:        00 00 
+(+0x4d)ffffffff99de5afd:        4c 89 7d d0             mov    %r15,-0x30(%rbp)
+(+0x51)ffffffff99de5b01:        4c 8b 7d 20             mov    0x20(%rbp),%r15
+(+0x55)ffffffff99de5b05:        48 89 5d a8             mov    %rbx,-0x58(%rbp)
+(+0x59)ffffffff99de5b09:        48 89 5d b0             mov    %rbx,-0x50(%rbp)
+(+0x5d)ffffffff99de5b0d:        48 c7 45 b8 00 00 00    movq   $0x0,-0x48(%rbp)
+(+0x64)ffffffff99de5b14:        00 
+(+0x65)ffffffff99de5b15:        48 c7 45 c0 00 00 00    movq   $0x0,-0x40(%rbp)
+(+0x6c)ffffffff99de5b1c:        00 
+(+0x6d)ffffffff99de5b1d:        48 c7 45 c8 00 00 00    movq   $0x0,-0x38(%rbp)
+(+0x74)ffffffff99de5b24:        00 
+(+0x75)ffffffff99de5b25:        6a 03                   push   $0x3
+(+0x77)ffffffff99de5b27:        50                      push   %rax
+(+0x78)ffffffff99de5b28:        57                      push   %rdi
+(+0x79)ffffffff99de5b29:        4c 89 e7                mov    %r12,%rdi
+(+0x7c)ffffffff99de5b2c:        53                      push   %rbx
+(+0x7d)ffffffff99de5b2d:        e8 fe f4 ff ff          call   0xffffffff99de5030
+(+0x82)ffffffff99de5b32:        8b 55 b8                mov    -0x48(%rbp),%edx
+(+0x85)ffffffff99de5b35:        44 8b 6d cc             mov    -0x34(%rbp),%r13d
+(+0x89)ffffffff99de5b39:        41 01 17                add    %edx,(%r15)
+(+0x8c)ffffffff99de5b3c:        41 8b 4f 0c             mov    0xc(%r15),%ecx
+(+0x90)ffffffff99de5b40:        48 83 c4 20             add    $0x20,%rsp
+(+0x94)ffffffff99de5b44:        8b 55 c0                mov    -0x40(%rbp),%edx
+(+0x97)ffffffff99de5b47:        45 01 6f 14             add    %r13d,0x14(%r15)
+(+0x9b)ffffffff99de5b4b:        41 01 57 08             add    %edx,0x8(%r15)
+(+0x9f)ffffffff99de5b4f:        8b 55 c8                mov    -0x38(%rbp),%edx
+(+0xa2)ffffffff99de5b52:        41 01 57 10             add    %edx,0x10(%r15)
+(+0xa6)ffffffff99de5b56:        85 c0                   test   %eax,%eax
+(+0xa8)ffffffff99de5b58:        0f 88 fc 00 00 00       js     0xffffffff99de5c5a
+(+0xae)ffffffff99de5b5e:        48 8b 45 a8             mov    -0x58(%rbp),%rax
+(+0xb2)ffffffff99de5b62:        01 ca                   add    %ecx,%edx
+(+0xb4)ffffffff99de5b64:        41 89 57 0c             mov    %edx,0xc(%r15)
+(+0xb8)ffffffff99de5b68:        48 39 d8                cmp    %rbx,%rax
+(+0xbb)ffffffff99de5b6b:        0f 84 a9 00 00 00       je     0xffffffff99de5c1a
+(+0xc1)ffffffff99de5b71:        48 8b 45 b0             mov    -0x50(%rbp),%rax
+(+0xc5)ffffffff99de5b75:        49 8b 54 24 08          mov    0x8(%r12),%rdx
+(+0xca)ffffffff99de5b7a:        48 8b 4d a8             mov    -0x58(%rbp),%rcx
+(+0xce)ffffffff99de5b7e:        48 89 51 08             mov    %rdx,0x8(%rcx)
+(+0xd2)ffffffff99de5b82:        48 89 0a                mov    %rcx,(%rdx)
+(+0xd5)ffffffff99de5b85:        4c 89 20                mov    %r12,(%rax)
+(+0xd8)ffffffff99de5b88:        48 89 5d a8             mov    %rbx,-0x58(%rbp)
+(+0xdc)ffffffff99de5b8c:        49 89 44 24 08          mov    %rax,0x8(%r12)
+(+0xe1)ffffffff99de5b91:        48 89 5d b0             mov    %rbx,-0x50(%rbp)
+(+0xe5)ffffffff99de5b95:        e9 80 00 00 00          jmp    0xffffffff99de5c1a
+(+0xea)ffffffff99de5b9a:        49 8b 04 24             mov    (%r12),%rax
+(+0xee)ffffffff99de5b9e:        48 89 df                mov    %rbx,%rdi
+(+0xf1)ffffffff99de5ba1:        48 8b 08                mov    (%rax),%rcx
+(+0xf4)ffffffff99de5ba4:        48 8b 50 08             mov    0x8(%rax),%rdx
+(+0xf8)ffffffff99de5ba8:        48 89 51 08             mov    %rdx,0x8(%rcx)
+(+0xfc)ffffffff99de5bac:        48 89 0a                mov    %rcx,(%rdx)
+(+0xff)ffffffff99de5baf:        48 8b 55 a8             mov    -0x58(%rbp),%rdx
+(+0x103)ffffffff99de5bb3:       48 89 42 08             mov    %rax,0x8(%rdx)
+(+0x107)ffffffff99de5bb7:       48 89 10                mov    %rdx,(%rax)
+(+0x10a)ffffffff99de5bba:       48 89 58 08             mov    %rbx,0x8(%rax)
+(+0x10e)ffffffff99de5bbe:       48 89 45 a8             mov    %rax,-0x58(%rbp)
+--- (+0x112)ffffffff99de5bc2:       6a 07                   push   $0x7
+--- push $0x11
+(+0x114)ffffffff99de5bc4:       41 57                   push   %r15
+(+0x116)ffffffff99de5bc6:       ff 75 80                push   -0x80(%rbp)
+(+0x119)ffffffff99de5bc9:       41 56                   push   %r14
+(+0x11b)ffffffff99de5bcb:       48 8b 55 98             mov    -0x68(%rbp),%rdx
+(+0x11f)ffffffff99de5bcf:       44 8b 4d 88             mov    -0x78(%rbp),%r9d
+(+0x123)ffffffff99de5bd3:       44 8b 45 8c             mov    -0x74(%rbp),%r8d
+(+0x127)ffffffff99de5bd7:       48 8b 4d 90             mov    -0x70(%rbp),%rcx
+(+0x12b)ffffffff99de5bdb:       48 8b 75 a0             mov    -0x60(%rbp),%rsi
+(+0x12f)ffffffff99de5bdf:       e8 4c f4 ff ff          call   0xffffffff99de5030
+(+0x134)ffffffff99de5be4:       48 8b 55 a8             mov    -0x58(%rbp),%rdx
+(+0x138)ffffffff99de5be8:       48 83 c4 20             add    $0x20,%rsp
+(+0x13c)ffffffff99de5bec:       48 39 da                cmp    %rbx,%rdx
+(+0x13f)ffffffff99de5bef:       74 22                   je     0xffffffff99de5c13
+(+0x141)ffffffff99de5bf1:       48 8b 55 b0             mov    -0x50(%rbp),%rdx
+(+0x145)ffffffff99de5bf5:       49 8b 4e 08             mov    0x8(%r14),%rcx
+(+0x149)ffffffff99de5bf9:       48 8b 75 a8             mov    -0x58(%rbp),%rsi
+(+0x14d)ffffffff99de5bfd:       48 89 4e 08             mov    %rcx,0x8(%rsi)
+(+0x151)ffffffff99de5c01:       48 89 31                mov    %rsi,(%rcx)
+(+0x154)ffffffff99de5c04:       4c 89 32                mov    %r14,(%rdx)
+(+0x157)ffffffff99de5c07:       48 89 5d a8             mov    %rbx,-0x58(%rbp)
+(+0x15b)ffffffff99de5c0b:       49 89 56 08             mov    %rdx,0x8(%r14)
+(+0x15f)ffffffff99de5c0f:       48 89 5d b0             mov    %rbx,-0x50(%rbp)
+(+0x163)ffffffff99de5c13:       85 c0                   test   %eax,%eax
+(+0x165)ffffffff99de5c15:       78 13                   js     0xffffffff99de5c2a
+(+0x167)ffffffff99de5c17:       41 01 c5                add    %eax,%r13d
+(+0x16a)ffffffff99de5c1a:       49 8b 04 24             mov    (%r12),%rax
+(+0x16e)ffffffff99de5c1e:       49 39 c4                cmp    %rax,%r12
+(+0x171)ffffffff99de5c21:       0f 85 73 ff ff ff       jne    0xffffffff99de5b9a
+(+0x177)ffffffff99de5c27:       44 89 e8                mov    %r13d,%eax
+(+0x17a)ffffffff99de5c2a:       48 8b 55 d0             mov    -0x30(%rbp),%rdx
+(+0x17e)ffffffff99de5c2e:       65 48 2b 14 25 28 00    sub    %gs:0x28,%rdx
+(+0x185)ffffffff99de5c35:       00 00 
+(+0x187)ffffffff99de5c37:       75 54                   jne    0xffffffff99de5c8d
+(+0x189)ffffffff99de5c39:       48 8d 65 d8             lea    -0x28(%rbp),%rsp
+(+0x18d)ffffffff99de5c3d:       5b                      pop    %rbx
+(+0x18e)ffffffff99de5c3e:       41 5c                   pop    %r12
+(+0x190)ffffffff99de5c40:       41 5d                   pop    %r13
+(+0x192)ffffffff99de5c42:       41 5e                   pop    %r14
+(+0x194)ffffffff99de5c44:       41 5f                   pop    %r15
+(+0x196)ffffffff99de5c46:       5d                      pop    %rbp
+(+0x197)ffffffff99de5c47:       31 d2                   xor    %edx,%edx
+(+0x199)ffffffff99de5c49:       31 c9                   xor    %ecx,%ecx
+(+0x19b)ffffffff99de5c4b:       31 f6                   xor    %esi,%esi
+(+0x19d)ffffffff99de5c4d:       31 ff                   xor    %edi,%edi
+(+0x19f)ffffffff99de5c4f:       45 31 c0                xor    %r8d,%r8d
+(+0x1a2)ffffffff99de5c52:       45 31 c9                xor    %r9d,%r9d
+(+0x1a5)ffffffff99de5c55:       c3                      ret
+(+0x1a6)ffffffff99de5c56:       cc                      int3
+(+0x1a7)ffffffff99de5c57:       cc                      int3
+(+0x1a8)ffffffff99de5c58:       cc                      int3
+(+0x1a9)ffffffff99de5c59:       cc                      int3
+(+0x1aa)ffffffff99de5c5a:       8b 55 bc                mov    -0x44(%rbp),%edx
+(+0x1ad)ffffffff99de5c5d:       41 01 57 04             add    %edx,0x4(%r15)
+(+0x1b1)ffffffff99de5c61:       48 8b 55 a8             mov    -0x58(%rbp),%rdx
+(+0x1b5)ffffffff99de5c65:       03 4d c4                add    -0x3c(%rbp),%ecx
+(+0x1b8)ffffffff99de5c68:       41 89 4f 0c             mov    %ecx,0xc(%r15)
+(+0x1bc)ffffffff99de5c6c:       48 39 da                cmp    %rbx,%rdx
+(+0x1bf)ffffffff99de5c6f:       74 b9                   je     0xffffffff99de5c2a
+(+0x1c1)ffffffff99de5c71:       49 8b 4e 08             mov    0x8(%r14),%rcx
+(+0x1c5)ffffffff99de5c75:       48 8b 55 b0             mov    -0x50(%rbp),%rdx
+(+0x1c9)ffffffff99de5c79:       48 8b 75 a8             mov    -0x58(%rbp),%rsi
+(+0x1cd)ffffffff99de5c7d:       48 89 4e 08             mov    %rcx,0x8(%rsi)
+(+0x1d1)ffffffff99de5c81:       48 89 31                mov    %rsi,(%rcx)
+(+0x1d4)ffffffff99de5c84:       4c 89 32                mov    %r14,(%rdx)
+(+0x1d7)ffffffff99de5c87:       49 89 56 08             mov    %rdx,0x8(%r14)
+(+0x1db)ffffffff99de5c8b:       eb 9d                   jmp    0xffffffff99de5c2a
+(+0x1dd)ffffffff99de5c8d:       e8 ae 08 d5 00          call   0xffffffff9ab36540
+(+0x1e2)ffffffff99de5c92:       66 66 2e 0f 1f 84 00    data16 cs nopw 0x0(%rax,%rax,1)
+(+0x1e9)ffffffff99de5c99:       00 00 00 00 
+(+0x1ed)ffffffff99de5c9d:       0f 1f 00                nopl   (%rax)
+(+0x1f0)ffffffff99de5ca0:       90                      nop
+(+0x1f1)ffffffff99de5ca1:       90                      nop
+(+0x1f2)ffffffff99de5ca2:       90                      nop
+(+0x1f3)ffffffff99de5ca3:       90                      nop
+(+0x1f4)ffffffff99de5ca4:       90                      nop
+(+0x1f5)ffffffff99de5ca5:       90                      nop
+(+0x1f6)ffffffff99de5ca6:       90                      nop
+(+0x1f7)ffffffff99de5ca7:       90                      nop
+(+0x1f8)ffffffff99de5ca8:       90                      nop
+(+0x1f9)ffffffff99de5ca9:       90                      nop
+(+0x1fa)ffffffff99de5caa:       90                      nop
+(+0x1fb)ffffffff99de5cab:       90                      nop
+(+0x1fc)ffffffff99de5cac:       90                      nop
+(+0x1fd)ffffffff99de5cad:       90                      nop
+(+0x1fe)ffffffff99de5cae:       90                      nop
+(+0x1ff)ffffffff99de5caf:       90                      nop
+
+@@ -4517 +4517 @@
+-    3e70:      41 83 f8 09             cmp    $0x9,%r8d
++    3e70:      41 83 f8 13             cmp    $0x13,%r8d
+@@ -4676 +4676 @@
+-    413f:      6a 0a                   push   $0xa
++    413f:      6a 14                   push   $0x14
+@@ -4816 +4816 @@
+-    43ca:      6a 07                   push   $0x7
++    43ca:      6a 11                   push   $0x11
+
+Follow the setup and triggering instructions in the `nr_max_batched_migration` README.md

@@ -218,5 +218,6 @@ Syms    : /proc/kallsyms
 -    290f:      ba 10 00 00 00          mov    $0x10,%edx
 +    290f:      ba 20 00 00 00          mov    $0x20,%edx
 
-Follow the setup steps of README.md of `btrfs_max_bio_sectors`,
-and triggering steps of `btrfs_delayed_writeback`.
+
+Follow the setup instructions in the `btrfs_max_bio_sectors` README.md,
+and triggering instructions in the `btrfs_delayed_writeback` README.md.

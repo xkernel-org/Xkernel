@@ -1,4 +1,4 @@
-- First follow the README.md of `xfs_inode_batch` to create a `xfs` filesystem.
+- Follow the setup and triggering instructions in the `xfs_inode_batch` README.md
 
 - Before experiment:
 

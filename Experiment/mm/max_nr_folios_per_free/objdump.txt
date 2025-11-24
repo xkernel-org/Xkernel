@@ -107,4 +107,5 @@ Syms    : /proc/kallsyms
 - 181:  3d ff 01 00 00          cmp    $0x1ff,%eax
 + 181:  3d ff 00 00 00          cmp    $0xff,%eax
 
-auto trigger, or trigger it with the setup of `nr_max_batched_migration`
+auto trigger, 
+or follow the setup and triggering instructions in the `nr_max_batched_migration` README.md

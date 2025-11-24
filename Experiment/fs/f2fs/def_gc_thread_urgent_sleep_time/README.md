@@ -1,4 +1,4 @@
-- Before starting, follow the max_vmap_retries README.md to set things up, and then verify the mount options:
+- Follow the setup and triggering instructions in the `max_vmap_entries` README.md:
 
 ```bash
 $ findmnt /mnt/f2fs-test

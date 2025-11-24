@@ -313,4 +313,4 @@ Syms    : /proc/kallsyms
 10. Using addr2line to get all source-code lines for the instructions that have changed...
 -     7b4:      48 c1 e0 02             shl    $0x2,%rax        /users/yltang/sdb/linux-6.14/mm/shrinker.c:397
 
-trigger it with the setup of `shrink_batch`
+Follow the setup and triggering instructions in the `shrink_batch` README.md

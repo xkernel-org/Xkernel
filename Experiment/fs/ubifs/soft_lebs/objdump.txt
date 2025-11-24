@@ -407,4 +407,4 @@ Syms    : /proc/kallsyms
 -    1227:      41 83 fe 03             cmp    $0x3,%r14d
 +    1227:      41 83 fe 04             cmp    $0x4,%r14d
 
-Follow the setup and triggering steps of `hard_lebs`
+Follow the setup and triggering instructions in the `hard_lebs` README.md

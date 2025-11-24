@@ -1,4 +1,4 @@
-# Follow the setup steps of README.md of `btrfs_max_bio_sectors`,
+# Follow the setup instructions in the `btrfs_max_bio_sectors` README.md.
 
 MNT=/mnt/btrfs
 fallocate -l 2G "$MNT/bigfile"

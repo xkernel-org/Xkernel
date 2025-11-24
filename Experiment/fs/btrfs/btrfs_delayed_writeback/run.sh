@@ -1,4 +1,4 @@
-# Follow the setup steps of README.md of `btrfs_max_bio_sectors`
+# Follow the setup and triggering instructions in the `btrfs_max_bio_sectors` README.md
 
 git clone https://github.com/josefbacik/fs_mark.git
 cd fs_mark && make

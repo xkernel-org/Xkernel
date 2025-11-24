@@ -1,11 +1,11 @@
-# Tools & kernel modules
+- Tools & kernel modules:
 
 ```bash
 sudo apt-get update && sudo apt-get install -y btrfs-progs fio
 sudo modprobe btrfs
 ```
 
-# Image file and loop device
+- Image file and loop device:
 
 ```bash
 IMG=/users/yltang/sdb/btrfs.img
@@ -13,14 +13,14 @@ sudo mkdir -p /mnt/btrfs
 [ -s "$IMG" ] || truncate -s 8G "$IMG"                               
 ```
 
-# Bind and retrieve the actual loop device
+- Bind and retrieve the actual loop device:
 
 ```bash
 LOOP=$(sudo losetup -f --show "$IMG"); echo "LOOP=$LOOP"
 sudo losetup -a | grep "$LOOP"        
 ```
 
-# Check whether there's already a filesystem on the current loop device; if not, run mkfs.btrfs
+- Check whether there's already a filesystem on the current loop device; if not, run mkfs.btrfs:
 
 ```bash
 sudo blkid "$LOOP" || true
@@ -31,14 +31,14 @@ sudo file -s "$LOOP" | head -n 1
 sudo mkfs.btrfs -f -L testbtrfs "$LOOP"   
 ```
 
-# First, try mounting without any special options; once successful, remount with your desired options
+- First, try mounting without any special options; once successful, remount with your desired options:
 
 ```bash
 sudo mount -t btrfs "$LOOP" /mnt/btrfs
 findmnt /mnt/btrfs
 ```
 
-# After successful basic mount, remount according to your experiment requirements (disable data checksums and compression)
+- After successful basic mount, remount according to your experiment requirements (disable data checksums and compression):
 
 ```bash
 sudo umount /mnt/btrfs

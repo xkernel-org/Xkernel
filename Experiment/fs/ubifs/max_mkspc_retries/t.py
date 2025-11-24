@@ -1,4 +1,4 @@
-# Before starting, follow the setup steps in README.md of `hard_lebs`
+# Follow the setup and triggering instructions in the `hard_lebs` README.md
 
 import os, sys, errno
 p="/mnt/ubi"; os.chdir(p)
