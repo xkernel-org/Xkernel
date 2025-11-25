@@ -46,7 +46,7 @@ OCCURENCE=1
 # CONSTANT_VALUE=300
 # OCCURENCE=1
 
-source .all-cases-run-analysis.sh
+source dataset/ir-occurrence.sh
 
 OBJ_FILE=$(dirname $SOURCE_FILE)/$(basename $SOURCE_FILE .c).o
 BC_FILE=$(dirname $SOURCE_FILE)/$(basename $SOURCE_FILE .c).bc

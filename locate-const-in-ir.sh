@@ -26,7 +26,7 @@ SOURCE_FILE=net/sunrpc/cache.c
 DEFINITION_SOURCE_FILE=net/sunrpc/cache.c
 SED_PATTERN='s|\#define	DFR_MAX	300|#define	DFR_MAX	299|'
 
-source .all-cases-locate-ir.sh
+source dataset/source-occurrence-and-mutation.sh
 
 OBJ_FILE=$(dirname $SOURCE_FILE)/$(basename $SOURCE_FILE .c).o
 BC_FILE=$(dirname $SOURCE_FILE)/$(basename $SOURCE_FILE .c).bc

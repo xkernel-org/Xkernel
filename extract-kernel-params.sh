@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Script to extract parameters from .all-cases-run-analysis.sh
+# Script to extract parameters from dataset/ir-occurrence.sh
 # and save them with kernel-results/MACRO/IDX.input.txt structure
 
-INPUT_FILE=".all-cases-run-analysis.sh"
+INPUT_FILE="dataset/ir-occurrence.sh"
 OUTPUT_DIR="kernel-results"
 
 mkdir -p "$OUTPUT_DIR"
