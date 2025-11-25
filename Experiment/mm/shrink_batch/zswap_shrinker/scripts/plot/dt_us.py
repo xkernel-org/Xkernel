@@ -43,6 +43,7 @@ def process_files(directory):
             all_dt_us.append((p50, p90, p99))
             all_cpu_usage.append(np.mean(cpu_usage))
 
+    # Sort by integer value of label (assuming labels are numeric strings like '1', '10', '100')
     sorted_labels = sorted(labels, key=lambda x: int(x))
     sorted_dt_us = [all_dt_us[labels.index(label)] for label in sorted_labels]
     sorted_cpu_usage = [all_cpu_usage[labels.index(label)] for label in sorted_labels]
@@ -50,30 +51,37 @@ def process_files(directory):
     return sorted_dt_us, sorted_cpu_usage, sorted_labels
 
 def plot_graphs(all_dt_us, all_cpu_usage, labels):
-    fig, ax1 = plt.subplots(figsize=(10, 6))
+    fig, ax1 = plt.subplots(figsize=(12, 7))
 
     p50 = [x[0] for x in all_dt_us]
     p90 = [x[1] for x in all_dt_us]
     p99 = [x[2] for x in all_dt_us]
     
+    # Avoid log(0) — replace any non-positive value with a small positive number (e.g., 1)
+    p50 = [max(v, 1) for v in p50]
+    p90 = [max(v, 1) for v in p90]
+    p99 = [max(v, 1) for v in p99]
+
     width = 0.2
     x = np.arange(len(labels))
 
-    ax1.bar(x - width, p50, label='P50', alpha=0.6, color='b', width=width)
-    ax1.bar(x, p90, label='P90', alpha=0.6, color='g', width=width)
-    ax1.bar(x + width, p99, label='P99', alpha=0.6, color='r', width=width)
+    ax1.bar(x - width, p50, label='P50', alpha=0.7, color='b', width=width)
+    ax1.bar(x, p90, label='P90', alpha=0.7, color='g', width=width)
+    ax1.bar(x + width, p99, label='P99', alpha=0.7, color='r', width=width)
 
     ax1.set_xlabel('SHRINK_BATCH')
-    ax1.set_ylabel('dt_us')
+    # ax1.set_ylabel('dt_us (log scale)')
+    ax1.set_ylabel('Latency per Iteration (μs, log scale)')
     ax1.set_xticks(x)
     ax1.set_xticklabels(labels)
+    ax1.set_yscale('log') 
+    ax1.grid(True, which="major", axis='y', linestyle='--', linewidth=0.5)
     ax1.legend(loc='upper left')
 
     ax2 = ax1.twinx()
     ax2.plot(labels, all_cpu_usage, label='CPU Usage (%)', color='purple', marker='o')
     ax2.set_ylabel('CPU Usage (%)')
     ax2.set_ylim(0, 100)
-
     ax2.legend(loc='upper right')
 
     plt.xticks(rotation=45, ha='right')
@@ -82,7 +90,6 @@ def plot_graphs(all_dt_us, all_cpu_usage, labels):
     return fig
 
 def main():
-    # Change the directory path 
     directory = sys.argv[1] if len(sys.argv) > 1 else '/users/yltang/Xkernel/Experiment/shrink_batch/zswap_shrinker/res/dt_us'
 
     all_dt_us, all_cpu_usage, labels = process_files(directory)

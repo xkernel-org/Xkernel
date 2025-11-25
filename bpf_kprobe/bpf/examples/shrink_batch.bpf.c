@@ -25,6 +25,18 @@ int BPF_KPROBE(do_shrink_slab_0xb){
     // 32 -- 0x20
     // BPF_SET_EAX(ctx, 0x20);
 
+    // 28 -- 0x1c
+    // BPF_SET_EAX(ctx, 0x1c);
+
+    // 27 -- 0x1b
+    // BPF_SET_EAX(ctx, 0x1b);
+
+    // 26 -- 0x1a
+    // BPF_SET_EAX(ctx, 0x1a);
+
+    // 25 -- 0x19
+    // BPF_SET_EAX(ctx, 0x19);
+
     // 24 -- 0x18
     // BPF_SET_EAX(ctx, 0x18);
 
@@ -32,7 +44,7 @@ int BPF_KPROBE(do_shrink_slab_0xb){
     // BPF_SET_EAX(ctx, 0x17);
 
     // 22 -- 0x16
-    BPF_SET_EAX(ctx, 0x16);
+    // BPF_SET_EAX(ctx, 0x16);
 
     // 20 -- 0x14
     // BPF_SET_EAX(ctx, 0x14);
@@ -41,7 +53,7 @@ int BPF_KPROBE(do_shrink_slab_0xb){
     // BPF_SET_EAX(ctx, 0x12);
 
     // 16 -- 0x10
-    // BPF_SET_EAX(ctx, 0x10);
+    BPF_SET_EAX(ctx, 0x10);
 
     // 12 -- 0xc
     // BPF_SET_EAX(ctx, 0xc);
