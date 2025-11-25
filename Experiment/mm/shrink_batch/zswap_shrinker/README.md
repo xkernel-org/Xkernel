@@ -6,10 +6,9 @@
 ├── Makefile
 ├── README.md
 ├── res                         # You can delete existing test results and retest again       
-│   └── dt_us                   
-│       ├── 8.txt
-│       ├── ...
-│       └── 128.txt
+│   ├── 8.txt
+│   ├── ...
+│   └── 128.txt
 ├── scripts
 │   ├── bpftrace                
 │   │   ├── nr_to_scan.bt
