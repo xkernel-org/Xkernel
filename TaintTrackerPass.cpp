@@ -85,6 +85,39 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
         return false;
     }
 
+    // Helper to get which pointer parameter a value derives from (returns parameter, or nullptr if not from param)
+    Argument* getPointerParameterOrigin(Value *V) {
+        if (!V) return nullptr;
+
+        // Direct parameter check
+        if (Argument *Arg = dyn_cast<Argument>(V)) {
+            if (Arg->getType()->isPointerTy()) {
+                return Arg;
+            }
+        }
+
+        // If it's a load instruction, check what it loads from
+        if (LoadInst *LI = dyn_cast<LoadInst>(V)) {
+            Value *LoadPtr = LI->getPointerOperand();
+            // Check if we're loading from an alloca that stores a parameter
+            if (AllocaInst *AI = dyn_cast<AllocaInst>(LoadPtr)) {
+                // Look for stores to this alloca
+                for (User *U : AI->users()) {
+                    if (StoreInst *SI = dyn_cast<StoreInst>(U)) {
+                        Value *StoredVal = SI->getValueOperand();
+                        if (Argument *Arg = dyn_cast<Argument>(StoredVal)) {
+                            if (Arg->getType()->isPointerTy()) {
+                                return Arg;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return nullptr;
+    }
+
     // Helper to check if two GEP instructions access the same struct field pattern
     bool sameGEPPattern(GetElementPtrInst *GEP1, GetElementPtrInst *GEP2) {
         if (!GEP1 || !GEP2) return false;
@@ -128,6 +161,12 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
         DenseSet<Value*> TaintedPointers;  // Track pointers that hold tainted values
         DenseSet<Instruction*> KilledStores;  // Track stores that kill taint (overwrite with non-tainted value)
         DenseSet<Function*> FunctionsReturningTaint;  // Track functions that return tainted values
+
+        // Map from pointer to the instruction that caused it to be tainted (for execution order checking)
+        DenseMap<Value*, Instruction*> PointerTaintOrigin;
+
+        // Map from Function to set of parameter indices that receive tainted values via pointer stores
+        DenseMap<Function*, DenseSet<unsigned>> FunctionsTaintingPointerParams;
 
         // Map from function pointer (alloca or global) to set of possible function targets
         DenseMap<Value*, SmallVector<Function*, 4>> FunctionPointerTargets;
@@ -253,13 +292,24 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
                                             if (GlobalVariable *GV = dyn_cast<GlobalVariable>(Ptr)) {
                                                 errs() << "[GLOBAL] Constant stored to global variable: "
                                                        << GV->getName() << getDebugLoc(Store) << "\n";
-                                            } else if (derivesFromPointerParameter(Store->getPointerOperand())) {
+                                            } else if (Argument *PtrParam = getPointerParameterOrigin(Store->getPointerOperand())) {
                                                 errs() << "[POINTER PARAMETER] Constant stored through pointer parameter"
                                                        << getDebugLoc(Store) << "\n";
+                                                // Track this for upward interprocedural analysis
+                                                Function *ContainingFunc = Store->getFunction();
+                                                if (ContainingFunc) {
+                                                    unsigned ParamIdx = PtrParam->getArgNo();
+                                                    FunctionsTaintingPointerParams[ContainingFunc].insert(ParamIdx);
+                                                    if (Verbose) {
+                                                        errs() << "  Tracking: Function " << ContainingFunc->getName()
+                                                               << " taints parameter " << ParamIdx << "\n";
+                                                    }
+                                                }
                                             } else {
                                                 // Local variable - mark pointer as tainted for propagation
                                                 if (TaintedPointers.insert(Ptr).second) {
                                                     // Already printed STORE DESTINATION above
+                                                    PointerTaintOrigin[Ptr] = Store;
                                                 }
                                             }
                                         }
@@ -460,9 +510,19 @@ found:
                                            << GV->getName() << getDebugLoc(Store) << "\n";
                                     continue;
                                 }
-                                if (derivesFromPointerParameter(Store->getPointerOperand())) {
+                                if (Argument *PtrParam = getPointerParameterOrigin(Store->getPointerOperand())) {
                                     errs() << "  [POINTER PARAMETER] Tainted value stored through pointer parameter"
                                            << getDebugLoc(Store) << "\n";
+                                    // Track this for upward interprocedural analysis
+                                    Function *ContainingFunc = Store->getFunction();
+                                    if (ContainingFunc) {
+                                        unsigned ParamIdx = PtrParam->getArgNo();
+                                        FunctionsTaintingPointerParams[ContainingFunc].insert(ParamIdx);
+                                        if (Verbose) {
+                                            errs() << "    Tracking: Function " << ContainingFunc->getName()
+                                                   << " taints parameter " << ParamIdx << "\n";
+                                        }
+                                    }
                                     continue;
                                 }
                                 // For local variables, mark the pointer as tainted
@@ -470,6 +530,7 @@ found:
                                 if (TaintedPointers.insert(Ptr).second) {
                                     errs() << "  [STORE DESTINATION] Marking pointer as tainted: "
                                            << getValueName(Ptr) << getDebugLoc(Store) << "\n";
+                                    PointerTaintOrigin[Ptr] = Store;
                                     changed = true;  // We found a new tainted pointer
                                 }
                             }
@@ -570,6 +631,33 @@ found:
                                     continue;
                                 }
 
+                                // Check if this load happens before the instruction that tainted the pointer
+                                bool beforeTaintOrigin = false;
+                                if (PointerTaintOrigin.count(Ptr)) {
+                                    Instruction *TaintOrigin = PointerTaintOrigin[Ptr];
+                                    // Check if Load comes before TaintOrigin in the same basic block
+                                    if (Load->getParent() == TaintOrigin->getParent()) {
+                                        bool foundLoad = false;
+                                        for (Instruction &CheckI : *Load->getParent()) {
+                                            if (&CheckI == Load) {
+                                                foundLoad = true;
+                                            }
+                                            if (&CheckI == TaintOrigin && foundLoad) {
+                                                beforeTaintOrigin = true;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    // TODO: Handle cross-basic-block dominance properly
+                                    // For now, just handle same-BB case
+                                }
+
+                                if (beforeTaintOrigin) {
+                                    errs() << "[SKIP] Load before taint origin, not tainting: "
+                                           << getValueName(Load) << getDebugLoc(Load) << "\n";
+                                    continue;
+                                }
+
                                 if (TaintedValues.insert(Load).second) {
                                     errs() << "[LOAD] Tainted load from tracked pointer: "
                                            << getValueName(Load)
@@ -593,13 +681,13 @@ found:
         }
 
         // --- 5. Upward Interprocedural Taint Tracking (Callee -> Caller) ---
-        if (UpwardInterprocMode && !FunctionsReturningTaint.empty()) {
+        if (UpwardInterprocMode && (!FunctionsReturningTaint.empty() || !FunctionsTaintingPointerParams.empty())) {
             if (Verbose) errs() << "=== Upward Interprocedural Tracking ===\n";
 
-            // Find all call sites to functions that return tainted values
+            // 5a. Find all call sites to functions that return tainted values
             for (Function *TaintedFunc : FunctionsReturningTaint) {
                 if (Verbose) {
-                    errs() << "Finding callers of: " << TaintedFunc->getName() << "\n";
+                    errs() << "Finding callers of: " << TaintedFunc->getName() << " (returns taint)\n";
                 }
 
                 // Scan all functions for calls to TaintedFunc
@@ -617,6 +705,57 @@ found:
                                                << " returns tainted value" << getDebugLoc(Call) << "\n";
                                         TaintedValues.insert(Call);
                                         Worklist.push_back(Call);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 5b. Find all call sites to functions that taint pointer parameters
+            for (auto &Entry : FunctionsTaintingPointerParams) {
+                Function *TaintedFunc = Entry.first;
+                DenseSet<unsigned> &TaintedParams = Entry.second;
+
+                if (Verbose) {
+                    errs() << "Finding callers of: " << TaintedFunc->getName() << " (taints pointer params)\n";
+                }
+
+                // Scan all functions for calls to TaintedFunc
+                for (Function &F : M) {
+                    if (F.isDeclaration()) continue;
+
+                    for (BasicBlock &BB : F) {
+                        for (Instruction &I : BB) {
+                            if (CallInst *Call = dyn_cast<CallInst>(&I)) {
+                                Function *Callee = Call->getCalledFunction();
+                                if (Callee == TaintedFunc) {
+                                    // Check each tainted parameter
+                                    for (unsigned ParamIdx : TaintedParams) {
+                                        if (ParamIdx >= Call->arg_size()) continue;
+
+                                        Value *ActualArg = Call->getArgOperand(ParamIdx);
+
+                                        // Check if the argument is an address-of operation (alloca, GEP, etc.)
+                                        // We need to find what variable this points to
+                                        Value *PointedVar = nullptr;
+                                        if (AllocaInst *AI = dyn_cast<AllocaInst>(ActualArg)) {
+                                            PointedVar = AI;
+                                        } else if (GetElementPtrInst *GEP = dyn_cast<GetElementPtrInst>(ActualArg)) {
+                                            PointedVar = GEP->getPointerOperand()->stripPointerCasts();
+                                        }
+
+                                        if (PointedVar) {
+                                            if (TaintedPointers.insert(PointedVar).second) {
+                                                errs() << "[UPWARD-INTERPROC] Call to " << TaintedFunc->getName()
+                                                       << " taints argument " << ParamIdx << " (pointer parameter)"
+                                                       << getDebugLoc(Call) << "\n";
+                                                errs() << "  [STORE DESTINATION] Marking pointer as tainted via call: "
+                                                       << getValueName(PointedVar) << "\n";
+                                                PointerTaintOrigin[PointedVar] = Call;
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -656,7 +795,9 @@ found:
                         if (StoreInst *Store = dyn_cast<StoreInst>(UserInst)) {
                             if (Store->getValueOperand() == V) {
                                 Value *Ptr = Store->getPointerOperand()->stripPointerCasts();
-                                TaintedPointers.insert(Ptr);
+                                if (TaintedPointers.insert(Ptr).second) {
+                                    PointerTaintOrigin[Ptr] = Store;
+                                }
                             }
                         }
 
@@ -688,6 +829,31 @@ found:
                                     Value *LoadPtr = Load->getPointerOperand()->stripPointerCasts();
                                     if (LoadPtr == Ptr) {
                                         if (!TaintedValues.count(Load)) {
+                                            // Check if this load happens before the instruction that tainted the pointer
+                                            bool beforeTaintOrigin = false;
+                                            if (PointerTaintOrigin.count(Ptr)) {
+                                                Instruction *TaintOrigin = PointerTaintOrigin[Ptr];
+                                                // Check if Load comes before TaintOrigin in the same basic block
+                                                if (Load->getParent() == TaintOrigin->getParent()) {
+                                                    bool foundLoad = false;
+                                                    for (Instruction &CheckI : *Load->getParent()) {
+                                                        if (&CheckI == Load) {
+                                                            foundLoad = true;
+                                                        }
+                                                        if (&CheckI == TaintOrigin && foundLoad) {
+                                                            beforeTaintOrigin = true;
+                                                            break;
+                                                        }
+                                                    }
+                                                }
+                                            }
+
+                                            if (beforeTaintOrigin) {
+                                                errs() << "[SKIP] Load before taint origin, not tainting: "
+                                                       << getValueName(Load) << getDebugLoc(Load) << "\n";
+                                                continue;
+                                            }
+
                                             errs() << "[LOAD] Tainted load from tracked pointer: "
                                                    << getValueName(Load) << " (" << getValueName(Ptr) << ") "
                                                    << getDebugLoc(Load) << "\n";
