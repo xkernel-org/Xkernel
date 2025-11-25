@@ -4,6 +4,6 @@
 
 int foo(int *x) {
     int a = MACRO; // FINDME // NOT EXTERNAL
-    *x = a;        // FINDME // EXTERNAL
+    *x = a;        // FINDME // UPWARD-INTERPROC
     return 0;
 }

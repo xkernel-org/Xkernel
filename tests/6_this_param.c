@@ -3,6 +3,6 @@
 #define MACRO 3600
 
 int foo(int *x) {
-    *x = MACRO; // FINDME // EXTERNAL
+    *x = MACRO; // FINDME // UPWARD-INTERPROC
     return 0;
 }

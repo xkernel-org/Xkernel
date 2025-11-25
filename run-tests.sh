@@ -37,6 +37,8 @@ for file in tests/*.bc; do
         indirectcall=true
     elif [ $file == "tests/5_return_parent.bc" ]; then
         upward_interproc=true
+    elif [ $file == "tests/6_this_param_parent.bc" ]; then
+        upward_interproc=true
     fi
 
     if [ $file == "tests/7_locate_the_right_target.bc" ]; then

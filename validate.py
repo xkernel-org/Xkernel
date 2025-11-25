@@ -55,13 +55,13 @@ interproc_headers = [
 
 upward_interproc_headers = [
     'RETURN',
+    'POINTER PARAMETER',
 ]
 
 # Effect has propagated outside the current function, and we stop
 # tracking the effect for now.
 external_headers = [
     'GLOBAL',
-    'POINTER PARAMETER',
 ]
 
 assert set(propogation_headers) <= set(known_headers)
@@ -128,9 +128,17 @@ def check_dont_findme_in_results(
     source_location: str
 ) -> bool:
     with open(results_file_path, 'r') as f:
-        content = f.read()
+        lines = f.readlines()
 
-    return source_location not in content
+    # Check each line - if it contains the source location, make sure it's not in a SKIP or KILL message
+    for line in lines:
+        if source_location in line:
+            # If the line has SKIP or KILL, it's not actually in the data flow
+            if '[SKIP]' in line or '[KILL]' in line or '[NO USE]' in line:
+                continue
+            # Otherwise, this location IS in the data flow
+            return False
+    return True
 
 # "// INTERPROC" lines are present in the result data flow with proper headers
 def check_interproc_effects_in_results(
@@ -425,8 +433,7 @@ class TestTaintTrackerResults(unittest.TestCase):
         results_file_path = Path(__file__).parent / "tests" / f"{name}.results.txt"
         source_file_path = Path(__file__).parent / "tests" / f"{name}.c"
 
-        common_checks(self, False, False, True, results_file_path, source_file_path)
-        #                          FIXME
+        common_checks(self, False, True, False, results_file_path, source_file_path)
 
     def test_6_this_param_indirect(self):
 
@@ -434,8 +441,15 @@ class TestTaintTrackerResults(unittest.TestCase):
         results_file_path = Path(__file__).parent / "tests" / f"{name}.results.txt"
         source_file_path = Path(__file__).parent / "tests" / f"{name}.c"
 
-        common_checks(self, False, False, True, results_file_path, source_file_path)
-        #                          FIXME
+        common_checks(self, False, True, False, results_file_path, source_file_path)
+
+    def test_6_this_param_parent(self):
+
+        name = "6_this_param_parent"
+        results_file_path = Path(__file__).parent / "tests" / f"{name}.results.txt"
+        source_file_path = Path(__file__).parent / "tests" / f"{name}.c"
+
+        common_checks(self, False, True, False, results_file_path, source_file_path)
 
     def test_7_locate_the_right_target(self):
 
