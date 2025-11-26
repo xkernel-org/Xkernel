@@ -8,6 +8,7 @@
 *.cmd
 *.ko.unsigned
 *.o.d
+!plot/**/*.txt
 
 compile_commands.json
 .cache
