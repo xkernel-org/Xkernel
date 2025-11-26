@@ -2,12 +2,14 @@
 
 #include <bpf/bpf.h>
 #include <bpf/libbpf.h>
+#include <linux/bpf.h>
 #include <unistd.h>
 #include <cassert>
 #include <cstdlib>
 #include <string>
 #include <mutex>
 #include <string>
+#include <iostream>
 #include <fstream>
 #include <sstream>
 #include <vector>
@@ -78,9 +80,112 @@ int XKernelLoader::attach_kprobe(struct ::bpf_program *prog,
   return 0;
 }
 
+// ==========================================
+// 补全缺失的 BPF 指令宏 (兼容 C/C++)
+// ==========================================
+
+#ifndef BPF_MOV64_IMM
+#define BPF_MOV64_IMM(DST, IMM) \
+    ((struct bpf_insn) { \
+        .code  = BPF_ALU64 | BPF_MOV | BPF_K, \
+        .dst_reg = DST, \
+        .src_reg = 0, \
+        .off   = 0, \
+        .imm   = (int)(IMM) })
+#endif
+
+#ifndef BPF_MOV64_REG
+#define BPF_MOV64_REG(DST, SRC) \
+    ((struct bpf_insn) { \
+        .code  = BPF_ALU64 | BPF_MOV | BPF_X, \
+        .dst_reg = DST, \
+        .src_reg = SRC, \
+        .off   = 0, \
+        .imm   = 0 })
+#endif
+
+#ifndef BPF_ALU64_IMM
+#define BPF_ALU64_IMM(OP, DST, IMM) \
+    ((struct bpf_insn) { \
+        .code  = BPF_ALU64 | OP | BPF_K, \
+        .dst_reg = DST, \
+        .src_reg = 0, \
+        .off   = 0, \
+        .imm   = IMM })
+#endif
+
+#ifndef BPF_STX_MEM
+#define BPF_STX_MEM(SIZE, DST, SRC, OFF) \
+    ((struct bpf_insn) { \
+        .code  = BPF_STX | BPF_MEM | SIZE, \
+        .dst_reg = DST, \
+        .src_reg = SRC, \
+        .off   = OFF, \
+        .imm   = 0 })
+#endif
+
+#ifndef BPF_EMIT_CALL
+#define BPF_EMIT_CALL(FUNC) \
+    ((struct bpf_insn) { \
+        .code  = BPF_JMP | BPF_CALL, \
+        .dst_reg = 0, \
+        .src_reg = 0, \
+        .off   = 0, \
+        .imm   = (FUNC) })
+#endif
+
+#ifndef BPF_EXIT_INSN
+#define BPF_EXIT_INSN() \
+    ((struct bpf_insn) { \
+        .code  = BPF_JMP | BPF_EXIT, \
+        .dst_reg = 0, \
+        .src_reg = 0, \
+        .off   = 0, \
+        .imm   = 0 })
+#endif
+
+long run_bpf_ktime_printer(int repeat) {
+  // 构造字符串 "%llu\0" 的十六进制 (小端序): 0x00756C6C25
+  struct bpf_insn insns[] = {
+      BPF_EMIT_CALL(BPF_FUNC_ktime_get_ns),           // R0 = time
+      BPF_MOV64_REG(BPF_REG_3, BPF_REG_0),            // R3 = time (printk 参数3)
+      BPF_MOV64_IMM(BPF_REG_1, 0x00756C6C25ULL),      // R1 = "%llu\0"
+      BPF_STX_MEM(BPF_DW, BPF_REG_10, BPF_REG_1, -8), // 压栈 [FP-8]
+      BPF_MOV64_REG(BPF_REG_1, BPF_REG_10),           // R1 = FP
+      BPF_ALU64_IMM(BPF_ADD, BPF_REG_1, -8),          // R1 = FP-8 (fmt)
+      BPF_MOV64_IMM(BPF_REG_2, 5),                    // R2 = 5 (len)
+      BPF_EMIT_CALL(BPF_FUNC_trace_printk),           // call trace_printk
+      BPF_MOV64_IMM(BPF_REG_0, 0),                    // return 0
+      BPF_EXIT_INSN(),
+  };
+
+  // 1. 加载 (SOCKET_FILTER 模式加载最快且无副作用)
+  // 注意：C++ 中 sizeof(insns) 计算正常
+  int prog_fd = bpf_prog_load(BPF_PROG_TYPE_SOCKET_FILTER, NULL, "GPL",
+                              insns, sizeof(insns)/sizeof(struct bpf_insn), NULL);
+  if (prog_fd < 0) return -1;
+
+  // 2. 执行 (test_run_opts)
+  char data[14] = {0}; // 伪造 dummy 数据
+  struct bpf_test_run_opts opts = {}; // C++ 零初始化
+  opts.sz = sizeof(opts);
+  opts.data_in = data;
+  opts.data_size_in = sizeof(data);
+  opts.repeat = repeat; // 关键：内核内循环
+  
+  int err = bpf_prog_test_run_opts(prog_fd, &opts);
+  
+  // 保存 errno 并在关闭 fd 前处理，防止 close 覆盖 errno（虽然此处只关心 test_run 的返回值）
+  close(prog_fd); 
+
+  return err ? -1 : (long)(opts.duration / (repeat ? repeat : 1));
+}
+
 int XKernelLoader::attach_all_progs() {
   struct ::bpf_program *prog;
   int ret = 0;
+
+  run_bpf_ktime_printer(1);
 
   bpf_object__for_each_program(prog, obj_) {
     const char *bpf_func_name = bpf_program__name(prog);
@@ -124,6 +229,9 @@ int XKernelLoader::attach_all_progs() {
     if (ret)
       return ret;
   }
+
+  run_bpf_ktime_printer(1);
+
   return 0;
 }
 

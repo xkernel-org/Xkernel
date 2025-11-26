@@ -146,8 +146,8 @@ static __always_inline bool per_task_transition_done(struct pt_regs *ctx) {
     #ifdef MEASURE_TRANSITION_TIME
     if (data->transition_done && data->transition_end == 0) {
         data->transition_end = bpf_ktime_get_ns();
-        u64 transition_time = data->transition_end - data->transition_start;
-        LOG_CPU("task: [%s], transition time: %lld us", task->comm, transition_time / 1000);
+        u64 check_time = data->transition_end - data->transition_start;
+        LOG_CPU("task: [%s], ktime_ns: %lld, check time: %lld us", task->comm, data->transition_end, check_time / 1000);
     }
     #endif
     

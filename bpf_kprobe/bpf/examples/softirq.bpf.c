@@ -27,7 +27,7 @@ int BPF_KPROBE(handle_softirqs) {
 }
 
 // #define MAX_SOFTIRQ_TIME 2
-// #define NEW_MAX_SOFTIRQ_TIME 1
+// #define NEW_MAX_SOFTIRQ_TIME 10
 
 // SEC("kprobe/handle_softirqs+0x37")
 // int BPF_KPROBE(handle_softirqs_0x37) {

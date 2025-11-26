@@ -6,84 +6,60 @@
 
 #include "xkernel.bpf.h"
 
-struct {
-  __uint(type, BPF_MAP_TYPE_HASH);
-  __type(key, u64);
-  __type(value, u32);
-  __uint(max_entries, 1024);
-} sock_option_map SEC(".maps");
+#define container_of_const(ptr, type, member)				\
+	_Generic(ptr,							\
+		const typeof(*(ptr)) *: ((const type *)container_of(ptr, type, member)),\
+		default: ((type *)container_of(ptr, type, member))	\
+	)
 
-SEC(".bss")
-static u64 current_sock = 0;
-static u64 cnt = 0;
+#define tcp_sk(ptr) container_of_const(ptr, struct tcp_sock, inet_conn.icsk_inet.sk)
 
-static __always_inline bool run_xkernel() {
-  u32 *enable = bpf_map_lookup_elem(&sock_option_map, &current_sock);
-  if (!enable)
-    return false;
+#define inet_csk(ptr) container_of_const(ptr, struct inet_connection_sock, icsk_inet.sk)
 
-  if (*enable)
-    return true;
-  else
-    return false;
+static inline void *inet_csk_ca(const struct sock *sk)
+{
+	return (void *)inet_csk(sk)->icsk_ca_priv;
 }
 
-// 40ms RTT
-SEC("kprobe/hystart_update+0xcc")
-int BPF_KPROBE(hystart_update_0xcc) {
-  u64 eax = (u64)(ctx->ax) & 0xffffffff;
-  eax <<= 4;
-  bpf_probe_write_kernel(&ctx->ax, sizeof(eax), &eax);
+// 80ms RTT
+SEC("kprobe/hystart_update+0x164")
+int BPF_KPROBE(hystart_update_0x164, struct sock *sk) {
+  u64 eax = BPF_EAX(ctx);
 
-  return 0;
-}
+  struct bictcp *ca = inet_csk_ca(sk);
 
-SEC("kprobe/hystart_update+0xd9")
-int BPF_KPROBE(hystart_update_0xd9) {
-  u64 ecx = (u64)(ctx->cx) & 0xffffffff;
-  ecx <<= 1;
-  bpf_probe_write_kernel(&ctx->cx, sizeof(ecx), &ecx);
+  u32 curr_rtt;
 
+  if (bpf_probe_read_kernel(&curr_rtt, sizeof(curr_rtt), &ca->curr_rtt) < 0) {
+    bpf_printk("bpf_probe_read_kernel failed\n");
+    return 0;
+  }
+
+  if (curr_rtt >= 60000) { // 60ms
+    BPF_SET_EAX(ctx, eax << 2); // SF=1
+  } else {
+    // keep original value, SF=3
+  }
+
+  // BPF_SET_EAX(ctx, eax << 2); // SF=1
+  // BPF_SET_EAX(ctx, eax << 1); // SF=2
+  // SF=3
+  // BPF_SET_EAX(ctx, eax >> 1); // SF=4
   return 0;
 }
 
 // 80ms RTT
-// SEC("kprobe/hystart_update+0xcc")
-// int BPF_KPROBE(hystart_update_0xcc)
-// {
-//     if (!run_xkernel()) return 0;
-
-//     u64 eax = (u64)(ctx->ax) & 0xffffffff;
-//     eax <<= 3;
-//     bpf_probe_write_kernel(&ctx->ax, sizeof(eax), &eax);
-
-//     return 0;
+// SEC("kprobe/hystart_update+0x16e")
+// int BPF_KPROBE(hystart_update_0x16e) {
+//   u64 ecx = BPF_ECX(ctx);
+//   // BPF_SET_ECX(ctx, ecx << 1);
+//   return 0;
 // }
 
-// SEC("kprobe/hystart_update+0xd9")
-// int BPF_KPROBE(hystart_update_0xd9)
-// {
-//     if (!run_xkernel()) return 0;
-
-//     u64 ecx = (u64)(ctx->cx) & 0xffffffff;
-//     ecx <<= 1;
-//     bpf_probe_write_kernel(&ctx->cx, sizeof(ecx), &ecx);
-
-//     return 0;
-// }
-
-// SEC("kprobe/hystart_update")
-// int BPF_KPROBE(hystart_update, struct sock *sk, u32 delay)
-// {
-//     // Record current sock
-//     current_sock = (u64)sk;
-
-//     u32 *v = bpf_map_lookup_elem(&sock_option_map, &current_sock);
-//     if (!v) {
-//         u32 enable = ++cnt & 1;
-//         bpf_map_update_elem(&sock_option_map, &current_sock, &enable,
-//         BPF_ANY);
-//     }
-
-//     return 0;
+// // 80ms RTT 4000
+// SEC("kprobe/hystart_update+0x15f")
+// int BPF_KPROBE(hystart_update_0x15f) {
+//   u64 ecx = BPF_ECX(ctx);
+//   BPF_SET_ECX(ctx, ecx << 1);
+//   return 0;
 // }
