@@ -2003,3 +2003,4 @@ iter=1999 dmajflt=227 dt_us=25662
 1046368inputs+280outputs (729497major+5496670minor)pagefaults 0swaps
 
 total hits=317908
+trigger per second: 2271
