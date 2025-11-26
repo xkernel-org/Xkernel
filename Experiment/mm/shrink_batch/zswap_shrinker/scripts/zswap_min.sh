@@ -8,9 +8,9 @@ sudo systemd-run --unit=$UNIT \
     numactl --cpunodebind=0 --membind=0 \
     time ./bin/zswap_min --total-mb 4096 --block-pages 128 --reuse-dist 16 \
                --warmup-passes 3 --burst 12 --loops 2000 \
-               --file ./res/20251126-034820/8.txt
+               --file ./res/20251126-034820/128.txt
 
-sudo chown yltang:xkernel-PG0 ./res/20251126-034820/8.txt
+sudo chown yltang:xkernel-PG0 ./res/20251126-034820/128.txt
 
 # To check the status of this serviee:
 # sudo systemctl status $UNIT
