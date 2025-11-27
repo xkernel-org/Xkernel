@@ -34,6 +34,7 @@ WHOLE_KERNEL=true
 for INPUT_FILE in kernel-results/*/*.input.txt; do
     source $INPUT_FILE
     OUTPUT_FILE=$(dirname $INPUT_FILE)/$(basename $INPUT_FILE .input.txt).output.txt
+    TIME_STATISTICS=$(dirname $INPUT_FILE)/$(basename $INPUT_FILE .input.txt).time.txt
 
     OBJ_FILE=$(dirname $SOURCE_FILE)/$(basename $SOURCE_FILE .c).o
     BC_FILE=$(dirname $SOURCE_FILE)/$(basename $SOURCE_FILE .c).bc
@@ -54,7 +55,8 @@ for INPUT_FILE in kernel-results/*/*.input.txt; do
         INPUT_BC_FILE=$KERNEL_DIR/$BC_FILE
     fi
 
-    /usr/bin/time -v opt -load-pass-plugin=build/libTaintTrackerPass.so \
+    /usr/bin/time -o $TIME_STATISTICS -v \
+        opt -load-pass-plugin=build/libTaintTrackerPass.so \
         -passes="taint-tracker<$FUNCTION_NAME;$SOURCE_OP;$CONSTANT_VALUE;false;$INTERPROC;$INDIRECT_CALL;$UPWARD_INTERPROC;$OCCURENCE>" \
         -disable-output \
         $INPUT_BC_FILE |& tee $OUTPUT_FILE
