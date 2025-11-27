@@ -261,6 +261,14 @@ def common_checks(
             f"[{source_location}] not found in data flow"
         )
 
+    upward_interproc_line = extract_upward_interproc_line_number(source_file_path)
+    for line in upward_interproc_line:
+        source_location = f"{source_file_path.name}:{line}"
+        self.assertTrue(
+            check_upward_interproc_effects_in_results(results_file_path, source_location),
+            f"[{source_location}] not found in data flow"
+        )
+
     external_line = extract_external_line_number(source_file_path)
     for line in external_line:
         source_location = f"{source_file_path.name}:{line}"
