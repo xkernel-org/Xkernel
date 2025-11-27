@@ -5,6 +5,6 @@
 extern void external_func(int x);
 
 int foo() {
-    external_func(MACRO); // FINDME // INTERPROC
+    external_func(MACRO); // FINDME // INTERPROC  // FUNC=foo L=0
     return 0;
 }

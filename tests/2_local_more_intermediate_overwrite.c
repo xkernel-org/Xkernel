@@ -4,11 +4,11 @@
 
 int foo() {
     int a = 100;       // DONT FINDME
-    int b = MACRO;     // FINDME // NOT EXTERNAL
+    int b = MACRO;     // FINDME // NOT EXTERNAL // FUNC=foo L=0
     int c, d, e, f, g; // DONT FINDME
     int z;             // DONT FINDME
 
-    z = b;     // FINDME // NOT EXTERNAL
+    z = b;     // FINDME // NOT EXTERNAL // FUNC=foo L=0
 
     b = 42;    // DONT FINDME
 

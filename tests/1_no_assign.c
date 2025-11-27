@@ -4,7 +4,7 @@
 
 int foo() {
     int a = 100;      // DONT FINDME
-    if (a == MACRO)   // FINDME // NOT EXTERNAL
+    if (a == MACRO)   // FINDME // NOT EXTERNAL // FUNC=foo L=0
         return 1;     // DONT FINDME
     return 0;         // DONT FINDME
 }

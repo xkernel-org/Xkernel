@@ -9,7 +9,7 @@ struct S {
 };
 
 int foo(struct S *s) {
-    s->x = MACRO; // FINDME // UPWARD-INTERPROC
+    s->x = MACRO; // FINDME // UPWARD-INTERPROC // FUNC=foo L=0
     return 0;     // DONT FINDME
 }
 
@@ -17,12 +17,12 @@ int parent() {
     int a, b, c, d, e = 0; // DONT FINDME
     struct S s = {0, 0};   // DONT FINDME
 
-    foo(&s);               // FINDME // NOT EXTERNAL
+    foo(&s);               // FINDME // NOT EXTERNAL // FUNC=parent L=1
     b = c;                 // DONT FINDME
     // .x does not actually cause effect but let's over approximate
-    c = b + s.y;           // FINDME // NOT EXTERNAL
+    c = b + s.y;           // FINDME // NOT EXTERNAL // FUNC=parent L=1
     d = b + e;             // DONT FINDME
-    e = c + b;             // FINDME // NOT EXTERNAL
+    e = c + b;             // FINDME // NOT EXTERNAL // FUNC=parent L=1
 
     return 0;              // DONT FINDME
 }
