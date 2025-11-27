@@ -13,6 +13,6 @@ fi
 rm -rf tests/*.bc tests/*.ll tests/*.results.txt
 
 for file in tests/*.c; do
-    clang -g -c -emit-llvm $file -o ${file%.c}.bc
-    clang -g -S -emit-llvm $file -o ${file%.c}.ll
+    clang -g -c -emit-llvm -fdebug-prefix-map="$PWD"=. $file -o ${file%.c}.bc
+    clang -g -S -emit-llvm -fdebug-prefix-map="$PWD"=. $file -o ${file%.c}.ll
 done
