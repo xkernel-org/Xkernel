@@ -19,33 +19,24 @@ fi
 
 export LLVM_COMPILER=clang
 
-# Pass option: does it stop when seeing child(), or go into it recursively
+# Pass options:
 INTERPROC=true
-# Use vmlinux.bc as input (true, slow) or only the object file (false, fast)
-WHOLE_KERNEL=true
-# Track into indirect calls
+UPWARD_INTERPROC=true
 INDIRECT_CALL=true
 
-### 1. DFR_MAX (1,2)
+# Script options:
+WHOLE_KERNEL=true
 
-# %163 = icmp slt i32 %162, 301, !dbg !17437
-# Conclusion: [LOCAL]
+# Parameters for locating the start instruction in IR {{{
+    # Example of DFR_MAX:
+    SOURCE_FILE=net/sunrpc/cache.c
+    FUNCTION_NAME=cache_check_rcu
+    SOURCE_OP=icmp
+    CONSTANT_VALUE=301
+    OCCURENCE=1
+# }}}
 
-SOURCE_FILE=net/sunrpc/cache.c
-FUNCTION_NAME=cache_check_rcu
-SOURCE_OP=icmp
-CONSTANT_VALUE=301
-OCCURENCE=1
-
-# # %166 = icmp sgt i32 %165, 300, !dbg !17442
-# # Conclusion: [LOCAL]
-#
-# SOURCE_FILE=net/sunrpc/cache.c
-# FUNCTION_NAME=cache_check_rcu
-# SOURCE_OP=icmp
-# CONSTANT_VALUE=300
-# OCCURENCE=1
-
+# See all cases in the below file. Uncomment to run.
 source dataset/ir-occurrence.sh
 
 OBJ_FILE=$(dirname $SOURCE_FILE)/$(basename $SOURCE_FILE .c).o
@@ -53,13 +44,14 @@ BC_FILE=$(dirname $SOURCE_FILE)/$(basename $SOURCE_FILE .c).bc
 LL_FILE=$(dirname $SOURCE_FILE)/$(basename $SOURCE_FILE .c).ll
 VMLINUX_BC_FILE=$KERNEL_DIR/vmlinux.bc
 
-(
-    cd $KERNEL_DIR
+if [[ $WHOLE_KERNEL != true ]]; then
+    pushd $KERNEL_DIR
     rm -f $OBJ_FILE
     make CC=wllvm AR=llvm-ar HOSTCC=clang $OBJ_FILE
     extract-bc $OBJ_FILE -o $BC_FILE
     llvm-dis $BC_FILE -o $LL_FILE
-)
+    popd
+fi
 
 if [[ $WHOLE_KERNEL == true ]]; then
     INPUT_BC_FILE=$VMLINUX_BC_FILE
@@ -68,7 +60,7 @@ else
 fi
 
 opt -load-pass-plugin=build/libTaintTrackerPass.so \
-    -passes="taint-tracker<$FUNCTION_NAME;$SOURCE_OP;$CONSTANT_VALUE;false;$INTERPROC;$INDIRECT_CALL;$OCCURENCE>" \
+    -passes="taint-tracker<$FUNCTION_NAME;$SOURCE_OP;$CONSTANT_VALUE;false;$INTERPROC;$INDIRECT_CALL;$UPWARD_INTERPROC;$OCCURENCE>" \
     -disable-output \
     $INPUT_BC_FILE
 

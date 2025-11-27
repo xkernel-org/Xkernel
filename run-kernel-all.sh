@@ -31,7 +31,15 @@ INDIRECT_CALL=true
 # Script options:
 WHOLE_KERNEL=true
 
+TOTAL=$(ls kernel-results/*/*.input.txt | wc -l)
+CURRENT=0
+
+date_start=$(date +%Y-%m-%d\ %H:%M:%S)
+
 for INPUT_FILE in kernel-results/*/*.input.txt; do
+    CURRENT=$((CURRENT + 1))
+    echo "### [$CURRENT/$TOTAL] $INPUT_FILE, $date_start -> $(date +%Y-%m-%d\ %H:%M:%S)"
+
     source $INPUT_FILE
     OUTPUT_FILE=$(dirname $INPUT_FILE)/$(basename $INPUT_FILE .input.txt).output.txt
     TIME_STATISTICS=$(dirname $INPUT_FILE)/$(basename $INPUT_FILE .input.txt).time.txt
@@ -42,11 +50,12 @@ for INPUT_FILE in kernel-results/*/*.input.txt; do
     VMLINUX_BC_FILE=$KERNEL_DIR/vmlinux.bc
 
     if [[ $WHOLE_KERNEL != true ]]; then
-        cd $KERNEL_DIR
+        pushd $KERNEL_DIR
         rm -f $OBJ_FILE
         make CC=wllvm AR=llvm-ar HOSTCC=clang $OBJ_FILE
         extract-bc $OBJ_FILE -o $BC_FILE
         llvm-dis $BC_FILE -o $LL_FILE
+        popd
     fi
 
     if [[ $WHOLE_KERNEL == true ]]; then
