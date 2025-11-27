@@ -60,9 +60,17 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
     bool derivesFromPointerParameter(Value *V) {
         if (!V) return false;
 
+        // Strip pointer casts
+        V = V->stripPointerCasts();
+
         // Direct parameter check
         if (isa<Argument>(V) && V->getType()->isPointerTy()) {
             return true;
+        }
+
+        // If it's a GEP (struct field access), check the base pointer
+        if (GetElementPtrInst *GEP = dyn_cast<GetElementPtrInst>(V)) {
+            return derivesFromPointerParameter(GEP->getPointerOperand());
         }
 
         // If it's a load instruction, check what it loads from
@@ -89,11 +97,19 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
     Argument* getPointerParameterOrigin(Value *V) {
         if (!V) return nullptr;
 
+        // Strip pointer casts
+        V = V->stripPointerCasts();
+
         // Direct parameter check
         if (Argument *Arg = dyn_cast<Argument>(V)) {
             if (Arg->getType()->isPointerTy()) {
                 return Arg;
             }
+        }
+
+        // If it's a GEP (struct field access), check the base pointer
+        if (GetElementPtrInst *GEP = dyn_cast<GetElementPtrInst>(V)) {
+            return getPointerParameterOrigin(GEP->getPointerOperand());
         }
 
         // If it's a load instruction, check what it loads from
@@ -587,14 +603,32 @@ found:
                     for (Instruction &I : BB) {
                         if (LoadInst *Load = dyn_cast<LoadInst>(&I)) {
                             Value *Ptr = Load->getPointerOperand()->stripPointerCasts();
+
+                            // Check if this pointer itself needs to be scanned
+                            bool shouldScan = PointersToScan.count(Ptr);
+                            Value *TaintedBasePtr = nullptr;
+
+                            // Also check if this is a GEP from a tainted base pointer (struct field access)
+                            if (!shouldScan) {
+                                if (GetElementPtrInst *GEP = dyn_cast<GetElementPtrInst>(Ptr)) {
+                                    Value *BasePtr = GEP->getPointerOperand()->stripPointerCasts();
+                                    if (PointersToScan.count(BasePtr)) {
+                                        shouldScan = true;
+                                        TaintedBasePtr = BasePtr;
+                                    }
+                                }
+                            }
+
                             // Only process if this pointer needs to be scanned
-                            if (PointersToScan.count(Ptr)) {
+                            if (shouldScan) {
+                                // Use the base pointer for taint origin checking if this is a GEP
+                                Value *CheckPtr = TaintedBasePtr ? TaintedBasePtr : Ptr;
 
                                 // Check if this load happens after a kill store to the same pointer
                                 bool afterKill = false;
                                 for (Instruction *KillStore : KilledStores) {
                                     Value *KillPtr = cast<StoreInst>(KillStore)->getPointerOperand()->stripPointerCasts();
-                                    if (KillPtr == Ptr) {
+                                    if (KillPtr == CheckPtr) {
                                         // Check if Load comes after KillStore in the same basic block
                                         if (Load->getParent() == KillStore->getParent()) {
                                             // Simple ordering: iterate through BB and check which comes first
@@ -633,8 +667,8 @@ found:
 
                                 // Check if this load happens before the instruction that tainted the pointer
                                 bool beforeTaintOrigin = false;
-                                if (PointerTaintOrigin.count(Ptr)) {
-                                    Instruction *TaintOrigin = PointerTaintOrigin[Ptr];
+                                if (PointerTaintOrigin.count(CheckPtr)) {
+                                    Instruction *TaintOrigin = PointerTaintOrigin[CheckPtr];
                                     // Check if Load comes before TaintOrigin in the same basic block
                                     if (Load->getParent() == TaintOrigin->getParent()) {
                                         bool foundLoad = false;
@@ -659,12 +693,21 @@ found:
                                 }
 
                                 if (TaintedValues.insert(Load).second) {
-                                    errs() << "[LOAD] Tainted load from tracked pointer: "
-                                           << getValueName(Load)
-                                           << " ("
-                                           << *Ptr
-                                           << ") "
-                                           << getDebugLoc(Load) << "\n";
+                                    if (TaintedBasePtr) {
+                                        errs() << "[LOAD] Tainted load from tracked pointer (struct field): "
+                                               << getValueName(Load)
+                                               << " (base: "
+                                               << getValueName(TaintedBasePtr)
+                                               << ") "
+                                               << getDebugLoc(Load) << "\n";
+                                    } else {
+                                        errs() << "[LOAD] Tainted load from tracked pointer: "
+                                               << getValueName(Load)
+                                               << " ("
+                                               << *Ptr
+                                               << ") "
+                                               << getDebugLoc(Load) << "\n";
+                                    }
                                     Worklist.push_back(Load);
                                     changed = true;
                                 }
@@ -827,7 +870,21 @@ found:
                             for (Instruction &I : BB) {
                                 if (LoadInst *Load = dyn_cast<LoadInst>(&I)) {
                                     Value *LoadPtr = Load->getPointerOperand()->stripPointerCasts();
-                                    if (LoadPtr == Ptr) {
+                                    bool matchesPtr = (LoadPtr == Ptr);
+                                    bool isStructField = false;
+
+                                    // Also check if this is a GEP from the tainted base pointer (struct field access)
+                                    if (!matchesPtr) {
+                                        if (GetElementPtrInst *GEP = dyn_cast<GetElementPtrInst>(LoadPtr)) {
+                                            Value *BasePtr = GEP->getPointerOperand()->stripPointerCasts();
+                                            if (BasePtr == Ptr) {
+                                                matchesPtr = true;
+                                                isStructField = true;
+                                            }
+                                        }
+                                    }
+
+                                    if (matchesPtr) {
                                         if (!TaintedValues.count(Load)) {
                                             // Check if this load happens before the instruction that tainted the pointer
                                             bool beforeTaintOrigin = false;
@@ -854,9 +911,15 @@ found:
                                                 continue;
                                             }
 
-                                            errs() << "[LOAD] Tainted load from tracked pointer: "
-                                                   << getValueName(Load) << " (" << getValueName(Ptr) << ") "
-                                                   << getDebugLoc(Load) << "\n";
+                                            if (isStructField) {
+                                                errs() << "[LOAD] Tainted load from tracked pointer (struct field): "
+                                                       << getValueName(Load) << " (base: " << getValueName(Ptr) << ") "
+                                                       << getDebugLoc(Load) << "\n";
+                                            } else {
+                                                errs() << "[LOAD] Tainted load from tracked pointer: "
+                                                       << getValueName(Load) << " (" << getValueName(Ptr) << ") "
+                                                       << getDebugLoc(Load) << "\n";
+                                            }
                                             TaintedValues.insert(Load);
                                             Worklist.push_back(Load);
                                         }
