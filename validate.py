@@ -109,6 +109,16 @@ def extract_external_line_number(source_file_path: Path) -> List[int]:
 def extract_not_external_line_number(source_file_path: Path) -> List[int]:
     return extract_annotation_line_number(source_file_path, '// NOT EXTERNAL')
 
+def extract_func_name_and_level(source_file_path: Path) -> list[list[int, str, int]]:
+    res = []
+    with open(source_file_path, 'r') as f:
+        for lineno, line in enumerate(f, start=1):
+            if '// FUNC=' in line:
+                func_name = line.split('// FUNC=')[1].split(' L=')[0]
+                level = line.split(' L=')[1]
+                res.append([lineno, func_name, level])
+    return res
+
 # "// FINDME" lines are present in the result data flow with proper headers
 def check_findme_in_results(
     results_file_path: Path,
@@ -192,6 +202,21 @@ def check_not_external_effects_in_results(
         if re.search(f'\[{header}\][^\n]*{source_location}\:', content):
             return False
     return True
+
+# "// FUNC=xxx L=xxx" lines are present in the result data flow with
+# expected values
+def check_func_name_and_level_in_results(
+    results_file_path: Path,
+    source_location: str,
+    func_name: str,
+    level: int
+) -> bool:
+    with open(results_file_path, 'r') as f:
+        content = f.read()
+
+    if re.search(f'{source_location}\:[^\n]*FUNC={func_name} L={level}', content):
+        return True
+    return False
 
 # The overall conclusion on interproc effects
 def check_overall_interproc_effects(
@@ -283,6 +308,14 @@ def common_checks(
         self.assertTrue(
             check_not_external_effects_in_results(results_file_path, source_location),
             f"[{source_location}] found in data flow with non-external headers"
+        )
+
+    func_name_and_levels = extract_func_name_and_level(source_file_path)
+    for line, func_name, level in func_name_and_levels:
+        source_location = f"{source_file_path.name}:{line}"
+        self.assertTrue(
+            check_func_name_and_level_in_results(results_file_path, source_location, func_name, level),
+            f"[{source_location}] not found in data flow"
         )
 
     if expect_external:
