@@ -56,6 +56,65 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
         return os.str();
     }
 
+    // Helper to get the level of a value
+    int getLevel(Value *V, DenseMap<Value*, int> &ValueLevel, DenseMap<Function*, int> &FunctionLevel) {
+        if (!V) return 0;
+
+        if (ValueLevel.count(V)) {
+            return ValueLevel[V];
+        }
+
+        if (Instruction *I = dyn_cast<Instruction>(V)) {
+            Function *F = I->getFunction();
+            if (F && FunctionLevel.count(F)) {
+                return FunctionLevel[F];
+            }
+        } else if (Argument *Arg = dyn_cast<Argument>(V)) {
+            Function *F = Arg->getParent();
+            if (F && FunctionLevel.count(F)) {
+                return FunctionLevel[F];
+            }
+        }
+
+        return 0;
+    }
+
+    // Helper to get function name and level info for an instruction
+    std::string getFuncLevel(Instruction *I, DenseMap<Value*, int> &ValueLevel, DenseMap<Function*, int> &FunctionLevel) {
+        if (!I) return "";
+
+        Function *F = I->getFunction();
+        if (!F) return "";
+
+        int level = getLevel(I, ValueLevel, FunctionLevel);
+
+        std::string s;
+        raw_string_ostream os(s);
+        os << " FUNC=" << F->getName() << " L=" << level;
+        return os.str();
+    }
+
+    // Helper to get function name and level info for a value (works with Instruction or Argument)
+    std::string getFuncLevelForValue(Value *V, DenseMap<Value*, int> &ValueLevel, DenseMap<Function*, int> &FunctionLevel) {
+        if (!V) return "";
+
+        Function *F = nullptr;
+        if (Instruction *I = dyn_cast<Instruction>(V)) {
+            F = I->getFunction();
+        } else if (Argument *Arg = dyn_cast<Argument>(V)) {
+            F = Arg->getParent();
+        }
+
+        if (!F) return "";
+
+        int level = getLevel(V, ValueLevel, FunctionLevel);
+
+        std::string s;
+        raw_string_ostream os(s);
+        os << " FUNC=" << F->getName() << " L=" << level;
+        return os.str();
+    }
+
     // Helper to check if a value derives from a function parameter (pointer type)
     bool derivesFromPointerParameter(Value *V) {
         if (!V) return false;
@@ -181,6 +240,12 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
         // Map from pointer to the instruction that caused it to be tainted (for execution order checking)
         DenseMap<Value*, Instruction*> PointerTaintOrigin;
 
+        // Map from Value to its interprocedural level (0 = source function, +N = N levels up, -N = N levels down)
+        DenseMap<Value*, int> ValueLevel;
+
+        // Map from Function to its interprocedural level
+        DenseMap<Function*, int> FunctionLevel;
+
         // Map from Function to set of parameter indices that receive tainted values via pointer stores
         DenseMap<Function*, DenseSet<unsigned>> FunctionsTaintingPointerParams;
 
@@ -278,16 +343,24 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
                                     }
                                     if (TaintedValues.insert(&I).second) {
                                         Worklist.push_back(&I);
-                                        errs() << "[SOURCE] Tainting: " << I << getDebugLoc(&I) << "\n";
+
+                                        // Set the source function and instruction level to 0
+                                        Function *SourceFunc = I.getFunction();
+                                        if (SourceFunc) {
+                                            FunctionLevel[SourceFunc] = 0;
+                                        }
+                                        ValueLevel[&I] = 0;
+
+                                        errs() << "[SOURCE] Tainting: " << I << getDebugLoc(&I) << getFuncLevel(&I, ValueLevel, FunctionLevel) << "\n";
 
                                         // Mark as part of data flow since it's in the worklist
-                                        errs() << "[USE] Source instruction in data flow" << getDebugLoc(&I) << "\n";
+                                        errs() << "[USE] Source instruction in data flow" << getDebugLoc(&I) << getFuncLevel(&I, ValueLevel, FunctionLevel) << "\n";
 
                                         // If this is a return instruction with the constant, report it
                                         if (ReturnInst *Ret = dyn_cast<ReturnInst>(&I)) {
                                             if (Ret->getReturnValue() == CI) {
                                                 errs() << "[RETURN] Constant is returned directly"
-                                                       << getDebugLoc(Ret) << "\n";
+                                                       << getDebugLoc(Ret) << getFuncLevel(Ret, ValueLevel, FunctionLevel) << "\n";
                                                 // Track that this function returns a tainted value
                                                 Function *ContainingFunc = Ret->getFunction();
                                                 if (ContainingFunc) {
@@ -302,15 +375,15 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
 
                                             // Always mark as store destination for data flow tracking
                                             errs() << "[STORE DESTINATION] Storing constant to: "
-                                                   << getValueName(Ptr) << getDebugLoc(Store) << "\n";
+                                                   << getValueName(Ptr) << getDebugLoc(Store) << getFuncLevel(Store, ValueLevel, FunctionLevel) << "\n";
 
                                             // Check if storing to a global variable or pointer parameter (external effects)
                                             if (GlobalVariable *GV = dyn_cast<GlobalVariable>(Ptr)) {
                                                 errs() << "[GLOBAL] Constant stored to global variable: "
-                                                       << GV->getName() << getDebugLoc(Store) << "\n";
+                                                       << GV->getName() << getDebugLoc(Store) << getFuncLevel(Store, ValueLevel, FunctionLevel) << "\n";
                                             } else if (Argument *PtrParam = getPointerParameterOrigin(Store->getPointerOperand())) {
                                                 errs() << "[POINTER PARAMETER] Constant stored through pointer parameter"
-                                                       << getDebugLoc(Store) << "\n";
+                                                       << getDebugLoc(Store) << getFuncLevel(Store, ValueLevel, FunctionLevel) << "\n";
                                                 // Track this for upward interprocedural analysis
                                                 Function *ContainingFunc = Store->getFunction();
                                                 if (ContainingFunc) {
@@ -340,17 +413,23 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
                                                         // Report the call
                                                         errs() << "[CHILD FUNCTION] Constant used in call to "
                                                                << Callee->getName() << " at argument " << ArgIdx
-                                                               << getDebugLoc(Call) << "\n";
+                                                               << getDebugLoc(Call) << getFuncLevel(Call, ValueLevel, FunctionLevel) << "\n";
 
                                                         // In interproc mode, propagate taint to the parameter
                                                         if (InterprocMode && !Callee->isDeclaration()) {
                                                             if (ArgIdx < Callee->arg_size()) {
                                                                 Argument *Param = Callee->getArg(ArgIdx);
                                                                 if (TaintedValues.insert(Param).second) {
+                                                                    // Downward interprocedural: level -= 1
+                                                                    int currentLevel = getLevel(&I, ValueLevel, FunctionLevel);
+                                                                    int newLevel = currentLevel - 1;
+                                                                    ValueLevel[Param] = newLevel;
+                                                                    FunctionLevel[Callee] = newLevel;
+
                                                                     Worklist.push_back(Param);
                                                                     errs() << "[INTERPROC] Propagating taint to parameter in "
                                                                            << Callee->getName() << ": "
-                                                                           << getValueName(Param) << getDebugLoc(Call) << "\n";
+                                                                           << getValueName(Param) << getDebugLoc(Call) << getFuncLevelForValue(Param, ValueLevel, FunctionLevel) << "\n";
                                                                 }
                                                             }
                                                         }
@@ -420,20 +499,32 @@ found:
                                 Function *Callee = Call->getCalledFunction();
                                 if (Callee && !Callee->isDeclaration()) {
                                     // Direct call to a defined function
+                                    // Set level for Call instruction based on V
+                                    if (!ValueLevel.count(Call)) {
+                                        int currentLevel = getLevel(V, ValueLevel, FunctionLevel);
+                                        ValueLevel[Call] = currentLevel;
+                                    }
+
                                     // Report the call
                                     errs() << "  [CHILD FUNCTION] Tainted value used in call to "
                                            << Callee->getName() << " at argument " << argIdx
-                                           << getDebugLoc(Call) << "\n";
+                                           << getDebugLoc(Call) << getFuncLevel(Call, ValueLevel, FunctionLevel) << "\n";
 
                                     // In interproc mode, propagate taint to the parameter
                                     if (InterprocMode) {
                                         if (argIdx < Callee->arg_size()) {
                                             Argument *Param = Callee->getArg(argIdx);
                                             if (TaintedValues.insert(Param).second) {
+                                                // Downward interprocedural: level -= 1
+                                                int currentLevel = getLevel(V, ValueLevel, FunctionLevel);
+                                                int newLevel = currentLevel - 1;
+                                                ValueLevel[Param] = newLevel;
+                                                FunctionLevel[Callee] = newLevel;
+
                                                 Worklist.push_back(Param);
                                                 errs() << "  [INTERPROC] Propagating taint to parameter in "
                                                        << Callee->getName() << ": "
-                                                       << getValueName(Param) << getDebugLoc(Call) << "\n";
+                                                       << getValueName(Param) << getDebugLoc(Call) << getFuncLevelForValue(Param, ValueLevel, FunctionLevel) << "\n";
                                                 changed = true;
                                             }
                                         }
@@ -482,10 +573,16 @@ found:
                                             if (argIdx < Target->arg_size()) {
                                                 Argument *Param = Target->getArg(argIdx);
                                                 if (TaintedValues.insert(Param).second) {
+                                                    // Downward interprocedural: level -= 1
+                                                    int currentLevel = getLevel(V, ValueLevel, FunctionLevel);
+                                                    int newLevel = currentLevel - 1;
+                                                    ValueLevel[Param] = newLevel;
+                                                    FunctionLevel[Target] = newLevel;
+
                                                     Worklist.push_back(Param);
                                                     errs() << "    [INTERPROC] Propagating taint to parameter in "
                                                            << Target->getName() << ": "
-                                                           << getValueName(Param) << getDebugLoc(Call) << "\n";
+                                                           << getValueName(Param) << getDebugLoc(Call) << getFuncLevelForValue(Param, ValueLevel, FunctionLevel) << "\n";
                                                     changed = true;
                                                 }
                                             }
@@ -554,8 +651,12 @@ found:
 
                         // --- Propagate Taint ---
                         if (TaintedValues.insert(UserInst).second) {
+                            // Propagate level from V to UserInst
+                            int currentLevel = getLevel(V, ValueLevel, FunctionLevel);
+                            ValueLevel[UserInst] = currentLevel;
+
                             Worklist.push_back(UserInst);
-                            errs() << "  [USE] Taint flows to: " << getValueName(UserInst) << getDebugLoc(UserInst) << "\n";
+                            errs() << "  [USE] Taint flows to: " << getValueName(UserInst) << getDebugLoc(UserInst) << getFuncLevel(UserInst, ValueLevel, FunctionLevel) << "\n";
                         }
                     }
                 }
@@ -660,8 +761,15 @@ found:
                                 }
 
                                 if (afterKill) {
+                                    // Set level for logging
+                                    Function *LoadFunc = Load->getFunction();
+                                    if (LoadFunc && !ValueLevel.count(Load)) {
+                                        if (FunctionLevel.count(LoadFunc)) {
+                                            ValueLevel[Load] = FunctionLevel[LoadFunc];
+                                        }
+                                    }
                                     errs() << "[SKIP] Load after kill, not tainting: "
-                                           << getValueName(Load) << /* getDebugLoc(Load) << */ "\n";
+                                           << getValueName(Load) << getDebugLoc(Load) << getFuncLevel(Load, ValueLevel, FunctionLevel) << "\n";
                                     continue;
                                 }
 
@@ -687,26 +795,41 @@ found:
                                 }
 
                                 if (beforeTaintOrigin) {
+                                    // Set level for logging
+                                    Function *LoadFunc = Load->getFunction();
+                                    if (LoadFunc && !ValueLevel.count(Load)) {
+                                        if (FunctionLevel.count(LoadFunc)) {
+                                            ValueLevel[Load] = FunctionLevel[LoadFunc];
+                                        }
+                                    }
                                     errs() << "[SKIP] Load before taint origin, not tainting: "
-                                           << getValueName(Load) << getDebugLoc(Load) << "\n";
+                                           << getValueName(Load) << getDebugLoc(Load) << getFuncLevel(Load, ValueLevel, FunctionLevel) << "\n";
                                     continue;
                                 }
 
                                 if (TaintedValues.insert(Load).second) {
+                                    // Set level based on containing function
+                                    Function *LoadFunc = Load->getFunction();
+                                    if (LoadFunc && !ValueLevel.count(Load)) {
+                                        if (FunctionLevel.count(LoadFunc)) {
+                                            ValueLevel[Load] = FunctionLevel[LoadFunc];
+                                        }
+                                    }
+
                                     if (TaintedBasePtr) {
                                         errs() << "[LOAD] Tainted load from tracked pointer (struct field): "
                                                << getValueName(Load)
                                                << " (base: "
                                                << getValueName(TaintedBasePtr)
                                                << ") "
-                                               << getDebugLoc(Load) << "\n";
+                                               << getDebugLoc(Load) << getFuncLevel(Load, ValueLevel, FunctionLevel) << "\n";
                                     } else {
                                         errs() << "[LOAD] Tainted load from tracked pointer: "
                                                << getValueName(Load)
                                                << " ("
                                                << *Ptr
                                                << ") "
-                                               << getDebugLoc(Load) << "\n";
+                                               << getDebugLoc(Load) << getFuncLevel(Load, ValueLevel, FunctionLevel) << "\n";
                                     }
                                     Worklist.push_back(Load);
                                     changed = true;
@@ -744,8 +867,17 @@ found:
                                 if (Callee == TaintedFunc) {
                                     // This call site returns a tainted value
                                     if (!TaintedValues.count(Call)) {
+                                        // Upward interprocedural: level += 1
+                                        int calleeLevel = FunctionLevel.count(TaintedFunc) ? FunctionLevel[TaintedFunc] : 0;
+                                        int newLevel = calleeLevel + 1;
+                                        ValueLevel[Call] = newLevel;
+                                        Function *CallerFunc = Call->getFunction();
+                                        if (CallerFunc && !FunctionLevel.count(CallerFunc)) {
+                                            FunctionLevel[CallerFunc] = newLevel;
+                                        }
+
                                         errs() << "[UPWARD-INTERPROC] Call to " << TaintedFunc->getName()
-                                               << " returns tainted value" << getDebugLoc(Call) << "\n";
+                                               << " returns tainted value" << getDebugLoc(Call) << getFuncLevel(Call, ValueLevel, FunctionLevel) << "\n";
                                         TaintedValues.insert(Call);
                                         Worklist.push_back(Call);
                                     }
@@ -791,11 +923,19 @@ found:
 
                                         if (PointedVar) {
                                             if (TaintedPointers.insert(PointedVar).second) {
+                                                // Upward interprocedural: level += 1
+                                                int calleeLevel = FunctionLevel.count(TaintedFunc) ? FunctionLevel[TaintedFunc] : 0;
+                                                int newLevel = calleeLevel + 1;
+                                                Function *CallerFunc = Call->getFunction();
+                                                if (CallerFunc && !FunctionLevel.count(CallerFunc)) {
+                                                    FunctionLevel[CallerFunc] = newLevel;
+                                                }
+
                                                 errs() << "[UPWARD-INTERPROC] Call to " << TaintedFunc->getName()
                                                        << " taints argument " << ParamIdx << " (pointer parameter)"
-                                                       << getDebugLoc(Call) << "\n";
+                                                       << getDebugLoc(Call) << getFuncLevel(Call, ValueLevel, FunctionLevel) << "\n";
                                                 errs() << "  [STORE DESTINATION] Marking pointer as tainted via call: "
-                                                       << getValueName(PointedVar) << "\n";
+                                                       << getValueName(PointedVar) << getFuncLevel(Call, ValueLevel, FunctionLevel) << "\n";
                                                 PointerTaintOrigin[PointedVar] = Call;
                                             }
                                         }
@@ -831,7 +971,12 @@ found:
                         }
 
                         hasUses = true;
-                        errs() << "  [USE] Taint flows to: " << getValueName(UserInst) << getDebugLoc(UserInst) << "\n";
+
+                        // Propagate level from V to UserInst
+                        int currentLevel = getLevel(V, ValueLevel, FunctionLevel);
+                        ValueLevel[UserInst] = currentLevel;
+
+                        errs() << "  [USE] Taint flows to: " << getValueName(UserInst) << getDebugLoc(UserInst) << getFuncLevel(UserInst, ValueLevel, FunctionLevel) << "\n";
                         TaintedValues.insert(UserInst);
 
                         // Handle store instructions - mark destination pointer as tainted
@@ -906,19 +1051,34 @@ found:
                                             }
 
                                             if (beforeTaintOrigin) {
+                                                // Set level for logging
+                                                Function *LoadFunc = Load->getFunction();
+                                                if (LoadFunc && !ValueLevel.count(Load)) {
+                                                    if (FunctionLevel.count(LoadFunc)) {
+                                                        ValueLevel[Load] = FunctionLevel[LoadFunc];
+                                                    }
+                                                }
                                                 errs() << "[SKIP] Load before taint origin, not tainting: "
-                                                       << getValueName(Load) << getDebugLoc(Load) << "\n";
+                                                       << getValueName(Load) << getDebugLoc(Load) << getFuncLevel(Load, ValueLevel, FunctionLevel) << "\n";
                                                 continue;
+                                            }
+
+                                            // Set level based on containing function
+                                            Function *LoadFunc = Load->getFunction();
+                                            if (LoadFunc && !ValueLevel.count(Load)) {
+                                                if (FunctionLevel.count(LoadFunc)) {
+                                                    ValueLevel[Load] = FunctionLevel[LoadFunc];
+                                                }
                                             }
 
                                             if (isStructField) {
                                                 errs() << "[LOAD] Tainted load from tracked pointer (struct field): "
                                                        << getValueName(Load) << " (base: " << getValueName(Ptr) << ") "
-                                                       << getDebugLoc(Load) << "\n";
+                                                       << getDebugLoc(Load) << getFuncLevel(Load, ValueLevel, FunctionLevel) << "\n";
                                             } else {
                                                 errs() << "[LOAD] Tainted load from tracked pointer: "
                                                        << getValueName(Load) << " (" << getValueName(Ptr) << ") "
-                                                       << getDebugLoc(Load) << "\n";
+                                                       << getDebugLoc(Load) << getFuncLevel(Load, ValueLevel, FunctionLevel) << "\n";
                                             }
                                             TaintedValues.insert(Load);
                                             Worklist.push_back(Load);
