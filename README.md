@@ -149,7 +149,7 @@ Run all cases in Linux kernel
 
 ```shell
 bash extract-kernel-params.sh
-/usr/bin/time -v bash run-kernel-all.sh
+/usr/bin/time -v bash run-kernel-all.sh |& tee run-kernel-all.log
 ```
 
 ## Development
