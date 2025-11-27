@@ -1,5 +1,0 @@
-SOURCE_FILE=net/sunrpc/auth_gss/auth_gss.c
-FUNCTION_NAME=gss_fill_context
-SOURCE_OP=select
-CONSTANT_VALUE=3600
-OCCURENCE=1

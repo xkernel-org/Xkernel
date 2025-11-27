@@ -1,5 +1,0 @@
-SOURCE_FILE=net/dccp/output.c
-FUNCTION_NAME=dccp_send_ack
-SOURCE_OP="add"
-CONSTANT_VALUE=200
-OCCURENCE=1

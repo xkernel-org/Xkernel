@@ -1,5 +1,0 @@
-SOURCE_FILE=net/sunrpc/cache.c
-FUNCTION_NAME=cache_check_rcu
-SOURCE_OP=icmp
-CONSTANT_VALUE=300
-OCCURENCE=1

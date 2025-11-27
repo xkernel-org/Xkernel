@@ -1,5 +1,0 @@
-SOURCE_FILE=net/ipv4/tcp_timer.c
-FUNCTION_NAME=tcp_clamp_probe0_to_user_timeout
-SOURCE_OP="call"
-CONSTANT_VALUE=2
-OCCURENCE=1

@@ -1,5 +1,0 @@
-SOURCE_FILE=net/ipv4/tcp_output.c
-FUNCTION_NAME=tcp_connect
-SOURCE_OP="select"
-CONSTANT_VALUE=1073725440
-OCCURENCE=1

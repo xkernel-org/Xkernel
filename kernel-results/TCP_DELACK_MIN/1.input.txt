@@ -1,5 +1,0 @@
-SOURCE_FILE=net/dccp/timer.c
-FUNCTION_NAME=dccp_delack_timer
-SOURCE_OP="add"
-CONSTANT_VALUE=40
-OCCURENCE=1

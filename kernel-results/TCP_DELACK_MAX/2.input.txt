@@ -1,5 +1,0 @@
-SOURCE_FILE=net/core/filter.c
-FUNCTION_NAME=bpf_sol_tcp_setsockopt
-SOURCE_OP="icmp"
-CONSTANT_VALUE=-199
-OCCURENCE=1

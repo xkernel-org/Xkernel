@@ -1,5 +1,0 @@
-SOURCE_FILE=net/ipv4/tcp_dctcp.c
-FUNCTION_NAME=dctcp_update_alpha
-SOURCE_OP="shl"
-CONSTANT_VALUE=8
-OCCURENCE=1

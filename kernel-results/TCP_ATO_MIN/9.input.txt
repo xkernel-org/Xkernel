@@ -1,5 +1,0 @@
-SOURCE_FILE=net/ipv4/tcp_input.c
-FUNCTION_NAME=tcp_ecn_check_ce
-SOURCE_OP="or"
-CONSTANT_VALUE=40
-OCCURENCE=2

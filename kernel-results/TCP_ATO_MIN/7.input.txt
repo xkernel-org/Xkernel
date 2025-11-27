@@ -1,5 +1,0 @@
-SOURCE_FILE=net/ipv4/tcp_input.c
-FUNCTION_NAME=tcp_event_data_recv
-SOURCE_OP="add"
-CONSTANT_VALUE=20
-OCCURENCE=1

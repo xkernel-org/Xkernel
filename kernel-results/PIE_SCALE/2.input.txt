@@ -1,5 +1,0 @@
-SOURCE_FILE=net/sched/sch_pie.c
-FUNCTION_NAME=pie_calculate_probability
-SOURCE_OP=shl
-CONSTANT_VALUE=8
-OCCURENCE=1

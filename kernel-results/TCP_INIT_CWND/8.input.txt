@@ -1,5 +1,0 @@
-SOURCE_FILE=net/ipv4/tcp_bbr.c
-FUNCTION_NAME=bbr_main
-SOURCE_OP="icmp"
-CONSTANT_VALUE=10
-OCCURENCE=1
