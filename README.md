@@ -149,7 +149,10 @@ Run all cases in Linux kernel
 
 ```shell
 bash extract-kernel-params.sh
-/usr/bin/time -v bash run-kernel-all.sh |& tee run-kernel-all.log
+# /usr/bin/time -v bash run-kernel-serial.sh |& tee run-kernel-serial.log
+# This is still suboptimal because of (1) long tail (2) repeated load of
+# vmlinux.bc
+python run-kernel-parallel.py --no-interproc --no-indirect-call |& tee run-kernel-parallel.log
 ```
 
 ## Development
