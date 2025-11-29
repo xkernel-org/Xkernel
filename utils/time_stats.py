@@ -46,9 +46,13 @@ def main():
 
     avg_seconds = statistics.mean(times_in_seconds)
     median_seconds = statistics.median(times_in_seconds)
+    min_seconds = min(times_in_seconds)
+    max_seconds = max(times_in_seconds)
 
     print(f"Average time: {format_time(avg_seconds)}")
     print(f"Median time: {format_time(median_seconds)}")
+    print(f"Min time: {format_time(min_seconds)}")
+    print(f"Max time: {format_time(max_seconds)}")
 
 if __name__ == "__main__":
     main()
