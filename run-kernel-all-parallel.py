@@ -48,6 +48,9 @@ def parse_input_file(input_file: Path) -> dict:
             if '=' in line:
                 # Simple parsing for bash variable assignments
                 key, value = line.split('=', 1)
+                # Remove inline comments (everything after #)
+                if '#' in value:
+                    value = value.split('#', 1)[0]
                 # Remove quotes if present
                 value = value.strip().strip('"').strip("'")
                 variables[key] = value
@@ -88,6 +91,11 @@ def process_input_file(args: Tuple[Path, int, int, str, dict]) -> Tuple[str, boo
         # Setup output files
         output_file = input_file.parent / f"{input_file.stem.replace('.input', '')}.output.txt"
         time_statistics = input_file.parent / f"{input_file.stem.replace('.input', '')}.time.txt"
+
+        # Skip if output file already exists
+        if output_file.exists():
+            log_info(f"[{current}/{total}] Skipping {input_file} - output already exists")
+            return (str(input_file), True, None)
 
         # Setup bitcode files
         source_path = Path(source_file)
