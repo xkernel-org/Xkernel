@@ -149,10 +149,37 @@ Run all cases in Linux kernel
 
 ```shell
 bash extract-kernel-params.sh
-# /usr/bin/time -v bash run-kernel-serial.sh |& tee run-kernel-serial.log
-# This is still suboptimal because of (1) long tail (2) repeated load of
-# vmlinux.bc
+
+# 215 cases: 9h28min 6.5GB c6420
+# Average time: 2min39s, Median time: 1min52s, Min time: 1min39s, Max time: 1h04min
+/usr/bin/time -v bash run-kernel-serial.sh |& tee run-kernel-serial.log
+
+# 215 cases: 1h20min 6.5GB c6420
+# Average time: 2min59s, Median time: 2min11s, Min time: 1min53s, Max time: 1h04min
+# This script is still suboptimal because of (1) long tail (2) repeated load of
+# vmlinux.bc. The memory measurement was measured using /usr/bin/time -v and
+# does not reflect the total memory.
 python run-kernel-parallel.py --no-interproc --no-indirect-call |& tee run-kernel-parallel.log
+
+# Check the results
+for f in kernel-results-parallel/*/*.output.txt; do
+    if grep 'Taint Analysis Complete' $f >/dev/null; then
+        f_serial=$(sed 's|kernel-results-parallel|kernel-results-serial|' <<< $f)
+        diff -s --color=always \
+            `#$f $f_serial` \
+            <(sort $f) <(sort $f_serial)
+    fi
+done
+```
+
+FIXME: the results are not fully deterministic: (1) order (2) as a result of
+different order, difference like the below:
+
+```diff
+18a19
+> [LOAD] Tainted load from tracked pointer:   %732 = load i32, ptr %728, align 4, !dbg !17355667 (  %728 = getelementptr inbounds nuw i8, ptr %385, i64 12, !dbg !17355661)  <net/netfilter/nf_conntrack_proto_tcp.c:685:14> FUNC=nf_conntrack_tcp_packet L=1
+41d41
+< [LOAD] Tainted load from tracked pointer (struct field):   %732 = load i32, ptr %728, align 4, !dbg !17355667 (base:   %385 = getelementptr [2 x %struct.intel_cdclk_config], ptr %80, i64 0, i64 %105, !dbg !17355327)  <net/netfilter/nf_conntrack_proto_tcp.c:685:14> FUNC=nf_conntrack_tcp_packet L=1
 ```
 
 ## Development
