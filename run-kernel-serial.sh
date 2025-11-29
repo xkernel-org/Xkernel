@@ -24,9 +24,9 @@ fi
 export LLVM_COMPILER=clang
 
 # Pass options:
-INTERPROC=true
+INTERPROC=false
 UPWARD_INTERPROC=true
-INDIRECT_CALL=true
+INDIRECT_CALL=false
 
 # Script options:
 WHOLE_KERNEL=true
