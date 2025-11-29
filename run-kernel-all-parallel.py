@@ -209,7 +209,7 @@ def main():
     # Setup environment
     # os.environ['LLVM_COMPILER'] = 'clang'
 
-    kernel_dir = Path(args.kernel_dir).resolve()
+    kernel_dir = Path(args.kernel_dir)
 
     # Check prerequisites
     if not check_prerequisites(kernel_dir):

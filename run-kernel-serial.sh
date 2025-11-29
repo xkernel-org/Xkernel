@@ -70,6 +70,7 @@ for INPUT_FILE in kernel-results/*/*.input.txt; do
         -disable-output \
         $INPUT_BC_FILE |& tee $OUTPUT_FILE
 
+    echo "" |& tee -a $OUTPUT_FILE
     echo "$KERNEL_DIR/$LL_FILE" |& tee -a $OUTPUT_FILE
     echo "$KERNEL_DIR/$SOURCE_FILE" |& tee -a $OUTPUT_FILE
 done
