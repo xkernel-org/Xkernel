@@ -49,6 +49,11 @@ for INPUT_FILE in kernel-results/*/*.input.txt; do
     LL_FILE=$(dirname $SOURCE_FILE)/$(basename $SOURCE_FILE .c).ll
     VMLINUX_BC_FILE=$KERNEL_DIR/vmlinux.bc
 
+    if [[ -f $OUTPUT_FILE ]]; then
+        echo "Skipping $INPUT_FILE - output already exists"
+        continue
+    fi
+
     if [[ $WHOLE_KERNEL != true ]]; then
         pushd $KERNEL_DIR
         rm -f $OBJ_FILE
