@@ -564,5 +564,13 @@ class TestTaintTrackerResults(unittest.TestCase):
 
         common_checks(self, True, False, False, results_file_path, source_file_path)
 
+    def test_11_grandgrandparent(self):
+
+        name = "11_grandgrandparent"
+        results_file_path = Path(__file__).parent / "tests" / f"{name}.results.txt"
+        source_file_path = Path(__file__).parent / "tests" / f"{name}.c"
+
+        common_checks(self, False, True, False, results_file_path, source_file_path)
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
