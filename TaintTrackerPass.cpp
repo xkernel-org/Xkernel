@@ -1169,6 +1169,77 @@ found:
             if (Verbose) errs() << "\n";
         }
 
+        // --- Find the largest L value and the earliest/latest instruction with that L ---
+        int maxLevel = INT_MIN;
+        Instruction *earliestInst = nullptr;
+        Instruction *latestInst = nullptr;
+
+        // Find the maximum level (only considering actually tainted instructions, not skipped/killed ones)
+        for (auto &Entry : ValueLevel) {
+            Value *V = Entry.first;
+            // Only consider values that are actually in TaintedValues (not skipped or killed)
+            if (!TaintedValues.count(V)) continue;
+
+            if (Entry.second > maxLevel) {
+                maxLevel = Entry.second;
+            }
+        }
+
+        if (maxLevel > INT_MIN) {
+            // Collect all instructions with the maximum level
+            SmallVector<Instruction*, 16> MaxLevelInstructions;
+            for (auto &Entry : ValueLevel) {
+                Value *V = Entry.first;
+                // Only consider values that are actually in TaintedValues (not skipped or killed)
+                if (!TaintedValues.count(V)) continue;
+
+                if (Entry.second == maxLevel) {
+                    if (Instruction *I = dyn_cast<Instruction>(V)) {
+                        MaxLevelInstructions.push_back(I);
+                    }
+                }
+            }
+
+            // Find earliest and latest by iterating through the module in order
+            // The first and last occurrences in program order
+            if (!MaxLevelInstructions.empty()) {
+                // Sort by pointer address to get deterministic ordering
+                // Then scan module to find first and last in actual program order
+                for (Function &F : M) {
+                    if (F.isDeclaration()) continue;
+                    for (BasicBlock &BB : F) {
+                        for (Instruction &I : BB) {
+                            // Check if this instruction is in our max level set
+                            for (Instruction *MaxI : MaxLevelInstructions) {
+                                if (&I == MaxI) {
+                                    if (!earliestInst) {
+                                        earliestInst = &I;
+                                    }
+                                    latestInst = &I;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                errs() << "\n=== Maximum Level Statistics ===\n";
+                errs() << "Largest L value: " << maxLevel << "\n";
+                errs() << "Number of instructions with L=" << maxLevel << ": " << MaxLevelInstructions.size() << "\n";
+
+                if (earliestInst) {
+                    errs() << "\nEarliest instruction with L=" << maxLevel << ":\n";
+                    errs() << "  " << getValueName(earliestInst) << getDebugLoc(earliestInst) << getFuncLevel(earliestInst, ValueLevel, FunctionLevel) << "\n";
+                }
+
+                if (latestInst && latestInst != earliestInst) {
+                    errs() << "\nLatest instruction with L=" << maxLevel << ":\n";
+                    errs() << "  " << getValueName(latestInst) << getDebugLoc(latestInst) << getFuncLevel(latestInst, ValueLevel, FunctionLevel) << "\n";
+                } else if (latestInst == earliestInst) {
+                    errs() << "\n(Earliest and latest are the same instruction)\n";
+                }
+            }
+        }
+
         errs() << "\n=== Taint Analysis Complete ===\n";
 
         // Return PreservedAnalyses::all() because we didn't modify the IR
