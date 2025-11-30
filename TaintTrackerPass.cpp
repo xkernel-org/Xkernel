@@ -194,13 +194,13 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
 
         // If it's a load instruction, check what it loads from
         if (LoadInst *LI = dyn_cast<LoadInst>(V)) {
-            Value *LoadPtr = LI->getPointerOperand();
+            Value *LoadPtr = LI->getPointerOperand()->stripPointerCasts();
             // Check if we're loading from an alloca that stores a parameter
             if (AllocaInst *AI = dyn_cast<AllocaInst>(LoadPtr)) {
                 // Look for stores to this alloca
                 for (User *U : AI->users()) {
                     if (StoreInst *SI = dyn_cast<StoreInst>(U)) {
-                        Value *StoredVal = SI->getValueOperand();
+                        Value *StoredVal = SI->getValueOperand()->stripPointerCasts();
                         if (Argument *Arg = dyn_cast<Argument>(StoredVal)) {
                             if (Arg->getType()->isPointerTy()) {
                                 return Arg;
@@ -892,277 +892,365 @@ found:
             }
         }
 
-        // --- 5. Upward Interprocedural Taint Tracking (Callee -> Caller) ---
+        // --- 5. Upward Interprocedural Taint Tracking (Callee -> Caller) - RECURSIVE ---
         if (UpwardInterprocMode && (!FunctionsReturningTaint.empty() || !FunctionsTaintingPointerParams.empty())) {
-            if (Verbose) errs() << "=== Upward Interprocedural Tracking ===\n";
+            if (Verbose) errs() << "=== Upward Interprocedural Tracking (Recursive) ===\n";
 
-            // 5a. Find all call sites to functions that return tainted values
-            // Sort FunctionsReturningTaint for deterministic output
-            SmallVector<Function*, 16> SortedFunctionsReturningTaint(
-                FunctionsReturningTaint.begin(), FunctionsReturningTaint.end());
-            llvm::sort(SortedFunctionsReturningTaint, [](Function *A, Function *B) {
-                return std::less<Function*>()(A, B);
-            });
-            for (Function *TaintedFunc : SortedFunctionsReturningTaint) {
-                if (Verbose) {
-                    errs() << "Finding callers of: " << TaintedFunc->getName() << " (returns taint)\n";
-                }
-
-                // Scan all functions for calls to TaintedFunc
-                for (Function &F : M) {
-                    if (F.isDeclaration()) continue;
-
-                    for (BasicBlock &BB : F) {
-                        for (Instruction &I : BB) {
-                            if (CallInst *Call = dyn_cast<CallInst>(&I)) {
-                                Function *Callee = Call->getCalledFunction();
-                                if (Callee == TaintedFunc) {
-                                    // This call site returns a tainted value
-                                    if (!TaintedValues.count(Call)) {
-                                        // Upward interprocedural: level += 1
-                                        int calleeLevel = FunctionLevel.count(TaintedFunc) ? FunctionLevel[TaintedFunc] : 0;
-                                        int newLevel = calleeLevel + 1;
-                                        ValueLevel[Call] = newLevel;
-                                        Function *CallerFunc = Call->getFunction();
-                                        if (CallerFunc && !FunctionLevel.count(CallerFunc)) {
-                                            FunctionLevel[CallerFunc] = newLevel;
-                                        }
-
-                                        errs() << "[UPWARD-INTERPROC] Call to " << TaintedFunc->getName()
-                                               << " returns tainted value" << getDebugLoc(Call) << getFuncLevel(Call, ValueLevel, FunctionLevel) << "\n";
-                                        TaintedValues.insert(Call);
-                                        Worklist.push_back(Call);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            // 5b. Find all call sites to functions that taint pointer parameters
-            // Sort FunctionsTaintingPointerParams for deterministic output
-            SmallVector<std::pair<Function*, DenseSet<unsigned>>, 16> SortedFunctionsTaintingPointerParams(
-                FunctionsTaintingPointerParams.begin(), FunctionsTaintingPointerParams.end());
-            llvm::sort(SortedFunctionsTaintingPointerParams, [](const auto &A, const auto &B) {
-                return std::less<Function*>()(A.first, B.first);
-            });
-            for (auto &Entry : SortedFunctionsTaintingPointerParams) {
-                Function *TaintedFunc = Entry.first;
-                DenseSet<unsigned> &TaintedParams = Entry.second;
-
-                if (Verbose) {
-                    errs() << "Finding callers of: " << TaintedFunc->getName() << " (taints pointer params)\n";
-                }
-
-                // Scan all functions for calls to TaintedFunc
-                for (Function &F : M) {
-                    if (F.isDeclaration()) continue;
-
-                    for (BasicBlock &BB : F) {
-                        for (Instruction &I : BB) {
-                            if (CallInst *Call = dyn_cast<CallInst>(&I)) {
-                                Function *Callee = Call->getCalledFunction();
-                                if (Callee == TaintedFunc) {
-                                    // Check each tainted parameter
-                                    // Sort TaintedParams for deterministic output
-                                    SmallVector<unsigned, 8> SortedTaintedParams(TaintedParams.begin(), TaintedParams.end());
-                                    llvm::sort(SortedTaintedParams);
-                                    for (unsigned ParamIdx : SortedTaintedParams) {
-                                        if (ParamIdx >= Call->arg_size()) continue;
-
-                                        Value *ActualArg = Call->getArgOperand(ParamIdx);
-
-                                        // Check if the argument is an address-of operation (alloca, GEP, etc.)
-                                        // We need to find what variable this points to
-                                        Value *PointedVar = nullptr;
-                                        if (AllocaInst *AI = dyn_cast<AllocaInst>(ActualArg)) {
-                                            PointedVar = AI;
-                                        } else if (GetElementPtrInst *GEP = dyn_cast<GetElementPtrInst>(ActualArg)) {
-                                            PointedVar = GEP->getPointerOperand()->stripPointerCasts();
-                                        }
-
-                                        if (PointedVar) {
-                                            if (TaintedPointers.insert(PointedVar).second) {
-                                                // Upward interprocedural: level += 1
-                                                int calleeLevel = FunctionLevel.count(TaintedFunc) ? FunctionLevel[TaintedFunc] : 0;
-                                                int newLevel = calleeLevel + 1;
-                                                Function *CallerFunc = Call->getFunction();
-                                                if (CallerFunc && !FunctionLevel.count(CallerFunc)) {
-                                                    FunctionLevel[CallerFunc] = newLevel;
-                                                }
-
-                                                errs() << "[UPWARD-INTERPROC] Call to " << TaintedFunc->getName()
-                                                       << " taints argument " << ParamIdx << " (pointer parameter)"
-                                                       << getDebugLoc(Call) << getFuncLevel(Call, ValueLevel, FunctionLevel) << "\n";
-                                                errs() << "  [STORE DESTINATION] Marking pointer as tainted via call: "
-                                                       << getValueName(PointedVar) << getFuncLevel(Call, ValueLevel, FunctionLevel) << "\n";
-                                                PointerTaintOrigin[PointedVar] = Call;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Process the new worklist items (call sites that return tainted values)
-            // This uses the same propagation logic as the main worklist
+            // Keep track of scanned pointers across all recursive iterations
             DenseSet<Value*> UpwardScannedPointers;
 
-            // Loop: process worklist, then scan for loads, repeat until fixed point
-            while (true) {
-                // Process worklist items
-                while (!Worklist.empty()) {
-                    Value *V = Worklist.back();
-                    Worklist.pop_back();
+            // Recursive loop: continue until no new parent functions are discovered
+            bool discoveredNewFunctions = true;
+            int recursionLevel = 0;
 
-                    if (Verbose) errs() << "[USE] Processing uses of: " << getValueName(V) << "\n";
+            while (discoveredNewFunctions) {
+                discoveredNewFunctions = false;
+                recursionLevel++;
 
-                    bool hasUses = false;
-                    // Sort users for deterministic output
-                    SmallVector<User*, 16> SortedUsersUpward(V->user_begin(), V->user_end());
-                    llvm::sort(SortedUsersUpward, [](User *A, User *B) {
-                        return std::less<User*>()(A, B);
-                    });
-                    for (User *U : SortedUsersUpward) {
-                        Instruction *UserInst = dyn_cast<Instruction>(U);
-                        if (!UserInst) continue;
+                if (Verbose) errs() << "\n--- Upward Tracking Iteration " << recursionLevel << " ---\n";
 
-                        if (TaintedValues.count(UserInst)) {
-                            if (Verbose) errs() << "  [SKIP] Already tainted: " << getValueName(UserInst) << "\n";
-                            continue;
-                        }
+                // Track sizes before this iteration to detect new discoveries
+                size_t oldReturningSize = FunctionsReturningTaint.size();
+                size_t oldPointerParamsSize = FunctionsTaintingPointerParams.size();
 
-                        hasUses = true;
-
-                        // Propagate level from V to UserInst
-                        int currentLevel = getLevel(V, ValueLevel, FunctionLevel);
-                        ValueLevel[UserInst] = currentLevel;
-
-                        errs() << "  [USE] Taint flows to: " << getValueName(UserInst) << getDebugLoc(UserInst) << getFuncLevel(UserInst, ValueLevel, FunctionLevel) << "\n";
-                        TaintedValues.insert(UserInst);
-
-                        // Handle store instructions - mark destination pointer as tainted
-                        if (StoreInst *Store = dyn_cast<StoreInst>(UserInst)) {
-                            if (Store->getValueOperand() == V) {
-                                Value *Ptr = Store->getPointerOperand()->stripPointerCasts();
-                                if (TaintedPointers.insert(Ptr).second) {
-                                    PointerTaintOrigin[Ptr] = Store;
-                                }
-                            }
-                        }
-
-                        Worklist.push_back(UserInst);
-                    }
-
-                    if (!hasUses && Verbose) {
-                        errs() << "[NO USE] No uses of: " << getValueName(V) << "\n";
-                    }
-                }
-
-                // Scan for loads from tainted pointers
-                SmallVector<Value*, 16> PointersToScan;
-                // Sort TaintedPointers for deterministic output
-                SmallVector<Value*, 32> SortedTaintedPointersUpward(TaintedPointers.begin(), TaintedPointers.end());
-                llvm::sort(SortedTaintedPointersUpward, [](Value *A, Value *B) {
-                    return std::less<Value*>()(A, B);
+                // 5a. Find all call sites to functions that return tainted values
+                // Sort FunctionsReturningTaint for deterministic output
+                SmallVector<Function*, 16> SortedFunctionsReturningTaint(
+                    FunctionsReturningTaint.begin(), FunctionsReturningTaint.end());
+                llvm::sort(SortedFunctionsReturningTaint, [](Function *A, Function *B) {
+                    return std::less<Function*>()(A, B);
                 });
-                for (Value *Ptr : SortedTaintedPointersUpward) {
-                    if (!UpwardScannedPointers.count(Ptr)) {
-                        PointersToScan.push_back(Ptr);
+                for (Function *TaintedFunc : SortedFunctionsReturningTaint) {
+                    if (Verbose) {
+                        errs() << "Finding callers of: " << TaintedFunc->getName() << " (returns taint)\n";
                     }
-                }
 
-                if (PointersToScan.empty()) break;  // Fixed point reached
-
-                for (Value *Ptr : PointersToScan) {
+                    // Scan all functions for calls to TaintedFunc
                     for (Function &F : M) {
                         if (F.isDeclaration()) continue;
 
                         for (BasicBlock &BB : F) {
                             for (Instruction &I : BB) {
-                                if (LoadInst *Load = dyn_cast<LoadInst>(&I)) {
-                                    Value *LoadPtr = Load->getPointerOperand()->stripPointerCasts();
-                                    bool matchesPtr = (LoadPtr == Ptr);
-                                    bool isStructField = false;
+                                if (CallInst *Call = dyn_cast<CallInst>(&I)) {
+                                    Function *Callee = Call->getCalledFunction();
+                                    if (Callee == TaintedFunc) {
+                                        // This call site returns a tainted value
+                                        if (!TaintedValues.count(Call)) {
+                                            // Upward interprocedural: level += 1
+                                            int calleeLevel = FunctionLevel.count(TaintedFunc) ? FunctionLevel[TaintedFunc] : 0;
+                                            int newLevel = calleeLevel + 1;
+                                            ValueLevel[Call] = newLevel;
+                                            Function *CallerFunc = Call->getFunction();
+                                            if (CallerFunc && !FunctionLevel.count(CallerFunc)) {
+                                                FunctionLevel[CallerFunc] = newLevel;
+                                            }
 
-                                    // Also check if this is a GEP from the tainted base pointer (struct field access)
-                                    if (!matchesPtr) {
-                                        if (GetElementPtrInst *GEP = dyn_cast<GetElementPtrInst>(LoadPtr)) {
-                                            Value *BasePtr = GEP->getPointerOperand()->stripPointerCasts();
-                                            if (BasePtr == Ptr) {
-                                                matchesPtr = true;
-                                                isStructField = true;
+                                            errs() << "[UPWARD-INTERPROC] Call to " << TaintedFunc->getName()
+                                                   << " returns tainted value" << getDebugLoc(Call) << getFuncLevel(Call, ValueLevel, FunctionLevel) << "\n";
+                                            TaintedValues.insert(Call);
+                                            Worklist.push_back(Call);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // 5b. Find all call sites to functions that taint pointer parameters
+                // Sort FunctionsTaintingPointerParams for deterministic output
+                SmallVector<std::pair<Function*, DenseSet<unsigned>>, 16> SortedFunctionsTaintingPointerParams(
+                    FunctionsTaintingPointerParams.begin(), FunctionsTaintingPointerParams.end());
+                llvm::sort(SortedFunctionsTaintingPointerParams, [](const auto &A, const auto &B) {
+                    return std::less<Function*>()(A.first, B.first);
+                });
+                for (auto &Entry : SortedFunctionsTaintingPointerParams) {
+                    Function *TaintedFunc = Entry.first;
+                    DenseSet<unsigned> &TaintedParams = Entry.second;
+
+                    if (Verbose) {
+                        errs() << "Finding callers of: " << TaintedFunc->getName() << " (taints pointer params)\n";
+                    }
+
+                    // Scan all functions for calls to TaintedFunc
+                    for (Function &F : M) {
+                        if (F.isDeclaration()) continue;
+
+                        for (BasicBlock &BB : F) {
+                            for (Instruction &I : BB) {
+                                if (CallInst *Call = dyn_cast<CallInst>(&I)) {
+                                    Function *Callee = Call->getCalledFunction();
+                                    if (Callee == TaintedFunc) {
+                                        // Check each tainted parameter
+                                        // Sort TaintedParams for deterministic output
+                                        SmallVector<unsigned, 8> SortedTaintedParams(TaintedParams.begin(), TaintedParams.end());
+                                        llvm::sort(SortedTaintedParams);
+                                        for (unsigned ParamIdx : SortedTaintedParams) {
+                                            if (ParamIdx >= Call->arg_size()) continue;
+
+                                            Value *ActualArg = Call->getArgOperand(ParamIdx);
+
+                                            // CASE 1: Check if the argument is directly a pointer parameter (pass-through)
+                                            // This handles cases like: grandparent(int *x) { parent(x); }
+                                            // Use getPointerParameterOrigin to handle both direct parameters and loads from param allocas
+                                            if (Argument *ArgParam = getPointerParameterOrigin(ActualArg)) {
+                                                Function *CallerFunc = Call->getFunction();
+                                                if (CallerFunc) {
+                                                    unsigned CallerParamIdx = ArgParam->getArgNo();
+                                                    if (FunctionsTaintingPointerParams[CallerFunc].insert(CallerParamIdx).second) {
+                                                        discoveredNewFunctions = true;
+                                                        // Upward interprocedural: level += 1
+                                                        int calleeLevel = FunctionLevel.count(TaintedFunc) ? FunctionLevel[TaintedFunc] : 0;
+                                                        int newLevel = calleeLevel + 1;
+                                                        if (!FunctionLevel.count(CallerFunc)) {
+                                                            FunctionLevel[CallerFunc] = newLevel;
+                                                        }
+
+                                                        errs() << "[POINTER PARAMETER] Call to " << TaintedFunc->getName()
+                                                               << " passes through pointer parameter " << CallerParamIdx
+                                                               << " of " << CallerFunc->getName()
+                                                               << getDebugLoc(Call) << getFuncLevel(Call, ValueLevel, FunctionLevel) << "\n";
+                                                        // errs() << "  [RECURSIVE] Discovered pass-through: Function "
+                                                        //        << CallerFunc->getName() << " parameter " << CallerParamIdx << "\n";
+                                                    }
+                                                }
+                                                continue; // Skip CASE 2 since this is a direct parameter pass-through
+                                            }
+
+                                            // CASE 2: Check if the argument is an address-of operation (alloca, GEP, etc.)
+                                            // This handles cases like: grandparent(int *x) { int a; parent(&a); *x = a; }
+                                            Value *PointedVar = nullptr;
+                                            if (AllocaInst *AI = dyn_cast<AllocaInst>(ActualArg)) {
+                                                PointedVar = AI;
+                                            } else if (GetElementPtrInst *GEP = dyn_cast<GetElementPtrInst>(ActualArg)) {
+                                                PointedVar = GEP->getPointerOperand()->stripPointerCasts();
+                                            }
+
+                                            if (PointedVar) {
+                                                if (TaintedPointers.insert(PointedVar).second) {
+                                                    // Upward interprocedural: level += 1
+                                                    int calleeLevel = FunctionLevel.count(TaintedFunc) ? FunctionLevel[TaintedFunc] : 0;
+                                                    int newLevel = calleeLevel + 1;
+                                                    Function *CallerFunc = Call->getFunction();
+                                                    if (CallerFunc && !FunctionLevel.count(CallerFunc)) {
+                                                        FunctionLevel[CallerFunc] = newLevel;
+                                                    }
+
+                                                    errs() << "[UPWARD-INTERPROC] Call to " << TaintedFunc->getName()
+                                                           << " taints argument " << ParamIdx << " (local variable)"
+                                                           << getDebugLoc(Call) << getFuncLevel(Call, ValueLevel, FunctionLevel) << "\n";
+                                                    errs() << "  [STORE DESTINATION] Marking pointer as tainted via call: "
+                                                           << getValueName(PointedVar) << getFuncLevel(Call, ValueLevel, FunctionLevel) << "\n";
+                                                    PointerTaintOrigin[PointedVar] = Call;
+                                                }
                                             }
                                         }
                                     }
+                                }
+                            }
+                        }
+                    }
+                }
 
-                                    if (matchesPtr) {
-                                        if (!TaintedValues.count(Load)) {
-                                            // Check if this load happens before the instruction that tainted the pointer
-                                            bool beforeTaintOrigin = false;
-                                            if (PointerTaintOrigin.count(Ptr)) {
-                                                Instruction *TaintOrigin = PointerTaintOrigin[Ptr];
-                                                // Check if Load comes before TaintOrigin in the same basic block
-                                                if (Load->getParent() == TaintOrigin->getParent()) {
-                                                    bool foundLoad = false;
-                                                    for (Instruction &CheckI : *Load->getParent()) {
-                                                        if (&CheckI == Load) {
-                                                            foundLoad = true;
-                                                        }
-                                                        if (&CheckI == TaintOrigin && foundLoad) {
-                                                            beforeTaintOrigin = true;
-                                                            break;
+                // Process the new worklist items (call sites that return tainted values)
+                // This uses the same propagation logic as the main worklist
+                // Loop: process worklist, then scan for loads, repeat until fixed point
+                while (true) {
+                    // Process worklist items
+                    while (!Worklist.empty()) {
+                        Value *V = Worklist.back();
+                        Worklist.pop_back();
+
+                        if (Verbose) errs() << "[USE] Processing uses of: " << getValueName(V) << "\n";
+
+                        bool hasUses = false;
+                        // Sort users for deterministic output
+                        SmallVector<User*, 16> SortedUsersUpward(V->user_begin(), V->user_end());
+                        llvm::sort(SortedUsersUpward, [](User *A, User *B) {
+                            return std::less<User*>()(A, B);
+                        });
+                        for (User *U : SortedUsersUpward) {
+                            Instruction *UserInst = dyn_cast<Instruction>(U);
+                            if (!UserInst) continue;
+
+                            if (TaintedValues.count(UserInst)) {
+                                if (Verbose) errs() << "  [SKIP] Already tainted: " << getValueName(UserInst) << "\n";
+                                continue;
+                            }
+
+                            hasUses = true;
+
+                            // Propagate level from V to UserInst
+                            int currentLevel = getLevel(V, ValueLevel, FunctionLevel);
+                            ValueLevel[UserInst] = currentLevel;
+
+                            errs() << "  [USE] Taint flows to: " << getValueName(UserInst) << getDebugLoc(UserInst) << getFuncLevel(UserInst, ValueLevel, FunctionLevel) << "\n";
+                            TaintedValues.insert(UserInst);
+
+                            // Handle store instructions - mark destination pointer as tainted
+                            if (StoreInst *Store = dyn_cast<StoreInst>(UserInst)) {
+                                if (Store->getValueOperand() == V) {
+                                    Value *Ptr = Store->getPointerOperand()->stripPointerCasts();
+                                    if (TaintedPointers.insert(Ptr).second) {
+                                        PointerTaintOrigin[Ptr] = Store;
+                                        errs() << "  [STORE DESTINATION] Marking pointer as tainted: "
+                                               << getValueName(Ptr) << getDebugLoc(Store) << getFuncLevel(Store, ValueLevel, FunctionLevel) << "\n";
+                                    }
+
+                                    // Check if storing through a pointer parameter -> track for next recursion
+                                    if (Argument *PtrParam = getPointerParameterOrigin(Store->getPointerOperand())) {
+                                        Function *ContainingFunc = Store->getFunction();
+                                        if (ContainingFunc) {
+                                            unsigned ParamIdx = PtrParam->getArgNo();
+                                            errs() << "  [POINTER PARAMETER] Tainted value stored through pointer parameter"
+                                                   << getDebugLoc(Store) << getFuncLevel(Store, ValueLevel, FunctionLevel) << "\n";
+                                            if (FunctionsTaintingPointerParams[ContainingFunc].insert(ParamIdx).second) {
+                                                discoveredNewFunctions = true;
+                                                // errs() << "  [RECURSIVE] Discovered new pointer param taint: Function "
+                                                //        << ContainingFunc->getName() << " parameter " << ParamIdx << "\n";
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Handle return instructions - track for next recursion
+                            if (ReturnInst *Ret = dyn_cast<ReturnInst>(UserInst)) {
+                                if (Ret->getReturnValue() == V) {
+                                    errs() << "  [RETURN] Tainted value is returned"
+                                           << getDebugLoc(Ret) << getFuncLevel(Ret, ValueLevel, FunctionLevel) << "\n";
+                                    Function *ContainingFunc = Ret->getFunction();
+                                    if (ContainingFunc && FunctionsReturningTaint.insert(ContainingFunc).second) {
+                                        discoveredNewFunctions = true;
+                                        // errs() << "  [RECURSIVE] Discovered new function returning taint: "
+                                        //        << ContainingFunc->getName() << "\n";
+                                    }
+                                }
+                            }
+
+                            Worklist.push_back(UserInst);
+                        }
+
+                        if (!hasUses && Verbose) {
+                            errs() << "[NO USE] No uses of: " << getValueName(V) << "\n";
+                        }
+                    }
+
+                    // Scan for loads from tainted pointers
+                    SmallVector<Value*, 16> PointersToScan;
+                    // Sort TaintedPointers for deterministic output
+                    SmallVector<Value*, 32> SortedTaintedPointersUpward(TaintedPointers.begin(), TaintedPointers.end());
+                    llvm::sort(SortedTaintedPointersUpward, [](Value *A, Value *B) {
+                        return std::less<Value*>()(A, B);
+                    });
+                    for (Value *Ptr : SortedTaintedPointersUpward) {
+                        if (!UpwardScannedPointers.count(Ptr)) {
+                            PointersToScan.push_back(Ptr);
+                        }
+                    }
+
+                    if (PointersToScan.empty()) break;  // Fixed point reached
+
+                    for (Value *Ptr : PointersToScan) {
+                        for (Function &F : M) {
+                            if (F.isDeclaration()) continue;
+
+                            for (BasicBlock &BB : F) {
+                                for (Instruction &I : BB) {
+                                    if (LoadInst *Load = dyn_cast<LoadInst>(&I)) {
+                                        Value *LoadPtr = Load->getPointerOperand()->stripPointerCasts();
+                                        bool matchesPtr = (LoadPtr == Ptr);
+                                        bool isStructField = false;
+
+                                        // Also check if this is a GEP from the tainted base pointer (struct field access)
+                                        if (!matchesPtr) {
+                                            if (GetElementPtrInst *GEP = dyn_cast<GetElementPtrInst>(LoadPtr)) {
+                                                Value *BasePtr = GEP->getPointerOperand()->stripPointerCasts();
+                                                if (BasePtr == Ptr) {
+                                                    matchesPtr = true;
+                                                    isStructField = true;
+                                                }
+                                            }
+                                        }
+
+                                        if (matchesPtr) {
+                                            if (!TaintedValues.count(Load)) {
+                                                // Check if this load happens before the instruction that tainted the pointer
+                                                bool beforeTaintOrigin = false;
+                                                if (PointerTaintOrigin.count(Ptr)) {
+                                                    Instruction *TaintOrigin = PointerTaintOrigin[Ptr];
+                                                    // Check if Load comes before TaintOrigin in the same basic block
+                                                    if (Load->getParent() == TaintOrigin->getParent()) {
+                                                        bool foundLoad = false;
+                                                        for (Instruction &CheckI : *Load->getParent()) {
+                                                            if (&CheckI == Load) {
+                                                                foundLoad = true;
+                                                            }
+                                                            if (&CheckI == TaintOrigin && foundLoad) {
+                                                                beforeTaintOrigin = true;
+                                                                break;
+                                                            }
                                                         }
                                                     }
                                                 }
-                                            }
 
-                                            if (beforeTaintOrigin) {
-                                                // Set level for logging
+                                                if (beforeTaintOrigin) {
+                                                    // Set level for logging
+                                                    Function *LoadFunc = Load->getFunction();
+                                                    if (LoadFunc && !ValueLevel.count(Load)) {
+                                                        if (FunctionLevel.count(LoadFunc)) {
+                                                            ValueLevel[Load] = FunctionLevel[LoadFunc];
+                                                        }
+                                                    }
+                                                    errs() << "[SKIP] Load before taint origin, not tainting: "
+                                                           << getValueName(Load) << getDebugLoc(Load) << getFuncLevel(Load, ValueLevel, FunctionLevel) << "\n";
+                                                    continue;
+                                                }
+
+                                                // Set level based on containing function
                                                 Function *LoadFunc = Load->getFunction();
                                                 if (LoadFunc && !ValueLevel.count(Load)) {
                                                     if (FunctionLevel.count(LoadFunc)) {
                                                         ValueLevel[Load] = FunctionLevel[LoadFunc];
                                                     }
                                                 }
-                                                errs() << "[SKIP] Load before taint origin, not tainting: "
-                                                       << getValueName(Load) << getDebugLoc(Load) << getFuncLevel(Load, ValueLevel, FunctionLevel) << "\n";
-                                                continue;
-                                            }
 
-                                            // Set level based on containing function
-                                            Function *LoadFunc = Load->getFunction();
-                                            if (LoadFunc && !ValueLevel.count(Load)) {
-                                                if (FunctionLevel.count(LoadFunc)) {
-                                                    ValueLevel[Load] = FunctionLevel[LoadFunc];
+                                                if (isStructField) {
+                                                    errs() << "[LOAD] Tainted load from tracked pointer (struct field): "
+                                                           << getValueName(Load) << " (base: " << getValueName(Ptr) << ") "
+                                                           << getDebugLoc(Load) << getFuncLevel(Load, ValueLevel, FunctionLevel) << "\n";
+                                                } else {
+                                                    errs() << "[LOAD] Tainted load from tracked pointer: "
+                                                           << getValueName(Load) << " (" << getValueName(Ptr) << ") "
+                                                           << getDebugLoc(Load) << getFuncLevel(Load, ValueLevel, FunctionLevel) << "\n";
                                                 }
+                                                TaintedValues.insert(Load);
+                                                Worklist.push_back(Load);
                                             }
-
-                                            if (isStructField) {
-                                                errs() << "[LOAD] Tainted load from tracked pointer (struct field): "
-                                                       << getValueName(Load) << " (base: " << getValueName(Ptr) << ") "
-                                                       << getDebugLoc(Load) << getFuncLevel(Load, ValueLevel, FunctionLevel) << "\n";
-                                            } else {
-                                                errs() << "[LOAD] Tainted load from tracked pointer: "
-                                                       << getValueName(Load) << " (" << getValueName(Ptr) << ") "
-                                                       << getDebugLoc(Load) << getFuncLevel(Load, ValueLevel, FunctionLevel) << "\n";
-                                            }
-                                            TaintedValues.insert(Load);
-                                            Worklist.push_back(Load);
                                         }
                                     }
                                 }
                             }
                         }
                     }
+
+                    for (Value *Ptr : PointersToScan) {
+                        UpwardScannedPointers.insert(Ptr);
+                    }
                 }
 
-                for (Value *Ptr : PointersToScan) {
-                    UpwardScannedPointers.insert(Ptr);
+                // Check if we discovered new functions in this iteration
+                size_t newReturningSize = FunctionsReturningTaint.size();
+                size_t newPointerParamsSize = FunctionsTaintingPointerParams.size();
+
+                if (newReturningSize > oldReturningSize || newPointerParamsSize > oldPointerParamsSize) {
+                    discoveredNewFunctions = true;
+                    // errs() << "[RECURSIVE ITER " << recursionLevel << "] Discovered "
+                    //        << (newReturningSize - oldReturningSize) << " new functions returning taint, "
+                    //        << (newPointerParamsSize - oldPointerParamsSize) << " new functions tainting pointer params\n";
+                } else {
+                    // errs() << "[RECURSIVE ITER " << recursionLevel << "] No new parent functions discovered. "
+                    //        << "Recursive tracking complete.\n";
                 }
             }
 
