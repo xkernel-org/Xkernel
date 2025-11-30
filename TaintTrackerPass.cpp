@@ -36,6 +36,26 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
         std::string s;
         raw_string_ostream os(s);
         V->print(os);
+        os.flush();
+
+        std::size_t pos = s.find(" !dbg !");
+        if (pos != std::string::npos) {
+            // Include a leading ", " if present so we don't leave a dangling comma.
+            std::size_t start = pos;
+            if (start >= 2 && s[start - 2] == ',' && s[start - 1] == ' ')
+                start -= 2;
+
+            // The debug location normally runs to the end of the line.
+            std::size_t end = s.find('\n', pos);
+            if (end == std::string::npos) {
+                // No newline: just erase to end of string.
+                s.erase(start);
+            } else {
+                // Erase just the " , !dbg !N" part and leave the newline.
+                s.erase(start, end - start);
+            }
+        }
+
         return os.str();
     }
 
@@ -351,7 +371,7 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
                                         }
                                         ValueLevel[&I] = 0;
 
-                                        errs() << "[SOURCE] Tainting: " << I << getDebugLoc(&I) << getFuncLevel(&I, ValueLevel, FunctionLevel) << "\n";
+                                        errs() << "[SOURCE] Tainting: " << getValueName(&I) << getDebugLoc(&I) << getFuncLevel(&I, ValueLevel, FunctionLevel) << "\n";
 
                                         // Mark as part of data flow since it's in the worklist
                                         errs() << "[USE] Source instruction in data flow" << getDebugLoc(&I) << getFuncLevel(&I, ValueLevel, FunctionLevel) << "\n";
@@ -508,6 +528,8 @@ found:
                                     // Report the call
                                     errs() << "  [CHILD FUNCTION] Tainted value used in call to "
                                            << Callee->getName() << " at argument " << argIdx
+                                           << ": "
+                                           << getValueName(Call)
                                            << getDebugLoc(Call) << getFuncLevel(Call, ValueLevel, FunctionLevel) << "\n";
 
                                     // In interproc mode, propagate taint to the parameter
