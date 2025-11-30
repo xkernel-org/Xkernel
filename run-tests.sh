@@ -13,7 +13,7 @@ fi
 for file in tests/*.bc; do
     interproc=false
     indirectcall=false
-    upward_interproc=false
+    upward_interproc=true
 
     if [ $file == "tests/3_child_param.bc" ]; then
         interproc=true
@@ -35,14 +35,6 @@ for file in tests/*.bc; do
     elif [ $file == "tests/10_func_ptr_struct.bc" ]; then
         interproc=true
         indirectcall=true
-    elif [ $file == "tests/5_return_parent.bc" ]; then
-        upward_interproc=true
-    elif [ $file == "tests/6_this_param_parent.bc" ]; then
-        upward_interproc=true
-    elif [ $file == "tests/6_this_param_parent_struct.bc" ]; then
-        upward_interproc=true
-    elif [ $file == "tests/6_this_param_parent_struct_approx.bc" ]; then
-        upward_interproc=true
     fi
 
     if [ $file == "tests/7_locate_the_right_target.bc" ]; then
