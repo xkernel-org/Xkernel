@@ -9,6 +9,7 @@
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/DenseSet.h"
 #include "llvm/ADT/StringRef.h"
+#include "llvm/ADT/STLExtras.h"
 #include "llvm/Support/raw_ostream.h"
 
 using namespace llvm;
@@ -499,7 +500,13 @@ found:
                 else
                     errs() << "[NO USE] No uses of: " << getValueName(V) << "\n";
 
-                for (User *U : V->users()) {
+                // Sort users for deterministic output
+                SmallVector<User*, 16> SortedUsers(V->user_begin(), V->user_end());
+                llvm::sort(SortedUsers, [](User *A, User *B) {
+                    return std::less<User*>()(A, B);
+                });
+
+                for (User *U : SortedUsers) {
                     if (Instruction *UserInst = dyn_cast<Instruction>(U)) {
                         if (Verbose)
                             errs() << "  [USER] Processing use: " << getValueName(U) << "\n";
@@ -570,7 +577,14 @@ found:
                                             Targets = FunctionPointerTargets[LoadPtrStripped];
                                         } else if (GetElementPtrInst *LoadGEP = dyn_cast<GetElementPtrInst>(LoadPtr)) {
                                             // For GEP-based loads (struct fields), try to match the pattern
-                                            for (auto &Entry : FunctionPointerTargets) {
+                                            // Sort entries for deterministic output
+                                            SmallVector<std::pair<Value*, SmallVector<Function*, 4>>, 8> SortedEntries(
+                                                FunctionPointerTargets.begin(), FunctionPointerTargets.end());
+                                            llvm::sort(SortedEntries, [](const auto &A, const auto &B) {
+                                                return std::less<Value*>()(A.first, B.first);
+                                            });
+
+                                            for (auto &Entry : SortedEntries) {
                                                 if (GetElementPtrInst *StoreGEP = dyn_cast<GetElementPtrInst>(Entry.first)) {
                                                     if (sameGEPPattern(LoadGEP, StoreGEP)) {
                                                         // Found a matching GEP pattern
@@ -714,7 +728,12 @@ found:
             // Scan for loads from newly tainted pointers
             // But skip loads that happen after a kill store
             DenseSet<Value*> PointersToScan;
-            for (Value *Ptr : TaintedPointers) {
+            // Sort TaintedPointers for deterministic output
+            SmallVector<Value*, 32> SortedTaintedPointers(TaintedPointers.begin(), TaintedPointers.end());
+            llvm::sort(SortedTaintedPointers, [](Value *A, Value *B) {
+                return std::less<Value*>()(A, B);
+            });
+            for (Value *Ptr : SortedTaintedPointers) {
                 if (!ScannedPointers.count(Ptr)) {
                     PointersToScan.insert(Ptr);
                 }
@@ -749,7 +768,12 @@ found:
 
                                 // Check if this load happens after a kill store to the same pointer
                                 bool afterKill = false;
-                                for (Instruction *KillStore : KilledStores) {
+                                // Sort KilledStores for deterministic output
+                                SmallVector<Instruction*, 16> SortedKilledStores(KilledStores.begin(), KilledStores.end());
+                                llvm::sort(SortedKilledStores, [](Instruction *A, Instruction *B) {
+                                    return std::less<Instruction*>()(A, B);
+                                });
+                                for (Instruction *KillStore : SortedKilledStores) {
                                     Value *KillPtr = cast<StoreInst>(KillStore)->getPointerOperand()->stripPointerCasts();
                                     if (KillPtr == CheckPtr) {
                                         // Check if Load comes after KillStore in the same basic block
@@ -873,7 +897,13 @@ found:
             if (Verbose) errs() << "=== Upward Interprocedural Tracking ===\n";
 
             // 5a. Find all call sites to functions that return tainted values
-            for (Function *TaintedFunc : FunctionsReturningTaint) {
+            // Sort FunctionsReturningTaint for deterministic output
+            SmallVector<Function*, 16> SortedFunctionsReturningTaint(
+                FunctionsReturningTaint.begin(), FunctionsReturningTaint.end());
+            llvm::sort(SortedFunctionsReturningTaint, [](Function *A, Function *B) {
+                return std::less<Function*>()(A, B);
+            });
+            for (Function *TaintedFunc : SortedFunctionsReturningTaint) {
                 if (Verbose) {
                     errs() << "Finding callers of: " << TaintedFunc->getName() << " (returns taint)\n";
                 }
@@ -911,7 +941,13 @@ found:
             }
 
             // 5b. Find all call sites to functions that taint pointer parameters
-            for (auto &Entry : FunctionsTaintingPointerParams) {
+            // Sort FunctionsTaintingPointerParams for deterministic output
+            SmallVector<std::pair<Function*, DenseSet<unsigned>>, 16> SortedFunctionsTaintingPointerParams(
+                FunctionsTaintingPointerParams.begin(), FunctionsTaintingPointerParams.end());
+            llvm::sort(SortedFunctionsTaintingPointerParams, [](const auto &A, const auto &B) {
+                return std::less<Function*>()(A.first, B.first);
+            });
+            for (auto &Entry : SortedFunctionsTaintingPointerParams) {
                 Function *TaintedFunc = Entry.first;
                 DenseSet<unsigned> &TaintedParams = Entry.second;
 
@@ -929,7 +965,10 @@ found:
                                 Function *Callee = Call->getCalledFunction();
                                 if (Callee == TaintedFunc) {
                                     // Check each tainted parameter
-                                    for (unsigned ParamIdx : TaintedParams) {
+                                    // Sort TaintedParams for deterministic output
+                                    SmallVector<unsigned, 8> SortedTaintedParams(TaintedParams.begin(), TaintedParams.end());
+                                    llvm::sort(SortedTaintedParams);
+                                    for (unsigned ParamIdx : SortedTaintedParams) {
                                         if (ParamIdx >= Call->arg_size()) continue;
 
                                         Value *ActualArg = Call->getArgOperand(ParamIdx);
@@ -983,7 +1022,12 @@ found:
                     if (Verbose) errs() << "[USE] Processing uses of: " << getValueName(V) << "\n";
 
                     bool hasUses = false;
-                    for (User *U : V->users()) {
+                    // Sort users for deterministic output
+                    SmallVector<User*, 16> SortedUsersUpward(V->user_begin(), V->user_end());
+                    llvm::sort(SortedUsersUpward, [](User *A, User *B) {
+                        return std::less<User*>()(A, B);
+                    });
+                    for (User *U : SortedUsersUpward) {
                         Instruction *UserInst = dyn_cast<Instruction>(U);
                         if (!UserInst) continue;
 
@@ -1021,7 +1065,12 @@ found:
 
                 // Scan for loads from tainted pointers
                 SmallVector<Value*, 16> PointersToScan;
-                for (Value *Ptr : TaintedPointers) {
+                // Sort TaintedPointers for deterministic output
+                SmallVector<Value*, 32> SortedTaintedPointersUpward(TaintedPointers.begin(), TaintedPointers.end());
+                llvm::sort(SortedTaintedPointersUpward, [](Value *A, Value *B) {
+                    return std::less<Value*>()(A, B);
+                });
+                for (Value *Ptr : SortedTaintedPointersUpward) {
                     if (!UpwardScannedPointers.count(Ptr)) {
                         PointersToScan.push_back(Ptr);
                     }
