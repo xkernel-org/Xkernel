@@ -84,6 +84,13 @@ make CC=wllvm AR=llvm-ar HOSTCC=clang olddefconfig
 ./scripts/config -e PNFS_FLEXFILE_LAYOUT
 ./scripts/config -e MEMORY_FAILURE
 ./scripts/config -e XFS_FS
+./scripts/config -e BLK_DEV_NVME
+./scripts/config -e NETFILTER_ADVANCED
+./scripts/config -e IP_NF_TARGET_SYNPROXY
+./scripts/config -e TCP_CONG_DCTCP
+./scripts/config -e TCP_CONG_BBR
+./scripts/config -e IP_DCCP
+./scripts/config -e TMPFS_QUOTA
 make CC=wllvm AR=llvm-ar HOSTCC=clang olddefconfig
 # 2min51s 14900k
 # 4min27s c6420
