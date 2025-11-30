@@ -1,0 +1,38 @@
+=== Taint Tracker Configuration ===
+Function: tcp_data_queue
+Opcode: call
+Constant: 16
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 16)
+
+[SOURCE] Tainting:   %517 = tail call i32 @llvm.umin.i32(i32 %515, i32 range(i32 2, 17) 16), <net/ipv4/tcp_input.c:313:14> FUNC=tcp_data_queue L=0
+[USE] Source instruction in data flow <net/ipv4/tcp_input.c:313:14> FUNC=tcp_data_queue L=0
+[CHILD FUNCTION] Constant used in call to llvm.umin.i32 at argument 1 <net/ipv4/tcp_input.c:313:14> FUNC=tcp_data_queue L=0
+[USE] Processing uses of:   %517 = tail call i32 @llvm.umin.i32(i32 %515, i32 range(i32 2, 17) 16),
+  [USE] Taint flows to:   %518 = select i1 %516, i32 2, i32 %517, <net/ipv4/tcp_input.c:311:16> FUNC=tcp_data_queue L=0
+[USE] Processing uses of:   %518 = select i1 %516, i32 2, i32 %517,
+  [USE] Taint flows to:   %522 = icmp samesign ugt i32 %518, %521, <net/ipv4/tcp_input.c:314:16> FUNC=tcp_data_queue L=0
+  [USE] Taint flows to:   %524 = trunc nuw nsw i32 %518 to i8, <net/ipv4/tcp_input.c:315:26> FUNC=tcp_data_queue L=0
+[USE] Processing uses of:   %524 = trunc nuw nsw i32 %518 to i8,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter <net/ipv4/tcp_input.c:315:24>
+[USE] Processing uses of:   %522 = icmp samesign ugt i32 %518, %521,
+  [USE] Taint flows to:   br i1 %522, label %523, label %525, <net/ipv4/tcp_input.c:314:16> FUNC=tcp_data_queue L=0
+[NO USE] No uses of:   br i1 %522, label %523, label %525,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 5
+
+Earliest instruction with L=0:
+    %517 = tail call i32 @llvm.umin.i32(i32 %515, i32 range(i32 2, 17) 16), <net/ipv4/tcp_input.c:313:14> FUNC=tcp_data_queue L=0
+
+Latest instruction with L=0:
+    %524 = trunc nuw nsw i32 %518 to i8, <net/ipv4/tcp_input.c:315:26> FUNC=tcp_data_queue L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/ipv4/tcp_input.ll
+../linux-wllvm-defconfig/net/ipv4/tcp_input.c

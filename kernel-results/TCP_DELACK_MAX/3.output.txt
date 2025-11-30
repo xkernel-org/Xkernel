@@ -1,0 +1,81 @@
+=== Taint Tracker Configuration ===
+Function: dccp_send_ack
+Opcode: add
+Constant: 200
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 200)
+
+[SOURCE] Tainting:   %23 = add i64 %22, 200, <./include/net/inet_connection_sock.h:0> FUNC=dccp_send_ack L=0
+[USE] Source instruction in data flow <./include/net/inet_connection_sock.h:0> FUNC=dccp_send_ack L=0
+[USE] Processing uses of:   %23 = add i64 %22, 200,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter <./include/net/inet_connection_sock.h:0>
+  [CHILD FUNCTION] Tainted value used in call to sk_reset_timer at argument 2:   tail call void @sk_reset_timer(ptr noundef %0, ptr noundef nonnull %25, i64 noundef %23) #264, <./include/net/inet_connection_sock.h:0> FUNC=dccp_send_ack L=0
+[UPWARD-INTERPROC] Call to dccp_send_ack taints argument 0 (pointer parameter) <net/dccp/timer.c:208:3> FUNC=dccp_delack_timer L=1
+  [STORE DESTINATION] Marking pointer as tainted via call: ptr %0 FUNC=dccp_delack_timer L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %5 = load i32, ptr %4, align 4, (base: ptr %0)  <./include/net/sock.h:1725:21> FUNC=dccp_delack_timer L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %9 = load ptr, ptr %8, align 8, (base: ptr %0)  <./include/net/net_namespace.h:406:9> FUNC=dccp_delack_timer L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %17 = load volatile i8, ptr %16, align 2, (base: ptr %0)  <net/dccp/timer.c:185:10> FUNC=dccp_delack_timer L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %21 = load i8, ptr %20, align 8, (base: ptr %0)  <net/dccp/timer.c:186:23> FUNC=dccp_delack_timer L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %27 = load i64, ptr %26, align 8, (base: ptr %0)  <net/dccp/timer.c:188:6> FUNC=dccp_delack_timer L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %37 = load i8, ptr %36, align 2, (base: ptr %0)  <./include/net/inet_connection_sock.h:342:32> FUNC=dccp_delack_timer L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %39 = load ptr, ptr %38, align 8, (base: ptr %0)  <./include/net/net_namespace.h:406:9> FUNC=dccp_delack_timer L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %45 = load i32, ptr %44, align 4, (base: ptr %0)  <net/dccp/timer.c:199:25> FUNC=dccp_delack_timer L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %49 = load i32, ptr %48, align 8, (base: ptr %0)  <net/dccp/timer.c:199:25> FUNC=dccp_delack_timer L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %56 = load i32, ptr %55, align 4, (base: ptr %0)  <net/dccp/timer.c:206:23> FUNC=dccp_delack_timer L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %60 = load ptr, ptr %38, align 8, (base: ptr %0)  <./include/net/net_namespace.h:406:9> FUNC=dccp_delack_timer L=1
+  [USE] Taint flows to:   %61 = getelementptr inbounds nuw i8, ptr %60, i64 440, <net/dccp/timer.c:209:3> FUNC=dccp_delack_timer L=1
+  [USE] Taint flows to:   %62 = load ptr, ptr %61, align 8, <net/dccp/timer.c:209:3> FUNC=dccp_delack_timer L=1
+  [USE] Taint flows to:   %63 = getelementptr i8, ptr %62, i64 136, <net/dccp/timer.c:209:3> FUNC=dccp_delack_timer L=1
+  [USE] Taint flows to:   tail call void asm "incq %gs:$0", "=*m,*m,~{dirflag},~{fpsr},~{flags}"(ptr elementtype(i64) %63, ptr elementtype(i64) %63) #265, <net/dccp/timer.c:209:3> FUNC=dccp_delack_timer L=1
+  [USE] Taint flows to:   %57 = and i32 %56, -256, <net/dccp/timer.c:206:23> FUNC=dccp_delack_timer L=1
+  [USE] Taint flows to:   %58 = or disjoint i32 %57, 40, <net/dccp/timer.c:206:23> FUNC=dccp_delack_timer L=1
+  [USE] Taint flows to:   store i32 %58, ptr %55, align 4, <net/dccp/timer.c:206:23> FUNC=dccp_delack_timer L=1
+  [USE] Taint flows to:   %50 = tail call i32 @llvm.umin.i32(i32 %47, i32 %49), <net/dccp/timer.c:199:25> FUNC=dccp_delack_timer L=1
+  [USE] Taint flows to:   %51 = and i32 %50, 255, <net/dccp/timer.c:199:23> FUNC=dccp_delack_timer L=1
+  [USE] Taint flows to:   %53 = or disjoint i32 %51, %52, <net/dccp/timer.c:199:23> FUNC=dccp_delack_timer L=1
+  [USE] Taint flows to:   store i32 %53, ptr %44, align 4, <net/dccp/timer.c:199:23> FUNC=dccp_delack_timer L=1
+  [USE] Taint flows to:   %46 = shl i32 %45, 1, <net/dccp/timer.c:199:25> FUNC=dccp_delack_timer L=1
+  [USE] Taint flows to:   %52 = and i32 %45, -256, <net/dccp/timer.c:199:23> FUNC=dccp_delack_timer L=1
+  [USE] Taint flows to:   %47 = and i32 %46, 510, <net/dccp/timer.c:199:25> FUNC=dccp_delack_timer L=1
+  [USE] Taint flows to:   %40 = getelementptr inbounds nuw i8, ptr %39, i64 1171, <./include/net/inet_connection_sock.h:343:9> FUNC=dccp_delack_timer L=1
+  [USE] Taint flows to:   %41 = load volatile i8, ptr %40, align 1, <./include/net/inet_connection_sock.h:343:9> FUNC=dccp_delack_timer L=1
+  [USE] Taint flows to:   %42 = icmp ult i8 %37, %41, <./include/net/inet_connection_sock.h:342:41> FUNC=dccp_delack_timer L=1
+  [USE] Taint flows to:   br i1 %42, label %43, label %54, <net/dccp/timer.c:197:7> FUNC=dccp_delack_timer L=1
+  [USE] Taint flows to:   %28 = sub i64 %25, %27, <net/dccp/timer.c:188:6> FUNC=dccp_delack_timer L=1
+  [USE] Taint flows to:   tail call void @sk_reset_timer(ptr noundef %2, ptr noundef %0, i64 noundef %27) #264, <net/dccp/timer.c:189:3> FUNC=dccp_delack_timer L=1
+  [USE] Taint flows to:   %29 = icmp slt i64 %28, 0, <net/dccp/timer.c:188:6> FUNC=dccp_delack_timer L=1
+  [USE] Taint flows to:   br i1 %29, label %30, label %31, <net/dccp/timer.c:188:6> FUNC=dccp_delack_timer L=1
+  [USE] Taint flows to:   %22 = and i8 %21, 2, <net/dccp/timer.c:186:31> FUNC=dccp_delack_timer L=1
+  [USE] Taint flows to:   %32 = and i8 %21, -3, <net/dccp/timer.c:194:25> FUNC=dccp_delack_timer L=1
+  [USE] Taint flows to:   %33 = and i8 %21, 1, <./include/net/inet_connection_sock.h:184:40> FUNC=dccp_delack_timer L=1
+  [USE] Taint flows to:   %34 = icmp eq i8 %33, 0, <net/dccp/timer.c:196:6> FUNC=dccp_delack_timer L=1
+  [USE] Taint flows to:   br i1 %34, label %64, label %35, <net/dccp/timer.c:196:6> FUNC=dccp_delack_timer L=1
+  [USE] Taint flows to:   store i8 %32, ptr %20, align 8, <net/dccp/timer.c:194:25> FUNC=dccp_delack_timer L=1
+  [USE] Taint flows to:   %23 = icmp eq i8 %22, 0, <net/dccp/timer.c:186:31> FUNC=dccp_delack_timer L=1
+  [USE] Taint flows to:   br i1 %23, label %64, label %24, <net/dccp/timer.c:185:34> FUNC=dccp_delack_timer L=1
+  [USE] Taint flows to:   %18 = icmp eq i8 %17, 7, <net/dccp/timer.c:185:19> FUNC=dccp_delack_timer L=1
+  [USE] Taint flows to:   br i1 %18, label %64, label %19, <net/dccp/timer.c:185:34> FUNC=dccp_delack_timer L=1
+  [USE] Taint flows to:   %10 = getelementptr inbounds nuw i8, ptr %9, i64 440, <net/dccp/timer.c:179:3> FUNC=dccp_delack_timer L=1
+  [USE] Taint flows to:   %11 = load ptr, ptr %10, align 8, <net/dccp/timer.c:179:3> FUNC=dccp_delack_timer L=1
+  [USE] Taint flows to:   %12 = getelementptr i8, ptr %11, i64 144, <net/dccp/timer.c:179:3> FUNC=dccp_delack_timer L=1
+  [USE] Taint flows to:   tail call void asm "incq %gs:$0", "=*m,*m,~{dirflag},~{fpsr},~{flags}"(ptr elementtype(i64) %12, ptr elementtype(i64) %12) #265, <net/dccp/timer.c:179:3> FUNC=dccp_delack_timer L=1
+  [USE] Taint flows to:   %6 = icmp eq i32 %5, 0, <./include/net/sock.h:1725:9> FUNC=dccp_delack_timer L=1
+  [USE] Taint flows to:   br i1 %6, label %15, label %7, <net/dccp/timer.c:177:6> FUNC=dccp_delack_timer L=1
+
+=== Maximum Level Statistics ===
+Largest L value: 1
+Number of instructions with L=1: 49
+
+Earliest instruction with L=1:
+    %5 = load i32, ptr %4, align 4, <./include/net/sock.h:1725:21> FUNC=dccp_delack_timer L=1
+
+Latest instruction with L=1:
+    tail call void asm "incq %gs:$0", "=*m,*m,~{dirflag},~{fpsr},~{flags}"(ptr elementtype(i64) %63, ptr elementtype(i64) %63) #265, <net/dccp/timer.c:209:3> FUNC=dccp_delack_timer L=1
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/dccp/output.ll
+../linux-wllvm-defconfig/net/dccp/output.c

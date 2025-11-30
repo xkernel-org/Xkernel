@@ -1,0 +1,40 @@
+=== Taint Tracker Configuration ===
+Function: xfs_iwalk
+Opcode: call
+Constant: 2048
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 2048)
+
+[SOURCE] Tainting:   %17 = tail call i32 @llvm.umin.i32(i32 %5, i32 2048), <fs/xfs/xfs_iwalk.c:509:11> FUNC=xfs_iwalk L=0
+[USE] Source instruction in data flow <fs/xfs/xfs_iwalk.c:509:11> FUNC=xfs_iwalk L=0
+[CHILD FUNCTION] Constant used in call to llvm.umin.i32 at argument 1 <fs/xfs/xfs_iwalk.c:509:11> FUNC=xfs_iwalk L=0
+[USE] Processing uses of:   %17 = tail call i32 @llvm.umin.i32(i32 %5, i32 2048),
+  [USE] Taint flows to:   %18 = add nsw i32 %17, -1, <fs/xfs/xfs_iwalk.c:512:11> FUNC=xfs_iwalk L=0
+[USE] Processing uses of:   %18 = add nsw i32 %17, -1,
+  [USE] Taint flows to:   %19 = or i32 %18, 63, <fs/xfs/xfs_iwalk.c:512:11> FUNC=xfs_iwalk L=0
+[USE] Processing uses of:   %19 = or i32 %18, 63,
+  [USE] Taint flows to:   %20 = mul nsw i32 %19, 5, <fs/xfs/xfs_iwalk.c:527:26> FUNC=xfs_iwalk L=0
+[USE] Processing uses of:   %20 = mul nsw i32 %19, 5,
+  [USE] Taint flows to:   %21 = add nsw i32 %20, 5, <fs/xfs/xfs_iwalk.c:527:26> FUNC=xfs_iwalk L=0
+[USE] Processing uses of:   %21 = add nsw i32 %20, 5,
+  [USE] Taint flows to:   %22 = lshr i32 %21, 8, <fs/xfs/xfs_iwalk.c:527:31> FUNC=xfs_iwalk L=0
+[USE] Processing uses of:   %22 = lshr i32 %21, 8,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %23 = tail call i32 @llvm.umax.i32(i32 %22, i32 2), !dbg !17653675 <fs/xfs/xfs_iwalk.c:534:9>
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 6
+
+Earliest instruction with L=0:
+    %17 = tail call i32 @llvm.umin.i32(i32 %5, i32 2048), <fs/xfs/xfs_iwalk.c:509:11> FUNC=xfs_iwalk L=0
+
+Latest instruction with L=0:
+    %22 = lshr i32 %21, 8, <fs/xfs/xfs_iwalk.c:527:31> FUNC=xfs_iwalk L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/xfs/xfs_iwalk.ll
+../linux-wllvm-defconfig/fs/xfs/xfs_iwalk.c

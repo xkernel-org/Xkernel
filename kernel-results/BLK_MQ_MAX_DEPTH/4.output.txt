@@ -1,0 +1,28 @@
+=== Taint Tracker Configuration ===
+Function: blk_mq_alloc_tag_set
+Opcode: phi
+Constant: 10240
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 10240)
+
+[SOURCE] Tainting:   %31 = phi i32 [ 10240, %28 ], [ %7, %26 ] FUNC=blk_mq_alloc_tag_set L=0
+[USE] Source instruction in data flow FUNC=blk_mq_alloc_tag_set L=0
+[USE] Processing uses of:   %31 = phi i32 [ 10240, %28 ], [ %7, %26 ]
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %43 = tail call i32 @llvm.umin.i32(i32 %31, i32 64), !dbg !17653676 <block/blk-mq.c:4755:22>
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 1
+
+Earliest instruction with L=0:
+    %31 = phi i32 [ 10240, %28 ], [ %7, %26 ] FUNC=blk_mq_alloc_tag_set L=0
+
+(Earliest and latest are the same instruction)
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/block/blk-mq.ll
+../linux-wllvm-defconfig/block/blk-mq.c

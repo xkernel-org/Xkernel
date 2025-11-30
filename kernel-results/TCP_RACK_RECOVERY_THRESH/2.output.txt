@@ -1,0 +1,34 @@
+=== Taint Tracker Configuration ===
+Function: tcp_fastretrans_alert
+Opcode: call
+Constant: 15
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 2 (of constant 15)
+
+[SOURCE] Tainting:   %713 = tail call i8 @llvm.umin.i8(i8 %712, i8 15), <net/ipv4/tcp_input.c:2652:30> FUNC=tcp_fastretrans_alert L=0
+[USE] Source instruction in data flow <net/ipv4/tcp_input.c:2652:30> FUNC=tcp_fastretrans_alert L=0
+[CHILD FUNCTION] Constant used in call to llvm.umin.i8 at argument 1 <net/ipv4/tcp_input.c:2652:30> FUNC=tcp_fastretrans_alert L=0
+[USE] Processing uses of:   %713 = tail call i8 @llvm.umin.i8(i8 %712, i8 15),
+  [USE] Taint flows to:   %714 = add nuw nsw i8 %713, 1, <net/ipv4/tcp_input.c:2652:30> FUNC=tcp_fastretrans_alert L=0
+[USE] Processing uses of:   %714 = add nuw nsw i8 %713, 1,
+  [USE] Taint flows to:   %716 = or disjoint i8 %714, %715, <net/ipv4/tcp_input.c:2652:28> FUNC=tcp_fastretrans_alert L=0
+[USE] Processing uses of:   %716 = or disjoint i8 %714, %715,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter <net/ipv4/tcp_input.c:2652:28>
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 3
+
+Earliest instruction with L=0:
+    %713 = tail call i8 @llvm.umin.i8(i8 %712, i8 15), <net/ipv4/tcp_input.c:2652:30> FUNC=tcp_fastretrans_alert L=0
+
+Latest instruction with L=0:
+    %716 = or disjoint i8 %714, %715, <net/ipv4/tcp_input.c:2652:28> FUNC=tcp_fastretrans_alert L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/ipv4/tcp_input.ll
+../linux-wllvm-defconfig/net/ipv4/tcp_input.c

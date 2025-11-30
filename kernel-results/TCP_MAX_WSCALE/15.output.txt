@@ -1,0 +1,211 @@
+=== Taint Tracker Configuration ===
+Function: tcp_options
+Opcode: call
+Constant: 14
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 14)
+
+[SOURCE] Tainting:   %68 = call i8 @llvm.umin.i8(i8 %67, i8 14), <net/netfilter/nf_conntrack_proto_tcp.c:379:25> FUNC=tcp_options L=0
+[USE] Source instruction in data flow <net/netfilter/nf_conntrack_proto_tcp.c:379:25> FUNC=tcp_options L=0
+[CHILD FUNCTION] Constant used in call to llvm.umin.i8 at argument 1 <net/netfilter/nf_conntrack_proto_tcp.c:379:25> FUNC=tcp_options L=0
+[USE] Processing uses of:   %68 = call i8 @llvm.umin.i8(i8 %67, i8 14),
+  [POINTER PARAMETER] Tainted value stored through pointer parameter <net/netfilter/nf_conntrack_proto_tcp.c:0>
+[UPWARD-INTERPROC] Call to tcp_options taints argument 3 (pointer parameter) <net/netfilter/nf_conntrack_proto_tcp.c:1089:4> FUNC=nf_conntrack_tcp_packet L=1
+  [STORE DESTINATION] Marking pointer as tainted via call:   %8 = alloca %struct.intel_cdclk_config, align 4, !DIAssignID !17653665 FUNC=nf_conntrack_tcp_packet L=1
+[UPWARD-INTERPROC] Call to tcp_options taints argument 3 (pointer parameter) <net/netfilter/nf_conntrack_proto_tcp.c:470:2> FUNC=nf_conntrack_tcp_packet L=1
+  [STORE DESTINATION] Marking pointer as tainted via call:   %80 = getelementptr inbounds nuw i8, ptr %0, i64 184, FUNC=nf_conntrack_tcp_packet L=1
+[UPWARD-INTERPROC] Call to tcp_options taints argument 3 (pointer parameter) <net/netfilter/nf_conntrack_proto_tcp.c:868:3> FUNC=tcp_new L=1
+  [STORE DESTINATION] Marking pointer as tainted via call: ptr %0 FUNC=tcp_new L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %7 = load ptr, ptr %6, align 8, (base: ptr %0)  <./include/net/net_namespace.h:406:9> FUNC=tcp_new L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %216 = load i8, ptr %215, align 1, (base:   %8 = alloca %struct.intel_cdclk_config, align 4, !DIAssignID !17653665)  <net/netfilter/nf_conntrack_proto_tcp.c:1090:13> FUNC=nf_conntrack_tcp_packet L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %223 = load i8, ptr %222, align 4, (base:   %8 = alloca %struct.intel_cdclk_config, align 4, !DIAssignID !17653665)  <net/netfilter/nf_conntrack_proto_tcp.c:1093:38> FUNC=nf_conntrack_tcp_packet L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %116 = load i8, ptr %115, align 1, (base:   %80 = getelementptr inbounds nuw i8, ptr %0, i64 184,)  <net/netfilter/nf_conntrack_proto_tcp.c:1011:33> FUNC=nf_conntrack_tcp_packet L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %119 = load i8, ptr %118, align 1, (base:   %80 = getelementptr inbounds nuw i8, ptr %0, i64 184,)  <net/netfilter/nf_conntrack_proto_tcp.c:1012:36> FUNC=nf_conntrack_tcp_packet L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %280 = load i32, ptr %279, align 4, (base:   %80 = getelementptr inbounds nuw i8, ptr %0, i64 184,)  <net/netfilter/nf_conntrack_proto_tcp.c:1130:31> FUNC=nf_conntrack_tcp_packet L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %613 = load i32, ptr %426, align 4, (base:   %80 = getelementptr inbounds nuw i8, ptr %0, i64 184,)  <net/netfilter/nf_conntrack_proto_tcp.c:568:33> FUNC=nf_conntrack_tcp_packet L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %618 = load i32, ptr %423, align 4, (base:   %80 = getelementptr inbounds nuw i8, ptr %0, i64 184,)  <net/netfilter/nf_conntrack_proto_tcp.c:577:6> FUNC=nf_conntrack_tcp_packet L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %656 = load i32, ptr %426, align 4, (base:   %80 = getelementptr inbounds nuw i8, ptr %0, i64 184,)  <net/netfilter/nf_conntrack_proto_tcp.c:0> FUNC=nf_conntrack_tcp_packet L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %668 = load i32, ptr %423, align 4, (base:   %80 = getelementptr inbounds nuw i8, ptr %0, i64 184,)  <net/netfilter/nf_conntrack_proto_tcp.c:615:23> FUNC=nf_conntrack_tcp_packet L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %684 = load i32, ptr %426, align 4, (base:   %80 = getelementptr inbounds nuw i8, ptr %0, i64 184,)  <net/netfilter/nf_conntrack_proto_tcp.c:622:12> FUNC=nf_conntrack_tcp_packet L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %690 = load i32, ptr %423, align 4, (base:   %80 = getelementptr inbounds nuw i8, ptr %0, i64 184,)  <net/netfilter/nf_conntrack_proto_tcp.c:624:10> FUNC=nf_conntrack_tcp_packet L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %708 = load i32, ptr %426, align 4, (base:   %80 = getelementptr inbounds nuw i8, ptr %0, i64 184,)  <net/netfilter/nf_conntrack_proto_tcp.c:652:30> FUNC=nf_conntrack_tcp_packet L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %719 = load i32, ptr %423, align 4, (base:   %80 = getelementptr inbounds nuw i8, ptr %0, i64 184,)  <net/netfilter/nf_conntrack_proto_tcp.c:659:9> FUNC=nf_conntrack_tcp_packet L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %750 = load i32, ptr %423, align 4, (base:   %80 = getelementptr inbounds nuw i8, ptr %0, i64 184,)  <net/netfilter/nf_conntrack_proto_tcp.c:677:6> FUNC=nf_conntrack_tcp_packet L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %847 = load i8, ptr %846, align 1, (base:   %80 = getelementptr inbounds nuw i8, ptr %0, i64 184,)  <net/netfilter/nf_conntrack_proto_tcp.c:1274:33> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %848 = or i8 %847, 4, <net/netfilter/nf_conntrack_proto_tcp.c:1274:33> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   store i8 %848, ptr %846, align 1, <net/netfilter/nf_conntrack_proto_tcp.c:1274:33> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %751 = sub i32 %750, %671, <./include/net/tcp.h:290:28> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %752 = icmp slt i32 %751, 0, <./include/net/tcp.h:290:35> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   br i1 %752, label %753, label %757, <net/netfilter/nf_conntrack_proto_tcp.c:677:6> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %721 = add i32 %719, %720, <net/netfilter/nf_conntrack_proto_tcp.c:659:9> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %722 = sub i32 %721, %671, <./include/net/tcp.h:290:28> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %725 = call i32 (ptr, ptr, ptr, ptr, i32, ptr, ...) @nf_tcp_log_invalid(ptr noundef %1, ptr noundef %0, ptr noundef %4, ptr noundef %423, i32 noundef 0, ptr noundef nonnull @.str.22.82488, i32 noundef %721) #267, <net/netfilter/nf_conntrack_proto_tcp.c:661:10> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %830 = phi i32 [ %734, %733 ], [ %725, %724 ], [ %713, %712 ], [ %704, %700 ], [ %706, %705 ], <net/netfilter/nf_conntrack_proto_tcp.c:0> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   switch i32 %830, label %833 [
+    i32 0, label %831
+    i32 1, label %832
+  ], <net/netfilter/nf_conntrack_proto_tcp.c:1255:2> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %723 = icmp slt i32 %722, 0, <./include/net/tcp.h:290:35> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   br i1 %723, label %726, label %724, <net/netfilter/nf_conntrack_proto_tcp.c:660:6> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %709 = add i32 %708, 1, <net/netfilter/nf_conntrack_proto_tcp.c:652:37> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %730 = add i32 %708, %729, <net/netfilter/nf_conntrack_proto_tcp.c:664:7> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %792 = icmp eq i32 %659, %708, <net/netfilter/nf_conntrack_proto_tcp.c:698:10> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   br i1 %792, label %793, label %796, <net/netfilter/nf_conntrack_proto_tcp.c:698:10> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %731 = sub i32 %730, %658, <./include/net/tcp.h:290:28> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %734 = call i32 (ptr, ptr, ptr, ptr, i32, ptr, ...) @nf_tcp_log_invalid(ptr noundef %1, ptr noundef %0, ptr noundef %4, ptr noundef %423, i32 noundef 0, ptr noundef nonnull @.str.23.82489, i32 noundef %730) #267, <net/netfilter/nf_conntrack_proto_tcp.c:665:10> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %732 = icmp slt i32 %731, 0, <./include/net/tcp.h:290:35> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   br i1 %732, label %735, label %733, <net/netfilter/nf_conntrack_proto_tcp.c:664:6> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %710 = sub i32 %658, %709, <./include/net/tcp.h:290:28> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %713 = call i32 (ptr, ptr, ptr, ptr, i32, ptr, ...) @nf_tcp_log_invalid(ptr noundef %1, ptr noundef %0, ptr noundef %4, ptr noundef %423, i32 noundef 1, ptr noundef nonnull @.str.21.82487, i32 noundef %709) #267, <net/netfilter/nf_conntrack_proto_tcp.c:653:10> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %711 = icmp slt i32 %710, 0, <./include/net/tcp.h:290:35> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   br i1 %711, label %714, label %712, <net/netfilter/nf_conntrack_proto_tcp.c:652:6> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %692 = sub i32 %691, %690, <./include/net/tcp.h:290:35> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %693 = icmp sgt i32 %692, -1, <./include/net/tcp.h:290:35> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %694 = select i1 %693, i1 %689, i1 false FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %696 = select i1 %694, i1 %695, i1 false, <net/netfilter/nf_conntrack_proto_tcp.c:626:19> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %699 = select i1 %696, i1 %698, i1 false, <net/netfilter/nf_conntrack_proto_tcp.c:626:19> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   br i1 %699, label %700, label %705, <net/netfilter/nf_conntrack_proto_tcp.c:626:19> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %687 = sub i32 %658, %684, <./include/net/tcp.h:290:35> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %697 = sub i32 %684, %658 FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %698 = icmp sgt i32 %697, -1 FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %688 = add i32 %687, %686, <./include/net/tcp.h:290:35> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %689 = icmp sgt i32 %688, -1, <./include/net/tcp.h:290:35> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %670 = phi i32 [ %668, %667 ], [ 0, %664 ], [ %429, %657 ], <net/netfilter/nf_conntrack_proto_tcp.c:0> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %671 = phi i32 [ %668, %667 ], [ %452, %664 ], [ %452, %657 ], <net/netfilter/nf_conntrack_proto_tcp.c:0> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %678 = sub i32 %671, %673, <net/netfilter/nf_conntrack_proto_tcp.c:619:22> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %691 = add i32 %681, %671, <./include/net/tcp.h:290:35> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   store i32 %671, ptr %423, align 4, <net/netfilter/nf_conntrack_proto_tcp.c:640:19> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   store i32 %671, ptr %423, align 4, <net/netfilter/nf_conntrack_proto_tcp.c:678:18> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %775 = sub i32 %673, %671 FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %779 = sub i32 %671, %673, <net/netfilter/nf_conntrack_proto_tcp.c:692:30> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %814 = icmp eq i32 %813, %671, <net/netfilter/nf_conntrack_proto_tcp.c:706:23> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   store i32 %671, ptr %826, align 4, <net/netfilter/nf_conntrack_proto_tcp.c:713:20> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   br i1 %814, label %815, label %823, <net/netfilter/nf_conntrack_proto_tcp.c:706:30> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %780 = add i32 %779, %716, <net/netfilter/nf_conntrack_proto_tcp.c:692:23> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   store i32 %780, ptr %715, align 4, <net/netfilter/nf_conntrack_proto_tcp.c:692:23> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %776 = icmp slt i32 %775, 0 FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %777 = select i1 %717, i1 %776, i1 false, <net/netfilter/nf_conntrack_proto_tcp.c:691:31> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   br i1 %777, label %778, label %781, <net/netfilter/nf_conntrack_proto_tcp.c:691:31> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %679 = add i32 %678, 1, <net/netfilter/nf_conntrack_proto_tcp.c:619:42> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %695 = icmp ule i32 %679, %681 FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %704 = call i32 (ptr, ptr, ptr, ptr, i32, ptr, ...) @nf_tcp_log_invalid(ptr noundef %1, ptr noundef %0, ptr noundef %4, ptr noundef %423, i32 noundef 0, ptr noundef nonnull @.str.19.82485, i32 noundef %679) #267, <net/netfilter/nf_conntrack_proto_tcp.c:643:11> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %675 = sub i32 %670, %674, <./include/net/tcp.h:290:28> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %806 = icmp eq i32 %805, %670, <net/netfilter/nf_conntrack_proto_tcp.c:704:23> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   store i32 %670, ptr %824, align 4, <net/netfilter/nf_conntrack_proto_tcp.c:711:20> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   br i1 %806, label %807, label %823, <net/netfilter/nf_conntrack_proto_tcp.c:704:30> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %676 = icmp slt i32 %675, 0, <./include/net/tcp.h:290:35> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   br i1 %676, label %707, label %677, <net/netfilter/nf_conntrack_proto_tcp.c:618:6> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %658 = phi i32 [ %572, %649 ], [ %656, %655 ], <net/netfilter/nf_conntrack_proto_tcp.c:0> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %659 = phi i32 [ %571, %649 ], [ %656, %655 ], <net/netfilter/nf_conntrack_proto_tcp.c:0> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %745 = sub i32 %658, %659, <net/netfilter/nf_conntrack_proto_tcp.c:674:21> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   store i32 %659, ptr %766, align 4, <net/netfilter/nf_conntrack_proto_tcp.c:683:22> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %771 = sub i32 %770, %659, <./include/net/tcp.h:290:28> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   store i32 %659, ptr %766, align 4, <net/netfilter/nf_conntrack_proto_tcp.c:686:22> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %810 = icmp eq i32 %809, %659, <net/netfilter/nf_conntrack_proto_tcp.c:705:23> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   store i32 %659, ptr %825, align 4, <net/netfilter/nf_conntrack_proto_tcp.c:712:20> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   br i1 %810, label %811, label %823, <net/netfilter/nf_conntrack_proto_tcp.c:705:30> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %772 = icmp slt i32 %771, 0, <./include/net/tcp.h:290:35> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   br i1 %772, label %773, label %774, <net/netfilter/nf_conntrack_proto_tcp.c:685:14> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %746 = add i32 %744, %745, <net/netfilter/nf_conntrack_proto_tcp.c:674:13> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %747 = icmp ult i32 %727, %746, <net/netfilter/nf_conntrack_proto_tcp.c:675:24> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   store i32 %746, ptr %573, align 4, <net/netfilter/nf_conntrack_proto_tcp.c:676:21> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   br i1 %747, label %748, label %749, <net/netfilter/nf_conntrack_proto_tcp.c:675:24> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %784 = add i32 %744, %658, <net/netfilter/nf_conntrack_proto_tcp.c:693:6> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %785 = sub i32 %784, %783, <./include/net/tcp.h:290:35> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   store i32 %784, ptr %782, align 4, <net/netfilter/nf_conntrack_proto_tcp.c:694:23> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %790 = add i32 %784, 1, <net/netfilter/nf_conntrack_proto_tcp.c:696:23> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   store i32 %790, ptr %782, align 4, <net/netfilter/nf_conntrack_proto_tcp.c:696:23> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %786 = icmp sgt i32 %785, -1, <./include/net/tcp.h:290:35> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   br i1 %786, label %787, label %791, <net/netfilter/nf_conntrack_proto_tcp.c:693:6> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %619 = sub i32 %618, %452, <./include/net/tcp.h:290:28> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %620 = icmp slt i32 %619, 0, <./include/net/tcp.h:290:35> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   br i1 %620, label %621, label %645, <net/netfilter/nf_conntrack_proto_tcp.c:577:33> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %614 = add i32 %613, 1, <net/netfilter/nf_conntrack_proto_tcp.c:568:40> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %615 = icmp eq i32 %572, %614, <net/netfilter/nf_conntrack_proto_tcp.c:568:20> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   br i1 %615, label %644, label %645, <net/netfilter/nf_conntrack_proto_tcp.c:568:20> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %281 = add i32 %280, -1, <net/netfilter/nf_conntrack_proto_tcp.c:1130:38> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %285 = icmp eq i32 %281, %284, <net/netfilter/nf_conntrack_proto_tcp.c:1130:42> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   br i1 %285, label %286, label %287, <net/netfilter/nf_conntrack_proto_tcp.c:1129:52> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %120 = or i8 %119, %116, <net/netfilter/nf_conntrack_proto_tcp.c:1012:9> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %121 = and i8 %120, 4, <net/netfilter/nf_conntrack_proto_tcp.c:1013:8> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %122 = icmp eq i8 %121, 0, <net/netfilter/nf_conntrack_proto_tcp.c:1013:8> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   br i1 %122, label %123, label %132, <net/netfilter/nf_conntrack_proto_tcp.c:1014:7> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   store i8 %223, ptr %213, align 2, <net/netfilter/nf_conntrack_proto_tcp.c:1093:31> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %217 = and i8 %216, 1, <net/netfilter/nf_conntrack_proto_tcp.c:1090:19> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %225 = and i8 %216, 2, <net/netfilter/nf_conntrack_proto_tcp.c:1095:19> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %226 = icmp eq i8 %225, 0, <net/netfilter/nf_conntrack_proto_tcp.c:1095:19> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   br i1 %226, label %230, label %227, <net/netfilter/nf_conntrack_proto_tcp.c:1095:19> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %218 = icmp eq i8 %217, 0, <net/netfilter/nf_conntrack_proto_tcp.c:1090:19> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   br i1 %218, label %224, label %219, <net/netfilter/nf_conntrack_proto_tcp.c:1090:19> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %65 = getelementptr inbounds nuw i8, ptr %7, i64 2644, <net/netfilter/nf_conntrack_proto_tcp.c:869:17> FUNC=tcp_new L=1
+  [USE] Taint flows to:   %66 = load i8, ptr %65, align 4, <net/netfilter/nf_conntrack_proto_tcp.c:869:17> FUNC=tcp_new L=1
+  [USE] Taint flows to:   %67 = icmp eq i8 %66, 0, <net/netfilter/nf_conntrack_proto_tcp.c:869:27> FUNC=tcp_new L=1
+  [USE] Taint flows to:   br i1 %67, label %103, label %68, <net/netfilter/nf_conntrack_proto_tcp.c:869:27> FUNC=tcp_new L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %574 = load i32, ptr %573, align 4, (base:   %423 = getelementptr [2 x %struct.intel_cdclk_config], ptr %80, i64 0, i64 %105,)  <net/netfilter/nf_conntrack_proto_tcp.c:540:14> FUNC=nf_conntrack_tcp_packet L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %585 = load i8, ptr %584, align 1, (base:   %423 = getelementptr [2 x %struct.intel_cdclk_config], ptr %80, i64 0, i64 %105,)  <net/netfilter/nf_conntrack_proto_tcp.c:476:16> FUNC=nf_conntrack_tcp_packet L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %601 = load i8, ptr %600, align 4, (base:   %423 = getelementptr [2 x %struct.intel_cdclk_config], ptr %80, i64 0, i64 %105,)  <net/netfilter/nf_conntrack_proto_tcp.c:558:26> FUNC=nf_conntrack_tcp_packet L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %630 = load i8, ptr %629, align 1, (base:   %423 = getelementptr [2 x %struct.intel_cdclk_config], ptr %80, i64 0, i64 %105,)  <net/netfilter/nf_conntrack_proto_tcp.c:476:16> FUNC=nf_conntrack_tcp_packet L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %673 = load i32, ptr %672, align 4, (base:   %423 = getelementptr [2 x %struct.intel_cdclk_config], ptr %80, i64 0, i64 %105,)  <net/netfilter/nf_conntrack_proto_tcp.c:617:31> FUNC=nf_conntrack_tcp_packet L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %685 = load i32, ptr %573, align 4, (base:   %423 = getelementptr [2 x %struct.intel_cdclk_config], ptr %80, i64 0, i64 %105,)  <net/netfilter/nf_conntrack_proto_tcp.c:622:12> FUNC=nf_conntrack_tcp_packet L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %702 = load i8, ptr %701, align 1, (base:   %423 = getelementptr [2 x %struct.intel_cdclk_config], ptr %80, i64 0, i64 %105,)  <net/netfilter/nf_conntrack_proto_tcp.c:641:18> FUNC=nf_conntrack_tcp_packet L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %727 = load i32, ptr %573, align 4, (base:   %423 = getelementptr [2 x %struct.intel_cdclk_config], ptr %80, i64 0, i64 %105,)  <net/netfilter/nf_conntrack_proto_tcp.c:664:7> FUNC=nf_conntrack_tcp_packet L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %740 = load i8, ptr %739, align 4, (base:   %423 = getelementptr [2 x %struct.intel_cdclk_config], ptr %80, i64 0, i64 %105,)  <net/netfilter/nf_conntrack_proto_tcp.c:671:19> FUNC=nf_conntrack_tcp_packet L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %755 = load i8, ptr %754, align 1, (base:   %423 = getelementptr [2 x %struct.intel_cdclk_config], ptr %80, i64 0, i64 %105,)  <net/netfilter/nf_conntrack_proto_tcp.c:679:17> FUNC=nf_conntrack_tcp_packet L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %763 = load i8, ptr %762, align 1, (base:   %423 = getelementptr [2 x %struct.intel_cdclk_config], ptr %80, i64 0, i64 %105,)  <net/netfilter/nf_conntrack_proto_tcp.c:682:17> FUNC=nf_conntrack_tcp_packet L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %770 = load i32, ptr %766, align 4, (base:   %423 = getelementptr [2 x %struct.intel_cdclk_config], ptr %80, i64 0, i64 %105,)  <net/netfilter/nf_conntrack_proto_tcp.c:685:14> FUNC=nf_conntrack_tcp_packet L=1
+[LOAD] Tainted load from tracked pointer:   %716 = load i32, ptr %715, align 4, (  %715 = getelementptr inbounds nuw i8, ptr %426, i64 8,)  <net/netfilter/nf_conntrack_proto_tcp.c:658:27> FUNC=nf_conntrack_tcp_packet L=1
+[LOAD] Tainted load from tracked pointer:   %783 = load i32, ptr %782, align 4, (  %782 = getelementptr inbounds nuw i8, ptr %426, i64 4,)  <net/netfilter/nf_conntrack_proto_tcp.c:693:6> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %717 = icmp ne i32 %716, 0, <net/netfilter/nf_conntrack_proto_tcp.c:658:17> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %720 = xor i32 %716, -1, <net/netfilter/nf_conntrack_proto_tcp.c:659:9> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   br i1 %717, label %718, label %726, <net/netfilter/nf_conntrack_proto_tcp.c:658:37> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %764 = and i8 %763, 32, <net/netfilter/nf_conntrack_proto_tcp.c:682:23> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %768 = or disjoint i8 %763, 32, <net/netfilter/nf_conntrack_proto_tcp.c:684:18> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   store i8 %768, ptr %762, align 1, <net/netfilter/nf_conntrack_proto_tcp.c:684:18> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %765 = icmp eq i8 %764, 0, <net/netfilter/nf_conntrack_proto_tcp.c:682:23> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   br i1 %765, label %767, label %769, <net/netfilter/nf_conntrack_proto_tcp.c:682:7> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %756 = or i8 %755, 16, <net/netfilter/nf_conntrack_proto_tcp.c:679:17> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   store i8 %756, ptr %754, align 1, <net/netfilter/nf_conntrack_proto_tcp.c:679:17> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %741 = zext nneg i8 %740 to i32, <net/netfilter/nf_conntrack_proto_tcp.c:671:11> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %742 = shl i32 %436, %741, <net/netfilter/nf_conntrack_proto_tcp.c:671:7> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %744 = phi i32 [ %436, %735 ], [ %742, %738 ], <net/netfilter/nf_conntrack_proto_tcp.c:0> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %788 = icmp eq i32 %744, 0, <net/netfilter/nf_conntrack_proto_tcp.c:695:11> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   br i1 %788, label %789, label %791, <net/netfilter/nf_conntrack_proto_tcp.c:695:11> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %728 = call i32 @llvm.umax.i32(i32 %727, i32 66000), <net/netfilter/nf_conntrack_proto_tcp.c:664:7> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %729 = xor i32 %728, -1, <net/netfilter/nf_conntrack_proto_tcp.c:664:7> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %703 = or i8 %702, 16, <net/netfilter/nf_conntrack_proto_tcp.c:641:18> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   store i8 %703, ptr %701, align 1, <net/netfilter/nf_conntrack_proto_tcp.c:641:18> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %686 = call i32 @llvm.umax.i32(i32 %685, i32 66000), <net/netfilter/nf_conntrack_proto_tcp.c:622:12> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %674 = add i32 %673, 1, <net/netfilter/nf_conntrack_proto_tcp.c:617:41> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %706 = call i32 (ptr, ptr, ptr, ptr, i32, ptr, ...) @nf_tcp_log_invalid(ptr noundef %1, ptr noundef %0, ptr noundef %4, ptr noundef %423, i32 noundef 1, ptr noundef nonnull @.str.20.82486, i32 noundef %674) #267, <net/netfilter/nf_conntrack_proto_tcp.c:647:10> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %631 = and i8 %630, 1, <net/netfilter/nf_conntrack_proto_tcp.c:476:22> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %632 = icmp eq i8 %631, 0, <net/netfilter/nf_conntrack_proto_tcp.c:476:22> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   br i1 %632, label %637, label %633, <net/netfilter/nf_conntrack_proto_tcp.c:476:52> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %602 = zext nneg i8 %601 to i32, <net/netfilter/nf_conntrack_proto_tcp.c:558:18> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %603 = shl i32 %436, %602, <net/netfilter/nf_conntrack_proto_tcp.c:558:15> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %604 = call i32 @llvm.umax.i32(i32 %603, i32 1), <net/netfilter/nf_conntrack_proto_tcp.c:559:25> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   store i32 %604, ptr %573, align 4, <net/netfilter/nf_conntrack_proto_tcp.c:559:22> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %605 = add i32 %604, %452, <net/netfilter/nf_conntrack_proto_tcp.c:560:28> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   store i32 %605, ptr %606, align 4, <net/netfilter/nf_conntrack_proto_tcp.c:560:22> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %586 = and i8 %585, 1, <net/netfilter/nf_conntrack_proto_tcp.c:476:22> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %587 = icmp eq i8 %586, 0, <net/netfilter/nf_conntrack_proto_tcp.c:476:22> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   br i1 %587, label %592, label %588, <net/netfilter/nf_conntrack_proto_tcp.c:476:52> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %575 = icmp eq i32 %574, 0, <net/netfilter/nf_conntrack_proto_tcp.c:540:24> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   br i1 %575, label %579, label %616, <net/netfilter/nf_conntrack_proto_tcp.c:540:24> FUNC=nf_conntrack_tcp_packet L=1
+
+=== Maximum Level Statistics ===
+Largest L value: 1
+Number of instructions with L=1: 172
+
+Earliest instruction with L=1:
+    %116 = load i8, ptr %115, align 1, <net/netfilter/nf_conntrack_proto_tcp.c:1011:33> FUNC=nf_conntrack_tcp_packet L=1
+
+Latest instruction with L=1:
+    br i1 %67, label %103, label %68, <net/netfilter/nf_conntrack_proto_tcp.c:869:27> FUNC=tcp_new L=1
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/netfilter/nf_conntrack_proto_tcp.ll
+../linux-wllvm-defconfig/net/netfilter/nf_conntrack_proto_tcp.c

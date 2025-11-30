@@ -1,0 +1,33 @@
+=== Taint Tracker Configuration ===
+Function: dctcp_update_alpha
+Opcode: shl
+Constant: 8
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 8)
+
+[SOURCE] Tainting:   %26 = shl i32 %19, 8, <net/ipv4/tcp_dctcp.c:147:30> FUNC=dctcp_update_alpha L=0
+[USE] Source instruction in data flow <net/ipv4/tcp_dctcp.c:147:30> FUNC=dctcp_update_alpha L=0
+[USE] Processing uses of:   %26 = shl i32 %19, 8,
+  [USE] Taint flows to:   %27 = udiv i32 %26, %14, <net/ipv4/tcp_dctcp.c:147:48> FUNC=dctcp_update_alpha L=0
+[USE] Processing uses of:   %27 = udiv i32 %26, %14,
+  [USE] Taint flows to:   %29 = phi i32 [ %27, %25 ], [ 0, %23 ], <net/ipv4/tcp_dctcp.c:0> FUNC=dctcp_update_alpha L=0
+[USE] Processing uses of:   %29 = phi i32 [ %27, %25 ], [ 0, %23 ],
+  [CHILD FUNCTION] Tainted value used in call to tcp_plb_update_state at argument 2:   tail call void @tcp_plb_update_state(ptr noundef %0, ptr noundef nonnull %30, i32 noundef %29) #264, <net/ipv4/tcp_dctcp.c:148:4> FUNC=dctcp_update_alpha L=0
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 3
+
+Earliest instruction with L=0:
+    %26 = shl i32 %19, 8, <net/ipv4/tcp_dctcp.c:147:30> FUNC=dctcp_update_alpha L=0
+
+Latest instruction with L=0:
+    %29 = phi i32 [ %27, %25 ], [ 0, %23 ], <net/ipv4/tcp_dctcp.c:0> FUNC=dctcp_update_alpha L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/ipv4/tcp_dctcp.ll
+../linux-wllvm-defconfig/net/ipv4/tcp_dctcp.c

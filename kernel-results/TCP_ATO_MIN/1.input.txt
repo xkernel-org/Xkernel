@@ -1,0 +1,5 @@
+SOURCE_FILE=net/dccp/output.c
+FUNCTION_NAME=dccp_send_ack
+SOURCE_OP="or"
+CONSTANT_VALUE=40
+OCCURENCE=1

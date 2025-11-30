@@ -1,0 +1,28 @@
+=== Taint Tracker Configuration ===
+Function: __nfs3_proc_lookup
+Opcode: call
+Constant: 5000
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 5000)
+
+[SOURCE] Tainting:   %38 = call i64 @schedule_timeout(i64 noundef 5000) #265, <fs/nfs/nfs3proc.c:40:3> FUNC=__nfs3_proc_lookup L=0
+[USE] Source instruction in data flow <fs/nfs/nfs3proc.c:40:3> FUNC=__nfs3_proc_lookup L=0
+[CHILD FUNCTION] Constant used in call to schedule_timeout at argument 0 <fs/nfs/nfs3proc.c:40:3> FUNC=__nfs3_proc_lookup L=0
+[NO USE] No uses of:   %38 = call i64 @schedule_timeout(i64 noundef 5000) #265,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 1
+
+Earliest instruction with L=0:
+    %38 = call i64 @schedule_timeout(i64 noundef 5000) #265, <fs/nfs/nfs3proc.c:40:3> FUNC=__nfs3_proc_lookup L=0
+
+(Earliest and latest are the same instruction)
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/nfs/nfs3proc.ll
+../linux-wllvm-defconfig/fs/nfs/nfs3proc.c

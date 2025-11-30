@@ -1,0 +1,867 @@
+=== Taint Tracker Configuration ===
+Function: tcp_parse_options
+Opcode: phi
+Constant: 14
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 14)
+
+[SOURCE] Tainting:   %97 = phi i8 [ %86, %85 ], [ 14, %94 ], [ 14, %91 ], <net/ipv4/tcp_input.c:0> FUNC=tcp_parse_options L=0
+[USE] Source instruction in data flow <net/ipv4/tcp_input.c:0> FUNC=tcp_parse_options L=0
+[USE] Processing uses of:   %97 = phi i8 [ %86, %85 ], [ 14, %94 ], [ 14, %91 ],
+  [USE] Taint flows to:   %98 = zext nneg i8 %97 to i16, <net/ipv4/tcp_input.c:4244:25> FUNC=tcp_parse_options L=0
+[USE] Processing uses of:   %98 = zext nneg i8 %97 to i16,
+  [USE] Taint flows to:   %100 = shl nuw nsw i16 %98, 8, <net/ipv4/tcp_input.c:4244:25> FUNC=tcp_parse_options L=0
+[USE] Processing uses of:   %100 = shl nuw nsw i16 %98, 8,
+  [USE] Taint flows to:   %102 = or disjoint i16 %101, %100, <net/ipv4/tcp_input.c:4244:25> FUNC=tcp_parse_options L=0
+[USE] Processing uses of:   %102 = or disjoint i16 %101, %100,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter <net/ipv4/tcp_input.c:4244:25>
+[UPWARD-INTERPROC] Call to tcp_parse_options taints argument 2 (pointer parameter) <net/ipv4/tcp_input.c:6462:2> FUNC=tcp_rcv_state_process L=1
+  [STORE DESTINATION] Marking pointer as tainted via call: ptr %0 FUNC=tcp_rcv_state_process L=1
+[UPWARD-INTERPROC] Call to tcp_parse_options taints argument 2 (pointer parameter) <net/ipv4/tcp_input.c:6378:3> FUNC=tcp_rcv_fastopen_synack L=1
+  [STORE DESTINATION] Marking pointer as tainted via call:   %4 = alloca %struct.tcp_options_received, align 4, !DIAssignID !17653668 FUNC=tcp_rcv_fastopen_synack L=1
+[UPWARD-INTERPROC] Call to tcp_parse_options taints argument 2 (pointer parameter) <net/ipv4/tcp_input.c:4358:2> FUNC=tcp_validate_incoming L=1
+  [STORE DESTINATION] Marking pointer as tainted via call: ptr %0 FUNC=tcp_validate_incoming L=1
+[UPWARD-INTERPROC] Call to tcp_parse_options taints argument 2 (pointer parameter) <net/ipv4/tcp_input.c:7259:2> FUNC=tcp_conn_request L=1
+  [STORE DESTINATION] Marking pointer as tainted via call:   %6 = alloca %struct.tcp_options_received, align 4, !DIAssignID !17653692 FUNC=tcp_conn_request L=1
+[UPWARD-INTERPROC] Call to tcp_parse_options taints argument 2 (pointer parameter) <net/ipv4/tcp_minisocks.c:111:3> FUNC=tcp_timewait_state_process L=1
+  [STORE DESTINATION] Marking pointer as tainted via call:   %5 = alloca %struct.tcp_options_received, align 4, !DIAssignID !17653669 FUNC=tcp_timewait_state_process L=1
+[UPWARD-INTERPROC] Call to tcp_parse_options taints argument 2 (pointer parameter) <net/ipv4/tcp_minisocks.c:673:3> FUNC=tcp_check_req L=1
+  [STORE DESTINATION] Marking pointer as tainted via call:   %6 = alloca %struct.tcp_options_received, align 4, !DIAssignID !17653707 FUNC=tcp_check_req L=1
+[UPWARD-INTERPROC] Call to tcp_parse_options taints argument 2 (pointer parameter) <net/ipv4/syncookies.c:376:2> FUNC=cookie_v4_check L=1
+  [STORE DESTINATION] Marking pointer as tainted via call:   %3 = alloca %struct.tcp_options_received, align 4, !DIAssignID !17653658 FUNC=cookie_v4_check L=1
+[UPWARD-INTERPROC] Call to tcp_parse_options taints argument 2 (pointer parameter) <net/ipv6/syncookies.c:150:2> FUNC=cookie_v6_check L=1
+  [STORE DESTINATION] Marking pointer as tainted via call:   %3 = alloca %struct.tcp_options_received, align 4, !DIAssignID !17653663 FUNC=cookie_v6_check L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %12 = load volatile i8, ptr %11, align 2, (base: ptr %0)  <net/ipv4/tcp_input.c:6758:14> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %27 = load ptr, ptr %26, align 8, (base: ptr %0)  <net/ipv4/tcp_input.c:6781:10> FUNC=tcp_rcv_state_process L=1
+[SKIP] Load before taint origin, not tainting:   %33 = load i16, ptr %32, align 4, <net/ipv4/tcp_input.c:6792:25> FUNC=tcp_rcv_state_process L=1
+[SKIP] Load before taint origin, not tainting:   %37 = load i16, ptr %36, align 2, <net/ipv4/tcp_input.c:6458:31> FUNC=tcp_rcv_state_process L=1
+[SKIP] Load before taint origin, not tainting:   %39 = load ptr, ptr %38, align 8, <./include/net/net_namespace.h:406:9> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %40 = load i16, ptr %32, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6463:17> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %45 = load i32, ptr %44, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6463:42> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %49 = load i32, ptr %48, align 8, (base: ptr %0)  <net/ipv4/tcp_input.c:6464:31> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %58 = load i32, ptr %57, align 8, (base: ptr %0)  <net/ipv4/tcp_input.c:6475:8> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %66 = load i32, ptr %65, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6476:7> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %71 = load i8, ptr %70, align 1, (base: ptr %0)  <net/ipv4/tcp_input.c:6478:14> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %82 = load i32, ptr %81, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6486:43> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %86 = load i32, ptr %85, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6487:42> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %88 = load i8, ptr %87, align 1, (base: ptr %0)  <./include/net/tcp.h:892:10> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %92 = load i64, ptr %91, align 8, (base: ptr %0)  <./include/net/tcp.h:0> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %100 = load ptr, ptr %38, align 8, (base: ptr %0)  <./include/net/net_namespace.h:406:9> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %114 = load i8, ptr %113, align 8, (base: ptr %0)  <net/ipv4/tcp_input.c:405:11> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %126 = load i32, ptr %125, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6446:18> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %128 = load i32, ptr %127, align 8, (base: ptr %0)  <net/ipv4/tcp_input.c:6447:10> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %135 = load i32, ptr %134, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6448:30> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %151 = load i16, ptr %32, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6545:19> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %157 = load i32, ptr %156, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6547:4> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %167 = load i16, ptr %166, align 16, (base: ptr %0)  <net/ipv4/tcp_input.c:6555:19> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %170 = load i32, ptr %169, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:3813:36> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %178 = load i32, ptr %177, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6561:26> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %181 = load i16, ptr %180, align 16, (base: ptr %0)  <net/ipv4/tcp_input.c:631:22> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %184 = load i32, ptr %183, align 32, (base: ptr %0)  <net/ipv4/tcp_input.c:631:22> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %187 = load i32, ptr %186, align 8, (base: ptr %0)  <net/ipv4/tcp_input.c:633:9> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %194 = load i32, ptr %142, align 16, (base: ptr %0)  <net/ipv4/tcp_input.c:6567:3> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %198 = load i8, ptr %197, align 32, (base: ptr %0)  <net/ipv4/tcp_input.c:6431:11> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %201 = load i16, ptr %32, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6431:34> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %207 = load i8, ptr %206, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6575:24> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %215 = load volatile i64, ptr %214, align 8, (base: ptr %0)  <./arch/x86/include/asm/bitops.h:206:4> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %220 = load ptr, ptr %219, align 8, (base: ptr %0)  <net/ipv4/tcp_input.c:6579:8> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %224 = load i32, ptr %223, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6584:11> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %228 = load volatile i8, ptr %227, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6585:7> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %232 = load i8, ptr %231, align 2, (base: ptr %0)  <./include/net/inet_connection_sock.h:342:32> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %233 = load ptr, ptr %38, align 8, (base: ptr %0)  <./include/net/net_namespace.h:406:9> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %239 = load i8, ptr %238, align 8, (base: ptr %0)  <./include/net/inet_connection_sock.h:179:33> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %241 = load i32, ptr %186, align 8, (base: ptr %0)  <net/ipv4/tcp_input.c:309:39> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %242 = load i16, ptr %193, align 2, (base: ptr %0)  <net/ipv4/tcp_input.c:309:69> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %250 = load i8, ptr %249, align 1, (base: ptr %0)  <net/ipv4/tcp_input.c:314:33> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %258 = load i32, ptr %257, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:324:21> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %261 = load i8, ptr %238, align 8, (base: ptr %0)  <./include/net/inet_connection_sock.h:236:3> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %272 = load i32, ptr %35, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6617:17> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %277 = load i32, ptr %276, align 4, (base: ptr %0)  <./include/net/tcp.h:1706:20> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %279 = load i32, ptr %278, align 4, (base: ptr %0)  <./include/net/tcp.h:1706:40> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %285 = load i32, ptr %35, align 4, (base: ptr %0)  <./include/net/tcp.h:1708:6> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %290 = load i32, ptr %276, align 4, (base: ptr %0)  <./include/net/tcp.h:1716:15> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %297 = load i16, ptr %32, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6639:18> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %303 = load i32, ptr %302, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:3813:36> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %327 = load i8, ptr %326, align 8, (base: ptr %0)  <net/ipv4/tcp_input.c:411:11> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %337 = load i32, ptr %336, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6662:26> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %340 = load i16, ptr %339, align 16, (base: ptr %0)  <net/ipv4/tcp_input.c:631:22> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %343 = load i32, ptr %342, align 32, (base: ptr %0)  <net/ipv4/tcp_input.c:631:22> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %346 = load i32, ptr %345, align 8, (base: ptr %0)  <net/ipv4/tcp_input.c:633:9> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %356 = load i16, ptr %32, align 4, (base: ptr %0)  <./include/linux/tcp.h:134:38> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %360 = load i16, ptr %32, align 4, (base: ptr %0)  <./include/linux/tcp.h:134:38> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %366 = load ptr, ptr %365, align 8, (base: ptr %0)  <./include/linux/skbuff.h:2144:31> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %373 = load i8, ptr %372, align 4, (base: ptr %0)  <./include/net/tcp.h:2124:58> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %379 = load i16, ptr %378, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6806:24> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %382 = load ptr, ptr %381, align 8, (base: ptr %0)  <net/ipv4/tcp_input.c:6807:8> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %385 = load volatile i8, ptr %11, align 2, (base: ptr %0)  <net/ipv4/tcp_input.c:6812:3> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %388 = load volatile i8, ptr %11, align 2, (base: ptr %0)  <net/ipv4/tcp_input.c:6812:3> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %405 = load volatile i8, ptr %11, align 2, (base: ptr %0)  <net/ipv4/tcp_input.c:6834:11> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %416 = load volatile i8, ptr %11, align 2, (base: ptr %0)  <net/ipv4/tcp_input.c:6848:14> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %419 = load i32, ptr %418, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6850:16> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %422 = load i32, ptr %421, align 64, (base: ptr %0)  <net/ipv4/tcp_input.c:6851:12> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %429 = load i32, ptr %428, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6446:18> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %431 = load i32, ptr %430, align 8, (base: ptr %0)  <net/ipv4/tcp_input.c:6447:10> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %436 = load i16, ptr %378, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6447:49> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %441 = load i32, ptr %440, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6448:30> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %446 = load i32, ptr %445, align 16, (base: ptr %0)  <net/ipv4/tcp_input.c:6861:4> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %450 = load ptr, ptr %449, align 8, (base: ptr %0)  <net/ipv4/tcp_input.c:6866:7> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %452 = load ptr, ptr %451, align 8, (base: ptr %0)  <net/ipv4/tcp_input.c:6872:11> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %464 = load i16, ptr %378, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6876:49> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %476 = load i16, ptr %475, align 16, (base: ptr %0)  <net/ipv4/tcp_input.c:6880:15> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %480 = load ptr, ptr %479, align 8, (base: ptr %0)  <net/ipv4/tcp_input.c:6882:22> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %485 = load i32, ptr %469, align 4, (base: ptr %0)  <./include/net/tcp.h:783:29> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %486 = load i16, ptr %378, align 4, (base: ptr %0)  <./include/net/tcp.h:783:51> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %497 = load i16, ptr %496, align 16, (base: ptr %0)  <net/ipv4/tcp_input.c:631:22> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %500 = load i32, ptr %499, align 32, (base: ptr %0)  <net/ipv4/tcp_input.c:631:22> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %503 = load i32, ptr %502, align 8, (base: ptr %0)  <net/ipv4/tcp_input.c:633:9> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %512 = load i16, ptr %511, align 4, (base: ptr %0)  <./include/net/tcp.h:776:19> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %520 = load i8, ptr %519, align 1, (base: ptr %0)  <net/ipv4/tcp_input.c:6890:11> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %528 = load i32, ptr %527, align 8, (base: ptr %0)  <net/ipv4/tcp_input.c:6900:11> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %530 = load i32, ptr %529, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6900:26> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %534 = load i8, ptr %533, align 1, (base: ptr %0)  <net/ipv4/tcp_input.c:6904:3> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %537 = load volatile i32, ptr %536, align 8, (base: ptr %0)  <./include/net/sock.h:2155:7> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %542 = load volatile i64, ptr %541, align 8, (base: ptr %0)  <./arch/x86/include/asm/bitops.h:206:4> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %547 = load ptr, ptr %546, align 8, (base: ptr %0)  <net/ipv4/tcp_input.c:6910:8> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %550 = load volatile i32, ptr %549, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6914:7> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %554 = load ptr, ptr %553, align 8, (base: ptr %0)  <./include/net/net_namespace.h:406:9> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %566 = load i32, ptr %565, align 16, (base: ptr %0)  <net/ipv4/tcp_input.c:6920:7> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %576 = load i8, ptr %575, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6922:12> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %585 = load ptr, ptr %584, align 8, (base: ptr %0)  <./include/net/net_namespace.h:406:9> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %593 = load ptr, ptr %592, align 8, (base: ptr %0)  <./include/net/net_namespace.h:406:9> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %599 = load i32, ptr %598, align 8, (base: ptr %0)  <./include/net/tcp.h:1695:32> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %614 = load i32, ptr %613, align 4, (base: ptr %0)  <./include/net/sock.h:1725:21> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %621 = load i32, ptr %620, align 8, (base: ptr %0)  <net/ipv4/tcp_input.c:6948:11> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %623 = load i32, ptr %622, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6948:26> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %628 = load i32, ptr %627, align 8, (base: ptr %0)  <net/ipv4/tcp_input.c:6955:11> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %630 = load i32, ptr %629, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6955:26> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %634 = load volatile i8, ptr %11, align 2, (base: ptr %0)  <net/ipv4/tcp_input.c:6967:14> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %639 = load i32, ptr %638, align 16, (base: ptr %0)  <net/ipv4/tcp_input.c:6971:41> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %644 = load i8, ptr %643, align 1, (base: ptr %0)  <net/ipv4/tcp_input.c:6986:11> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %655 = load i32, ptr %654, align 16, (base: ptr %0)  <net/ipv4/tcp_input.c:6988:8> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %665 = load ptr, ptr %664, align 8, (base: ptr %0)  <./include/net/net_namespace.h:406:9> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %672 = load volatile i8, ptr %11, align 2, (base: ptr %0)  <net/ipv4/tcp_input.c:7002:10> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %676 = load i8, ptr %675, align 8, (base: ptr %0)  <./include/net/inet_connection_sock.h:184:32> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %6 = load ptr, ptr %5, align 8, (base: ptr %0)  <./include/net/net_namespace.h:406:9> FUNC=tcp_validate_incoming L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %15 = load i16, ptr %14, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:4352:24> FUNC=tcp_validate_incoming L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %36 = load i32, ptr %35, align 8, (base: ptr %0)  <net/ipv4/tcp_input.c:4331:45> FUNC=tcp_validate_incoming L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %42 = load i16, ptr %14, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:4359:17> FUNC=tcp_validate_incoming L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %47 = load i32, ptr %46, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:4359:42> FUNC=tcp_validate_incoming L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %51 = load i32, ptr %50, align 8, (base: ptr %0)  <net/ipv4/tcp_input.c:4360:31> FUNC=tcp_validate_incoming L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %55 = load i16, ptr %54, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:4350:25> FUNC=tcp_validate_incoming L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %59 = load i32, ptr %58, align 4, (base: ptr %0)  <./include/net/tcp.h:1706:20> FUNC=tcp_validate_incoming L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %61 = load i32, ptr %60, align 4, (base: ptr %0)  <./include/net/tcp.h:1706:40> FUNC=tcp_validate_incoming L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %67 = load i32, ptr %13, align 4, (base: ptr %0)  <./include/net/tcp.h:1708:6> FUNC=tcp_validate_incoming L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %72 = load i32, ptr %58, align 4, (base: ptr %0)  <./include/net/tcp.h:1716:15> FUNC=tcp_validate_incoming L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %95 = load i32, ptr %94, align 16, (base: ptr %0)  <net/ipv4/tcp_input.c:4473:17> FUNC=tcp_validate_incoming L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %102 = load i32, ptr %101, align 8, (base: ptr %0)  <net/ipv4/tcp_input.c:4479:17> FUNC=tcp_validate_incoming L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %109 = load i16, ptr %14, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:4484:18> FUNC=tcp_validate_incoming L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %115 = load i32, ptr %114, align 64, (base: ptr %0)  <net/ipv4/tcp_input.c:3631:3> FUNC=tcp_validate_incoming L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %122 = load i32, ptr %121, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:3632:42> FUNC=tcp_validate_incoming L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %126 = load i32, ptr %60, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:4488:46> FUNC=tcp_validate_incoming L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %129 = load i8, ptr %128, align 1, (base: ptr %0)  <net/ipv4/tcp_input.c:4450:18> FUNC=tcp_validate_incoming L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %133 = load i32, ptr %132, align 8, (base: ptr %0)  <net/ipv4/tcp_input.c:0> FUNC=tcp_validate_incoming L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %151 = load ptr, ptr %5, align 8, (base: ptr %0)  <./include/net/net_namespace.h:406:9> FUNC=tcp_validate_incoming L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %158 = load ptr, ptr %5, align 8, (base: ptr %0)  <./include/net/net_namespace.h:406:9> FUNC=tcp_validate_incoming L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %168 = load i32, ptr %167, align 8, (base: ptr %0)  <net/ipv4/tcp_input.c:4511:26> FUNC=tcp_validate_incoming L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %175 = load i32, ptr %174, align 16, (base: ptr %0)  <net/ipv4/tcp_input.c:4514:6> FUNC=tcp_validate_incoming L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %177 = load i32, ptr %176, align 8, (base: ptr %0)  <./include/net/tcp.h:832:30> FUNC=tcp_validate_incoming L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %194 = load ptr, ptr %5, align 8, (base: ptr %0)  <./include/net/net_namespace.h:406:9> FUNC=tcp_validate_incoming L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %209 = load volatile i32, ptr %195, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:3738:12> FUNC=tcp_validate_incoming L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %230 = load i32, ptr %229, align 16, (base: ptr %0)  <net/ipv4/tcp_input.c:5949:9> FUNC=tcp_validate_incoming L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %235 = load volatile i8, ptr %234, align 2, (base: ptr %0)  <net/ipv4/tcp_input.c:5949:9> FUNC=tcp_validate_incoming L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %250 = load volatile i8, ptr %249, align 2, (base: ptr %0)  <net/ipv4/tcp_input.c:5949:9> FUNC=tcp_validate_incoming L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %257 = load i16, ptr %256, align 4, (base: ptr %0)  <./include/net/tcp.h:1295:9> FUNC=tcp_validate_incoming L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %262 = load i8, ptr %261, align 1, (base: ptr %0)  <net/ipv4/tcp_input.c:6030:37> FUNC=tcp_validate_incoming L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %266 = load i32, ptr %265, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6032:25> FUNC=tcp_validate_incoming L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %333 = load i8, ptr %332, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6050:11> FUNC=tcp_validate_incoming L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %338 = load i32, ptr %337, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6050:32> FUNC=tcp_validate_incoming L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %342 = load volatile i8, ptr %341, align 2, (base: ptr %0)  <net/ipv4/tcp_input.c:6051:11> FUNC=tcp_validate_incoming L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %351 = load volatile i8, ptr %350, align 2, (base: ptr %0)  <net/ipv4/tcp_input.c:6064:11> FUNC=tcp_validate_incoming L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %355 = load ptr, ptr %354, align 8, (base: ptr %0)  <net/ipv4/tcp_input.c:6064:43> FUNC=tcp_validate_incoming L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %369 = load i32, ptr %368, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6067:39> FUNC=tcp_validate_incoming L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %373 = load ptr, ptr %5, align 8, (base: ptr %0)  <./include/net/net_namespace.h:406:9> FUNC=tcp_validate_incoming L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %378 = load ptr, ptr %5, align 8, (base: ptr %0)  <./include/net/net_namespace.h:406:9> FUNC=tcp_validate_incoming L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %23 = load i16, ptr %20, align 2, (base:   %4 = alloca %struct.tcp_options_received, align 4, !DIAssignID !17653668)  <net/ipv4/tcp_input.c:6379:13> FUNC=tcp_rcv_fastopen_synack L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %61 = load i16, ptr %53, align 4, (base:   %6 = alloca %struct.tcp_options_received, align 4, !DIAssignID !17653692)  <net/ipv4/tcp_input.c:7268:30> FUNC=tcp_conn_request L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %79 = load i16, ptr %55, align 2, (base:   %6 = alloca %struct.tcp_options_received, align 4, !DIAssignID !17653692)  <net/ipv4/tcp_input.c:7085:21> FUNC=tcp_conn_request L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %84 = load i32, ptr %83, align 4, (base:   %6 = alloca %struct.tcp_options_received, align 4, !DIAssignID !17653692)  <net/ipv4/tcp_input.c:7086:19> FUNC=tcp_conn_request L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %20 = load i16, ptr %8, align 4, (base:   %5 = alloca %struct.tcp_options_received, align 4, !DIAssignID !17653669)  <net/ipv4/tcp_minisocks.c:113:15> FUNC=tcp_timewait_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %25 = load i32, ptr %24, align 4, (base:   %5 = alloca %struct.tcp_options_received, align 4, !DIAssignID !17653669)  <net/ipv4/tcp_minisocks.c:114:16> FUNC=tcp_timewait_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %37 = load i32, ptr %36, align 4, (base:   %5 = alloca %struct.tcp_options_received, align 4, !DIAssignID !17653669)  <./include/net/tcp.h:1706:40> FUNC=tcp_timewait_state_process L=1
+[LOAD] Tainted load from tracked pointer:   %43 = load i32, ptr %5, align 4, (  %5 = alloca %struct.tcp_options_received, align 4, !DIAssignID !17653669)  <./include/net/tcp.h:1708:6> FUNC=tcp_timewait_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %47 = load i32, ptr %34, align 4 (base:   %5 = alloca %struct.tcp_options_received, align 4, !DIAssignID !17653669)  FUNC=tcp_timewait_state_process L=1
+[LOAD] Tainted load from tracked pointer:   %56 = load i32, ptr %5, align 4, (  %5 = alloca %struct.tcp_options_received, align 4, !DIAssignID !17653669)  <./include/net/tcp.h:1739:14> FUNC=tcp_timewait_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %119 = load i16, ptr %8, align 4, (base:   %5 = alloca %struct.tcp_options_received, align 4, !DIAssignID !17653669)  <net/ipv4/tcp_minisocks.c:159:15> FUNC=tcp_timewait_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %130 = load i32, ptr %129, align 4, (base:   %5 = alloca %struct.tcp_options_received, align 4, !DIAssignID !17653669)  <net/ipv4/tcp_minisocks.c:165:4> FUNC=tcp_timewait_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %153 = load i16, ptr %8, align 4, (base:   %5 = alloca %struct.tcp_options_received, align 4, !DIAssignID !17653669)  <net/ipv4/tcp_minisocks.c:209:15> FUNC=tcp_timewait_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %158 = load i32, ptr %157, align 4, (base:   %5 = alloca %struct.tcp_options_received, align 4, !DIAssignID !17653669)  <net/ipv4/tcp_minisocks.c:210:4> FUNC=tcp_timewait_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %172 = load i16, ptr %8, align 4, (base:   %5 = alloca %struct.tcp_options_received, align 4, !DIAssignID !17653669)  <net/ipv4/tcp_minisocks.c:239:16> FUNC=tcp_timewait_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %179 = load i32, ptr %178, align 4, (base:   %5 = alloca %struct.tcp_options_received, align 4, !DIAssignID !17653669)  <net/ipv4/tcp_minisocks.c:240:55> FUNC=tcp_timewait_state_process L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %23 = load i16, ptr %17, align 4, (base:   %6 = alloca %struct.tcp_options_received, align 4, !DIAssignID !17653707)  <net/ipv4/tcp_minisocks.c:675:15> FUNC=tcp_check_req L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %31 = load i32, ptr %30, align 4, (base:   %6 = alloca %struct.tcp_options_received, align 4, !DIAssignID !17653707)  <net/ipv4/tcp_minisocks.c:677:16> FUNC=tcp_check_req L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %53 = load i32, ptr %29, align 4, (base:   %6 = alloca %struct.tcp_options_received, align 4, !DIAssignID !17653707)  <./include/net/tcp.h:1706:20> FUNC=tcp_check_req L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %55 = load i32, ptr %54, align 4, (base:   %6 = alloca %struct.tcp_options_received, align 4, !DIAssignID !17653707)  <./include/net/tcp.h:1706:40> FUNC=tcp_check_req L=1
+[LOAD] Tainted load from tracked pointer:   %61 = load i32, ptr %6, align 4, (  %6 = alloca %struct.tcp_options_received, align 4, !DIAssignID !17653707)  <./include/net/tcp.h:1708:6> FUNC=tcp_check_req L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %65 = load i32, ptr %29, align 4 (base:   %6 = alloca %struct.tcp_options_received, align 4, !DIAssignID !17653707)  FUNC=tcp_check_req L=1
+[LOAD] Tainted load from tracked pointer:   %74 = load i32, ptr %6, align 4, (  %6 = alloca %struct.tcp_options_received, align 4, !DIAssignID !17653707)  <./include/net/tcp.h:1739:14> FUNC=tcp_check_req L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %218 = load i16, ptr %17, align 4, (base:   %6 = alloca %struct.tcp_options_received, align 4, !DIAssignID !17653707)  <net/ipv4/tcp_minisocks.c:866:25> FUNC=tcp_check_req L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %228 = load i32, ptr %227, align 4, (base:   %6 = alloca %struct.tcp_options_received, align 4, !DIAssignID !17653707)  <net/ipv4/tcp_minisocks.c:868:45> FUNC=tcp_check_req L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %110 = load i16, ptr %109, align 4, (base:   %3 = alloca %struct.tcp_options_received, align 4, !DIAssignID !17653658)  <net/ipv4/syncookies.c:378:14> FUNC=cookie_v4_check L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %114 = load i32, ptr %113, align 4 (base:   %3 = alloca %struct.tcp_options_received, align 4, !DIAssignID !17653658)  FUNC=cookie_v4_check L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %127 = load i32, ptr %113, align 4, (base:   %3 = alloca %struct.tcp_options_received, align 4, !DIAssignID !17653658)  <net/ipv4/syncookies.c:382:21> FUNC=cookie_v4_check L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %129 = load i16, ptr %109, align 4, (base:   %3 = alloca %struct.tcp_options_received, align 4, !DIAssignID !17653658)  <net/ipv4/syncookies.c:241:16> FUNC=cookie_v4_check L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %75 = load i16, ptr %74, align 4, (base:   %3 = alloca %struct.tcp_options_received, align 4, !DIAssignID !17653663)  <net/ipv6/syncookies.c:152:14> FUNC=cookie_v6_check L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %79 = load i32, ptr %78, align 4 (base:   %3 = alloca %struct.tcp_options_received, align 4, !DIAssignID !17653663)  FUNC=cookie_v6_check L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %90 = load i32, ptr %78, align 4, (base:   %3 = alloca %struct.tcp_options_received, align 4, !DIAssignID !17653663)  <net/ipv6/syncookies.c:156:21> FUNC=cookie_v6_check L=1
+  [USE] Taint flows to:   %91 = sub i32 %90, %89, <net/ipv6/syncookies.c:156:21> FUNC=cookie_v6_check L=1
+  [USE] Taint flows to:   store i32 %91, ptr %78, align 4, <net/ipv6/syncookies.c:156:21> FUNC=cookie_v6_check L=1
+  [USE] Taint flows to:   %80 = icmp ne i32 %79, 0 FUNC=cookie_v6_check L=1
+  [USE] Taint flows to:   %81 = select i1 %77, i1 %80, i1 false, <net/ipv6/syncookies.c:152:25> FUNC=cookie_v6_check L=1
+  [USE] Taint flows to:   br i1 %81, label %82, label %92, <net/ipv6/syncookies.c:152:25> FUNC=cookie_v6_check L=1
+  [USE] Taint flows to:   %76 = and i16 %75, 1, <net/ipv6/syncookies.c:152:14> FUNC=cookie_v6_check L=1
+  [USE] Taint flows to:   %77 = icmp ne i16 %76, 0, <net/ipv6/syncookies.c:152:6> FUNC=cookie_v6_check L=1
+  [USE] Taint flows to:   %131 = phi i16 [ %129, %117 ], [ %110, %107 ], <net/ipv4/syncookies.c:241:16> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   %134 = and i16 %131, 1, <net/ipv4/syncookies.c:241:16> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   %137 = and i16 %131, -4092, <./include/linux/tcp.h:137:17> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   %145 = and i16 %131, -113, <net/ipv4/syncookies.c:249:19> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   %146 = or disjoint i16 %144, %145, <net/ipv4/syncookies.c:249:19> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   store i16 %146, ptr %109, align 4, <net/ipv4/syncookies.c:249:19> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   %158 = and i16 %146, -3945, <net/ipv4/syncookies.c:258:22> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   %159 = or disjoint i16 %157, %158, <net/ipv4/syncookies.c:258:22> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   %160 = or disjoint i16 %159, 8, <net/ipv4/syncookies.c:258:22> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   store i16 %160, ptr %109, align 4, <net/ipv4/syncookies.c:258:22> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   store i16 %137, ptr %109, align 4, <./include/linux/tcp.h:137:17> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   %135 = icmp eq i16 %134, 0, <net/ipv4/syncookies.c:241:7> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   br i1 %135, label %136, label %138, <net/ipv4/syncookies.c:241:6> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   %128 = sub i32 %127, %126, <net/ipv4/syncookies.c:382:21> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   store i32 %128, ptr %113, align 4, <net/ipv4/syncookies.c:382:21> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   %132 = phi i32 [ %128, %117 ], [ %114, %107 ], <net/ipv4/syncookies.c:239:25> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   %143 = trunc i32 %132 to i16, <net/ipv4/syncookies.c:249:19> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   %153 = and i32 %132, 15, <net/ipv4/syncookies.c:254:15> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   %154 = icmp eq i32 %153, 15, <net/ipv4/syncookies.c:254:37> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   br i1 %154, label %165, label %155, <net/ipv4/syncookies.c:254:37> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   %144 = and i16 %143, 16, <net/ipv4/syncookies.c:249:19> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   %156 = shl i16 %143, 8, <net/ipv4/syncookies.c:258:22> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   %157 = and i16 %156, 3840, <net/ipv4/syncookies.c:258:22> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   %147 = icmp eq i16 %144, 0, <net/ipv4/syncookies.c:251:6> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   br i1 %147, label %152, label %148, <net/ipv4/syncookies.c:251:23> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   %115 = icmp ne i32 %114, 0 FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   %116 = select i1 %112, i1 %115, i1 false, <net/ipv4/syncookies.c:378:25> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   br i1 %116, label %117, label %130, <net/ipv4/syncookies.c:378:25> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   %111 = and i16 %110, 1, <net/ipv4/syncookies.c:378:14> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   %112 = icmp ne i16 %111, 0, <net/ipv4/syncookies.c:378:6> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   store i32 %228, ptr %229, align 4, <net/ipv4/tcp_minisocks.c:868:35> FUNC=tcp_check_req L=1
+  [USE] Taint flows to:   %219 = and i16 %218, 1, <net/ipv4/tcp_minisocks.c:866:25> FUNC=tcp_check_req L=1
+  [USE] Taint flows to:   %220 = icmp eq i16 %219, 0, <net/ipv4/tcp_minisocks.c:866:17> FUNC=tcp_check_req L=1
+  [USE] Taint flows to:   br i1 %220, label %230, label %221, <net/ipv4/tcp_minisocks.c:866:36> FUNC=tcp_check_req L=1
+  [USE] Taint flows to:   %75 = sub i32 %73, %74, <./include/net/tcp.h:1739:14> FUNC=tcp_check_req L=1
+  [USE] Taint flows to:   %76 = add i32 %75, -60, <./include/net/tcp.h:1739:14> FUNC=tcp_check_req L=1
+  [USE] Taint flows to:   %77 = icmp slt i32 %76, 0, <./include/net/tcp.h:1739:14> FUNC=tcp_check_req L=1
+  [USE] Taint flows to:   br i1 %77, label %78, label %84, <./include/net/tcp.h:1739:10> FUNC=tcp_check_req L=1
+  [USE] Taint flows to:   %66 = icmp eq i32 %65, 0 FUNC=tcp_check_req L=1
+  [USE] Taint flows to:   %67 = select i1 %64, i1 true, i1 %66, <./include/net/tcp.h:1708:6> FUNC=tcp_check_req L=1
+  [USE] Taint flows to:   br i1 %67, label %84, label %68, <./include/net/tcp.h:1708:6> FUNC=tcp_check_req L=1
+  [USE] Taint flows to:   %62 = sub i32 %60, %61, <./include/net/tcp.h:1708:6> FUNC=tcp_check_req L=1
+  [USE] Taint flows to:   %63 = add i32 %62, -2147, <./include/net/tcp.h:1708:6> FUNC=tcp_check_req L=1
+  [USE] Taint flows to:   %64 = icmp sgt i32 %63, -1, <./include/net/tcp.h:1708:6> FUNC=tcp_check_req L=1
+  [USE] Taint flows to:   %56 = sub i32 %53, %55, <./include/net/tcp.h:1706:30> FUNC=tcp_check_req L=1
+  [USE] Taint flows to:   %57 = icmp slt i32 %56, 1, <./include/net/tcp.h:1706:51> FUNC=tcp_check_req L=1
+  [USE] Taint flows to:   br i1 %57, label %84, label %58, <./include/net/tcp.h:1706:51> FUNC=tcp_check_req L=1
+  [USE] Taint flows to:   %32 = icmp eq i32 %31, 0, <net/ipv4/tcp_minisocks.c:677:8> FUNC=tcp_check_req L=1
+  [USE] Taint flows to:   %36 = sub i32 %31, %35, <net/ipv4/tcp_minisocks.c:678:23> FUNC=tcp_check_req L=1
+  [USE] Taint flows to:   store i32 %36, ptr %30, align 4, <net/ipv4/tcp_minisocks.c:678:23> FUNC=tcp_check_req L=1
+  [USE] Taint flows to:   br i1 %32, label %37, label %33, <net/ipv4/tcp_minisocks.c:677:8> FUNC=tcp_check_req L=1
+  [USE] Taint flows to:   %24 = and i16 %23, 1, <net/ipv4/tcp_minisocks.c:675:15> FUNC=tcp_check_req L=1
+  [USE] Taint flows to:   %25 = icmp eq i16 %24, 0, <net/ipv4/tcp_minisocks.c:675:7> FUNC=tcp_check_req L=1
+  [USE] Taint flows to:   br i1 %25, label %84, label %26, <net/ipv4/tcp_minisocks.c:675:7> FUNC=tcp_check_req L=1
+  [USE] Taint flows to:   %180 = sub i32 %177, %179, <net/ipv4/tcp_minisocks.c:240:45> FUNC=tcp_timewait_state_process L=1
+  [USE] Taint flows to:   %181 = icmp slt i32 %180, 0, <net/ipv4/tcp_minisocks.c:240:66> FUNC=tcp_timewait_state_process L=1
+  [USE] Taint flows to:   br i1 %181, label %182, label %194, <net/ipv4/tcp_minisocks.c:237:54> FUNC=tcp_timewait_state_process L=1
+  [USE] Taint flows to:   %173 = and i16 %172, 1, <net/ipv4/tcp_minisocks.c:239:16> FUNC=tcp_timewait_state_process L=1
+  [USE] Taint flows to:   %174 = icmp eq i16 %173, 0, <net/ipv4/tcp_minisocks.c:239:8> FUNC=tcp_timewait_state_process L=1
+  [USE] Taint flows to:   br i1 %174, label %194, label %175, <net/ipv4/tcp_minisocks.c:239:27> FUNC=tcp_timewait_state_process L=1
+  [USE] Taint flows to:   store volatile i32 %158, ptr %159, align 8, <net/ipv4/tcp_minisocks.c:210:4> FUNC=tcp_timewait_state_process L=1
+  [USE] Taint flows to:   %154 = and i16 %153, 1, <net/ipv4/tcp_minisocks.c:209:15> FUNC=tcp_timewait_state_process L=1
+  [USE] Taint flows to:   %155 = icmp eq i16 %154, 0, <net/ipv4/tcp_minisocks.c:209:7> FUNC=tcp_timewait_state_process L=1
+  [USE] Taint flows to:   br i1 %155, label %162, label %156, <net/ipv4/tcp_minisocks.c:209:7> FUNC=tcp_timewait_state_process L=1
+  [USE] Taint flows to:   store volatile i32 %130, ptr %131, align 8, <net/ipv4/tcp_minisocks.c:165:4> FUNC=tcp_timewait_state_process L=1
+  [USE] Taint flows to:   %120 = and i16 %119, 1, <net/ipv4/tcp_minisocks.c:159:15> FUNC=tcp_timewait_state_process L=1
+  [USE] Taint flows to:   %121 = icmp eq i16 %120, 0, <net/ipv4/tcp_minisocks.c:159:7> FUNC=tcp_timewait_state_process L=1
+  [USE] Taint flows to:   br i1 %121, label %132, label %122, <net/ipv4/tcp_minisocks.c:159:7> FUNC=tcp_timewait_state_process L=1
+  [USE] Taint flows to:   %57 = sub i32 %55, %56, <./include/net/tcp.h:1739:14> FUNC=tcp_timewait_state_process L=1
+  [USE] Taint flows to:   %58 = add i32 %57, -60, <./include/net/tcp.h:1739:14> FUNC=tcp_timewait_state_process L=1
+  [USE] Taint flows to:   %59 = icmp slt i32 %58, 0, <./include/net/tcp.h:1739:14> FUNC=tcp_timewait_state_process L=1
+  [USE] Taint flows to:   br i1 %59, label %66, label %60, <./include/net/tcp.h:1739:10> FUNC=tcp_timewait_state_process L=1
+  [USE] Taint flows to:   %48 = icmp eq i32 %47, 0 FUNC=tcp_timewait_state_process L=1
+  [USE] Taint flows to:   %49 = select i1 %46, i1 true, i1 %48, <./include/net/tcp.h:1708:6> FUNC=tcp_timewait_state_process L=1
+  [USE] Taint flows to:   br i1 %49, label %60, label %50, <./include/net/tcp.h:1708:6> FUNC=tcp_timewait_state_process L=1
+  [USE] Taint flows to:   %44 = sub i32 %42, %43, <./include/net/tcp.h:1708:6> FUNC=tcp_timewait_state_process L=1
+  [USE] Taint flows to:   %45 = add i32 %44, -2147, <./include/net/tcp.h:1708:6> FUNC=tcp_timewait_state_process L=1
+  [USE] Taint flows to:   %46 = icmp sgt i32 %45, -1, <./include/net/tcp.h:1708:6> FUNC=tcp_timewait_state_process L=1
+  [USE] Taint flows to:   %38 = sub i32 %33, %37, <./include/net/tcp.h:1706:30> FUNC=tcp_timewait_state_process L=1
+  [USE] Taint flows to:   %39 = icmp slt i32 %38, 1, <./include/net/tcp.h:1706:51> FUNC=tcp_timewait_state_process L=1
+  [USE] Taint flows to:   br i1 %39, label %60, label %40, <./include/net/tcp.h:1706:51> FUNC=tcp_timewait_state_process L=1
+  [USE] Taint flows to:   %26 = icmp eq i32 %25, 0, <net/ipv4/tcp_minisocks.c:114:8> FUNC=tcp_timewait_state_process L=1
+  [USE] Taint flows to:   %30 = sub i32 %25, %29, <net/ipv4/tcp_minisocks.c:115:23> FUNC=tcp_timewait_state_process L=1
+  [USE] Taint flows to:   store i32 %30, ptr %24, align 4, <net/ipv4/tcp_minisocks.c:115:23> FUNC=tcp_timewait_state_process L=1
+  [USE] Taint flows to:   br i1 %26, label %31, label %27, <net/ipv4/tcp_minisocks.c:114:8> FUNC=tcp_timewait_state_process L=1
+  [USE] Taint flows to:   %21 = and i16 %20, 1, <net/ipv4/tcp_minisocks.c:113:15> FUNC=tcp_timewait_state_process L=1
+  [USE] Taint flows to:   %22 = icmp eq i16 %21, 0, <net/ipv4/tcp_minisocks.c:113:7> FUNC=tcp_timewait_state_process L=1
+  [USE] Taint flows to:   br i1 %22, label %60, label %23, <net/ipv4/tcp_minisocks.c:113:7> FUNC=tcp_timewait_state_process L=1
+  [USE] Taint flows to:   %85 = select i1 %82, i32 0, i32 %84, <net/ipv4/tcp_input.c:7086:19> FUNC=tcp_conn_request L=1
+  [USE] Taint flows to:   store i32 %85, ptr %86, align 4, <net/ipv4/tcp_input.c:7086:17> FUNC=tcp_conn_request L=1
+  [USE] Taint flows to:   store i16 %79, ptr %80, align 8, <net/ipv4/tcp_input.c:7085:11> FUNC=tcp_conn_request L=1
+  [USE] Taint flows to:   %62 = and i16 %61, 1, <net/ipv4/tcp_input.c:7262:18> FUNC=tcp_conn_request L=1
+  [USE] Taint flows to:   %66 = and i16 %61, %65, <net/ipv4/tcp_input.c:7262:18> FUNC=tcp_conn_request L=1
+  [USE] Taint flows to:   %67 = shl i16 %66, 1, <net/ipv4/tcp_input.c:7268:20> FUNC=tcp_conn_request L=1
+  [USE] Taint flows to:   %69 = and i16 %66, -3, <net/ipv4/tcp_input.c:7268:20> FUNC=tcp_conn_request L=1
+  [USE] Taint flows to:   %81 = and i16 %66, 1, <net/ipv4/tcp_input.c:7086:27> FUNC=tcp_conn_request L=1
+  [USE] Taint flows to:   %91 = shl i16 %66, 5, <net/ipv4/tcp_input.c:7088:16> FUNC=tcp_conn_request L=1
+  [USE] Taint flows to:   %93 = lshr i16 %66, 8, <net/ipv4/tcp_input.c:7089:29> FUNC=tcp_conn_request L=1
+  [USE] Taint flows to:   %129 = and i16 %66, 128, <net/ipv4/tcp_input.c:7097:17> FUNC=tcp_conn_request L=1
+  [USE] Taint flows to:   %130 = icmp eq i16 %129, 0, <net/ipv4/tcp_input.c:7097:17> FUNC=tcp_conn_request L=1
+  [USE] Taint flows to:   br i1 %130, label %139, label %131, <net/ipv4/tcp_input.c:7097:32> FUNC=tcp_conn_request L=1
+  [USE] Taint flows to:   %94 = and i16 %93, 15, <net/ipv4/tcp_input.c:7089:29> FUNC=tcp_conn_request L=1
+  [USE] Taint flows to:   %95 = or disjoint i16 %94, %92, <net/ipv4/tcp_input.c:7087:18> FUNC=tcp_conn_request L=1
+  [USE] Taint flows to:   %97 = or disjoint i16 %95, %96, <net/ipv4/tcp_input.c:7089:19> FUNC=tcp_conn_request L=1
+  [USE] Taint flows to:   %98 = or disjoint i16 %97, %90, <net/ipv4/tcp_input.c:7090:18> FUNC=tcp_conn_request L=1
+  [USE] Taint flows to:   store i16 %98, ptr %87, align 8, <net/ipv4/tcp_input.c:7092:15> FUNC=tcp_conn_request L=1
+  [USE] Taint flows to:   %140 = phi i16 [ %98, %126 ], [ %98, %131 ], [ %138, %135 ], <net/ipv4/tcp_input.c:7097:15> FUNC=tcp_conn_request L=1
+  [USE] Taint flows to:   %142 = and i16 %140, -16385, <net/ipv4/tcp_input.c:7097:15> FUNC=tcp_conn_request L=1
+  [USE] Taint flows to:   %143 = or disjoint i16 %142, %141, <net/ipv4/tcp_input.c:7097:15> FUNC=tcp_conn_request L=1
+  [USE] Taint flows to:   store i16 %143, ptr %87, align 8, <net/ipv4/tcp_input.c:7097:15> FUNC=tcp_conn_request L=1
+  [USE] Taint flows to:   %149 = and i16 %143, -8193, <net/ipv4/tcp_input.c:7270:29> FUNC=tcp_conn_request L=1
+  [USE] Taint flows to:   %150 = or disjoint i16 %148, %149, <net/ipv4/tcp_input.c:7270:29> FUNC=tcp_conn_request L=1
+  [USE] Taint flows to:   store i16 %150, ptr %87, align 8, <net/ipv4/tcp_input.c:7270:29> FUNC=tcp_conn_request L=1
+  [USE] Taint flows to:   %92 = and i16 %91, 512, <net/ipv4/tcp_input.c:7088:16> FUNC=tcp_conn_request L=1
+  [USE] Taint flows to:   %82 = icmp eq i16 %81, 0, <net/ipv4/tcp_input.c:7086:19> FUNC=tcp_conn_request L=1
+  [USE] Taint flows to:   %70 = or disjoint i16 %68, %69, <net/ipv4/tcp_input.c:7268:20> FUNC=tcp_conn_request L=1
+  [USE] Taint flows to:   store i16 %70, ptr %53, align 4, <net/ipv4/tcp_input.c:7268:20> FUNC=tcp_conn_request L=1
+  [USE] Taint flows to:   %89 = shl i16 %70, 7, <net/ipv4/tcp_input.c:7087:18> FUNC=tcp_conn_request L=1
+  [USE] Taint flows to:   %96 = and i16 %89, 1280, <net/ipv4/tcp_input.c:7089:19> FUNC=tcp_conn_request L=1
+  [USE] Taint flows to:   %68 = and i16 %67, 2, <net/ipv4/tcp_input.c:7268:20> FUNC=tcp_conn_request L=1
+  [USE] Taint flows to:   %159 = icmp eq i16 %68, 0, <net/ipv4/tcp_input.c:7279:6> FUNC=tcp_conn_request L=1
+  [USE] Taint flows to:   br i1 %159, label %173, label %160, <net/ipv4/tcp_input.c:7279:6> FUNC=tcp_conn_request L=1
+  [USE] Taint flows to:   br i1 %159, label %270, label %273, <net/ipv4/tcp_input.c:7310:7> FUNC=tcp_conn_request L=1
+  [USE] Taint flows to:   %63 = icmp eq i16 %62, 0, <net/ipv4/tcp_input.c:7262:18> FUNC=tcp_conn_request L=1
+  [USE] Taint flows to:   %64 = select i1 %63, i16 -4092, i16 -129, <net/ipv4/tcp_input.c:7262:18> FUNC=tcp_conn_request L=1
+  [USE] Taint flows to:   %65 = select i1 %29, i16 %64, i16 -1, <net/ipv4/tcp_input.c:7262:18> FUNC=tcp_conn_request L=1
+  [USE] Taint flows to:   %25 = phi i16 [ %23, %19 ], [ %15, %12 ], <net/ipv4/tcp_input.c:0> FUNC=tcp_rcv_fastopen_synack L=1
+  [USE] Taint flows to:   tail call void @tcp_fastopen_cache_set(ptr noundef %0, i16 noundef zeroext %25, ptr noundef %2, i1 noundef zeroext %50, i16 noundef zeroext %51) #264, <net/ipv4/tcp_input.c:6400:2> FUNC=tcp_rcv_fastopen_synack L=1
+  [USE] Taint flows to:   %380 = phi ptr [ %378, %374 ], [ %373, %371 ], <./include/net/net_namespace.h:406:9> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %381 = getelementptr inbounds nuw i8, ptr %380, i64 440, <net/ipv4/tcp_input.c:6072:3> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %382 = load ptr, ptr %381, align 8, <net/ipv4/tcp_input.c:6072:3> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %383 = getelementptr i8, ptr %382, i64 672, <net/ipv4/tcp_input.c:6072:3> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   tail call void asm sideeffect "incq %gs:$0", "=*m,*m,~{dirflag},~{fpsr},~{flags}"(ptr elementtype(i64) %383, ptr elementtype(i64) %383) #266, <net/ipv4/tcp_input.c:6072:3> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %375 = getelementptr inbounds nuw i8, ptr %373, i64 432, <net/ipv4/tcp_input.c:6071:4> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %376 = load ptr, ptr %375, align 16, <net/ipv4/tcp_input.c:6071:4> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %377 = getelementptr i8, ptr %376, i64 104, <net/ipv4/tcp_input.c:6071:4> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   tail call void asm sideeffect "incq %gs:$0", "=*m,*m,~{dirflag},~{fpsr},~{flags}"(ptr elementtype(i64) %377, ptr elementtype(i64) %377) #266, <net/ipv4/tcp_input.c:6071:4> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %370 = icmp eq i32 %367, %369, <net/ipv4/tcp_input.c:6067:32> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   br i1 %370, label %387, label %371, <net/ipv4/tcp_input.c:6066:47> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %356 = icmp ne ptr %355, null, <net/ipv4/tcp_input.c:6064:39> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %359 = and i1 %358, %356, <net/ipv4/tcp_input.c:6064:53> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %362 = select i1 %359, i1 %361, i1 false, <net/ipv4/tcp_input.c:6064:53> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %364 = and i1 %362, %363, <net/ipv4/tcp_input.c:6064:53> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   br i1 %364, label %365, label %371, <net/ipv4/tcp_input.c:6064:53> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %352 = icmp eq i8 %351, 3, <net/ipv4/tcp_input.c:6064:20> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   br i1 %352, label %353, label %371, <net/ipv4/tcp_input.c:6064:36> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %343 = icmp eq i8 %342, 1, <net/ipv4/tcp_input.c:6051:20> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   br i1 %343, label %344, label %345, <net/ipv4/tcp_input.c:6050:45> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %339 = icmp eq i32 %338, 0, <net/ipv4/tcp_input.c:6050:28> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   br i1 %339, label %340, label %345, <net/ipv4/tcp_input.c:6050:45> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %334 = and i8 %333, 8, <net/ipv4/tcp_input.c:6050:7> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %335 = icmp eq i8 %334, 0, <net/ipv4/tcp_input.c:6050:7> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   br i1 %335, label %345, label %336, <net/ipv4/tcp_input.c:6050:24> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %281 = phi i32 [ %266, %274 ], [ %306, %279 ] FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %313 = phi i32 [ %266, %268 ], [ %306, %279 ] FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %329 = phi i32 [ %266, %264 ], [ %311, %310 ], [ %324, %315 ], <net/ipv4/tcp_input.c:0> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %330 = icmp eq i32 %164, %329, <net/ipv4/tcp_input.c:6042:29> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   br i1 %330, label %386, label %331 FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %317 = phi i32 [ %324, %315 ], [ %313, %310 ] FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %322 = sub i32 %317, %321, <./include/net/tcp.h:290:28> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %324 = select i1 %323, i32 %321, i32 %317, <net/ipv4/tcp_input.c:6037:16> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %323 = icmp slt i32 %322, 0, <./include/net/tcp.h:290:35> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %286 = sub i32 %281, %285, <./include/net/tcp.h:290:28> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %288 = select i1 %287, i32 %285, i32 %281, <net/ipv4/tcp_input.c:6037:16> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %292 = sub i32 %288, %291, <./include/net/tcp.h:290:28> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %294 = select i1 %293, i32 %291, i32 %288, <net/ipv4/tcp_input.c:6037:16> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %298 = sub i32 %294, %297, <./include/net/tcp.h:290:28> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %300 = select i1 %299, i32 %297, i32 %294, <net/ipv4/tcp_input.c:6037:16> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %304 = sub i32 %300, %303, <./include/net/tcp.h:290:28> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %306 = select i1 %305, i32 %303, i32 %300, <net/ipv4/tcp_input.c:6037:16> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %311 = phi i32 [ poison, %268 ], [ %306, %279 ] FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %305 = icmp slt i32 %304, 0, <./include/net/tcp.h:290:35> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %299 = icmp slt i32 %298, 0, <./include/net/tcp.h:290:35> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %293 = icmp slt i32 %292, 0, <./include/net/tcp.h:290:35> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %287 = icmp slt i32 %286, 0, <./include/net/tcp.h:290:35> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %263 = icmp eq i8 %262, 0, <net/ipv4/tcp_input.c:6030:47> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %267 = icmp eq i8 %262, 1, <net/ipv4/tcp_input.c:6035:34> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %269 = zext i8 %262 to i64, <net/ipv4/tcp_input.c:6035:34> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %272 = add i8 %262, -2, <net/ipv4/tcp_input.c:6035:4> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %273 = icmp ult i8 %272, 3, <net/ipv4/tcp_input.c:6035:4> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   br i1 %273, label %310, label %274, <net/ipv4/tcp_input.c:6035:4> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %270 = add nsw i64 %269, -1, <net/ipv4/tcp_input.c:6035:4> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %271 = and i64 %270, 3, <net/ipv4/tcp_input.c:6035:4> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %275 = and i64 %270, -4, <net/ipv4/tcp_input.c:6035:4> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %309 = icmp eq i64 %308, %275, <net/ipv4/tcp_input.c:6035:4> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   br i1 %309, label %310, label %279, <net/ipv4/tcp_input.c:6035:4> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %314 = icmp eq i64 %271, 0, <net/ipv4/tcp_input.c:6035:4> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %327 = icmp eq i64 %326, %271, <net/ipv4/tcp_input.c:6035:4> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   br i1 %327, label %328, label %315, <net/ipv4/tcp_input.c:6035:4> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   br i1 %314, label %328, label %315, <net/ipv4/tcp_input.c:6035:4> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   br i1 %267, label %328, label %268, <net/ipv4/tcp_input.c:6035:4> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   br i1 %263, label %331, label %264, <net/ipv4/tcp_input.c:6030:23> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %258 = and i16 %257, 112, <./include/net/tcp.h:1295:9> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %259 = icmp eq i16 %258, 0, <./include/net/tcp.h:1295:9> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   br i1 %259, label %331, label %260, <net/ipv4/tcp_input.c:6030:23> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %251 = zext nneg i8 %250 to i32, <net/ipv4/tcp_input.c:5949:9> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %252 = shl nuw i32 1, %251, <net/ipv4/tcp_input.c:5949:9> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %253 = and i32 %252, 2816, <net/ipv4/tcp_input.c:5949:9> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %254 = icmp eq i32 %253, 0, <net/ipv4/tcp_input.c:5949:9> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   br i1 %254, label %255, label %386, <net/ipv4/tcp_input.c:6026:43> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %236 = zext nneg i8 %235 to i32, <net/ipv4/tcp_input.c:5949:9> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %237 = shl nuw i32 1, %236, <net/ipv4/tcp_input.c:5949:9> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %238 = and i32 %237, 2816, <net/ipv4/tcp_input.c:5949:9> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %239 = icmp eq i32 %238, 0, <net/ipv4/tcp_input.c:5949:9> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   br i1 %239, label %384, label %386, <net/ipv4/tcp_input.c:6009:14> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %231 = add i32 %230, -1, <net/ipv4/tcp_input.c:5949:9> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %232 = icmp eq i32 %164, %231, <net/ipv4/tcp_input.c:5949:9> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   br i1 %232, label %233, label %384, <net/ipv4/tcp_input.c:5949:9> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %210 = icmp eq i32 %209, 0, <net/ipv4/tcp_input.c:3740:6> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %214 = sub i32 %213, %209, <net/ipv4/tcp_input.c:3741:37> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %215 = icmp sgt i32 %214, -1, <net/ipv4/tcp_input.c:3743:9> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %219 = icmp slt i32 %214, %218, <net/ipv4/tcp_input.c:3744:15> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   br i1 %219, label %223, label %220, <net/ipv4/tcp_input.c:3743:20> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   br i1 %215, label %216, label %220, <net/ipv4/tcp_input.c:3743:20> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   br i1 %210, label %220, label %211, <net/ipv4/tcp_input.c:3740:6> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %217 = getelementptr inbounds nuw i8, ptr %194, i64 1224, <net/ipv4/tcp_input.c:3744:17> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %224 = getelementptr inbounds nuw i8, ptr %194, i64 440, <net/ipv4/tcp_input.c:3745:4> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %225 = load ptr, ptr %224, align 8, <net/ipv4/tcp_input.c:3745:4> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %226 = getelementptr i8, ptr %225, i64 848, <net/ipv4/tcp_input.c:3745:4> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   tail call void asm sideeffect "incq %gs:$0", "=*m,*m,~{dirflag},~{fpsr},~{flags}"(ptr elementtype(i64) %226, ptr elementtype(i64) %226) #266, <net/ipv4/tcp_input.c:3745:4> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %218 = load volatile i32, ptr %217, align 8, <net/ipv4/tcp_input.c:3744:17> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %179 = add i32 %178, %177, <./include/net/tcp.h:832:38> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %180 = tail call range(i32 0, -2147483648) i32 @llvm.smax.i32(i32 %179, i32 0), <./include/net/tcp.h:834:10> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %182 = add i32 %181, %180, <./include/net/tcp.h:290:28> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %183 = icmp slt i32 %182, 0, <./include/net/tcp.h:290:35> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   br i1 %183, label %185, label %240, <net/ipv4/tcp_input.c:0> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %178 = sub i32 %168, %175, <./include/net/tcp.h:832:24> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %181 = sub i32 %175, %164, <net/ipv4/tcp_input.c:4514:6> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %244 = icmp eq i32 %164, %175, <net/ipv4/tcp_input.c:6026:28> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %246 = add i32 %175, -1, <net/ipv4/tcp_input.c:5949:9> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %363 = icmp eq i32 %166, %175 FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %247 = icmp eq i32 %164, %246, <net/ipv4/tcp_input.c:5949:9> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   br i1 %247, label %248, label %255, <net/ipv4/tcp_input.c:5949:9> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   br i1 %244, label %386, label %245, <net/ipv4/tcp_input.c:6026:43> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %169 = sub i32 %166, %168, <./include/net/tcp.h:290:28> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %170 = icmp slt i32 %169, 0, <./include/net/tcp.h:290:35> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   br i1 %170, label %171, label %173, <net/ipv4/tcp_input.c:4511:6> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %160 = tail call zeroext i1 @tcp_oow_rate_limited(ptr noundef %158, ptr noundef %1, i32 noundef 105, ptr noundef nonnull %159) #264, <net/ipv4/tcp_input.c:5986:7> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   br i1 %160, label %384, label %161, <net/ipv4/tcp_input.c:5986:6> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %152 = getelementptr inbounds nuw i8, ptr %151, i64 440, <net/ipv4/tcp_input.c:0> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %153 = load ptr, ptr %152, align 8, <net/ipv4/tcp_input.c:0> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %155 = getelementptr i8, ptr %153, i64 128, <net/ipv4/tcp_input.c:5982:3> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %157 = getelementptr i8, ptr %153, i64 120, <net/ipv4/tcp_input.c:5985:2> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   tail call void asm sideeffect "incq %gs:$0", "=*m,*m,~{dirflag},~{fpsr},~{flags}"(ptr elementtype(i64) %157, ptr elementtype(i64) %157) #266, <net/ipv4/tcp_input.c:5985:2> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   tail call void asm sideeffect "incq %gs:$0", "=*m,*m,~{dirflag},~{fpsr},~{flags}"(ptr elementtype(i64) %155, ptr elementtype(i64) %155) #266, <net/ipv4/tcp_input.c:5982:3> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %135 = mul i32 %133, 1000, <net/ipv4/tcp_input.c:4451:33> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %137 = mul i32 %133, 1200, <net/ipv4/tcp_input.c:4456:32> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %138 = udiv i32 %137, 1000, <net/ipv4/tcp_input.c:4456:39> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %140 = phi i32 [ %135, %134 ], [ %138, %136 ], <net/ipv4/tcp_input.c:0> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %141 = icmp ugt i32 %127, %140, <net/ipv4/tcp_input.c:4488:57> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   br i1 %141, label %142, label %162, <net/ipv4/tcp_input.c:0> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %130 = and i8 %129, 8, <net/ipv4/tcp_input.c:4450:6> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %131 = icmp eq i8 %130, 0, <net/ipv4/tcp_input.c:4450:6> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   br i1 %131, label %136, label %134, <net/ipv4/tcp_input.c:4450:6> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %127 = sub i32 %72, %126, <net/ipv4/tcp_input.c:4488:33> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %124 = icmp ult i32 %123, %122, <net/ipv4/tcp_input.c:3632:50> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   br i1 %124, label %125, label %142, <net/ipv4/tcp_input.c:4483:6> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %116 = sub i32 %115, %84, <./include/net/tcp.h:290:28> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %119 = icmp eq i32 %84, %115, <net/ipv4/tcp_input.c:3632:12> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   br i1 %119, label %120, label %125, <net/ipv4/tcp_input.c:3632:27> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %117 = icmp slt i32 %116, 0, <./include/net/tcp.h:290:35> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   br i1 %117, label %142, label %118, <net/ipv4/tcp_input.c:3631:31> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %110 = lshr i16 %109, 8, <net/ipv4/tcp_input.c:4484:18> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %111 = and i16 %110, 15, <net/ipv4/tcp_input.c:4484:18> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %112 = zext nneg i16 %111 to i32, <net/ipv4/tcp_input.c:4484:7> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %113 = shl nuw nsw i32 %108, %112, <net/ipv4/tcp_input.c:4483:60> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %123 = add nsw i32 %113, -1, <net/ipv4/tcp_input.c:3632:50> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %103 = icmp eq i32 %83, %102, <net/ipv4/tcp_input.c:4479:10> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   br i1 %103, label %104, label %142, <net/ipv4/tcp_input.c:4479:10> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %96 = icmp eq i32 %84, %95, <net/ipv4/tcp_input.c:4473:10> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %98 = sub i32 %84, %95, <./include/net/tcp.h:290:28> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %99 = icmp slt i32 %98, 0, <./include/net/tcp.h:290:35> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %143 = phi i1 [ false, %104 ], [ false, %120 ], [ false, %100 ], [ false, %74 ], [ false, %89 ], [ %99, %97 ], [ false, %139 ] FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   br i1 %143, label %154, label %156, <net/ipv4/tcp_input.c:5981:13> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   br i1 %96, label %100, label %97, <net/ipv4/tcp_input.c:4473:10> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %73 = icmp eq i32 %72, 0, <./include/net/tcp.h:1716:7> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   br i1 %73, label %162, label %74, <net/ipv4/tcp_input.c:5965:29> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %68 = sub i32 %66, %67, <./include/net/tcp.h:1708:6> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %69 = add i32 %68, -2147, <./include/net/tcp.h:1708:6> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %70 = icmp sgt i32 %69, -1, <./include/net/tcp.h:1708:6> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   br i1 %70, label %162, label %71, <./include/net/tcp.h:1708:6> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %62 = sub i32 %59, %61, <./include/net/tcp.h:1706:30> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %63 = icmp sgt i32 %62, 1, <./include/net/tcp.h:1706:51> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   br i1 %63, label %64, label %162, <./include/net/tcp.h:1706:51> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %56 = and i16 %55, -2, <net/ipv4/tcp_input.c:4350:25> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   store i16 %56, ptr %54, align 4, <net/ipv4/tcp_input.c:4350:25> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %52 = sub i32 %47, %51, <net/ipv4/tcp_input.c:4360:24> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   store i32 %52, ptr %46, align 4, <net/ipv4/tcp_input.c:4360:24> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %48 = icmp eq i32 %47, 0, <net/ipv4/tcp_input.c:4359:31> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   br i1 %48, label %57, label %49, <net/ipv4/tcp_input.c:4359:28> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %43 = and i16 %42, 1, <net/ipv4/tcp_input.c:4359:17> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %44 = icmp eq i16 %43, 0, <net/ipv4/tcp_input.c:4359:6> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   br i1 %44, label %162, label %45, <net/ipv4/tcp_input.c:4359:28> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %37 = sub i32 %34, %36, <net/ipv4/tcp_input.c:4331:39> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %39 = phi i32 [ %37, %33 ], [ 0, %24 ] FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   store i32 %39, ptr %40, align 4, <net/ipv4/tcp_input.c:0> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %16 = and i16 %15, 2, <net/ipv4/tcp_input.c:4352:13> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %25 = or i16 %15, 1, <net/ipv4/tcp_input.c:4326:25> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   store i16 %25, ptr %14, align 4, <net/ipv4/tcp_input.c:4326:25> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %17 = icmp ne i16 %16, 0, <net/ipv4/tcp_input.c:4352:13> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %19 = and i1 %18, %17, <net/ipv4/tcp_input.c:4352:34> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   br i1 %19, label %20, label %41, <net/ipv4/tcp_input.c:4352:34> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   tail call void @tcp_parse_options(ptr noundef %6, ptr noundef %1, ptr noundef nonnull %13, i32 noundef 1, ptr noundef null) #264, <net/ipv4/tcp_input.c:4358:2> FUNC=tcp_validate_incoming L=1
+  [USE] Taint flows to:   %677 = and i8 %676, 1, <./include/net/inet_connection_sock.h:184:40> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %678 = icmp eq i8 %677, 0, <net/ipv4/tcp_input.c:5829:7> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   br i1 %678, label %680, label %679, <net/ipv4/tcp_input.c:5829:6> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %673 = icmp eq i8 %672, 7, <net/ipv4/tcp_input.c:7002:19> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   br i1 %673, label %680, label %674, <net/ipv4/tcp_input.c:7002:19> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %666 = getelementptr inbounds nuw i8, ptr %665, i64 440, <net/ipv4/tcp_input.c:6989:5> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %667 = load ptr, ptr %666, align 8, <net/ipv4/tcp_input.c:6989:5> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %668 = getelementptr i8, ptr %667, i64 408, <net/ipv4/tcp_input.c:6989:5> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   call void asm sideeffect "incq %gs:$0", "=*m,*m,~{dirflag},~{fpsr},~{flags}"(ptr elementtype(i64) %668, ptr elementtype(i64) %668) #266, <net/ipv4/tcp_input.c:6989:5> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %660 = sub i32 %655, %650, <net/ipv4/tcp_input.c:6988:8> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %661 = add i32 %660, %659, <./include/net/tcp.h:290:28> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %662 = icmp slt i32 %661, 0, <./include/net/tcp.h:290:35> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   br i1 %662, label %663, label %669, <net/ipv4/tcp_input.c:6987:57> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %645 = and i8 %644, 1, <net/ipv4/tcp_input.c:6986:23> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %646 = icmp eq i8 %645, 0, <net/ipv4/tcp_input.c:6986:23> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   br i1 %646, label %669, label %647, <net/ipv4/tcp_input.c:6986:23> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %640 = sub i32 %637, %639, <./include/net/tcp.h:290:28> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %641 = icmp slt i32 %640, 0, <./include/net/tcp.h:290:35> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   br i1 %641, label %642, label %670, <net/ipv4/tcp_input.c:6971:7> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   switch i8 %634, label %670 [
+    i8 8, label %635
+    i8 11, label %635
+    i8 9, label %635
+    i8 4, label %642
+    i8 5, label %642
+    i8 1, label %669
+  ], <net/ipv4/tcp_input.c:6967:2> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %631 = icmp eq i32 %628, %630, <net/ipv4/tcp_input.c:6955:19> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   br i1 %631, label %632, label %633, <net/ipv4/tcp_input.c:6955:19> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %624 = icmp eq i32 %621, %623, <net/ipv4/tcp_input.c:6948:19> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   br i1 %624, label %625, label %633, <net/ipv4/tcp_input.c:6948:19> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %615 = icmp eq i32 %614, 0, <./include/net/sock.h:1725:9> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   br i1 %615, label %618, label %616, <net/ipv4/tcp_input.c:6932:22> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %600 = shl i32 %599, 2, <./include/net/tcp.h:1697:25> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %601 = ashr i32 %599, 1, <./include/net/tcp.h:1697:38> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %602 = sub i32 %600, %601, <./include/net/tcp.h:1697:31> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %603 = call i32 @llvm.smax.i32(i32 %597, i32 %602), <./include/net/tcp.h:1697:18> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %604 = icmp sgt i32 %603, 60000, <net/ipv4/tcp_input.c:6930:11> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %606 = add nsw i32 %603, -60000, <net/ipv4/tcp_input.c:6931:43> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %617 = sext i32 %603 to i64, <net/ipv4/tcp_input.c:6939:39> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   call void @tcp_time_wait(ptr noundef %0, i32 noundef 5, i32 noundef %603) #264, <net/ipv4/tcp_input.c:6941:4> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   call void @inet_csk_reset_keepalive_timer(ptr noundef %0, i64 noundef %617) #264, <net/ipv4/tcp_input.c:6939:4> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %607 = zext nneg i32 %606 to i64, <net/ipv4/tcp_input.c:6931:39> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   call void @inet_csk_reset_keepalive_timer(ptr noundef %0, i64 noundef %607) #264, <net/ipv4/tcp_input.c:6931:4> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   br i1 %604, label %605, label %608, <net/ipv4/tcp_input.c:6930:11> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %594 = getelementptr inbounds nuw i8, ptr %593, i64 1180, <./include/net/tcp.h:1694:3> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %595 = load volatile i32, ptr %594, align 4, <./include/net/tcp.h:1694:3> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %597 = phi i32 [ %595, %591 ], [ %550, %589 ], <./include/net/tcp.h:1693:20> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %586 = getelementptr inbounds nuw i8, ptr %585, i64 440, <net/ipv4/tcp_input.c:6925:4> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %587 = load ptr, ptr %586, align 8, <net/ipv4/tcp_input.c:6925:4> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %588 = getelementptr i8, ptr %587, i64 408, <net/ipv4/tcp_input.c:6925:4> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   call void asm sideeffect "incq %gs:$0", "=*m,*m,~{dirflag},~{fpsr},~{flags}"(ptr elementtype(i64) %588, ptr elementtype(i64) %588) #266, <net/ipv4/tcp_input.c:6925:4> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %577 = and i8 %576, 8, <net/ipv4/tcp_input.c:6922:8> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %578 = icmp eq i8 %577, 0, <net/ipv4/tcp_input.c:6922:8> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %581 = or i1 %580, %578, <net/ipv4/tcp_input.c:6922:25> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   br i1 %581, label %583, label %582, <net/ipv4/tcp_input.c:6922:25> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %571 = sub i32 %566, %561, <net/ipv4/tcp_input.c:6920:7> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %572 = add i32 %571, %570, <./include/net/tcp.h:290:28> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %573 = icmp slt i32 %572, 0, <./include/net/tcp.h:290:35> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   br i1 %573, label %574, label %589, <net/ipv4/tcp_input.c:6919:56> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %555 = getelementptr inbounds nuw i8, ptr %554, i64 440, <net/ipv4/tcp_input.c:6916:4> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %556 = load ptr, ptr %555, align 8, <net/ipv4/tcp_input.c:6916:4> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %557 = getelementptr i8, ptr %556, i64 408, <net/ipv4/tcp_input.c:6916:4> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   call void asm sideeffect "incq %gs:$0", "=*m,*m,~{dirflag},~{fpsr},~{flags}"(ptr elementtype(i64) %557, ptr elementtype(i64) %557) #266, <net/ipv4/tcp_input.c:6916:4> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %551 = icmp slt i32 %550, 0, <net/ipv4/tcp_input.c:6914:30> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %590 = icmp eq i32 %550, 0, <./include/net/tcp.h:1693:20> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   br i1 %590, label %591, label %596, <./include/net/tcp.h:1693:20> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   br i1 %551, label %552, label %558, <net/ipv4/tcp_input.c:6914:30> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   call void %547(ptr noundef %0) #264, <net/ipv4/tcp_input.c:6910:4> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %543 = and i64 %542, 1, <./arch/x86/include/asm/bitops.h:205:44> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %544 = icmp eq i64 %543, 0, <./arch/x86/include/asm/bitops.h:206:37> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   br i1 %544, label %545, label %548, <net/ipv4/tcp_input.c:6908:7> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %538 = icmp eq i32 %537, 0, <./include/net/sock.h:2155:7> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   br i1 %538, label %539, label %540, <./include/net/sock.h:2155:6> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %535 = or i8 %534, 2, <net/ipv4/tcp_input.c:6904:3> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   store volatile i8 %535, ptr %533, align 1, <net/ipv4/tcp_input.c:6904:3> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %531 = icmp eq i32 %528, %530, <net/ipv4/tcp_input.c:6900:19> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   br i1 %531, label %532, label %633, <net/ipv4/tcp_input.c:6900:19> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %521 = and i8 %520, 2, <net/ipv4/tcp_input.c:6890:23> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %522 = icmp eq i8 %521, 0, <net/ipv4/tcp_input.c:6890:23> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   br i1 %522, label %633, label %523, <net/ipv4/tcp_input.c:6890:23> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %513 = zext i16 %512 to i32, <./include/net/tcp.h:776:19> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %514 = shl i32 %513, 26, <./include/net/tcp.h:776:19> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %515 = or i32 %514, %510, <./include/net/tcp.h:776:19> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %516 = or i32 %515, 1048576, <./include/net/tcp.h:776:19> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %517 = call i32 @llvm.bswap.i32(i32 %516), <./include/net/tcp.h:776:19> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   store i32 %517, ptr %518, align 4, <./include/net/tcp.h:776:17> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %504 = lshr i32 %503, 1, <net/ipv4/tcp_input.c:633:9> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %505 = call i32 @llvm.umin.i32(i32 %501, i32 %504), <net/ipv4/tcp_input.c:633:9> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %506 = call i32 @llvm.umin.i32(i32 %505, i32 536), <net/ipv4/tcp_input.c:634:9> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %507 = call i32 @llvm.umax.i32(i32 %506, i32 88), <net/ipv4/tcp_input.c:635:9> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %508 = trunc nuw nsw i32 %507 to i16, <net/ipv4/tcp_input.c:637:35> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   store i16 %508, ptr %509, align 2, <net/ipv4/tcp_input.c:637:33> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %501 = call i32 @llvm.umin.i32(i32 %500, i32 %498), <net/ipv4/tcp_input.c:631:22> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %498 = zext i16 %497 to i32, <net/ipv4/tcp_input.c:631:22> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %487 = lshr i16 %486, 8, <./include/net/tcp.h:783:51> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %488 = and i16 %487, 15, <./include/net/tcp.h:783:51> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %489 = zext nneg i16 %488 to i32, <./include/net/tcp.h:783:40> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %491 = phi i32 [ %489, %484 ], [ %467, %478 ], <./include/net/tcp.h:783:40> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %510 = lshr i32 %492, %491, <./include/net/tcp.h:783:37> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %492 = phi i32 [ %485, %484 ], [ %468, %478 ], <./include/net/tcp.h:783:29> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %481 = getelementptr inbounds nuw i8, ptr %480, i64 56, <net/ipv4/tcp_input.c:6882:35> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %482 = load ptr, ptr %481, align 8, <net/ipv4/tcp_input.c:6882:35> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %483 = icmp eq ptr %482, null, <net/ipv4/tcp_input.c:6882:8> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   br i1 %483, label %484, label %490, <net/ipv4/tcp_input.c:6882:7> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %477 = add i16 %476, -12, <net/ipv4/tcp_input.c:6880:15> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   store i16 %477, ptr %475, align 16, <net/ipv4/tcp_input.c:6880:15> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %465 = lshr i16 %464, 8, <net/ipv4/tcp_input.c:6876:49> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %472 = and i16 %464, 2, <net/ipv4/tcp_input.c:6879:7> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %473 = icmp eq i16 %472, 0, <net/ipv4/tcp_input.c:6879:7> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   br i1 %473, label %478, label %474, <net/ipv4/tcp_input.c:6879:7> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %466 = and i16 %465, 15, <net/ipv4/tcp_input.c:6876:49> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %467 = zext nneg i16 %466 to i32, <net/ipv4/tcp_input.c:6876:38> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %468 = shl nuw nsw i32 %463, %467, <net/ipv4/tcp_input.c:6876:35> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   store i32 %468, ptr %469, align 4, <net/ipv4/tcp_input.c:6876:15> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %453 = icmp eq ptr %452, null, <net/ipv4/tcp_input.c:6872:7> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   br i1 %453, label %455, label %454, <net/ipv4/tcp_input.c:6872:7> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   call void %450(ptr noundef %0) #264, <net/ipv4/tcp_input.c:6866:3> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   store volatile i32 %446, ptr %447, align 8, <net/ipv4/tcp_input.c:6861:4> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %442 = icmp eq i32 %429, %441, <net/ipv4/tcp_input.c:6448:16> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   br i1 %442, label %443, label %444, <net/ipv4/tcp_input.c:6447:60> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %437 = and i16 %436, 1, <net/ipv4/tcp_input.c:6447:49> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %438 = icmp eq i16 %437, 0, <net/ipv4/tcp_input.c:6447:38> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   br i1 %438, label %444, label %439, <net/ipv4/tcp_input.c:6447:60> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %432 = icmp ne i32 %431, 0, <net/ipv4/tcp_input.c:6447:6> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %434 = select i1 %432, i1 %433, i1 false, <net/ipv4/tcp_input.c:6447:22> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   br i1 %434, label %435, label %444, <net/ipv4/tcp_input.c:6447:22> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %433 = icmp ne i32 %429, 0 FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %423 = icmp eq i32 %422, 0, <net/ipv4/tcp_input.c:6851:8> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   br i1 %423, label %424, label %425, <net/ipv4/tcp_input.c:6851:7> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %420 = add i32 %419, 1, <net/ipv4/tcp_input.c:6850:16> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   store i32 %420, ptr %418, align 4, <net/ipv4/tcp_input.c:6850:16> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   switch i8 %416, label %633 [
+    i8 3, label %417
+    i8 4, label %524
+    i8 11, label %619
+    i8 9, label %626
+  ], <net/ipv4/tcp_input.c:6848:2> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %406 = icmp eq i8 %405, 3, <net/ipv4/tcp_input.c:6834:20> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   br i1 %406, label %407, label %411, <net/ipv4/tcp_input.c:6834:20> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %389 = icmp eq i8 %388, 4, <net/ipv4/tcp_input.c:6812:3> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   br i1 %389, label %391, label %390, <net/ipv4/tcp_input.c:6812:3> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %386 = icmp eq i8 %385, 3, <net/ipv4/tcp_input.c:6812:3> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   br i1 %386, label %391, label %387, <net/ipv4/tcp_input.c:6812:3> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %383 = icmp eq ptr %382, null, <net/ipv4/tcp_input.c:6809:6> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %392 = call ptr @tcp_check_req(ptr noundef %0, ptr noundef %1, ptr noundef nonnull %382, i1 noundef zeroext true, ptr noundef nonnull %4) #264, <net/ipv4/tcp_input.c:6815:8> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   call void @tcp_synack_rtt_meas(ptr noundef %0, ptr noundef %382) #267, <net/ipv4/tcp_input.c:6852:4> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %393 = icmp eq ptr %392, null, <net/ipv4/tcp_input.c:6815:8> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   br i1 %393, label %681, label %394 FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   br i1 %383, label %394, label %384, <net/ipv4/tcp_input.c:6809:6> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   br i1 %383, label %427, label %426, <net/ipv4/tcp_input.c:6854:7> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   br i1 %383, label %526, label %525, <net/ipv4/tcp_input.c:6897:7> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %380 = and i16 %379, -2, <net/ipv4/tcp_input.c:6806:24> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   store i16 %380, ptr %378, align 4, <net/ipv4/tcp_input.c:6806:24> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %374 = and i8 %373, 15, <./include/net/tcp.h:2124:58> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %375 = zext nneg i8 %374 to i32, <./include/net/tcp.h:2124:54> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   call void @__tcp_push_pending_frames(ptr noundef %0, i32 noundef %371, i32 noundef %375) #264, <./include/net/tcp.h:2124:3> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %367 = icmp eq ptr %366, %365, <./include/linux/skbuff.h:2146:10> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %368 = icmp eq ptr %366, null, <./include/net/tcp.h:2121:6> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %369 = or i1 %367, %368, <./include/net/tcp.h:2121:6> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   br i1 %369, label %376, label %370, <./include/net/tcp.h:2121:6> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %361 = and i16 %360, -4091, <./include/linux/tcp.h:137:17> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   store i16 %361, ptr %32, align 4, <./include/linux/tcp.h:137:17> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %357 = and i16 %356, -4091, <./include/linux/tcp.h:137:17> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   store i16 %357, ptr %32, align 4, <./include/linux/tcp.h:137:17> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %347 = lshr i32 %346, 1, <net/ipv4/tcp_input.c:633:9> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %348 = call i32 @llvm.umin.i32(i32 %344, i32 %347), <net/ipv4/tcp_input.c:633:9> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %349 = call i32 @llvm.umin.i32(i32 %348, i32 536), <net/ipv4/tcp_input.c:634:9> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %350 = call i32 @llvm.umax.i32(i32 %349, i32 88), <net/ipv4/tcp_input.c:635:9> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %351 = trunc nuw nsw i32 %350 to i16, <net/ipv4/tcp_input.c:637:35> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   store i16 %351, ptr %352, align 2, <net/ipv4/tcp_input.c:637:33> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %344 = call i32 @llvm.umin.i32(i32 %343, i32 %341), <net/ipv4/tcp_input.c:631:22> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %341 = zext i16 %340 to i32, <net/ipv4/tcp_input.c:631:22> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %338 = call i32 @tcp_sync_mss(ptr noundef %0, i32 noundef %337) #264, <net/ipv4/tcp_input.c:6662:3> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %328 = and i8 %327, 1, <net/ipv4/tcp_input.c:411:21> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %334 = and i8 %327, -2, <net/ipv4/tcp_input.c:412:17> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   store i8 %334, ptr %326, align 8, <net/ipv4/tcp_input.c:412:17> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %329 = icmp eq i8 %328, 0, <net/ipv4/tcp_input.c:411:21> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   br i1 %329, label %335, label %330, <net/ipv4/tcp_input.c:411:35> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   store i32 %303, ptr %304, align 4, <net/ipv4/tcp_input.c:3813:23> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %298 = and i16 %297, 1, <net/ipv4/tcp_input.c:6639:18> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %301 = or i16 %297, 2, <net/ipv4/tcp_input.c:6640:25> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   store i16 %301, ptr %32, align 4, <net/ipv4/tcp_input.c:6640:25> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %299 = icmp eq i16 %298, 0, <net/ipv4/tcp_input.c:6639:7> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   br i1 %299, label %307, label %300, <net/ipv4/tcp_input.c:6639:7> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %291 = icmp eq i32 %290, 0, <./include/net/tcp.h:1716:7> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   br i1 %291, label %292, label %354, <net/ipv4/tcp_input.c:6617:58> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %286 = sub i32 %284, %285, <./include/net/tcp.h:1708:6> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %287 = add i32 %286, -2147, <./include/net/tcp.h:1708:6> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %288 = icmp sgt i32 %287, -1, <./include/net/tcp.h:1708:6> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   br i1 %288, label %292, label %289, <./include/net/tcp.h:1708:6> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %280 = sub i32 %277, %279, <./include/net/tcp.h:1706:30> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %281 = icmp sgt i32 %280, 0, <./include/net/tcp.h:1706:51> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   br i1 %281, label %282, label %292, <./include/net/tcp.h:1706:51> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %273 = icmp eq i32 %272, 0, <net/ipv4/tcp_input.c:6617:6> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %274 = or i1 %42, %273, <net/ipv4/tcp_input.c:6617:33> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   br i1 %274, label %292, label %275, <net/ipv4/tcp_input.c:6617:33> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %262 = or i8 %261, 2, <./include/net/inet_connection_sock.h:236:3> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   store volatile i8 %262, ptr %238, align 8, <./include/net/inet_connection_sock.h:236:3> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %259 = and i32 %258, -256, <net/ipv4/tcp_input.c:324:21> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %260 = or disjoint i32 %259, 40, <net/ipv4/tcp_input.c:324:21> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   store i32 %260, ptr %257, align 4, <net/ipv4/tcp_input.c:324:21> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %251 = zext i8 %250 to i32, <net/ipv4/tcp_input.c:314:18> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %252 = icmp samesign ugt i32 %248, %251, <net/ipv4/tcp_input.c:314:16> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   br i1 %252, label %253, label %255, <net/ipv4/tcp_input.c:314:16> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %243 = zext i16 %242 to i32, <net/ipv4/tcp_input.c:309:54> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %244 = shl nuw nsw i32 %243, 1, <net/ipv4/tcp_input.c:309:52> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %245 = udiv i32 %241, %244, <net/ipv4/tcp_input.c:309:47> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %246 = icmp ugt i32 %244, %241, <net/ipv4/tcp_input.c:311:16> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %248 = select i1 %246, i32 2, i32 %247, <net/ipv4/tcp_input.c:311:16> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %254 = trunc nuw nsw i32 %248 to i8, <net/ipv4/tcp_input.c:315:26> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   store i8 %254, ptr %249, align 1, <net/ipv4/tcp_input.c:315:24> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %247 = call i32 @llvm.umin.i32(i32 %245, i32 range(i32 2, 17) 16), <net/ipv4/tcp_input.c:313:14> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %240 = or i8 %239, 1, <./include/net/inet_connection_sock.h:179:33> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   store i8 %240, ptr %238, align 8, <./include/net/inet_connection_sock.h:179:33> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %234 = getelementptr inbounds nuw i8, ptr %233, i64 1171, <./include/net/inet_connection_sock.h:343:9> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %235 = load volatile i8, ptr %234, align 1, <./include/net/inet_connection_sock.h:343:9> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %236 = icmp ult i8 %232, %235, <./include/net/inet_connection_sock.h:342:41> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   br i1 %236, label %267, label %237, <net/ipv4/tcp_input.c:6585:60> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %229 = icmp eq i8 %228, 0, <net/ipv4/tcp_input.c:6585:7> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   br i1 %229, label %230, label %237, <net/ipv4/tcp_input.c:6585:60> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %225 = icmp eq i32 %224, 0, <net/ipv4/tcp_input.c:6584:7> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   br i1 %225, label %226, label %237, <net/ipv4/tcp_input.c:6584:28> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   call void %220(ptr noundef %0) #264, <net/ipv4/tcp_input.c:6579:4> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %216 = and i64 %215, 1, <./arch/x86/include/asm/bitops.h:205:44> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %217 = icmp eq i64 %216, 0, <./arch/x86/include/asm/bitops.h:206:37> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   br i1 %217, label %218, label %221, <net/ipv4/tcp_input.c:6578:7> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %208 = and i8 %207, 12, <net/ipv4/tcp_input.c:6575:37> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %209 = icmp eq i8 %208, 0, <net/ipv4/tcp_input.c:6575:37> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   br i1 %209, label %212, label %210, <net/ipv4/tcp_input.c:6575:37> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %202 = and i16 %201, 128, <net/ipv4/tcp_input.c:6431:23> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %203 = icmp eq i16 %202, 0, <net/ipv4/tcp_input.c:6431:23> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   br i1 %203, label %204, label %205, <net/ipv4/tcp_input.c:6431:19> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %199 = trunc nuw i8 %198 to i1, <net/ipv4/tcp_input.c:6431:11> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   br i1 %199, label %200, label %205, <net/ipv4/tcp_input.c:6431:19> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   store volatile i32 %194, ptr %195, align 8, <net/ipv4/tcp_input.c:6567:3> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %188 = lshr i32 %187, 1, <net/ipv4/tcp_input.c:633:9> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %189 = call i32 @llvm.umin.i32(i32 %185, i32 %188), <net/ipv4/tcp_input.c:633:9> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %190 = call i32 @llvm.umin.i32(i32 %189, i32 536), <net/ipv4/tcp_input.c:634:9> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %191 = call i32 @llvm.umax.i32(i32 %190, i32 88), <net/ipv4/tcp_input.c:635:9> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %192 = trunc nuw nsw i32 %191 to i16, <net/ipv4/tcp_input.c:637:35> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   store i16 %192, ptr %193, align 2, <net/ipv4/tcp_input.c:637:33> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %185 = call i32 @llvm.umin.i32(i32 %184, i32 %182), <net/ipv4/tcp_input.c:631:22> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %182 = zext i16 %181 to i32, <net/ipv4/tcp_input.c:631:22> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %179 = call i32 @tcp_sync_mss(ptr noundef %0, i32 noundef %178) #264, <net/ipv4/tcp_input.c:6561:3> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   store i32 %170, ptr %171, align 4, <net/ipv4/tcp_input.c:3813:23> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %168 = add i16 %167, -12, <net/ipv4/tcp_input.c:6555:19> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   store i16 %168, ptr %166, align 16, <net/ipv4/tcp_input.c:6555:19> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %158 = call i32 @llvm.umin.i32(i32 %157, i32 65535), <net/ipv4/tcp_input.c:6547:4> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   store volatile i32 %158, ptr %156, align 4, <net/ipv4/tcp_input.c:6547:4> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %160 = phi i16 [ %155, %154 ], [ %151, %138 ], <net/ipv4/tcp_input.c:6551:18> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %152 = and i16 %151, 8, <net/ipv4/tcp_input.c:6545:8> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %155 = and i16 %151, 247, <net/ipv4/tcp_input.c:6546:26> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   store i16 %155, ptr %32, align 4, <net/ipv4/tcp_input.c:6546:26> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %153 = icmp eq i16 %152, 0, <net/ipv4/tcp_input.c:6545:8> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   br i1 %153, label %154, label %159, <net/ipv4/tcp_input.c:6545:7> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %161 = and i16 %160, 1, <net/ipv4/tcp_input.c:6551:18> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %164 = or i16 %160, 2, <net/ipv4/tcp_input.c:6552:28> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   store i16 %164, ptr %32, align 4, <net/ipv4/tcp_input.c:6552:28> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %162 = icmp eq i16 %161, 0, <net/ipv4/tcp_input.c:6551:7> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   br i1 %162, label %174, label %163, <net/ipv4/tcp_input.c:6551:7> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %136 = icmp eq i32 %126, %135, <net/ipv4/tcp_input.c:6448:16> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   br i1 %136, label %137, label %138, <net/ipv4/tcp_input.c:6447:60> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %129 = icmp eq i32 %128, 0, <net/ipv4/tcp_input.c:6447:6> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %131 = select i1 %129, i1 true, i1 %130, <net/ipv4/tcp_input.c:6447:22> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %132 = or i1 %42, %131, <net/ipv4/tcp_input.c:6447:22> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   br i1 %132, label %138, label %133, <net/ipv4/tcp_input.c:6447:22> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %130 = icmp eq i32 %126, 0 FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %115 = and i8 %114, 1, <net/ipv4/tcp_input.c:405:21> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %121 = and i8 %114, -2, <net/ipv4/tcp_input.c:406:17> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   store i8 %121, ptr %113, align 8, <net/ipv4/tcp_input.c:406:17> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %116 = icmp eq i8 %115, 0, <net/ipv4/tcp_input.c:405:21> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %119 = or i1 %118, %116, <net/ipv4/tcp_input.c:405:35> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   br i1 %119, label %122, label %120, <net/ipv4/tcp_input.c:405:35> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %101 = getelementptr inbounds nuw i8, ptr %100, i64 440, <net/ipv4/tcp_input.c:6489:4> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %102 = load ptr, ptr %101, align 8, <net/ipv4/tcp_input.c:6489:4> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %103 = getelementptr i8, ptr %102, i64 112, <net/ipv4/tcp_input.c:6489:4> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   call void asm sideeffect "incq %gs:$0", "=*m,*m,~{dirflag},~{fpsr},~{flags}"(ptr elementtype(i64) %103, ptr elementtype(i64) %103) #266, <net/ipv4/tcp_input.c:6489:4> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %93 = udiv i64 %92, 1000, <./include/net/tcp.h:892:6> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %94 = select i1 %90, i64 %93, i64 %92, <./include/net/tcp.h:892:6> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %95 = trunc i64 %94 to i32, <./include/net/tcp.h:0> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %96 = sub i32 %95, %86, <./include/net/tcp.h:297:14> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %98 = icmp ult i32 %96, %97, <./include/net/tcp.h:297:21> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   br i1 %98, label %99, label %104, <net/ipv4/tcp_input.c:6486:53> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %89 = and i8 %88, 8, <./include/net/tcp.h:892:6> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %90 = icmp eq i8 %89, 0, <./include/net/tcp.h:892:6> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %97 = sub i32 %82, %86, <./include/net/tcp.h:297:29> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %83 = icmp eq i32 %82, 0, <net/ipv4/tcp_input.c:6486:32> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   br i1 %83, label %104, label %84, <net/ipv4/tcp_input.c:6486:53> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %72 = icmp eq i8 %71, 0, <net/ipv4/tcp_input.c:6478:31> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   br i1 %72, label %73, label %358, <net/ipv4/tcp_input.c:6478:31> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %67 = sub i32 %66, %61, <./include/net/tcp.h:290:28> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %68 = icmp slt i32 %67, 0, <./include/net/tcp.h:290:35> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   br i1 %68, label %69, label %79, <net/ipv4/tcp_input.c:6475:53> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %62 = sub i32 %58, %61, <./include/net/tcp.h:290:28> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %63 = icmp slt i32 %62, 0, <./include/net/tcp.h:290:35> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   br i1 %63, label %64, label %69, <net/ipv4/tcp_input.c:6475:53> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %50 = sub i32 %45, %49, <net/ipv4/tcp_input.c:6464:24> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   store i32 %50, ptr %44, align 4, <net/ipv4/tcp_input.c:6464:24> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %46 = icmp eq i32 %45, 0, <net/ipv4/tcp_input.c:6463:31> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   br i1 %46, label %51, label %47, <net/ipv4/tcp_input.c:6463:28> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %41 = and i16 %40, 1, <net/ipv4/tcp_input.c:6463:17> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %42 = icmp eq i16 %41, 0, <net/ipv4/tcp_input.c:6463:6> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   br i1 %42, label %51, label %43, <net/ipv4/tcp_input.c:6463:28> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   br i1 %42, label %104, label %80, <net/ipv4/tcp_input.c:6486:29> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %28 = getelementptr inbounds nuw i8, ptr %27, i64 32, <net/ipv4/tcp_input.c:6781:23> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %29 = load ptr, ptr %28, align 8, <net/ipv4/tcp_input.c:6781:23> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   %30 = tail call i32 %29(ptr noundef %0, ptr noundef %1) #264, <net/ipv4/tcp_input.c:6781:4> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   switch i8 %12, label %377 [
+    i8 7, label %681
+    i8 10, label %13
+    i8 2, label %31
+  ], <net/ipv4/tcp_input.c:6758:2> FUNC=tcp_rcv_state_process L=1
+[LOAD] Tainted load from tracked pointer:   %33 = load i16, ptr %32, align 4, (  %32 = getelementptr inbounds nuw i8, ptr %0, i64 1708,)  <net/ipv4/tcp_input.c:6792:25> FUNC=tcp_rcv_state_process L=1
+[SKIP] Load before taint origin, not tainting:   %88 = load i16, ptr %87, align 8, <net/ipv4/tcp_input.c:7087:18> FUNC=tcp_conn_request L=1
+[LOAD] Tainted load from tracked pointer:   %138 = load i16, ptr %87, align 8, (  %87 = getelementptr inbounds nuw i8, ptr %42, i64 232,)  <net/ipv4/tcp_input.c:7097:15> FUNC=tcp_conn_request L=1
+[LOAD] Tainted load from tracked pointer:   %236 = load i16, ptr %87, align 8, (  %87 = getelementptr inbounds nuw i8, ptr %42, i64 232,)  <net/ipv4/tcp_input.c:7071:25> FUNC=tcp_conn_request L=1
+[LOAD] Tainted load from tracked pointer:   %271 = load i16, ptr %87, align 8, (  %87 = getelementptr inbounds nuw i8, ptr %42, i64 232,)  <net/ipv4/tcp_input.c:7311:26> FUNC=tcp_conn_request L=1
+  [USE] Taint flows to:   %272 = and i16 %271, -2049, <net/ipv4/tcp_input.c:7311:26> FUNC=tcp_conn_request L=1
+  [USE] Taint flows to:   store i16 %272, ptr %87, align 8, <net/ipv4/tcp_input.c:7311:26> FUNC=tcp_conn_request L=1
+  [USE] Taint flows to:   %237 = or i16 %236, 2048, <net/ipv4/tcp_input.c:7071:25> FUNC=tcp_conn_request L=1
+  [USE] Taint flows to:   store i16 %237, ptr %87, align 8, <net/ipv4/tcp_input.c:7071:25> FUNC=tcp_conn_request L=1
+  [USE] Taint flows to:   %34 = and i16 %33, -2, <net/ipv4/tcp_input.c:6792:25> FUNC=tcp_rcv_state_process L=1
+  [USE] Taint flows to:   store i16 %34, ptr %32, align 4, <net/ipv4/tcp_input.c:6792:25> FUNC=tcp_rcv_state_process L=1
+
+=== Maximum Level Statistics ===
+Largest L value: 1
+Number of instructions with L=1: 796
+
+Earliest instruction with L=1:
+    %12 = load volatile i8, ptr %11, align 2, <net/ipv4/tcp_input.c:6758:14> FUNC=tcp_rcv_state_process L=1
+
+Latest instruction with L=1:
+    store i32 %91, ptr %78, align 4, <net/ipv6/syncookies.c:156:21> FUNC=cookie_v6_check L=1
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/ipv4/tcp_input.ll
+../linux-wllvm-defconfig/net/ipv4/tcp_input.c

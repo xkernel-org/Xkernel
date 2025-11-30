@@ -1,0 +1,38 @@
+=== Taint Tracker Configuration ===
+Function: tcp_event_data_recv
+Opcode: add
+Constant: 20
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 20)
+
+[SOURCE] Tainting:   %184 = add nuw nsw i32 %183, 20, <net/ipv4/tcp_input.c:845:51> FUNC=tcp_event_data_recv L=0
+[USE] Source instruction in data flow <net/ipv4/tcp_input.c:845:51> FUNC=tcp_event_data_recv L=0
+[USE] Processing uses of:   %184 = add nuw nsw i32 %183, 20,
+  [USE] Taint flows to:   %186 = or disjoint i32 %184, %185, <net/ipv4/tcp_input.c:845:23> FUNC=tcp_event_data_recv L=0
+[USE] Processing uses of:   %186 = or disjoint i32 %184, %185,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter <net/ipv4/tcp_input.c:845:23>
+  [USE] Taint flows to:   %221 = phi i32 [ %156, %218 ], [ %156, %204 ], [ %186, %182 ], [ %156, %200 ], [ %194, %189 ], [ %199, %198 ], [ %176, %175 ] FUNC=tcp_event_data_recv L=0
+[USE] Processing uses of:   %221 = phi i32 [ %156, %218 ], [ %156, %204 ], [ %186, %182 ], [ %156, %200 ], [ %194, %189 ], [ %199, %198 ], [ %176, %175 ]
+  [USE] Taint flows to:   %236 = and i32 %221, -268435201, <net/ipv4/tcp_input.c:806:33> FUNC=tcp_event_data_recv L=0
+[USE] Processing uses of:   %236 = and i32 %221, -268435201,
+  [USE] Taint flows to:   %237 = or disjoint i32 %235, %236, <net/ipv4/tcp_input.c:806:33> FUNC=tcp_event_data_recv L=0
+[USE] Processing uses of:   %237 = or disjoint i32 %235, %236,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter <net/ipv4/tcp_input.c:806:33>
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 5
+
+Earliest instruction with L=0:
+    %184 = add nuw nsw i32 %183, 20, <net/ipv4/tcp_input.c:845:51> FUNC=tcp_event_data_recv L=0
+
+Latest instruction with L=0:
+    %237 = or disjoint i32 %235, %236, <net/ipv4/tcp_input.c:806:33> FUNC=tcp_event_data_recv L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/ipv4/tcp_input.ll
+../linux-wllvm-defconfig/net/ipv4/tcp_input.c

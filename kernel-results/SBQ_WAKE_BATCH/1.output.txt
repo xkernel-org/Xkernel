@@ -1,0 +1,61 @@
+=== Taint Tracker Configuration ===
+Function: sbitmap_queue_resize
+Opcode: icmp
+Constant: 63
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 63)
+
+[SOURCE] Tainting:   %15 = icmp ugt i32 %14, 63, <lib/sbitmap.c:426:15> FUNC=sbitmap_queue_resize L=0
+[USE] Source instruction in data flow <lib/sbitmap.c:426:15> FUNC=sbitmap_queue_resize L=0
+[USE] Processing uses of:   %15 = icmp ugt i32 %14, 63,
+  [USE] Taint flows to:   %18 = select i1 %15, i32 8, i32 %17, <lib/sbitmap.c:426:15> FUNC=sbitmap_queue_resize L=0
+[USE] Processing uses of:   %18 = select i1 %15, i32 8, i32 %17,
+  [USE] Taint flows to:   %21 = icmp eq i32 %20, %18, <lib/sbitmap.c:469:22> FUNC=sbitmap_queue_resize L=0
+  [POINTER PARAMETER] Tainted value stored through pointer parameter <lib/sbitmap.c:470:3>
+[USE] Processing uses of:   %21 = icmp eq i32 %20, %18,
+  [USE] Taint flows to:   br i1 %21, label %23, label %22, <lib/sbitmap.c:469:22> FUNC=sbitmap_queue_resize L=0
+[NO USE] No uses of:   br i1 %21, label %23, label %22,
+[UPWARD-INTERPROC] Call to sbitmap_queue_resize taints argument 0 (pointer parameter) <block/blk-mq-tag.c:632:3> FUNC=blk_mq_tag_update_depth L=1
+  [STORE DESTINATION] Marking pointer as tainted via call:   %5 = load ptr, ptr %1, align 8, FUNC=blk_mq_tag_update_depth L=1
+[UPWARD-INTERPROC] Call to sbitmap_queue_resize taints argument 0 (pointer parameter) <block/blk-mq-tag.c:643:2> FUNC=blk_mq_tag_resize_shared_tags L=1
+  [STORE DESTINATION] Marking pointer as tainted via call:   %4 = load ptr, ptr %3, align 8, FUNC=blk_mq_tag_resize_shared_tags L=1
+[UPWARD-INTERPROC] Call to sbitmap_queue_resize taints argument 0 (pointer parameter) <block/blk-mq-tag.c:648:2> FUNC=blk_mq_tag_update_sched_shared_tags L=1
+  [STORE DESTINATION] Marking pointer as tainted via call:   %3 = load ptr, ptr %2, align 8, FUNC=blk_mq_tag_update_sched_shared_tags L=1
+[UPWARD-INTERPROC] Call to sbitmap_queue_resize taints argument 0 (pointer parameter) <block/kyber-iosched.c:271:3> FUNC=kyber_timer_fn L=1
+  [STORE DESTINATION] Marking pointer as tainted via call:   %25 = getelementptr i8, ptr %0, i64 -272 FUNC=kyber_timer_fn L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %7 = load i32, ptr %6, align 4, (base:   %5 = load ptr, ptr %1, align 8,)  <block/blk-mq-tag.c:593:22> FUNC=blk_mq_tag_update_depth L=1
+[LOAD] Tainted load from tracked pointer:   %10 = load i32, ptr %5, align 8, (  %5 = load ptr, ptr %1, align 8,)  <block/blk-mq-tag.c:600:21> FUNC=blk_mq_tag_update_depth L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %146 = load i32, ptr %145, align 8, (base:   %25 = getelementptr i8, ptr %0, i64 -272)  <block/kyber-iosched.c:350:53> FUNC=kyber_timer_fn L=1
+  [USE] Taint flows to:   %148 = mul i32 %146, %147, <block/kyber-iosched.c:351:24> FUNC=kyber_timer_fn L=1
+  [USE] Taint flows to:   %155 = icmp eq i32 %154, %146, <block/kyber-iosched.c:270:12> FUNC=kyber_timer_fn L=1
+  [USE] Taint flows to:   br i1 %155, label %180, label %156, <block/kyber-iosched.c:270:12> FUNC=kyber_timer_fn L=1
+  [USE] Taint flows to:   %149 = lshr i32 %148, 2, <block/kyber-iosched.c:351:37> FUNC=kyber_timer_fn L=1
+  [USE] Taint flows to:   %152 = icmp ult i32 %149, %151, <block/kyber-iosched.c:269:10> FUNC=kyber_timer_fn L=1
+  [USE] Taint flows to:   %153 = tail call i32 @llvm.umax.i32(i32 range(i32 0, 1073741824) %149, i32 1), <block/kyber-iosched.c:269:10> FUNC=kyber_timer_fn L=1
+  [USE] Taint flows to:   %154 = select i1 %152, i32 %153, i32 %151, <block/kyber-iosched.c:269:10> FUNC=kyber_timer_fn L=1
+  [USE] Taint flows to:   tail call void @sbitmap_queue_resize(ptr noundef %145, i32 noundef %154) #267, <block/kyber-iosched.c:271:3> FUNC=kyber_timer_fn L=1
+  [USE] Taint flows to:   %172 = tail call i32 @__SCT__tp_func_kyber_adjust(ptr noundef %171, i32 noundef %157, ptr noundef %159, i32 noundef range(i32 0, 1073741824) %154) #267, <./include/trace/events/kyber.h:48:1> FUNC=kyber_timer_fn L=1
+  [USE] Taint flows to:   %11 = icmp ugt i32 %2, %10, <block/blk-mq-tag.c:600:13> FUNC=blk_mq_tag_update_depth L=1
+  [USE] Taint flows to:   br i1 %11, label %12, label %32, <block/blk-mq-tag.c:600:13> FUNC=blk_mq_tag_update_depth L=1
+  [USE] Taint flows to:   %8 = icmp ugt i32 %2, %7, <block/blk-mq-tag.c:593:13> FUNC=blk_mq_tag_update_depth L=1
+  [USE] Taint flows to:   %34 = sub i32 %2, %7, <block/blk-mq-tag.c:633:12> FUNC=blk_mq_tag_update_depth L=1
+  [USE] Taint flows to:   tail call void @sbitmap_queue_resize(ptr noundef nonnull %33, i32 noundef %34) #264, <block/blk-mq-tag.c:632:3> FUNC=blk_mq_tag_update_depth L=1
+  [USE] Taint flows to:   br i1 %8, label %9, label %35, <block/blk-mq-tag.c:593:13> FUNC=blk_mq_tag_update_depth L=1
+
+=== Maximum Level Statistics ===
+Largest L value: 1
+Number of instructions with L=1: 18
+
+Earliest instruction with L=1:
+    %7 = load i32, ptr %6, align 4, <block/blk-mq-tag.c:593:22> FUNC=blk_mq_tag_update_depth L=1
+
+Latest instruction with L=1:
+    %172 = tail call i32 @__SCT__tp_func_kyber_adjust(ptr noundef %171, i32 noundef %157, ptr noundef %159, i32 noundef range(i32 0, 1073741824) %154) #267, <./include/trace/events/kyber.h:48:1> FUNC=kyber_timer_fn L=1
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/lib/sbitmap.ll
+../linux-wllvm-defconfig/lib/sbitmap.c

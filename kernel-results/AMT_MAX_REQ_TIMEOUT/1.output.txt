@@ -1,0 +1,32 @@
+=== Taint Tracker Configuration ===
+Function: amt_event_work
+Opcode: call
+Constant: 120
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 120)
+
+[SOURCE] Tainting:   %563 = call i32 @llvm.umin.i32(i32 %562, i32 120), <drivers/net/amt.c:981:8> FUNC=amt_event_work L=0
+[USE] Source instruction in data flow <drivers/net/amt.c:981:8> FUNC=amt_event_work L=0
+[CHILD FUNCTION] Constant used in call to llvm.umin.i32 at argument 1 <drivers/net/amt.c:981:8> FUNC=amt_event_work L=0
+[USE] Processing uses of:   %563 = call i32 @llvm.umin.i32(i32 %562, i32 120),
+  [USE] Taint flows to:   %564 = mul nuw nsw i32 %563, 1000, <drivers/net/amt.c:982:62> FUNC=amt_event_work L=0
+[USE] Processing uses of:   %564 = mul nuw nsw i32 %563, 1000,
+  [CHILD FUNCTION] Tainted value used in call to __msecs_to_jiffies at argument 0:   %565 = call i64 @__msecs_to_jiffies(i32 noundef %564) #264, <./include/linux/jiffies.h:525:10> FUNC=amt_event_work L=0
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 2
+
+Earliest instruction with L=0:
+    %563 = call i32 @llvm.umin.i32(i32 %562, i32 120), <drivers/net/amt.c:981:8> FUNC=amt_event_work L=0
+
+Latest instruction with L=0:
+    %564 = mul nuw nsw i32 %563, 1000, <drivers/net/amt.c:982:62> FUNC=amt_event_work L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/drivers/net/amt.ll
+../linux-wllvm-defconfig/drivers/net/amt.c

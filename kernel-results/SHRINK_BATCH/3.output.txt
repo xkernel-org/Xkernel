@@ -1,0 +1,30 @@
+=== Taint Tracker Configuration ===
+Function: do_sync_mmap_readahead
+Opcode: icmp
+Constant: 99
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 99)
+
+[SOURCE] Tainting:   %36 = icmp samesign ugt i32 %32, 99, <mm/filemap.c:3250:16> FUNC=do_sync_mmap_readahead L=0
+[USE] Source instruction in data flow <mm/filemap.c:3250:16> FUNC=do_sync_mmap_readahead L=0
+[USE] Processing uses of:   %36 = icmp samesign ugt i32 %32, 99,
+  [USE] Taint flows to:   br i1 %36, label %48, label %37, <mm/filemap.c:3250:16> FUNC=do_sync_mmap_readahead L=0
+[NO USE] No uses of:   br i1 %36, label %48, label %37,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 2
+
+Earliest instruction with L=0:
+    %36 = icmp samesign ugt i32 %32, 99, <mm/filemap.c:3250:16> FUNC=do_sync_mmap_readahead L=0
+
+Latest instruction with L=0:
+    br i1 %36, label %48, label %37, <mm/filemap.c:3250:16> FUNC=do_sync_mmap_readahead L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/mm/filemap.ll
+../linux-wllvm-defconfig/mm/filemap.c

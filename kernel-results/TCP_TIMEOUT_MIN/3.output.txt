@@ -1,0 +1,29 @@
+=== Taint Tracker Configuration ===
+Function: tcp_rcv_state_process
+Opcode: add
+Constant: 2
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 2)
+
+[SOURCE] Tainting:   %76 = add i64 %75, 2, <./include/net/inet_connection_sock.h:0> FUNC=tcp_rcv_state_process L=0
+[USE] Source instruction in data flow <./include/net/inet_connection_sock.h:0> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %76 = add i64 %75, 2,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter <./include/net/inet_connection_sock.h:0>
+  [CHILD FUNCTION] Tainted value used in call to sk_reset_timer at argument 2:   call void @sk_reset_timer(ptr noundef %0, ptr noundef nonnull %78, i64 noundef %76) #264, <./include/net/inet_connection_sock.h:0> FUNC=tcp_rcv_state_process L=0
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 1
+
+Earliest instruction with L=0:
+    %76 = add i64 %75, 2, <./include/net/inet_connection_sock.h:0> FUNC=tcp_rcv_state_process L=0
+
+(Earliest and latest are the same instruction)
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/ipv4/tcp_input.ll
+../linux-wllvm-defconfig/net/ipv4/tcp_input.c

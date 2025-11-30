@@ -1,0 +1,46 @@
+=== Taint Tracker Configuration ===
+Function: tcp_connect
+Opcode: select
+Constant: 14
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 14)
+
+[SOURCE] Tainting:   %285 = select i1 %282, i8 14, i8 %284, <net/ipv4/tcp_output.c:246:17> FUNC=tcp_connect L=0
+[USE] Source instruction in data flow <net/ipv4/tcp_output.c:246:17> FUNC=tcp_connect L=0
+[USE] Processing uses of:   %285 = select i1 %282, i8 14, i8 %284,
+  [USE] Taint flows to:   %286 = zext nneg i8 %285 to i32, <net/ipv4/tcp_output.c:250:2> FUNC=tcp_connect L=0
+  [USE] Taint flows to:   %287 = and i8 %285, 15, <net/ipv4/tcp_output.c:3926:24> FUNC=tcp_connect L=0
+[USE] Processing uses of:   %287 = and i8 %285, 15,
+  [USE] Taint flows to:   %288 = zext nneg i8 %287 to i16, <net/ipv4/tcp_output.c:3926:24> FUNC=tcp_connect L=0
+[USE] Processing uses of:   %288 = zext nneg i8 %287 to i16,
+  [USE] Taint flows to:   %289 = shl nuw i16 %288, 12, <net/ipv4/tcp_output.c:3926:24> FUNC=tcp_connect L=0
+[USE] Processing uses of:   %289 = shl nuw i16 %288, 12,
+  [USE] Taint flows to:   %291 = phi i16 [ 0, %261 ], [ %289, %273 ], <net/ipv4/tcp_output.c:0> FUNC=tcp_connect L=0
+[USE] Processing uses of:   %291 = phi i16 [ 0, %261 ], [ %289, %273 ],
+  [USE] Taint flows to:   %298 = or disjoint i16 %297, %291, <net/ipv4/tcp_output.c:3926:24> FUNC=tcp_connect L=0
+[USE] Processing uses of:   %298 = or disjoint i16 %297, %291,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter <net/ipv4/tcp_output.c:3926:24>
+[USE] Processing uses of:   %286 = zext nneg i8 %285 to i32,
+  [USE] Taint flows to:   %292 = phi i32 [ 0, %261 ], [ %286, %273 ], <net/ipv4/tcp_output.c:250:2> FUNC=tcp_connect L=0
+[USE] Processing uses of:   %292 = phi i32 [ 0, %261 ], [ %286, %273 ],
+  [USE] Taint flows to:   %293 = shl i32 65535, %292, <net/ipv4/tcp_output.c:250:2> FUNC=tcp_connect L=0
+[USE] Processing uses of:   %293 = shl i32 65535, %292,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %294 = tail call i32 @llvm.umin.i32(i32 %293, i32 %255), !dbg !17654288 <net/ipv4/tcp_output.c:250:2>
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 9
+
+Earliest instruction with L=0:
+    %285 = select i1 %282, i8 14, i8 %284, <net/ipv4/tcp_output.c:246:17> FUNC=tcp_connect L=0
+
+Latest instruction with L=0:
+    %298 = or disjoint i16 %297, %291, <net/ipv4/tcp_output.c:3926:24> FUNC=tcp_connect L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/ipv4/tcp_output.ll
+../linux-wllvm-defconfig/net/ipv4/tcp_output.c

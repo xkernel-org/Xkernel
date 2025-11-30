@@ -1,0 +1,269 @@
+=== Taint Tracker Configuration ===
+Function: blk_mq_alloc_tag_set
+Opcode: store
+Constant: 10240
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 10240)
+
+[SOURCE] Tainting:   store i32 10240, ptr %6, align 8, <block/blk-mq.c:4741:20> FUNC=blk_mq_alloc_tag_set L=0
+[USE] Source instruction in data flow <block/blk-mq.c:4741:20> FUNC=blk_mq_alloc_tag_set L=0
+[STORE DESTINATION] Storing constant to:   %6 = getelementptr inbounds nuw i8, ptr %0, i64 64, <block/blk-mq.c:4741:20> FUNC=blk_mq_alloc_tag_set L=0
+[POINTER PARAMETER] Constant stored through pointer parameter <block/blk-mq.c:4741:20> FUNC=blk_mq_alloc_tag_set L=0
+[NO USE] No uses of:   store i32 10240, ptr %6, align 8,
+[UPWARD-INTERPROC] Call to blk_mq_alloc_tag_set taints argument 0 (pointer parameter) <drivers/block/loop.c:2049:8> FUNC=loop_add L=1
+  [STORE DESTINATION] Marking pointer as tainted via call:   %5 = tail call noalias align 8 dereferenceable_or_null(480) ptr @__kmalloc_cache_noprof(ptr noundef %4, i32 noundef range(i32 3072, 10752) 3520, i64 noundef range(i64 -34359738368, 34359738353) 480) #265, FUNC=loop_add L=1
+[UPWARD-INTERPROC] Call to blk_mq_alloc_tag_set taints argument 0 (pointer parameter) <drivers/block/virtio_blk.c:1492:8> FUNC=virtblk_probe L=1
+  [STORE DESTINATION] Marking pointer as tainted via call:   %30 = tail call noalias align 8 dereferenceable_or_null(288) ptr @__kmalloc_cache_noprof(ptr noundef %29, i32 noundef 3264, i64 noundef 288) #267, FUNC=virtblk_probe L=1
+[UPWARD-INTERPROC] Call to blk_mq_alloc_tag_set taints argument 0 (pointer parameter) <drivers/scsi/scsi_lib.c:2097:9> FUNC=scsi_mq_setup_tags L=1
+  [STORE DESTINATION] Marking pointer as tainted via call: ptr %0 FUNC=scsi_mq_setup_tags L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %4 = load i16, ptr %3, align 2, (base: ptr %0)  <drivers/scsi/scsi_lib.c:1644:9> FUNC=scsi_mq_setup_tags L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %10 = load ptr, ptr %9, align 8, (base: ptr %0)  <drivers/scsi/scsi_lib.c:2074:47> FUNC=scsi_mq_setup_tags L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %15 = load i32, ptr %14, align 4, (base: ptr %0)  <./include/scsi/scsi_host.h:848:16> FUNC=scsi_mq_setup_tags L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %24 = load i32, ptr %23, align 8, (base: ptr %0)  <drivers/scsi/scsi_lib.c:2084:33> FUNC=scsi_mq_setup_tags L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %28 = load i32, ptr %27, align 4, (base: ptr %0)  <drivers/scsi/scsi_lib.c:2085:28> FUNC=scsi_mq_setup_tags L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %32 = load i32, ptr %31, align 4, (base: ptr %0)  <drivers/scsi/scsi_lib.c:2086:32> FUNC=scsi_mq_setup_tags L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %36 = load ptr, ptr %35, align 8, (base: ptr %0)  <drivers/scsi/scsi_lib.c:2088:42> FUNC=scsi_mq_setup_tags L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %48 = load i16, ptr %47, align 8, (base: ptr %0)  <drivers/scsi/scsi_lib.c:2091:13> FUNC=scsi_mq_setup_tags L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %70 = load ptr, ptr %48, align 8, (base:   %5 = tail call noalias align 8 dereferenceable_or_null(480) ptr @__kmalloc_cache_noprof(ptr noundef %4, i32 noundef range(i32 3072, 10752) 3520, i64 noundef range(i64 -34359738368, 34359738353) 480) #265,)  <drivers/block/loop.c:2091:21> FUNC=loop_add L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %46 = load ptr, ptr %45, align 8, (base:   %30 = tail call noalias align 8 dereferenceable_or_null(288) ptr @__kmalloc_cache_noprof(ptr noundef %29, i32 noundef 3264, i64 noundef 288) #267,)  <drivers/block/virtio_blk.c:1471:23> FUNC=virtblk_probe L=1
+[SKIP] Load before taint origin, not tainting:   %65 = load i32, ptr %64, align 4, <drivers/block/virtio_blk.c:1487:37> FUNC=virtblk_probe L=1
+[SKIP] Load before taint origin, not tainting:   %69 = load i32, ptr %68, align 8, <drivers/block/virtio_blk.c:1489:6> FUNC=virtblk_probe L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %75 = load ptr, ptr %34, align 8, (base:   %30 = tail call noalias align 8 dereferenceable_or_null(288) ptr @__kmalloc_cache_noprof(ptr noundef %29, i32 noundef 3264, i64 noundef 288) #267,)  <drivers/block/virtio_blk.c:1242:37> FUNC=virtblk_probe L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %285 = load ptr, ptr %34, align 8, (base:   %30 = tail call noalias align 8 dereferenceable_or_null(288) ptr @__kmalloc_cache_noprof(ptr noundef %29, i32 noundef 3264, i64 noundef 288) #267,)  <drivers/block/virtio_blk.c:795:2> FUNC=virtblk_probe L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %333 = load ptr, ptr %296, align 8, (base:   %30 = tail call noalias align 8 dereferenceable_or_null(288) ptr @__kmalloc_cache_noprof(ptr noundef %29, i32 noundef 3264, i64 noundef 288) #267,)  <drivers/block/virtio_blk.c:1511:8> FUNC=virtblk_probe L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %335 = load ptr, ptr %296, align 8, (base:   %30 = tail call noalias align 8 dereferenceable_or_null(288) ptr @__kmalloc_cache_noprof(ptr noundef %29, i32 noundef 3264, i64 noundef 288) #267,)  <drivers/block/virtio_blk.c:1512:8> FUNC=virtblk_probe L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %337 = load ptr, ptr %296, align 8, (base:   %30 = tail call noalias align 8 dereferenceable_or_null(288) ptr @__kmalloc_cache_noprof(ptr noundef %29, i32 noundef 3264, i64 noundef 288) #267,)  <drivers/block/virtio_blk.c:1513:8> FUNC=virtblk_probe L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %339 = load ptr, ptr %296, align 8, (base:   %30 = tail call noalias align 8 dereferenceable_or_null(288) ptr @__kmalloc_cache_noprof(ptr noundef %29, i32 noundef 3264, i64 noundef 288) #267,)  <drivers/block/virtio_blk.c:1514:8> FUNC=virtblk_probe L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %341 = load ptr, ptr %296, align 8, (base:   %30 = tail call noalias align 8 dereferenceable_or_null(288) ptr @__kmalloc_cache_noprof(ptr noundef %29, i32 noundef 3264, i64 noundef 288) #267,)  <drivers/block/virtio_blk.c:1515:8> FUNC=virtblk_probe L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %349 = load ptr, ptr %296, align 8, (base:   %30 = tail call noalias align 8 dereferenceable_or_null(288) ptr @__kmalloc_cache_noprof(ptr noundef %29, i32 noundef 3264, i64 noundef 288) #267,)  <drivers/block/virtio_blk.c:1520:21> FUNC=virtblk_probe L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %352 = load ptr, ptr %296, align 8, (base:   %30 = tail call noalias align 8 dereferenceable_or_null(288) ptr @__kmalloc_cache_noprof(ptr noundef %29, i32 noundef 3264, i64 noundef 288) #267,)  <drivers/block/virtio_blk.c:1536:42> FUNC=virtblk_probe L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %356 = load ptr, ptr %296, align 8, (base:   %30 = tail call noalias align 8 dereferenceable_or_null(288) ptr @__kmalloc_cache_noprof(ptr noundef %29, i32 noundef 3264, i64 noundef 288) #267,)  <drivers/block/virtio_blk.c:1543:17> FUNC=virtblk_probe L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %365 = load ptr, ptr %364, align 8, (base:   %30 = tail call noalias align 8 dereferenceable_or_null(288) ptr @__kmalloc_cache_noprof(ptr noundef %29, i32 noundef 3264, i64 noundef 288) #267,)  <drivers/block/virtio_blk.c:1548:14> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   call void @kfree(ptr noundef %365) #266, <drivers/block/virtio_blk.c:1548:2> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   call void @put_disk(ptr noundef %356) #266, <drivers/block/virtio_blk.c:1543:2> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %353 = call i32 @device_add_disk(ptr noundef nonnull %351, ptr noundef %352, ptr noundef nonnull @virtblk_attr_groups) #266, <drivers/block/virtio_blk.c:1536:8> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %354 = icmp eq i32 %353, 0, <drivers/block/virtio_blk.c:1537:6> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %358 = phi i32 [ %300, %298 ], [ %353, %355 ], [ -95, %284 ], [ -22, %287 ], [ -22, %228 ], [ -22, %239 ], [ -22, %248 ], <drivers/block/virtio_blk.c:0> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %360 = phi i32 [ %72, %56 ], [ %358, %357 ], <drivers/block/virtio_blk.c:0> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %367 = phi i32 [ %39, %33 ], [ %360, %359 ], <drivers/block/virtio_blk.c:0> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %369 = phi i32 [ %367, %366 ], [ -12, %28 ], <drivers/block/virtio_blk.c:0> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %371 = phi i32 [ -22, %23 ], [ 0, %350 ], [ %26, %25 ], [ %369, %368 ], <drivers/block/virtio_blk.c:0> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   ret i32 %371, <drivers/block/virtio_blk.c:1555:1> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   br i1 %354, label %370, label %355, <drivers/block/virtio_blk.c:1537:6> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   call void @set_disk_ro(ptr noundef %349, i1 noundef zeroext true) #266, <drivers/block/virtio_blk.c:1520:3> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %342 = getelementptr inbounds nuw i8, ptr %341, i64 72, <drivers/block/virtio_blk.c:1515:14> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   store ptr @virtblk_fops, ptr %342, align 8, <drivers/block/virtio_blk.c:1515:19> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %340 = getelementptr inbounds nuw i8, ptr %339, i64 88, <drivers/block/virtio_blk.c:1514:14> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   store ptr %30, ptr %340, align 8, <drivers/block/virtio_blk.c:1514:27> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %338 = getelementptr inbounds nuw i8, ptr %337, i64 8, <drivers/block/virtio_blk.c:1513:14> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   store i32 16, ptr %338, align 8, <drivers/block/virtio_blk.c:1513:21> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %336 = getelementptr inbounds nuw i8, ptr %335, i64 4, <drivers/block/virtio_blk.c:1512:14> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   store i32 %334, ptr %336, align 4, <drivers/block/virtio_blk.c:1512:26> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   store i32 %332, ptr %333, align 8, <drivers/block/virtio_blk.c:1511:20> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %286 = getelementptr inbounds nuw i8, ptr %285, i64 16, <drivers/block/virtio_blk.c:795:2> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   call void (ptr, ptr, ...) @_dev_err(ptr noundef nonnull %286, ptr noundef nonnull @.str.20.60622) #265, <drivers/block/virtio_blk.c:795:2> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   tail call void @virtio_check_driver_offered_feature(ptr noundef %75, i32 noundef 2) #266, <./include/linux/virtio_config.h:202:3> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %76 = getelementptr inbounds nuw i8, ptr %75, i64 776, <./include/linux/virtio_config.h:156:15> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %82 = getelementptr inbounds nuw i8, ptr %75, i64 744, <drivers/block/virtio_blk.c:1252:8> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   call void %84(ptr noundef %75, i32 noundef 12, ptr noundef nonnull %2, i32 noundef 4) #266, <drivers/block/virtio_blk.c:1252:8> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %95 = call i64 @virtio_max_dma_size(ptr noundef %75) #266, <drivers/block/virtio_blk.c:1269:17> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   call void @virtio_check_driver_offered_feature(ptr noundef %75, i32 noundef 1) #266, <./include/linux/virtio_config.h:202:3> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %103 = getelementptr inbounds nuw i8, ptr %75, i64 744, <drivers/block/virtio_blk.c:1274:8> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   call void %105(ptr noundef %75, i32 noundef 8, ptr noundef nonnull %3, i32 noundef 4) #266, <drivers/block/virtio_blk.c:1274:8> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   call void @virtio_check_driver_offered_feature(ptr noundef %75, i32 noundef 6) #266, <./include/linux/virtio_config.h:202:3> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %117 = getelementptr inbounds nuw i8, ptr %75, i64 744, <drivers/block/virtio_blk.c:1282:2> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   call void %119(ptr noundef %75, i32 noundef 20, ptr noundef nonnull %4, i32 noundef 4) #266, <drivers/block/virtio_blk.c:1282:2> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   call void @virtio_check_driver_offered_feature(ptr noundef %75, i32 noundef 10) #266, <./include/linux/virtio_config.h:202:3> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %128 = getelementptr inbounds nuw i8, ptr %75, i64 744, <drivers/block/virtio_blk.c:1287:8> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   call void %130(ptr noundef %75, i32 noundef 24, ptr noundef nonnull %5, i32 noundef 1) #266, <drivers/block/virtio_blk.c:1287:8> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   call void @virtio_check_driver_offered_feature(ptr noundef %75, i32 noundef 10) #266, <./include/linux/virtio_config.h:202:3> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %143 = getelementptr inbounds nuw i8, ptr %75, i64 744, <drivers/block/virtio_blk.c:1294:8> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   call void %145(ptr noundef %75, i32 noundef 25, ptr noundef nonnull %6, i32 noundef 1) #266, <drivers/block/virtio_blk.c:1294:8> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   call void @virtio_check_driver_offered_feature(ptr noundef %75, i32 noundef 10) #266, <./include/linux/virtio_config.h:202:3> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %158 = getelementptr inbounds nuw i8, ptr %75, i64 744, <drivers/block/virtio_blk.c:1301:8> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   call void %160(ptr noundef %75, i32 noundef 26, ptr noundef nonnull %7, i32 noundef 2) #266, <drivers/block/virtio_blk.c:1301:8> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   call void @virtio_check_driver_offered_feature(ptr noundef %75, i32 noundef 10) #266, <./include/linux/virtio_config.h:202:3> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %173 = getelementptr inbounds nuw i8, ptr %75, i64 744, <drivers/block/virtio_blk.c:1307:8> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   call void %175(ptr noundef %75, i32 noundef 28, ptr noundef nonnull %8, i32 noundef 4) #266, <drivers/block/virtio_blk.c:1307:8> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   call void @virtio_check_driver_offered_feature(ptr noundef %75, i32 noundef 13) #266, <./include/linux/virtio_config.h:202:3> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %187 = getelementptr inbounds nuw i8, ptr %75, i64 744, <drivers/block/virtio_blk.c:1314:3> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   call void %189(ptr noundef %75, i32 noundef 44, ptr noundef nonnull %9, i32 noundef 4) #266, <drivers/block/virtio_blk.c:1314:3> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   call void %193(ptr noundef %75, i32 noundef 36, ptr noundef nonnull %10, i32 noundef 4) #266, <drivers/block/virtio_blk.c:1317:3> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   call void %200(ptr noundef %75, i32 noundef 40, ptr noundef nonnull %11, i32 noundef 4) #266, <drivers/block/virtio_blk.c:1321:3> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   call void @virtio_check_driver_offered_feature(ptr noundef %75, i32 noundef 14) #266, <./include/linux/virtio_config.h:202:3> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %210 = getelementptr inbounds nuw i8, ptr %75, i64 744, <drivers/block/virtio_blk.c:1326:3> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   call void %212(ptr noundef %75, i32 noundef 48, ptr noundef nonnull %12, i32 noundef 4) #266, <drivers/block/virtio_blk.c:1326:3> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   call void @virtio_check_driver_offered_feature(ptr noundef %75, i32 noundef 16) #266, <./include/linux/virtio_config.h:202:3> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %223 = getelementptr inbounds nuw i8, ptr %75, i64 744, <drivers/block/virtio_blk.c:1345:3> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   call void %225(ptr noundef %75, i32 noundef 68, ptr noundef nonnull %13, i32 noundef 4) #266, <drivers/block/virtio_blk.c:1345:3> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %229 = getelementptr inbounds nuw i8, ptr %75, i64 16, <drivers/block/virtio_blk.c:1352:4> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   call void %236(ptr noundef %75, i32 noundef 60, ptr noundef nonnull %14, i32 noundef 4) #266, <drivers/block/virtio_blk.c:1359:3> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %240 = getelementptr inbounds nuw i8, ptr %75, i64 16, <drivers/block/virtio_blk.c:1366:4> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   call void %245(ptr noundef %75, i32 noundef 64, ptr noundef nonnull %15, i32 noundef 4) #266, <drivers/block/virtio_blk.c:1373:3> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %249 = getelementptr inbounds nuw i8, ptr %75, i64 16, <drivers/block/virtio_blk.c:1380:4> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   call void @virtio_check_driver_offered_feature(ptr noundef %75, i32 noundef 13) #266, <./include/linux/virtio_config.h:202:3> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   call void @virtio_check_driver_offered_feature(ptr noundef %75, i32 noundef 16) #266, <./include/linux/virtio_config.h:202:3> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   call void @virtio_check_driver_offered_feature(ptr noundef %75, i32 noundef 17) #266, <./include/linux/virtio_config.h:202:3> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %280 = getelementptr inbounds nuw i8, ptr %75, i64 744, <drivers/block/virtio_blk.c:1411:3> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   call void %282(ptr noundef %75, i32 noundef 92, ptr noundef nonnull %16, i32 noundef 1) #266, <drivers/block/virtio_blk.c:1411:3> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %289 = getelementptr inbounds nuw i8, ptr %75, i64 16, <drivers/block/virtio_blk.c:1423:4> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   call void (ptr, ptr, ...) @_dev_err(ptr noundef nonnull %289, ptr noundef nonnull @.str.19.60623, i32 noundef %288) #265, <drivers/block/virtio_blk.c:1423:4> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %281 = load ptr, ptr %280, align 8, <drivers/block/virtio_blk.c:1411:3> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %282 = load ptr, ptr %281, align 8, <drivers/block/virtio_blk.c:1411:3> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   call void (ptr, ptr, ...) @_dev_err(ptr noundef nonnull %249, ptr noundef nonnull @.str.18.60621) #265, <drivers/block/virtio_blk.c:1380:4> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   call void (ptr, ptr, ...) @_dev_err(ptr noundef nonnull %240, ptr noundef nonnull @.str.17.60620) #265, <drivers/block/virtio_blk.c:1366:4> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   call void (ptr, ptr, ...) @_dev_err(ptr noundef nonnull %229, ptr noundef nonnull @.str.16.60619) #265, <drivers/block/virtio_blk.c:1352:4> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %224 = load ptr, ptr %223, align 8, <drivers/block/virtio_blk.c:1345:3> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %235 = load ptr, ptr %223, align 8, <drivers/block/virtio_blk.c:1359:3> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %244 = load ptr, ptr %223, align 8, <drivers/block/virtio_blk.c:1373:3> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %245 = load ptr, ptr %244, align 8, <drivers/block/virtio_blk.c:1373:3> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %236 = load ptr, ptr %235, align 8, <drivers/block/virtio_blk.c:1359:3> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %225 = load ptr, ptr %224, align 8, <drivers/block/virtio_blk.c:1345:3> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %211 = load ptr, ptr %210, align 8, <drivers/block/virtio_blk.c:1326:3> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %212 = load ptr, ptr %211, align 8, <drivers/block/virtio_blk.c:1326:3> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %188 = load ptr, ptr %187, align 8, <drivers/block/virtio_blk.c:1314:3> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %192 = load ptr, ptr %187, align 8, <drivers/block/virtio_blk.c:1317:3> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %199 = load ptr, ptr %187, align 8, <drivers/block/virtio_blk.c:1321:3> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %200 = load ptr, ptr %199, align 8, <drivers/block/virtio_blk.c:1321:3> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %193 = load ptr, ptr %192, align 8, <drivers/block/virtio_blk.c:1317:3> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %189 = load ptr, ptr %188, align 8, <drivers/block/virtio_blk.c:1314:3> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %174 = load ptr, ptr %173, align 8, <drivers/block/virtio_blk.c:1307:8> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %175 = load ptr, ptr %174, align 8, <drivers/block/virtio_blk.c:1307:8> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %159 = load ptr, ptr %158, align 8, <drivers/block/virtio_blk.c:1301:8> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %160 = load ptr, ptr %159, align 8, <drivers/block/virtio_blk.c:1301:8> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %144 = load ptr, ptr %143, align 8, <drivers/block/virtio_blk.c:1294:8> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %145 = load ptr, ptr %144, align 8, <drivers/block/virtio_blk.c:1294:8> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %129 = load ptr, ptr %128, align 8, <drivers/block/virtio_blk.c:1287:8> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %130 = load ptr, ptr %129, align 8, <drivers/block/virtio_blk.c:1287:8> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %118 = load ptr, ptr %117, align 8, <drivers/block/virtio_blk.c:1282:2> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %119 = load ptr, ptr %118, align 8, <drivers/block/virtio_blk.c:1282:2> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %104 = load ptr, ptr %103, align 8, <drivers/block/virtio_blk.c:1274:8> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %105 = load ptr, ptr %104, align 8, <drivers/block/virtio_blk.c:1274:8> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %96 = call i64 @llvm.umin.i64(i64 %95, i64 4294967295), <drivers/block/virtio_blk.c:1270:13> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %97 = trunc nuw i64 %96 to i32, <drivers/block/virtio_blk.c:1270:13> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %109 = call i32 @llvm.umin.i32(i32 %108, i32 %97), <drivers/block/virtio_blk.c:1276:6> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %110 = select i1 %100, i32 %97, i32 %109, <drivers/block/virtio_blk.c:1276:6> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   store i32 %110, ptr %111, align 4, <drivers/block/virtio_blk.c:1279:24> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %83 = load ptr, ptr %82, align 8, <drivers/block/virtio_blk.c:1252:8> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %84 = load ptr, ptr %83, align 8, <drivers/block/virtio_blk.c:1252:8> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %77 = load i64, ptr %76, align 8, <./include/linux/virtio_config.h:156:15> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %98 = load i64, ptr %76, align 8, <./include/linux/virtio_config.h:156:15> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %112 = load i64, ptr %76, align 8, <./include/linux/virtio_config.h:156:15> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %123 = load i64, ptr %76, align 8, <./include/linux/virtio_config.h:156:15> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %138 = load i64, ptr %76, align 8, <./include/linux/virtio_config.h:156:15> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %153 = load i64, ptr %76, align 8, <./include/linux/virtio_config.h:156:15> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %168 = load i64, ptr %76, align 8, <./include/linux/virtio_config.h:156:15> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %182 = load i64, ptr %76, align 8, <./include/linux/virtio_config.h:156:15> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %205 = load i64, ptr %76, align 8, <./include/linux/virtio_config.h:156:15> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %218 = load i64, ptr %76, align 8, <./include/linux/virtio_config.h:156:15> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %257 = load i64, ptr %76, align 8, <./include/linux/virtio_config.h:156:15> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %261 = load i64, ptr %76, align 8, <./include/linux/virtio_config.h:156:15> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %275 = load i64, ptr %76, align 8, <./include/linux/virtio_config.h:156:15> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %276 = and i64 %275, 131072, <./include/linux/virtio_config.h:156:24> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %277 = icmp eq i64 %276, 0, <./include/linux/virtio_config.h:156:9> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   br i1 %277, label %290, label %278, <drivers/block/virtio_blk.c:1408:6> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %262 = and i64 %261, 65536, <./include/linux/virtio_config.h:156:24> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %263 = icmp eq i64 %262, 0, <./include/linux/virtio_config.h:156:9> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   br i1 %263, label %274, label %264, <drivers/block/virtio_blk.c:1388:53> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %258 = and i64 %257, 8192, <./include/linux/virtio_config.h:156:24> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %259 = icmp eq i64 %258, 0, <./include/linux/virtio_config.h:156:9> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   br i1 %259, label %260, label %264, <drivers/block/virtio_blk.c:1388:53> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %219 = and i64 %218, 65536, <./include/linux/virtio_config.h:156:24> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %220 = icmp eq i64 %219, 0, <./include/linux/virtio_config.h:156:9> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   br i1 %220, label %254, label %221, <drivers/block/virtio_blk.c:1343:6> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %206 = and i64 %205, 16384, <./include/linux/virtio_config.h:156:24> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %207 = icmp eq i64 %206, 0, <./include/linux/virtio_config.h:156:9> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   br i1 %207, label %217, label %208, <drivers/block/virtio_blk.c:1325:6> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %183 = and i64 %182, 8192, <./include/linux/virtio_config.h:156:24> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %184 = icmp eq i64 %183, 0, <./include/linux/virtio_config.h:156:9> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   br i1 %184, label %202, label %185, <drivers/block/virtio_blk.c:1313:6> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %169 = and i64 %168, 1024, <./include/linux/virtio_config.h:156:24> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %170 = icmp eq i64 %169, 0, <./include/linux/virtio_config.h:156:9> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   br i1 %170, label %181, label %171, <drivers/block/virtio_blk.c:1307:8> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %154 = and i64 %153, 1024, <./include/linux/virtio_config.h:156:24> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %155 = icmp eq i64 %154, 0, <./include/linux/virtio_config.h:156:9> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   br i1 %155, label %167, label %156, <drivers/block/virtio_blk.c:1301:8> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %139 = and i64 %138, 1024, <./include/linux/virtio_config.h:156:24> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %140 = icmp eq i64 %139, 0, <./include/linux/virtio_config.h:156:9> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   br i1 %140, label %152, label %141, <drivers/block/virtio_blk.c:1294:8> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %124 = and i64 %123, 1024, <./include/linux/virtio_config.h:156:24> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %125 = icmp eq i64 %124, 0, <./include/linux/virtio_config.h:156:9> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   br i1 %125, label %137, label %126, <drivers/block/virtio_blk.c:1287:8> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %113 = and i64 %112, 64, <./include/linux/virtio_config.h:156:24> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %114 = icmp eq i64 %113, 0, <./include/linux/virtio_config.h:156:9> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   br i1 %114, label %121, label %115, <drivers/block/virtio_blk.c:1282:2> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %99 = and i64 %98, 2, <./include/linux/virtio_config.h:156:24> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %100 = icmp eq i64 %99, 0, <./include/linux/virtio_config.h:156:9> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   br i1 %100, label %107, label %101, <drivers/block/virtio_blk.c:1274:8> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %78 = and i64 %77, 4, <./include/linux/virtio_config.h:156:24> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %79 = icmp ne i64 %78, 0, <./include/linux/virtio_config.h:156:9> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   br i1 %79, label %80, label %86, <drivers/block/virtio_blk.c:1252:8> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %89 = select i1 %79, i1 %88, i1 false, <drivers/block/virtio_blk.c:1257:10> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %91 = select i1 %89, i32 %90, i32 1, <drivers/block/virtio_blk.c:1257:10> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %92 = trunc nuw nsw i32 %91 to i16, <drivers/block/virtio_blk.c:1264:22> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %266 = select i1 %265, i32 %91, i32 %256, <drivers/block/virtio_blk.c:1395:7> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %267 = call i32 @llvm.umin.i32(i32 %266, i32 256), <drivers/block/virtio_blk.c:1399:4> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %268 = trunc nuw nsw i32 %267 to i16, <drivers/block/virtio_blk.c:1399:4> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   store i16 %268, ptr %269, align 4, <drivers/block/virtio_blk.c:1398:29> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   store i16 %92, ptr %93, align 8, <drivers/block/virtio_blk.c:1264:20> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %47 = load ptr, ptr %46, align 64, <drivers/block/virtio_blk.c:1471:30> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %48 = getelementptr inbounds nuw i8, ptr %47, i64 44, <drivers/block/virtio_blk.c:1471:34> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %49 = load i32, ptr %48, align 4, <drivers/block/virtio_blk.c:1471:34> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %55 = lshr i32 %49, %54, <drivers/block/virtio_blk.c:1473:7> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   %57 = phi i32 [ %55, %44 ], [ %42, %41 ], <drivers/block/virtio_blk.c:0> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   store i32 %57, ptr %60, align 8, <drivers/block/virtio_blk.c:1481:28> FUNC=virtblk_probe L=1
+  [USE] Taint flows to:   store ptr %70, ptr %46, align 8, <drivers/block/loop.c:2091:15> FUNC=loop_add L=1
+  [USE] Taint flows to:   %49 = and i16 %48, 512, <drivers/scsi/scsi_lib.c:2091:6> FUNC=scsi_mq_setup_tags L=1
+  [USE] Taint flows to:   %57 = and i16 %48, 256, <drivers/scsi/scsi_lib.c:2094:6> FUNC=scsi_mq_setup_tags L=1
+  [USE] Taint flows to:   %58 = icmp eq i16 %57, 0, <drivers/scsi/scsi_lib.c:2094:6> FUNC=scsi_mq_setup_tags L=1
+  [USE] Taint flows to:   br i1 %58, label %62, label %59, <drivers/scsi/scsi_lib.c:2094:6> FUNC=scsi_mq_setup_tags L=1
+  [USE] Taint flows to:   %50 = icmp eq i16 %49, 0, <drivers/scsi/scsi_lib.c:2091:6> FUNC=scsi_mq_setup_tags L=1
+  [USE] Taint flows to:   br i1 %50, label %54, label %51, <drivers/scsi/scsi_lib.c:2091:6> FUNC=scsi_mq_setup_tags L=1
+  [USE] Taint flows to:   %37 = getelementptr inbounds nuw i8, ptr %36, i64 632, <./include/linux/device.h:922:14> FUNC=scsi_mq_setup_tags L=1
+  [USE] Taint flows to:   %38 = load i32, ptr %37, align 8, <./include/linux/device.h:922:14> FUNC=scsi_mq_setup_tags L=1
+  [USE] Taint flows to:   store i32 %38, ptr %39, align 4, <drivers/scsi/scsi_lib.c:2088:21> FUNC=scsi_mq_setup_tags L=1
+  [USE] Taint flows to:   store i32 %32, ptr %33, align 8, <drivers/scsi/scsi_lib.c:2086:23> FUNC=scsi_mq_setup_tags L=1
+  [USE] Taint flows to:   %29 = tail call i32 @llvm.umax.i32(i32 %28, i32 1), <drivers/scsi/scsi_lib.c:2085:21> FUNC=scsi_mq_setup_tags L=1
+  [USE] Taint flows to:   store i32 %29, ptr %30, align 8, <drivers/scsi/scsi_lib.c:2085:19> FUNC=scsi_mq_setup_tags L=1
+  [USE] Taint flows to:   %25 = tail call i32 @llvm.umax.i32(i32 %24, i32 1), <drivers/scsi/scsi_lib.c:2084:26> FUNC=scsi_mq_setup_tags L=1
+  [USE] Taint flows to:   store i32 %25, ptr %26, align 4, <drivers/scsi/scsi_lib.c:2084:24> FUNC=scsi_mq_setup_tags L=1
+  [USE] Taint flows to:   %16 = icmp eq i32 %15, 0, <drivers/scsi/scsi_lib.c:2075:6> FUNC=scsi_mq_setup_tags L=1
+  [USE] Taint flows to:   %18 = select i1 %16, i32 %13, i32 %17, <drivers/scsi/scsi_lib.c:2075:6> FUNC=scsi_mq_setup_tags L=1
+  [USE] Taint flows to:   store i32 %18, ptr %34, align 8, <drivers/scsi/scsi_lib.c:2087:20> FUNC=scsi_mq_setup_tags L=1
+  [USE] Taint flows to:   %11 = load i32, ptr %10, align 8, <drivers/scsi/scsi_lib.c:2074:54> FUNC=scsi_mq_setup_tags L=1
+  [USE] Taint flows to:   %19 = getelementptr inbounds nuw i8, ptr %10, i64 16, <drivers/scsi/scsi_lib.c:2080:20> FUNC=scsi_mq_setup_tags L=1
+  [USE] Taint flows to:   %40 = getelementptr inbounds nuw i8, ptr %10, i64 314, <drivers/scsi/scsi_lib.c:2089:20> FUNC=scsi_mq_setup_tags L=1
+  [USE] Taint flows to:   %41 = load i16, ptr %40, align 2, <drivers/scsi/scsi_lib.c:2089:20> FUNC=scsi_mq_setup_tags L=1
+  [USE] Taint flows to:   %42 = trunc i16 %41 to i1, <drivers/scsi/scsi_lib.c:2089:20> FUNC=scsi_mq_setup_tags L=1
+  [USE] Taint flows to:   br i1 %42, label %43, label %45, <drivers/scsi/scsi_lib.c:2089:6> FUNC=scsi_mq_setup_tags L=1
+  [USE] Taint flows to:   %20 = load ptr, ptr %19, align 8, <drivers/scsi/scsi_lib.c:2080:20> FUNC=scsi_mq_setup_tags L=1
+  [USE] Taint flows to:   %21 = icmp eq ptr %20, null, <drivers/scsi/scsi_lib.c:2080:6> FUNC=scsi_mq_setup_tags L=1
+  [USE] Taint flows to:   %22 = select i1 %21, ptr @scsi_mq_ops_no_commit, ptr @scsi_mq_ops, <drivers/scsi/scsi_lib.c:2080:6> FUNC=scsi_mq_setup_tags L=1
+  [USE] Taint flows to:   store ptr %22, ptr %2, align 8, <drivers/scsi/scsi_lib.c:0> FUNC=scsi_mq_setup_tags L=1
+  [USE] Taint flows to:   %12 = add i32 %11, 296, <drivers/scsi/scsi_lib.c:2074:38> FUNC=scsi_mq_setup_tags L=1
+  [USE] Taint flows to:   %13 = add i32 %12, %8, <drivers/scsi/scsi_lib.c:2074:63> FUNC=scsi_mq_setup_tags L=1
+  [USE] Taint flows to:   %17 = add i32 %13, 56 FUNC=scsi_mq_setup_tags L=1
+  [USE] Taint flows to:   %5 = tail call i16 @llvm.umin.i16(i16 %4, i16 2), <drivers/scsi/scsi_lib.c:1644:9> FUNC=scsi_mq_setup_tags L=1
+  [USE] Taint flows to:   %6 = shl nuw nsw i16 %5, 5, <drivers/scsi/scsi_lib.c:1644:70> FUNC=scsi_mq_setup_tags L=1
+  [USE] Taint flows to:   %7 = tail call i16 @llvm.umax.i16(i16 %6, i16 32), <drivers/scsi/scsi_lib.c:2072:13> FUNC=scsi_mq_setup_tags L=1
+  [USE] Taint flows to:   %8 = zext nneg i16 %7 to i32, <drivers/scsi/scsi_lib.c:2072:13> FUNC=scsi_mq_setup_tags L=1
+[LOAD] Tainted load from tracked pointer:   %47 = load ptr, ptr %46, align 8, (  %46 = getelementptr inbounds nuw i8, ptr %39, i64 80,)  <drivers/block/loop.c:2058:30> FUNC=loop_add L=1
+  [USE] Taint flows to:   store ptr %47, ptr %48, align 8, <drivers/block/loop.c:2058:15> FUNC=loop_add L=1
+
+=== Maximum Level Statistics ===
+Largest L value: 1
+Number of instructions with L=1: 231
+
+Earliest instruction with L=1:
+    %47 = load ptr, ptr %46, align 8, <drivers/block/loop.c:2058:30> FUNC=loop_add L=1
+
+Latest instruction with L=1:
+    br i1 %58, label %62, label %59, <drivers/scsi/scsi_lib.c:2094:6> FUNC=scsi_mq_setup_tags L=1
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/block/blk-mq.ll
+../linux-wllvm-defconfig/block/blk-mq.c

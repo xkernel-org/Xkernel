@@ -1,0 +1,5 @@
+SOURCE_FILE=io_uring/poll.c
+FUNCTION_NAME=__io_arm_poll_handler
+SOURCE_OP="icmp"
+CONSTANT_VALUE=127
+OCCURENCE=1

@@ -1,0 +1,30 @@
+=== Taint Tracker Configuration ===
+Function: sg_io
+Opcode: icmp
+Constant: 7000
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 7000)
+
+[SOURCE] Tainting:   %63 = icmp ult i32 %62, 7000, <drivers/scsi/scsi_ioctl.c:382:18> FUNC=sg_io L=0
+[USE] Source instruction in data flow <drivers/scsi/scsi_ioctl.c:382:18> FUNC=sg_io L=0
+[USE] Processing uses of:   %63 = icmp ult i32 %62, 7000,
+  [USE] Taint flows to:   br i1 %63, label %64, label %66, <drivers/scsi/scsi_ioctl.c:382:18> FUNC=sg_io L=0
+[NO USE] No uses of:   br i1 %63, label %64, label %66,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 2
+
+Earliest instruction with L=0:
+    %63 = icmp ult i32 %62, 7000, <drivers/scsi/scsi_ioctl.c:382:18> FUNC=sg_io L=0
+
+Latest instruction with L=0:
+    br i1 %63, label %64, label %66, <drivers/scsi/scsi_ioctl.c:382:18> FUNC=sg_io L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/drivers/scsi/scsi_ioctl.ll
+../linux-wllvm-defconfig/drivers/scsi/scsi_ioctl.c

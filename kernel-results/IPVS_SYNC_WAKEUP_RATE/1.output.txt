@@ -1,0 +1,30 @@
+=== Taint Tracker Configuration ===
+Function: sb_queue_tail
+Opcode: icmp
+Constant: 8
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 8)
+
+[SOURCE] Tainting:   %32 = icmp eq i32 %31, 8, <net/netfilter/ipvs/ip_vs_sync.c:375:32> FUNC=sb_queue_tail L=0
+[USE] Source instruction in data flow <net/netfilter/ipvs/ip_vs_sync.c:375:32> FUNC=sb_queue_tail L=0
+[USE] Processing uses of:   %32 = icmp eq i32 %31, 8,
+  [USE] Taint flows to:   br i1 %32, label %33, label %50, <net/netfilter/ipvs/ip_vs_sync.c:375:32> FUNC=sb_queue_tail L=0
+[NO USE] No uses of:   br i1 %32, label %33, label %50,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 2
+
+Earliest instruction with L=0:
+    %32 = icmp eq i32 %31, 8, <net/netfilter/ipvs/ip_vs_sync.c:375:32> FUNC=sb_queue_tail L=0
+
+Latest instruction with L=0:
+    br i1 %32, label %33, label %50, <net/netfilter/ipvs/ip_vs_sync.c:375:32> FUNC=sb_queue_tail L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/netfilter/ipvs/ip_vs_sync.ll
+../linux-wllvm-defconfig/net/netfilter/ipvs/ip_vs_sync.c

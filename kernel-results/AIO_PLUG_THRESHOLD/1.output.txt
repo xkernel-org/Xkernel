@@ -1,0 +1,32 @@
+=== Taint Tracker Configuration ===
+Function: __se_sys_io_submit
+Opcode: icmp
+Constant: 2
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 2)
+
+[SOURCE] Tainting:   %15 = icmp samesign ugt i64 %14, 2, <fs/aio.c:2101:9> FUNC=__se_sys_io_submit L=0
+[USE] Source instruction in data flow <fs/aio.c:2101:9> FUNC=__se_sys_io_submit L=0
+[USE] Processing uses of:   %15 = icmp samesign ugt i64 %14, 2,
+  [USE] Taint flows to:   br i1 %15, label %16, label %17, <fs/aio.c:2101:9> FUNC=__se_sys_io_submit L=0
+  [USE] Taint flows to:   br i1 %15, label %46, label %47, <fs/aio.c:2115:9> FUNC=__se_sys_io_submit L=0
+[NO USE] No uses of:   br i1 %15, label %46, label %47,
+[NO USE] No uses of:   br i1 %15, label %16, label %17,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 3
+
+Earliest instruction with L=0:
+    %15 = icmp samesign ugt i64 %14, 2, <fs/aio.c:2101:9> FUNC=__se_sys_io_submit L=0
+
+Latest instruction with L=0:
+    br i1 %15, label %46, label %47, <fs/aio.c:2115:9> FUNC=__se_sys_io_submit L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/aio.ll
+../linux-wllvm-defconfig/fs/aio.c
