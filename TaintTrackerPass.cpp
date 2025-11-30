@@ -250,6 +250,183 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
         return true;
     }
 
+    // Helper to get sorted users for deterministic output
+    SmallVector<User*, 16> getSortedUsers(Value *V) {
+        SmallVector<User*, 16> SortedUsers(V->user_begin(), V->user_end());
+        llvm::sort(SortedUsers, [](User *A, User *B) {
+            return std::less<User*>()(A, B);
+        });
+        return SortedUsers;
+    }
+
+    // Helper to check if a load comes before the taint origin instruction (same BB only)
+    bool isLoadBeforeTaintOrigin(LoadInst *Load, Value *Ptr,
+                                  const DenseMap<Value*, Instruction*>& PointerTaintOrigin) {
+        if (!PointerTaintOrigin.count(Ptr)) return false;
+
+        Instruction *TaintOrigin = PointerTaintOrigin.lookup(Ptr);
+        if (Load->getParent() != TaintOrigin->getParent()) return false;
+
+        bool foundLoad = false;
+        for (Instruction &I : *Load->getParent()) {
+            if (&I == Load) foundLoad = true;
+            if (&I == TaintOrigin && foundLoad) return true;
+        }
+        return false;
+    }
+
+    // Helper to ensure level is set for an instruction based on its function
+    void ensureLevelSet(Instruction *I, DenseMap<Value*, int>& ValueLevel,
+                        DenseMap<Function*, int>& FunctionLevel) {
+        if (ValueLevel.count(I)) return;
+
+        Function *F = I->getFunction();
+        if (F && FunctionLevel.count(F)) {
+            ValueLevel[I] = FunctionLevel[F];
+        }
+    }
+
+    // Helper to process a store instruction for taint propagation
+    bool processStoreForTaint(StoreInst *Store, Value *V,
+                              DenseSet<Value*>& TaintedPointers,
+                              DenseMap<Value*, Instruction*>& PointerTaintOrigin,
+                              DenseMap<Function*, DenseSet<unsigned>>& FunctionsTaintingPointerParams,
+                              DenseMap<Value*, int>& ValueLevel,
+                              DenseMap<Function*, int>& FunctionLevel) {
+        if (Store->getValueOperand() != V) return false;
+
+        bool discoveredNew = false;
+        Value *Ptr = Store->getPointerOperand()->stripPointerCasts();
+
+        // Mark pointer as tainted
+        if (TaintedPointers.insert(Ptr).second) {
+            PointerTaintOrigin[Ptr] = Store;
+            errs() << "  [STORE DESTINATION] Marking pointer as tainted: "
+                   << getValueName(Ptr) << getDebugLoc(Store)
+                   << getFuncLevel(Store, ValueLevel, FunctionLevel) << "\n";
+        }
+
+        // Check for pointer parameter tainting
+        if (Argument *PtrParam = getPointerParameterOrigin(Store->getPointerOperand())) {
+            Function *ContainingFunc = Store->getFunction();
+            if (ContainingFunc) {
+                unsigned ParamIdx = PtrParam->getArgNo();
+                errs() << "  [POINTER PARAMETER] Tainted value stored through pointer parameter"
+                       << getDebugLoc(Store) << getFuncLevel(Store, ValueLevel, FunctionLevel) << "\n";
+                if (FunctionsTaintingPointerParams[ContainingFunc].insert(ParamIdx).second) {
+                    discoveredNew = true;
+                }
+            }
+        }
+
+        return discoveredNew;
+    }
+
+    // Helper to scan loads from a list of tainted pointers
+    bool scanLoadsFromTaintedPointers(const SmallVector<Value*, 32>& PointersToScan,
+                                      Module& M,
+                                      DenseSet<Value*>& TaintedValues,
+                                      DenseMap<Value*, Instruction*>& PointerTaintOrigin,
+                                      DenseMap<Value*, int>& ValueLevel,
+                                      DenseMap<Function*, int>& FunctionLevel,
+                                      SmallVector<Value*, 64>& Worklist,
+                                      const DenseSet<Instruction*>* KilledStores = nullptr) {
+        bool changed = false;
+
+        for (Value *Ptr : PointersToScan) {
+            for (Function &F : M) {
+                if (F.isDeclaration()) continue;
+
+                for (BasicBlock &BB : F) {
+                    for (Instruction &I : BB) {
+                        LoadInst *Load = dyn_cast<LoadInst>(&I);
+                        if (!Load) continue;
+
+                        Value *LoadPtr = Load->getPointerOperand()->stripPointerCasts();
+                        bool matchesPtr = (LoadPtr == Ptr);
+                        bool isStructField = false;
+                        Value *TaintedBasePtr = nullptr;
+
+                        // Check for GEP-based struct field access
+                        if (!matchesPtr) {
+                            if (GetElementPtrInst *GEP = dyn_cast<GetElementPtrInst>(LoadPtr)) {
+                                Value *BasePtr = GEP->getPointerOperand()->stripPointerCasts();
+                                if (BasePtr == Ptr) {
+                                    matchesPtr = true;
+                                    isStructField = true;
+                                    TaintedBasePtr = Ptr;
+                                }
+                            }
+                        }
+
+                        if (!matchesPtr) continue;
+                        if (TaintedValues.count(Load)) continue;
+
+                        Value *CheckPtr = TaintedBasePtr ? TaintedBasePtr : Ptr;
+
+                        // Check if this load happens after a kill store (if kill tracking is enabled)
+                        if (KilledStores) {
+                            bool afterKill = false;
+                            SmallVector<Instruction*, 16> SortedKilledStores(KilledStores->begin(), KilledStores->end());
+                            llvm::sort(SortedKilledStores, [](Instruction *A, Instruction *B) {
+                                return std::less<Instruction*>()(A, B);
+                            });
+                            for (Instruction *KillStore : SortedKilledStores) {
+                                Value *KillPtr = cast<StoreInst>(KillStore)->getPointerOperand()->stripPointerCasts();
+                                if (KillPtr == CheckPtr && Load->getParent() == KillStore->getParent()) {
+                                    bool foundKill = false;
+                                    for (Instruction &CheckI : *Load->getParent()) {
+                                        if (&CheckI == KillStore) foundKill = true;
+                                        if (&CheckI == Load && foundKill) {
+                                            afterKill = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+
+                            if (afterKill) {
+                                ensureLevelSet(Load, ValueLevel, FunctionLevel);
+                                errs() << "[SKIP] Load after kill, not tainting: "
+                                       << getValueName(Load) << getDebugLoc(Load)
+                                       << getFuncLevel(Load, ValueLevel, FunctionLevel) << "\n";
+                                continue;
+                            }
+                        }
+
+                        // Check execution order
+                        if (isLoadBeforeTaintOrigin(Load, CheckPtr, PointerTaintOrigin)) {
+                            ensureLevelSet(Load, ValueLevel, FunctionLevel);
+                            errs() << "[SKIP] Load before taint origin, not tainting: "
+                                   << getValueName(Load) << getDebugLoc(Load)
+                                   << getFuncLevel(Load, ValueLevel, FunctionLevel) << "\n";
+                            continue;
+                        }
+
+                        // Taint the load
+                        ensureLevelSet(Load, ValueLevel, FunctionLevel);
+
+                        if (isStructField) {
+                            errs() << "[LOAD] Tainted load from tracked pointer (struct field): "
+                                   << getValueName(Load) << " (base: " << getValueName(TaintedBasePtr) << ") "
+                                   << getDebugLoc(Load) << getFuncLevel(Load, ValueLevel, FunctionLevel) << "\n";
+                        } else {
+                            errs() << "[LOAD] Tainted load from tracked pointer: "
+                                   << getValueName(Load) << " (" << *Ptr << ") "
+                                   << getDebugLoc(Load) << getFuncLevel(Load, ValueLevel, FunctionLevel) << "\n";
+                        }
+
+                        TaintedValues.insert(Load);
+                        Worklist.push_back(Load);
+                        changed = true;
+                    }
+                }
+            }
+        }
+
+        return changed;
+    }
+
     PreservedAnalyses run(Module &M, ModuleAnalysisManager &MAM) {
 
         SmallVector<Value*, 64> Worklist;
@@ -501,10 +678,7 @@ found:
                     errs() << "[NO USE] No uses of: " << getValueName(V) << "\n";
 
                 // Sort users for deterministic output
-                SmallVector<User*, 16> SortedUsers(V->user_begin(), V->user_end());
-                llvm::sort(SortedUsers, [](User *A, User *B) {
-                    return std::less<User*>()(A, B);
-                });
+                SmallVector<User*, 16> SortedUsers = getSortedUsers(V);
 
                 for (User *U : SortedUsers) {
                     if (Instruction *UserInst = dyn_cast<Instruction>(U)) {
@@ -675,7 +849,6 @@ found:
                                     continue;
                                 }
                                 // For local variables, mark the pointer as tainted
-                                // This allows us to track through variable assignments
                                 if (TaintedPointers.insert(Ptr).second) {
                                     errs() << "  [STORE DESTINATION] Marking pointer as tainted: "
                                            << getValueName(Ptr) << getDebugLoc(Store) << "\n";
@@ -727,7 +900,7 @@ found:
 
             // Scan for loads from newly tainted pointers
             // But skip loads that happen after a kill store
-            DenseSet<Value*> PointersToScan;
+            SmallVector<Value*, 32> PointersToScan;
             // Sort TaintedPointers for deterministic output
             SmallVector<Value*, 32> SortedTaintedPointers(TaintedPointers.begin(), TaintedPointers.end());
             llvm::sort(SortedTaintedPointers, [](Value *A, Value *B) {
@@ -735,155 +908,15 @@ found:
             });
             for (Value *Ptr : SortedTaintedPointers) {
                 if (!ScannedPointers.count(Ptr)) {
-                    PointersToScan.insert(Ptr);
+                    PointersToScan.push_back(Ptr);
                 }
             }
 
-            for (Function &F : M) {
-                if (F.isDeclaration()) continue;  // Skip declarations
-                for (BasicBlock &BB : F) {
-                    for (Instruction &I : BB) {
-                        if (LoadInst *Load = dyn_cast<LoadInst>(&I)) {
-                            Value *Ptr = Load->getPointerOperand()->stripPointerCasts();
-
-                            // Check if this pointer itself needs to be scanned
-                            bool shouldScan = PointersToScan.count(Ptr);
-                            Value *TaintedBasePtr = nullptr;
-
-                            // Also check if this is a GEP from a tainted base pointer (struct field access)
-                            if (!shouldScan) {
-                                if (GetElementPtrInst *GEP = dyn_cast<GetElementPtrInst>(Ptr)) {
-                                    Value *BasePtr = GEP->getPointerOperand()->stripPointerCasts();
-                                    if (PointersToScan.count(BasePtr)) {
-                                        shouldScan = true;
-                                        TaintedBasePtr = BasePtr;
-                                    }
-                                }
-                            }
-
-                            // Only process if this pointer needs to be scanned
-                            if (shouldScan) {
-                                // Use the base pointer for taint origin checking if this is a GEP
-                                Value *CheckPtr = TaintedBasePtr ? TaintedBasePtr : Ptr;
-
-                                // Check if this load happens after a kill store to the same pointer
-                                bool afterKill = false;
-                                // Sort KilledStores for deterministic output
-                                SmallVector<Instruction*, 16> SortedKilledStores(KilledStores.begin(), KilledStores.end());
-                                llvm::sort(SortedKilledStores, [](Instruction *A, Instruction *B) {
-                                    return std::less<Instruction*>()(A, B);
-                                });
-                                for (Instruction *KillStore : SortedKilledStores) {
-                                    Value *KillPtr = cast<StoreInst>(KillStore)->getPointerOperand()->stripPointerCasts();
-                                    if (KillPtr == CheckPtr) {
-                                        // Check if Load comes after KillStore in the same basic block
-                                        if (Load->getParent() == KillStore->getParent()) {
-                                            // Simple ordering: iterate through BB and check which comes first
-                                            for (Instruction &CheckI : *Load->getParent()) {
-                                                if (&CheckI == KillStore) {
-                                                    // Kill store comes first, check if load comes after
-                                                    break;
-                                                }
-                                                if (&CheckI == Load) {
-                                                    // Load comes first, so it's before the kill
-                                                    break;
-                                                }
-                                            }
-                                            // Check again properly
-                                            bool foundKill = false;
-                                            for (Instruction &CheckI : *Load->getParent()) {
-                                                if (&CheckI == KillStore) {
-                                                    foundKill = true;
-                                                }
-                                                if (&CheckI == Load && foundKill) {
-                                                    afterKill = true;
-                                                    break;
-                                                }
-                                            }
-                                        }
-                                        // TODO: Handle cross-basic-block dominance properly
-                                        // For now, just handle same-BB case
-                                    }
-                                }
-
-                                if (afterKill) {
-                                    // Set level for logging
-                                    Function *LoadFunc = Load->getFunction();
-                                    if (LoadFunc && !ValueLevel.count(Load)) {
-                                        if (FunctionLevel.count(LoadFunc)) {
-                                            ValueLevel[Load] = FunctionLevel[LoadFunc];
-                                        }
-                                    }
-                                    errs() << "[SKIP] Load after kill, not tainting: "
-                                           << getValueName(Load) << getDebugLoc(Load) << getFuncLevel(Load, ValueLevel, FunctionLevel) << "\n";
-                                    continue;
-                                }
-
-                                // Check if this load happens before the instruction that tainted the pointer
-                                bool beforeTaintOrigin = false;
-                                if (PointerTaintOrigin.count(CheckPtr)) {
-                                    Instruction *TaintOrigin = PointerTaintOrigin[CheckPtr];
-                                    // Check if Load comes before TaintOrigin in the same basic block
-                                    if (Load->getParent() == TaintOrigin->getParent()) {
-                                        bool foundLoad = false;
-                                        for (Instruction &CheckI : *Load->getParent()) {
-                                            if (&CheckI == Load) {
-                                                foundLoad = true;
-                                            }
-                                            if (&CheckI == TaintOrigin && foundLoad) {
-                                                beforeTaintOrigin = true;
-                                                break;
-                                            }
-                                        }
-                                    }
-                                    // TODO: Handle cross-basic-block dominance properly
-                                    // For now, just handle same-BB case
-                                }
-
-                                if (beforeTaintOrigin) {
-                                    // Set level for logging
-                                    Function *LoadFunc = Load->getFunction();
-                                    if (LoadFunc && !ValueLevel.count(Load)) {
-                                        if (FunctionLevel.count(LoadFunc)) {
-                                            ValueLevel[Load] = FunctionLevel[LoadFunc];
-                                        }
-                                    }
-                                    errs() << "[SKIP] Load before taint origin, not tainting: "
-                                           << getValueName(Load) << getDebugLoc(Load) << getFuncLevel(Load, ValueLevel, FunctionLevel) << "\n";
-                                    continue;
-                                }
-
-                                if (TaintedValues.insert(Load).second) {
-                                    // Set level based on containing function
-                                    Function *LoadFunc = Load->getFunction();
-                                    if (LoadFunc && !ValueLevel.count(Load)) {
-                                        if (FunctionLevel.count(LoadFunc)) {
-                                            ValueLevel[Load] = FunctionLevel[LoadFunc];
-                                        }
-                                    }
-
-                                    if (TaintedBasePtr) {
-                                        errs() << "[LOAD] Tainted load from tracked pointer (struct field): "
-                                               << getValueName(Load)
-                                               << " (base: "
-                                               << getValueName(TaintedBasePtr)
-                                               << ") "
-                                               << getDebugLoc(Load) << getFuncLevel(Load, ValueLevel, FunctionLevel) << "\n";
-                                    } else {
-                                        errs() << "[LOAD] Tainted load from tracked pointer: "
-                                               << getValueName(Load)
-                                               << " ("
-                                               << *Ptr
-                                               << ") "
-                                               << getDebugLoc(Load) << getFuncLevel(Load, ValueLevel, FunctionLevel) << "\n";
-                                    }
-                                    Worklist.push_back(Load);
-                                    changed = true;
-                                }
-                            }
-                        }
-                    }
-                }
+            // Use helper function to scan loads with kill store tracking
+            if (scanLoadsFromTaintedPointers(PointersToScan, M, TaintedValues,
+                                             PointerTaintOrigin, ValueLevel, FunctionLevel,
+                                             Worklist, &KilledStores)) {
+                changed = true;
             }
 
             // Mark the pointers we just scanned
@@ -1065,10 +1098,7 @@ found:
 
                         bool hasUses = false;
                         // Sort users for deterministic output
-                        SmallVector<User*, 16> SortedUsersUpward(V->user_begin(), V->user_end());
-                        llvm::sort(SortedUsersUpward, [](User *A, User *B) {
-                            return std::less<User*>()(A, B);
-                        });
+                        SmallVector<User*, 16> SortedUsersUpward = getSortedUsers(V);
                         for (User *U : SortedUsersUpward) {
                             Instruction *UserInst = dyn_cast<Instruction>(U);
                             if (!UserInst) continue;
@@ -1089,28 +1119,9 @@ found:
 
                             // Handle store instructions - mark destination pointer as tainted
                             if (StoreInst *Store = dyn_cast<StoreInst>(UserInst)) {
-                                if (Store->getValueOperand() == V) {
-                                    Value *Ptr = Store->getPointerOperand()->stripPointerCasts();
-                                    if (TaintedPointers.insert(Ptr).second) {
-                                        PointerTaintOrigin[Ptr] = Store;
-                                        errs() << "  [STORE DESTINATION] Marking pointer as tainted: "
-                                               << getValueName(Ptr) << getDebugLoc(Store) << getFuncLevel(Store, ValueLevel, FunctionLevel) << "\n";
-                                    }
-
-                                    // Check if storing through a pointer parameter -> track for next recursion
-                                    if (Argument *PtrParam = getPointerParameterOrigin(Store->getPointerOperand())) {
-                                        Function *ContainingFunc = Store->getFunction();
-                                        if (ContainingFunc) {
-                                            unsigned ParamIdx = PtrParam->getArgNo();
-                                            errs() << "  [POINTER PARAMETER] Tainted value stored through pointer parameter"
-                                                   << getDebugLoc(Store) << getFuncLevel(Store, ValueLevel, FunctionLevel) << "\n";
-                                            if (FunctionsTaintingPointerParams[ContainingFunc].insert(ParamIdx).second) {
-                                                discoveredNewFunctions = true;
-                                                // errs() << "  [RECURSIVE] Discovered new pointer param taint: Function "
-                                                //        << ContainingFunc->getName() << " parameter " << ParamIdx << "\n";
-                                            }
-                                        }
-                                    }
+                                if (processStoreForTaint(Store, V, TaintedPointers, PointerTaintOrigin,
+                                                        FunctionsTaintingPointerParams, ValueLevel, FunctionLevel)) {
+                                    discoveredNewFunctions = true;
                                 }
                             }
 
@@ -1137,7 +1148,7 @@ found:
                     }
 
                     // Scan for loads from tainted pointers
-                    SmallVector<Value*, 16> PointersToScan;
+                    SmallVector<Value*, 32> PointersToScan;
                     // Sort TaintedPointers for deterministic output
                     SmallVector<Value*, 32> SortedTaintedPointersUpward(TaintedPointers.begin(), TaintedPointers.end());
                     llvm::sort(SortedTaintedPointersUpward, [](Value *A, Value *B) {
@@ -1151,88 +1162,10 @@ found:
 
                     if (PointersToScan.empty()) break;  // Fixed point reached
 
-                    for (Value *Ptr : PointersToScan) {
-                        for (Function &F : M) {
-                            if (F.isDeclaration()) continue;
-
-                            for (BasicBlock &BB : F) {
-                                for (Instruction &I : BB) {
-                                    if (LoadInst *Load = dyn_cast<LoadInst>(&I)) {
-                                        Value *LoadPtr = Load->getPointerOperand()->stripPointerCasts();
-                                        bool matchesPtr = (LoadPtr == Ptr);
-                                        bool isStructField = false;
-
-                                        // Also check if this is a GEP from the tainted base pointer (struct field access)
-                                        if (!matchesPtr) {
-                                            if (GetElementPtrInst *GEP = dyn_cast<GetElementPtrInst>(LoadPtr)) {
-                                                Value *BasePtr = GEP->getPointerOperand()->stripPointerCasts();
-                                                if (BasePtr == Ptr) {
-                                                    matchesPtr = true;
-                                                    isStructField = true;
-                                                }
-                                            }
-                                        }
-
-                                        if (matchesPtr) {
-                                            if (!TaintedValues.count(Load)) {
-                                                // Check if this load happens before the instruction that tainted the pointer
-                                                bool beforeTaintOrigin = false;
-                                                if (PointerTaintOrigin.count(Ptr)) {
-                                                    Instruction *TaintOrigin = PointerTaintOrigin[Ptr];
-                                                    // Check if Load comes before TaintOrigin in the same basic block
-                                                    if (Load->getParent() == TaintOrigin->getParent()) {
-                                                        bool foundLoad = false;
-                                                        for (Instruction &CheckI : *Load->getParent()) {
-                                                            if (&CheckI == Load) {
-                                                                foundLoad = true;
-                                                            }
-                                                            if (&CheckI == TaintOrigin && foundLoad) {
-                                                                beforeTaintOrigin = true;
-                                                                break;
-                                                            }
-                                                        }
-                                                    }
-                                                }
-
-                                                if (beforeTaintOrigin) {
-                                                    // Set level for logging
-                                                    Function *LoadFunc = Load->getFunction();
-                                                    if (LoadFunc && !ValueLevel.count(Load)) {
-                                                        if (FunctionLevel.count(LoadFunc)) {
-                                                            ValueLevel[Load] = FunctionLevel[LoadFunc];
-                                                        }
-                                                    }
-                                                    errs() << "[SKIP] Load before taint origin, not tainting: "
-                                                           << getValueName(Load) << getDebugLoc(Load) << getFuncLevel(Load, ValueLevel, FunctionLevel) << "\n";
-                                                    continue;
-                                                }
-
-                                                // Set level based on containing function
-                                                Function *LoadFunc = Load->getFunction();
-                                                if (LoadFunc && !ValueLevel.count(Load)) {
-                                                    if (FunctionLevel.count(LoadFunc)) {
-                                                        ValueLevel[Load] = FunctionLevel[LoadFunc];
-                                                    }
-                                                }
-
-                                                if (isStructField) {
-                                                    errs() << "[LOAD] Tainted load from tracked pointer (struct field): "
-                                                           << getValueName(Load) << " (base: " << getValueName(Ptr) << ") "
-                                                           << getDebugLoc(Load) << getFuncLevel(Load, ValueLevel, FunctionLevel) << "\n";
-                                                } else {
-                                                    errs() << "[LOAD] Tainted load from tracked pointer: "
-                                                           << getValueName(Load) << " (" << getValueName(Ptr) << ") "
-                                                           << getDebugLoc(Load) << getFuncLevel(Load, ValueLevel, FunctionLevel) << "\n";
-                                                }
-                                                TaintedValues.insert(Load);
-                                                Worklist.push_back(Load);
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    // Use helper function to scan loads (no kill store tracking in upward mode)
+                    scanLoadsFromTaintedPointers(PointersToScan, M, TaintedValues,
+                                                 PointerTaintOrigin, ValueLevel, FunctionLevel,
+                                                 Worklist, nullptr);
 
                     for (Value *Ptr : PointersToScan) {
                         UpwardScannedPointers.insert(Ptr);
