@@ -229,7 +229,7 @@ def check_overall_interproc_effects(
         content = f.read()
 
     for header in interproc_headers:
-        if header in content:
+        if f'[{header}]' in content:
             return True
     return False
 
@@ -241,7 +241,7 @@ def check_overall_upward_interproc_effects(
         content = f.read()
 
     for header in upward_interproc_headers:
-        if header in content:
+        if f'[{header}]' in content:
             return True
     return False
 
@@ -253,7 +253,7 @@ def check_overall_external_effects(
         content = f.read()
 
     for header in external_headers:
-        if header in content:
+        if f'[{header}]' in content:
             return True
     return False
 
