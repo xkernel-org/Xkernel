@@ -1,0 +1,5 @@
+SOURCE_FILE=mm/memory-failure.c
+FUNCTION_NAME=get_hwpoison_page
+SOURCE_OP="icmp"
+CONSTANT_VALUE=3
+OCCURENCE=2

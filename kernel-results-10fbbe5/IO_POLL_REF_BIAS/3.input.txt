@@ -1,0 +1,5 @@
+SOURCE_FILE=io_uring/poll.c
+FUNCTION_NAME=io_poll_wake
+SOURCE_OP="icmp"
+CONSTANT_VALUE=127
+OCCURENCE=1

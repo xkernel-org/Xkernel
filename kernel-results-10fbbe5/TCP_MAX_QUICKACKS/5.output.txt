@@ -1,0 +1,38 @@
+=== Taint Tracker Configuration ===
+Function: tcp_send_dupack
+Opcode: call
+Constant: 16
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 16)
+
+[SOURCE] Tainting:   %27 = tail call i32 @llvm.umin.i32(i32 %25, i32 range(i32 2, 17) 16), <net/ipv4/tcp_input.c:313:14> FUNC=tcp_send_dupack L=0
+[USE] Source instruction in data flow <net/ipv4/tcp_input.c:313:14> FUNC=tcp_send_dupack L=0
+[CHILD FUNCTION] Constant used in call to llvm.umin.i32 at argument 1 <net/ipv4/tcp_input.c:313:14> FUNC=tcp_send_dupack L=0
+[USE] Processing uses of:   %27 = tail call i32 @llvm.umin.i32(i32 %25, i32 range(i32 2, 17) 16),
+  [USE] Taint flows to:   %28 = select i1 %26, i32 2, i32 %27, <net/ipv4/tcp_input.c:311:16> FUNC=tcp_send_dupack L=0
+[USE] Processing uses of:   %28 = select i1 %26, i32 2, i32 %27,
+  [USE] Taint flows to:   %32 = icmp samesign ugt i32 %28, %31, <net/ipv4/tcp_input.c:314:16> FUNC=tcp_send_dupack L=0
+  [USE] Taint flows to:   %34 = trunc nuw nsw i32 %28 to i8, <net/ipv4/tcp_input.c:315:26> FUNC=tcp_send_dupack L=0
+[USE] Processing uses of:   %34 = trunc nuw nsw i32 %28 to i8,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter <net/ipv4/tcp_input.c:315:24>
+[USE] Processing uses of:   %32 = icmp samesign ugt i32 %28, %31,
+  [USE] Taint flows to:   br i1 %32, label %33, label %35, <net/ipv4/tcp_input.c:314:16> FUNC=tcp_send_dupack L=0
+[NO USE] No uses of:   br i1 %32, label %33, label %35,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 5
+
+Earliest instruction with L=0:
+    %27 = tail call i32 @llvm.umin.i32(i32 %25, i32 range(i32 2, 17) 16), <net/ipv4/tcp_input.c:313:14> FUNC=tcp_send_dupack L=0
+
+Latest instruction with L=0:
+    %34 = trunc nuw nsw i32 %28 to i8, <net/ipv4/tcp_input.c:315:26> FUNC=tcp_send_dupack L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/ipv4/tcp_input.ll
+../linux-wllvm-defconfig/net/ipv4/tcp_input.c

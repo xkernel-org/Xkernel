@@ -1,0 +1,43 @@
+=== Taint Tracker Configuration ===
+Function: io_task_refs_refill
+Opcode: sub
+Constant: 1024
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 1024)
+
+[SOURCE] Tainting:   %3 = sub i32 1024, %2, <io_uring/io_uring.c:700:43> FUNC=io_task_refs_refill L=0
+[USE] Source instruction in data flow <io_uring/io_uring.c:700:43> FUNC=io_task_refs_refill L=0
+[USE] Processing uses of:   %3 = sub i32 1024, %2,
+  [USE] Taint flows to:   %5 = zext i32 %3 to i64, <io_uring/io_uring.c:702:38> FUNC=io_task_refs_refill L=0
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %10 = tail call i32 asm sideeffect ".pushsection .smp_locks,\22a\22\0A.balign 4\0A.long 671f - .\0A.popsection\0A671:\0A\09lock; xaddl $0, $1\0A", "=r,=*m,0,*m,~{memory},~{cc},~{dirflag},~{fpsr},~{flags}"(ptr nonnull elementtype(i32) %9, i32 %3, ptr nonnull elementtype(i32) %9) #266, !dbg !17653714, !srcloc !17653715 <./arch/x86/include/asm/atomic.h:93:9>
+  [USE] Taint flows to:   %13 = add i32 %10, %3, <./include/linux/refcount.h:191:11> FUNC=io_task_refs_refill L=0
+  [USE] Taint flows to:   %20 = add i32 %19, %3, <io_uring/io_uring.c:704:20> FUNC=io_task_refs_refill L=0
+[USE] Processing uses of:   %20 = add i32 %19, %3,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter <io_uring/io_uring.c:704:20>
+[USE] Processing uses of:   %13 = add i32 %10, %3,
+  [USE] Taint flows to:   %14 = or i32 %13, %10, <./include/linux/refcount.h:191:11> FUNC=io_task_refs_refill L=0
+[USE] Processing uses of:   %14 = or i32 %13, %10,
+  [USE] Taint flows to:   %15 = icmp sgt i32 %14, -1, <./include/linux/refcount.h:191:11> FUNC=io_task_refs_refill L=0
+[USE] Processing uses of:   %15 = icmp sgt i32 %14, -1,
+  [USE] Taint flows to:   br i1 %15, label %18, label %16, <./include/linux/refcount.h:191:11> FUNC=io_task_refs_refill L=0
+[NO USE] No uses of:   br i1 %15, label %18, label %16,
+[USE] Processing uses of:   %5 = zext i32 %3 to i64,
+  [CHILD FUNCTION] Tainted value used in call to percpu_counter_add_batch at argument 1:   tail call void @percpu_counter_add_batch(ptr noundef nonnull %4, i64 noundef range(i64 -4294967295, 4294967296) %5, i32 noundef %6) #264, <./include/linux/percpu_counter.h:71:2> FUNC=io_task_refs_refill L=0
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 7
+
+Earliest instruction with L=0:
+    %3 = sub i32 1024, %2, <io_uring/io_uring.c:700:43> FUNC=io_task_refs_refill L=0
+
+Latest instruction with L=0:
+    %20 = add i32 %19, %3, <io_uring/io_uring.c:704:20> FUNC=io_task_refs_refill L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/io_uring/io_uring.ll
+../linux-wllvm-defconfig/io_uring/io_uring.c

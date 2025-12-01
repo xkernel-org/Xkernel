@@ -1,0 +1,5 @@
+SOURCE_FILE=mm/filemap.c
+FUNCTION_NAME=do_sync_mmap_readahead
+SOURCE_OP="icmp"
+CONSTANT_VALUE=99
+OCCURENCE=1

@@ -1,0 +1,29 @@
+=== Taint Tracker Configuration ===
+Function: tcp_clamp_probe0_to_user_timeout
+Opcode: call
+Constant: 2
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 2)
+
+[SOURCE] Tainting:   %21 = tail call i32 @llvm.umax.i32(i32 %20, i32 2), <net/ipv4/tcp_timer.c:63:14> FUNC=tcp_clamp_probe0_to_user_timeout L=0
+[USE] Source instruction in data flow <net/ipv4/tcp_timer.c:63:14> FUNC=tcp_clamp_probe0_to_user_timeout L=0
+[CHILD FUNCTION] Constant used in call to llvm.umax.i32 at argument 1 <net/ipv4/tcp_timer.c:63:14> FUNC=tcp_clamp_probe0_to_user_timeout L=0
+[USE] Processing uses of:   %21 = tail call i32 @llvm.umax.i32(i32 %20, i32 2),
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %22 = tail call i32 @llvm.umin.i32(i32 %21, i32 %1), !dbg !17653678 <net/ipv4/tcp_timer.c:65:9>
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 1
+
+Earliest instruction with L=0:
+    %21 = tail call i32 @llvm.umax.i32(i32 %20, i32 2), <net/ipv4/tcp_timer.c:63:14> FUNC=tcp_clamp_probe0_to_user_timeout L=0
+
+(Earliest and latest are the same instruction)
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/ipv4/tcp_timer.ll
+../linux-wllvm-defconfig/net/ipv4/tcp_timer.c

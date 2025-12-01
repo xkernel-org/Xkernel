@@ -1,0 +1,5 @@
+SOURCE_FILE=block/blk-mq.c
+FUNCTION_NAME=blk_mq_alloc_tag_set
+SOURCE_OP="call"
+CONSTANT_VALUE=10240
+OCCURENCE=1

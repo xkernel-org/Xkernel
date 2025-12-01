@@ -1,0 +1,38 @@
+=== Taint Tracker Configuration ===
+Function: tcp_event_data_recv
+Opcode: call
+Constant: 16
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 16)
+
+[SOURCE] Tainting:   %167 = tail call i32 @llvm.umin.i32(i32 %165, i32 16), <net/ipv4/tcp_input.c:313:14> FUNC=tcp_event_data_recv L=0
+[USE] Source instruction in data flow <net/ipv4/tcp_input.c:313:14> FUNC=tcp_event_data_recv L=0
+[CHILD FUNCTION] Constant used in call to llvm.umin.i32 at argument 1 <net/ipv4/tcp_input.c:313:14> FUNC=tcp_event_data_recv L=0
+[USE] Processing uses of:   %167 = tail call i32 @llvm.umin.i32(i32 %165, i32 16),
+  [USE] Taint flows to:   %168 = select i1 %166, i32 2, i32 %167, <net/ipv4/tcp_input.c:311:16> FUNC=tcp_event_data_recv L=0
+[USE] Processing uses of:   %168 = select i1 %166, i32 2, i32 %167,
+  [USE] Taint flows to:   %172 = icmp samesign ugt i32 %168, %171, <net/ipv4/tcp_input.c:314:16> FUNC=tcp_event_data_recv L=0
+  [USE] Taint flows to:   %174 = trunc nuw nsw i32 %168 to i8, <net/ipv4/tcp_input.c:315:26> FUNC=tcp_event_data_recv L=0
+[USE] Processing uses of:   %174 = trunc nuw nsw i32 %168 to i8,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter <net/ipv4/tcp_input.c:315:24>
+[USE] Processing uses of:   %172 = icmp samesign ugt i32 %168, %171,
+  [USE] Taint flows to:   br i1 %172, label %173, label %175, <net/ipv4/tcp_input.c:314:16> FUNC=tcp_event_data_recv L=0
+[NO USE] No uses of:   br i1 %172, label %173, label %175,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 5
+
+Earliest instruction with L=0:
+    %167 = tail call i32 @llvm.umin.i32(i32 %165, i32 16), <net/ipv4/tcp_input.c:313:14> FUNC=tcp_event_data_recv L=0
+
+Latest instruction with L=0:
+    %174 = trunc nuw nsw i32 %168 to i8, <net/ipv4/tcp_input.c:315:26> FUNC=tcp_event_data_recv L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/ipv4/tcp_input.ll
+../linux-wllvm-defconfig/net/ipv4/tcp_input.c

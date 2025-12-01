@@ -1,0 +1,41 @@
+=== Taint Tracker Configuration ===
+Function: sbitmap_queue_init_node
+Opcode: select
+Constant: 8
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 8)
+
+[SOURCE] Tainting:   %23 = select i1 %20, i32 8, i32 %22, <lib/sbitmap.c:426:15> FUNC=sbitmap_queue_init_node L=0
+[USE] Source instruction in data flow <lib/sbitmap.c:426:15> FUNC=sbitmap_queue_init_node L=0
+[USE] Processing uses of:   %23 = select i1 %20, i32 8, i32 %22,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter <lib/sbitmap.c:444:18>
+[UPWARD-INTERPROC] Call to sbitmap_queue_init_node taints argument 0 (pointer parameter) <block/blk-mq-tag.c:543:9> FUNC=blk_mq_init_tags L=1
+  [STORE DESTINATION] Marking pointer as tainted via call:   %13 = tail call noalias align 8 dereferenceable_or_null(184) ptr @__kmalloc_cache_node_noprof(ptr noundef %12, i32 noundef 3520, i32 noundef %3, i64 noundef 184) #265, FUNC=blk_mq_init_tags L=1
+[UPWARD-INTERPROC] Call to sbitmap_queue_init_node taints argument 0 (pointer parameter) <block/kyber-iosched.c:380:9> FUNC=kyber_init_sched L=1
+  [STORE DESTINATION] Marking pointer as tainted via call:   %9 = tail call noalias align 8 dereferenceable_or_null(584) ptr @__kmalloc_cache_node_noprof(ptr noundef %8, i32 noundef 3520, i32 noundef %7, i64 noundef 584) #265, FUNC=kyber_init_sched L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %27 = load ptr, ptr %26, align 8, (base:   %13 = tail call noalias align 8 dereferenceable_or_null(184) ptr @__kmalloc_cache_node_noprof(ptr noundef %12, i32 noundef 3520, i32 noundef %3, i64 noundef 184) #265,)  <./include/linux/sbitmap.h:428:13> FUNC=blk_mq_init_tags L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %29 = load ptr, ptr %28, align 8, (base:   %13 = tail call noalias align 8 dereferenceable_or_null(184) ptr @__kmalloc_cache_node_noprof(ptr noundef %12, i32 noundef 3520, i32 noundef %3, i64 noundef 184) #265,)  <./include/linux/sbitmap.h:187:18> FUNC=blk_mq_init_tags L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %31 = load ptr, ptr %30, align 8, (base:   %13 = tail call noalias align 8 dereferenceable_or_null(184) ptr @__kmalloc_cache_node_noprof(ptr noundef %12, i32 noundef 3520, i32 noundef %3, i64 noundef 184) #265,)  <./include/linux/sbitmap.h:188:13> FUNC=blk_mq_init_tags L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %63 = load ptr, ptr %21, align 8, (base:   %9 = tail call noalias align 8 dereferenceable_or_null(584) ptr @__kmalloc_cache_node_noprof(ptr noundef %8, i32 noundef 3520, i32 noundef %7, i64 noundef 584) #265,)  <block/kyber-iosched.c:398:19> FUNC=kyber_init_sched L=1
+  [USE] Taint flows to:   tail call void @free_percpu(ptr noundef %63) #264, <block/kyber-iosched.c:398:2> FUNC=kyber_init_sched L=1
+  [USE] Taint flows to:   tail call void @kvfree(ptr noundef %31) #266, <./include/linux/sbitmap.h:188:2> FUNC=blk_mq_init_tags L=1
+  [USE] Taint flows to:   tail call void @free_percpu(ptr noundef %29) #266, <./include/linux/sbitmap.h:187:2> FUNC=blk_mq_init_tags L=1
+  [USE] Taint flows to:   tail call void @kfree(ptr noundef %27) #266, <./include/linux/sbitmap.h:428:2> FUNC=blk_mq_init_tags L=1
+
+=== Maximum Level Statistics ===
+Largest L value: 1
+Number of instructions with L=1: 8
+
+Earliest instruction with L=1:
+    %27 = load ptr, ptr %26, align 8, <./include/linux/sbitmap.h:428:13> FUNC=blk_mq_init_tags L=1
+
+Latest instruction with L=1:
+    tail call void @free_percpu(ptr noundef %63) #264, <block/kyber-iosched.c:398:2> FUNC=kyber_init_sched L=1
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/lib/sbitmap.ll
+../linux-wllvm-defconfig/lib/sbitmap.c

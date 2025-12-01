@@ -1,0 +1,43 @@
+=== Taint Tracker Configuration ===
+Function: bbr_main
+Opcode: phi
+Constant: 11
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 5 (of constant 11)
+
+[SOURCE] Tainting:   %753 = phi i32 [ %751, %742 ], [ 11, %739 ], <net/ipv4/tcp_bbr.c:0> FUNC=bbr_main L=0
+[USE] Source instruction in data flow <net/ipv4/tcp_bbr.c:0> FUNC=bbr_main L=0
+[USE] Processing uses of:   %753 = phi i32 [ %751, %742 ], [ 11, %739 ],
+  [USE] Taint flows to:   %786 = add i32 %771, %753, <net/ipv4/tcp_bbr.c:400:7> FUNC=bbr_main L=0
+[USE] Processing uses of:   %786 = add i32 %771, %753,
+  [USE] Taint flows to:   %787 = add i32 %786, %785, <net/ipv4/tcp_bbr.c:403:15> FUNC=bbr_main L=0
+[USE] Processing uses of:   %787 = add i32 %786, %785,
+  [USE] Taint flows to:   %788 = and i32 %787, -2, <net/ipv4/tcp_bbr.c:403:20> FUNC=bbr_main L=0
+[USE] Processing uses of:   %788 = and i32 %787, -2,
+  [USE] Taint flows to:   %795 = add i32 %788, 2, <net/ipv4/tcp_bbr.c:406:32> FUNC=bbr_main L=0
+  [USE] Taint flows to:   %797 = select i1 %796, i32 %795, i32 %788, <net/ipv4/tcp_bbr.c:406:32> FUNC=bbr_main L=0
+[USE] Processing uses of:   %797 = select i1 %796, i32 %795, i32 %788,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %802 = tail call i32 @llvm.umin.i32(i32 %801, i32 %797), !dbg !17654795 <net/ipv4/tcp_bbr.c:542:10>
+  [USE] Taint flows to:   %804 = icmp ult i32 %717, %797, <net/ipv4/tcp_bbr.c:543:16> FUNC=bbr_main L=0
+[USE] Processing uses of:   %804 = icmp ult i32 %717, %797,
+  [USE] Taint flows to:   br i1 %804, label %809, label %805, <net/ipv4/tcp_bbr.c:543:30> FUNC=bbr_main L=0
+[NO USE] No uses of:   br i1 %804, label %809, label %805,
+[USE] Processing uses of:   %795 = add i32 %788, 2,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 8
+
+Earliest instruction with L=0:
+    %753 = phi i32 [ %751, %742 ], [ 11, %739 ], <net/ipv4/tcp_bbr.c:0> FUNC=bbr_main L=0
+
+Latest instruction with L=0:
+    br i1 %804, label %809, label %805, <net/ipv4/tcp_bbr.c:543:30> FUNC=bbr_main L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/ipv4/tcp_bbr.ll
+../linux-wllvm-defconfig/net/ipv4/tcp_bbr.c

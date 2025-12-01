@@ -1,0 +1,40 @@
+=== Taint Tracker Configuration ===
+Function: xfs_iwalk_threaded
+Opcode: call
+Constant: 2048
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 2048)
+
+[SOURCE] Tainting:   %20 = call i32 @llvm.umin.i32(i32 %4, i32 2048) FUNC=xfs_iwalk_threaded L=0
+[USE] Source instruction in data flow FUNC=xfs_iwalk_threaded L=0
+[CHILD FUNCTION] Constant used in call to llvm.umin.i32 at argument 1 FUNC=xfs_iwalk_threaded L=0
+[USE] Processing uses of:   %20 = call i32 @llvm.umin.i32(i32 %4, i32 2048)
+  [USE] Taint flows to:   %21 = add nsw i32 %20, -1 FUNC=xfs_iwalk_threaded L=0
+[USE] Processing uses of:   %21 = add nsw i32 %20, -1
+  [USE] Taint flows to:   %22 = or i32 %21, 63 FUNC=xfs_iwalk_threaded L=0
+[USE] Processing uses of:   %22 = or i32 %21, 63
+  [USE] Taint flows to:   %23 = mul nsw i32 %22, 5 FUNC=xfs_iwalk_threaded L=0
+[USE] Processing uses of:   %23 = mul nsw i32 %22, 5
+  [USE] Taint flows to:   %24 = add nsw i32 %23, 5 FUNC=xfs_iwalk_threaded L=0
+[USE] Processing uses of:   %24 = add nsw i32 %23, 5
+  [USE] Taint flows to:   %25 = lshr i32 %24, 8 FUNC=xfs_iwalk_threaded L=0
+[USE] Processing uses of:   %25 = lshr i32 %24, 8
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %26 = call i32 @llvm.umax.i32(i32 %25, i32 2)
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 6
+
+Earliest instruction with L=0:
+    %20 = call i32 @llvm.umin.i32(i32 %4, i32 2048) FUNC=xfs_iwalk_threaded L=0
+
+Latest instruction with L=0:
+    %25 = lshr i32 %24, 8 FUNC=xfs_iwalk_threaded L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/xfs/xfs_iwalk.ll
+../linux-wllvm-defconfig/fs/xfs/xfs_iwalk.c

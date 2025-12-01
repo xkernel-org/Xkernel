@@ -1,0 +1,38 @@
+=== Taint Tracker Configuration ===
+Function: tcp_init_transfer
+Opcode: call
+Constant: 10
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 10)
+
+[SOURCE] Tainting:   %82 = tail call i32 @llvm.umax.i32(i32 %81, i32 10), <net/ipv4/tcp_input.c:445:12> FUNC=tcp_init_transfer L=0
+[USE] Source instruction in data flow <net/ipv4/tcp_input.c:445:12> FUNC=tcp_init_transfer L=0
+[CHILD FUNCTION] Constant used in call to llvm.umax.i32 at argument 1 <net/ipv4/tcp_input.c:445:12> FUNC=tcp_init_transfer L=0
+[USE] Processing uses of:   %82 = tail call i32 @llvm.umax.i32(i32 %81, i32 10),
+  [USE] Taint flows to:   %90 = mul i32 %82, %75, <net/ipv4/tcp_input.c:452:20> FUNC=tcp_init_transfer L=0
+[USE] Processing uses of:   %90 = mul i32 %82, %75,
+  [USE] Taint flows to:   %91 = mul i32 %90, %89, <net/ipv4/tcp_input.c:452:9> FUNC=tcp_init_transfer L=0
+[USE] Processing uses of:   %91 = mul i32 %90, %89,
+  [USE] Taint flows to:   %94 = icmp slt i32 %93, %91, <net/ipv4/tcp_input.c:454:20> FUNC=tcp_init_transfer L=0
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %99 = tail call i32 @llvm.smin.i32(i32 %91, i32 %98), !dbg !17653890 <net/ipv4/tcp_input.c:455:3>
+[USE] Processing uses of:   %94 = icmp slt i32 %93, %91,
+  [USE] Taint flows to:   br i1 %94, label %95, label %100, <net/ipv4/tcp_input.c:454:20> FUNC=tcp_init_transfer L=0
+[NO USE] No uses of:   br i1 %94, label %95, label %100,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 5
+
+Earliest instruction with L=0:
+    %82 = tail call i32 @llvm.umax.i32(i32 %81, i32 10), <net/ipv4/tcp_input.c:445:12> FUNC=tcp_init_transfer L=0
+
+Latest instruction with L=0:
+    br i1 %94, label %95, label %100, <net/ipv4/tcp_input.c:454:20> FUNC=tcp_init_transfer L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/ipv4/tcp_input.ll
+../linux-wllvm-defconfig/net/ipv4/tcp_input.c

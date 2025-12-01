@@ -1,0 +1,30 @@
+=== Taint Tracker Configuration ===
+Function: tcp_connect
+Opcode: select
+Constant: 1073725440
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 1073725440)
+
+[SOURCE] Tainting:   %255 = select i1 %254, i32 1073725440, i32 %253, <net/ipv4/tcp_output.c:216:19> FUNC=tcp_connect L=0
+[USE] Source instruction in data flow <net/ipv4/tcp_output.c:216:19> FUNC=tcp_connect L=0
+[USE] Processing uses of:   %255 = select i1 %254, i32 1073725440, i32 %253,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %256 = tail call i32 @llvm.umin.i32(i32 %255, i32 %252), !dbg !17654243 <net/ipv4/tcp_output.c:218:10>
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %279 = tail call i32 @llvm.umin.i32(i32 %278, i32 %255), !dbg !17654270 <net/ipv4/tcp_output.c:245:11>
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %294 = tail call i32 @llvm.umin.i32(i32 %293, i32 %255), !dbg !17654288 <net/ipv4/tcp_output.c:250:2>
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 1
+
+Earliest instruction with L=0:
+    %255 = select i1 %254, i32 1073725440, i32 %253, <net/ipv4/tcp_output.c:216:19> FUNC=tcp_connect L=0
+
+(Earliest and latest are the same instruction)
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/ipv4/tcp_output.ll
+../linux-wllvm-defconfig/net/ipv4/tcp_output.c

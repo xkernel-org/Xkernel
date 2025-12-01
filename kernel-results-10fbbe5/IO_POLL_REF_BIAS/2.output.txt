@@ -1,0 +1,30 @@
+=== Taint Tracker Configuration ===
+Function: __io_arm_poll_handler
+Opcode: icmp
+Constant: 127
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 2 (of constant 127)
+
+[SOURCE] Tainting:   %149 = icmp sgt i32 %148, 127, <io_uring/poll.c:96:6> FUNC=__io_arm_poll_handler L=0
+[USE] Source instruction in data flow <io_uring/poll.c:96:6> FUNC=__io_arm_poll_handler L=0
+[USE] Processing uses of:   %149 = icmp sgt i32 %148, 127,
+  [USE] Taint flows to:   br i1 %149, label %150, label %152, <io_uring/poll.c:96:6> FUNC=__io_arm_poll_handler L=0
+[NO USE] No uses of:   br i1 %149, label %150, label %152,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 2
+
+Earliest instruction with L=0:
+    %149 = icmp sgt i32 %148, 127, <io_uring/poll.c:96:6> FUNC=__io_arm_poll_handler L=0
+
+Latest instruction with L=0:
+    br i1 %149, label %150, label %152, <io_uring/poll.c:96:6> FUNC=__io_arm_poll_handler L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/io_uring/poll.ll
+../linux-wllvm-defconfig/io_uring/poll.c

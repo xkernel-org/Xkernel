@@ -1,0 +1,29 @@
+=== Taint Tracker Configuration ===
+Function: tcp_sk_init
+Opcode: store
+Constant: 128
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 128)
+
+[SOURCE] Tainting:   store i32 128, ptr %98, align 4, <net/ipv4/tcp_ipv4.c:3521:39> FUNC=tcp_sk_init L=0
+[USE] Source instruction in data flow <net/ipv4/tcp_ipv4.c:3521:39> FUNC=tcp_sk_init L=0
+[STORE DESTINATION] Storing constant to:   %98 = getelementptr inbounds nuw i8, ptr %0, i64 1308, <net/ipv4/tcp_ipv4.c:3521:39> FUNC=tcp_sk_init L=0
+[POINTER PARAMETER] Constant stored through pointer parameter <net/ipv4/tcp_ipv4.c:3521:39> FUNC=tcp_sk_init L=0
+[NO USE] No uses of:   store i32 128, ptr %98, align 4,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 1
+
+Earliest instruction with L=0:
+    store i32 128, ptr %98, align 4, <net/ipv4/tcp_ipv4.c:3521:39> FUNC=tcp_sk_init L=0
+
+(Earliest and latest are the same instruction)
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/ipv4/tcp_ipv4.ll
+../linux-wllvm-defconfig/net/ipv4/tcp_ipv4.c

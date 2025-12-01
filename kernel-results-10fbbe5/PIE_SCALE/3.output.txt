@@ -1,0 +1,79 @@
+=== Taint Tracker Configuration ===
+Function: pie_process_dequeue
+Opcode: shl
+Constant: 8
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 8)
+
+[SOURCE] Tainting:   %51 = shl i32 %50, 8, <net/sched/sch_pie.c:258:16> FUNC=pie_process_dequeue L=0
+[USE] Source instruction in data flow <net/sched/sch_pie.c:258:16> FUNC=pie_process_dequeue L=0
+[USE] Processing uses of:   %51 = shl i32 %50, 8,
+  [USE] Taint flows to:   %52 = udiv i32 %51, %47, <net/sched/sch_pie.c:265:18> FUNC=pie_process_dequeue L=0
+[USE] Processing uses of:   %52 = udiv i32 %51, %47,
+  [USE] Taint flows to:   %57 = lshr i32 %52, 3, <net/sched/sch_pie.c:267:26> FUNC=pie_process_dequeue L=0
+  [USE] Taint flows to:   %60 = select i1 %55, i32 %52, i32 %59, <net/sched/sch_pie.c:267:26> FUNC=pie_process_dequeue L=0
+[USE] Processing uses of:   %60 = select i1 %55, i32 %52, i32 %59,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter <net/sched/sch_pie.c:0>
+[USE] Processing uses of:   %57 = lshr i32 %52, 3,
+  [USE] Taint flows to:   %58 = add i32 %57, %54, <net/sched/sch_pie.c:267:26> FUNC=pie_process_dequeue L=0
+[USE] Processing uses of:   %58 = add i32 %57, %54,
+  [USE] Taint flows to:   %59 = sub i32 %58, %56, <net/sched/sch_pie.c:267:26> FUNC=pie_process_dequeue L=0
+[USE] Processing uses of:   %59 = sub i32 %58, %56,
+[UPWARD-INTERPROC] Call to pie_process_dequeue taints argument 2 (pointer parameter) <net/sched/sch_pie.c:531:2> FUNC=pie_qdisc_dequeue L=1
+  [STORE DESTINATION] Marking pointer as tainted via call: ptr %0 FUNC=pie_qdisc_dequeue L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %3 = load ptr, ptr %2, align 8, (base: ptr %0)  <./include/net/sch_generic.h:1021:28> FUNC=pie_qdisc_dequeue L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %8 = load i32, ptr %7, align 8, (base: ptr %0)  <./include/net/sch_generic.h:1025:11> FUNC=pie_qdisc_dequeue L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %17 = load i32, ptr %16, align 4, (base: ptr %0)  <./include/net/sch_generic.h:885:22> FUNC=pie_qdisc_dequeue L=1
+[SKIP] Load before taint origin, not tainting:   %40 = load i32, ptr %16, align 4, <net/sched/sch_pie.c:531:61> FUNC=pie_qdisc_dequeue L=1
+  [USE] Taint flows to:   %18 = sub i32 %17, %15, <./include/net/sch_generic.h:885:22> FUNC=pie_qdisc_dequeue L=1
+  [USE] Taint flows to:   store i32 %18, ptr %16, align 4, <./include/net/sch_generic.h:885:22> FUNC=pie_qdisc_dequeue L=1
+  [USE] Taint flows to:   %9 = add i32 %8, -1, <./include/net/sch_generic.h:1025:11> FUNC=pie_qdisc_dequeue L=1
+  [USE] Taint flows to:   store i32 %9, ptr %7, align 8, <./include/net/sch_generic.h:1025:11> FUNC=pie_qdisc_dequeue L=1
+  [USE] Taint flows to:   %4 = icmp eq ptr %3, null, <./include/net/sch_generic.h:1023:6> FUNC=pie_qdisc_dequeue L=1
+  [USE] Taint flows to:   %6 = load ptr, ptr %3, align 8, <./include/net/sch_generic.h:1024:19> FUNC=pie_qdisc_dequeue L=1
+  [USE] Taint flows to:   store ptr null, ptr %3, align 8, <./include/net/sch_generic.h:1028:13> FUNC=pie_qdisc_dequeue L=1
+  [USE] Taint flows to:   %14 = getelementptr inbounds nuw i8, ptr %3, i64 40, <./include/net/sch_generic.h:539:37> FUNC=pie_qdisc_dequeue L=1
+  [USE] Taint flows to:   %20 = getelementptr inbounds nuw i8, ptr %3, i64 192, <./include/linux/skbuff.h:1678:14> FUNC=pie_qdisc_dequeue L=1
+  [USE] Taint flows to:   %22 = getelementptr inbounds nuw i8, ptr %3, i64 188, <./include/linux/skbuff.h:1678:26> FUNC=pie_qdisc_dequeue L=1
+  [USE] Taint flows to:   tail call void @pie_process_dequeue(ptr noundef nonnull %3, ptr noundef nonnull %39, ptr noundef nonnull %38, i32 noundef %40) #265, <net/sched/sch_pie.c:531:2> FUNC=pie_qdisc_dequeue L=1
+  [USE] Taint flows to:   ret ptr %3, <net/sched/sch_pie.c:533:1> FUNC=pie_qdisc_dequeue L=1
+  [USE] Taint flows to:   %23 = load i32, ptr %22, align 4, <./include/linux/skbuff.h:1678:26> FUNC=pie_qdisc_dequeue L=1
+  [USE] Taint flows to:   %24 = zext i32 %23 to i64, <./include/linux/skbuff.h:1678:19> FUNC=pie_qdisc_dequeue L=1
+  [USE] Taint flows to:   %25 = getelementptr i8, ptr %21, i64 %24, <./include/linux/skbuff.h:1678:19> FUNC=pie_qdisc_dequeue L=1
+  [USE] Taint flows to:   %26 = getelementptr inbounds nuw i8, ptr %25, i64 4, <./include/linux/skbuff.h:5078:26> FUNC=pie_qdisc_dequeue L=1
+  [USE] Taint flows to:   %30 = getelementptr inbounds nuw i8, ptr %25, i64 6, <./include/net/sch_generic.h:867:45> FUNC=pie_qdisc_dequeue L=1
+  [USE] Taint flows to:   %31 = load i16, ptr %30, align 2, <./include/net/sch_generic.h:867:45> FUNC=pie_qdisc_dequeue L=1
+  [USE] Taint flows to:   %32 = zext i16 %31 to i64, <./include/net/sch_generic.h:867:10> FUNC=pie_qdisc_dequeue L=1
+  [USE] Taint flows to:   %34 = phi i64 [ %32, %29 ], [ 1, %13 ], <./include/net/sch_generic.h:867:10> FUNC=pie_qdisc_dequeue L=1
+  [USE] Taint flows to:   tail call void asm sideeffect " addq $1,$0", "=*m,ir,*m,~{dirflag},~{fpsr},~{flags}"(ptr nonnull elementtype(i64) %37, i64 range(i64 0, 65536) %34, ptr nonnull elementtype(i64) %37) #264, <./arch/x86/include/asm/local.h:33:2> FUNC=pie_qdisc_dequeue L=1
+  [USE] Taint flows to:   %27 = load i16, ptr %26, align 4, <./include/linux/skbuff.h:5078:26> FUNC=pie_qdisc_dequeue L=1
+  [USE] Taint flows to:   %28 = icmp eq i16 %27, 0, <./include/linux/skbuff.h:5078:9> FUNC=pie_qdisc_dequeue L=1
+  [USE] Taint flows to:   br i1 %28, label %33, label %29, <./include/net/sch_generic.h:867:10> FUNC=pie_qdisc_dequeue L=1
+  [USE] Taint flows to:   %21 = load ptr, ptr %20, align 8, <./include/linux/skbuff.h:1678:14> FUNC=pie_qdisc_dequeue L=1
+  [USE] Taint flows to:   %15 = load i32, ptr %14, align 4, <./include/net/sch_generic.h:821:28> FUNC=pie_qdisc_dequeue L=1
+  [USE] Taint flows to:   %19 = load i32, ptr %14, align 4, <./include/net/sch_generic.h:821:28> FUNC=pie_qdisc_dequeue L=1
+  [USE] Taint flows to:   %36 = zext i32 %19 to i64, <./include/net/sch_generic.h:866:10> FUNC=pie_qdisc_dequeue L=1
+  [USE] Taint flows to:   tail call void asm sideeffect " addq $1,$0", "=*m,ir,*m,~{dirflag},~{fpsr},~{flags}"(ptr nonnull elementtype(i64) %35, i64 range(i64 0, 4294967296) %36, ptr nonnull elementtype(i64) %35) #264, <./arch/x86/include/asm/local.h:33:2> FUNC=pie_qdisc_dequeue L=1
+  [USE] Taint flows to:   store ptr %6, ptr %2, align 8, <./include/net/sch_generic.h:1024:12> FUNC=pie_qdisc_dequeue L=1
+  [USE] Taint flows to:   %10 = icmp eq ptr %6, null, <./include/net/sch_generic.h:1026:16> FUNC=pie_qdisc_dequeue L=1
+  [USE] Taint flows to:   br i1 %10, label %11, label %13, <./include/net/sch_generic.h:1026:16> FUNC=pie_qdisc_dequeue L=1
+  [USE] Taint flows to:   br i1 %4, label %41, label %5, <./include/net/sch_generic.h:1023:6> FUNC=pie_qdisc_dequeue L=1
+[LOAD] Tainted load from tracked pointer:   %40 = load i32, ptr %16, align 4, (  %16 = getelementptr inbounds nuw i8, ptr %0, i64 196,)  <net/sched/sch_pie.c:531:61> FUNC=pie_qdisc_dequeue L=1
+
+=== Maximum Level Statistics ===
+Largest L value: 1
+Number of instructions with L=1: 37
+
+Earliest instruction with L=1:
+    %3 = load ptr, ptr %2, align 8, <./include/net/sch_generic.h:1021:28> FUNC=pie_qdisc_dequeue L=1
+
+Latest instruction with L=1:
+    ret ptr %3, <net/sched/sch_pie.c:533:1> FUNC=pie_qdisc_dequeue L=1
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/sched/sch_pie.ll
+../linux-wllvm-defconfig/net/sched/sch_pie.c

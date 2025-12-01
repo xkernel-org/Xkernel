@@ -1,0 +1,36 @@
+=== Taint Tracker Configuration ===
+Function: tcp_event_data_recv
+Opcode: or
+Constant: 40
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 40)
+
+[SOURCE] Tainting:   %176 = or disjoint i32 %156, 40, <net/ipv4/tcp_input.c:839:22> FUNC=tcp_event_data_recv L=0
+[USE] Source instruction in data flow <net/ipv4/tcp_input.c:839:22> FUNC=tcp_event_data_recv L=0
+[USE] Processing uses of:   %176 = or disjoint i32 %156, 40,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter <net/ipv4/tcp_input.c:839:22>
+  [USE] Taint flows to:   %221 = phi i32 [ %156, %218 ], [ %156, %204 ], [ %186, %182 ], [ %156, %200 ], [ %194, %189 ], [ %199, %198 ], [ %176, %175 ] FUNC=tcp_event_data_recv L=0
+[USE] Processing uses of:   %221 = phi i32 [ %156, %218 ], [ %156, %204 ], [ %186, %182 ], [ %156, %200 ], [ %194, %189 ], [ %199, %198 ], [ %176, %175 ]
+  [USE] Taint flows to:   %236 = and i32 %221, -268435201, <net/ipv4/tcp_input.c:806:33> FUNC=tcp_event_data_recv L=0
+[USE] Processing uses of:   %236 = and i32 %221, -268435201,
+  [USE] Taint flows to:   %237 = or disjoint i32 %235, %236, <net/ipv4/tcp_input.c:806:33> FUNC=tcp_event_data_recv L=0
+[USE] Processing uses of:   %237 = or disjoint i32 %235, %236,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter <net/ipv4/tcp_input.c:806:33>
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 4
+
+Earliest instruction with L=0:
+    %176 = or disjoint i32 %156, 40, <net/ipv4/tcp_input.c:839:22> FUNC=tcp_event_data_recv L=0
+
+Latest instruction with L=0:
+    %237 = or disjoint i32 %235, %236, <net/ipv4/tcp_input.c:806:33> FUNC=tcp_event_data_recv L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/ipv4/tcp_input.ll
+../linux-wllvm-defconfig/net/ipv4/tcp_input.c

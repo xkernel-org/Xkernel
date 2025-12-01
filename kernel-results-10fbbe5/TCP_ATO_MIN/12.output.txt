@@ -1,0 +1,28 @@
+=== Taint Tracker Configuration ===
+Function: __tcp_transmit_skb
+Opcode: or
+Constant: 40
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 40)
+
+[SOURCE] Tainting:   %532 = or disjoint i32 %531, 40, <./include/net/tcp.h:369:25> FUNC=__tcp_transmit_skb L=0
+[USE] Source instruction in data flow <./include/net/tcp.h:369:25> FUNC=__tcp_transmit_skb L=0
+[USE] Processing uses of:   %532 = or disjoint i32 %531, 40,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter <./include/net/tcp.h:369:25>
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 1
+
+Earliest instruction with L=0:
+    %532 = or disjoint i32 %531, 40, <./include/net/tcp.h:369:25> FUNC=__tcp_transmit_skb L=0
+
+(Earliest and latest are the same instruction)
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/ipv4/tcp_output.ll
+../linux-wllvm-defconfig/net/ipv4/tcp_output.c

@@ -1,0 +1,28 @@
+=== Taint Tracker Configuration ===
+Function: tcp_rack_update_reo_wnd
+Opcode: or
+Constant: 16
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 16)
+
+[SOURCE] Tainting:   %34 = or disjoint i8 %33, 16, <net/ipv4/tcp_recovery.c:206:28> FUNC=tcp_rack_update_reo_wnd L=0
+[USE] Source instruction in data flow <net/ipv4/tcp_recovery.c:206:28> FUNC=tcp_rack_update_reo_wnd L=0
+[USE] Processing uses of:   %34 = or disjoint i8 %33, 16,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter <net/ipv4/tcp_recovery.c:206:28>
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 1
+
+Earliest instruction with L=0:
+    %34 = or disjoint i8 %33, 16, <net/ipv4/tcp_recovery.c:206:28> FUNC=tcp_rack_update_reo_wnd L=0
+
+(Earliest and latest are the same instruction)
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/ipv4/tcp_recovery.ll
+../linux-wllvm-defconfig/net/ipv4/tcp_recovery.c

@@ -1,0 +1,48 @@
+=== Taint Tracker Configuration ===
+Function: blk_mq_delay_run_hw_queue
+Opcode: store
+Constant: 8
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 8)
+
+[SOURCE] Tainting:   store i32 8, ptr %23, align 4, <block/blk-mq.c:2251:24> FUNC=blk_mq_delay_run_hw_queue L=0
+[USE] Source instruction in data flow <block/blk-mq.c:2251:24> FUNC=blk_mq_delay_run_hw_queue L=0
+[STORE DESTINATION] Storing constant to:   %23 = getelementptr inbounds nuw i8, ptr %0, i64 164, <block/blk-mq.c:2251:24> FUNC=blk_mq_delay_run_hw_queue L=0
+[POINTER PARAMETER] Constant stored through pointer parameter <block/blk-mq.c:2251:24> FUNC=blk_mq_delay_run_hw_queue L=0
+[NO USE] No uses of:   store i32 8, ptr %23, align 4,
+[UPWARD-INTERPROC] Call to blk_mq_delay_run_hw_queue taints argument 0 (pointer parameter) <block/blk-mq.c:2350:3> FUNC=blk_mq_dispatch_wake L=1
+  [STORE DESTINATION] Marking pointer as tainted via call: ptr %0 FUNC=blk_mq_dispatch_wake L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %7 = load volatile ptr, ptr %6, align 8, (base: ptr %0)  <./include/linux/list.h:373:9> FUNC=blk_mq_dispatch_wake L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %11 = load ptr, ptr %10, align 8, (base: ptr %0)  <./include/linux/list.h:218:20> FUNC=blk_mq_dispatch_wake L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %14 = load ptr, ptr %13, align 64, (base: ptr %0)  <block/blk-mq.c:1870:16> FUNC=blk_mq_dispatch_wake L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %21 = load ptr, ptr %20, align 8, (base: ptr %0)  <block/blk-mq.c:2341:3> FUNC=blk_mq_dispatch_wake L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %25 = load ptr, ptr %20, align 8, (base: ptr %0)  <block/blk-mq.c:2343:33> FUNC=blk_mq_dispatch_wake L=1
+  [USE] Taint flows to:   %26 = getelementptr inbounds nuw i8, ptr %25, i64 96, <block/blk-mq.c:2343:40> FUNC=blk_mq_dispatch_wake L=1
+  [USE] Taint flows to:   tail call void @_raw_spin_unlock_irqrestore(ptr noundef nonnull %26, i64 noundef %23) #264, <./include/linux/spinlock.h:406:2> FUNC=blk_mq_dispatch_wake L=1
+  [USE] Taint flows to:   %22 = getelementptr inbounds nuw i8, ptr %21, i64 96, <block/blk-mq.c:2341:3> FUNC=blk_mq_dispatch_wake L=1
+  [USE] Taint flows to:   %23 = tail call i64 @_raw_spin_lock_irqsave(ptr noundef nonnull %22) #264, <block/blk-mq.c:2341:3> FUNC=blk_mq_dispatch_wake L=1
+  [USE] Taint flows to:   %15 = getelementptr inbounds nuw i8, ptr %14, i64 64, <block/blk-mq.c:1871:20> FUNC=blk_mq_dispatch_wake L=1
+  [USE] Taint flows to:   tail call void asm sideeffect ".pushsection .smp_locks,\22a\22\0A.balign 4\0A.long 671f - .\0A.popsection\0A671:\0A\09lock; decl $0", "=*m,*m,~{memory},~{dirflag},~{fpsr},~{flags}"(ptr nonnull elementtype(i32) %15, ptr nonnull elementtype(i32) %15) #265, <./arch/x86/include/asm/atomic.h:60:2> FUNC=blk_mq_dispatch_wake L=1
+  [USE] Taint flows to:   store ptr %11, ptr %12, align 8, <./include/linux/list.h:195:13> FUNC=blk_mq_dispatch_wake L=1
+  [USE] Taint flows to:   store volatile ptr %7, ptr %11, align 8, <./include/linux/list.h:196:2> FUNC=blk_mq_dispatch_wake L=1
+  [USE] Taint flows to:   %8 = icmp eq ptr %7, %6, <./include/linux/list.h:373:31> FUNC=blk_mq_dispatch_wake L=1
+  [USE] Taint flows to:   %12 = getelementptr inbounds nuw i8, ptr %7, i64 8, <./include/linux/list.h:195:8> FUNC=blk_mq_dispatch_wake L=1
+  [USE] Taint flows to:   br i1 %8, label %16, label %9, <block/blk-mq.c:1866:6> FUNC=blk_mq_dispatch_wake L=1
+
+=== Maximum Level Statistics ===
+Largest L value: 1
+Number of instructions with L=1: 16
+
+Earliest instruction with L=1:
+    %7 = load volatile ptr, ptr %6, align 8, <./include/linux/list.h:373:9> FUNC=blk_mq_dispatch_wake L=1
+
+Latest instruction with L=1:
+    tail call void @_raw_spin_unlock_irqrestore(ptr noundef nonnull %26, i64 noundef %23) #264, <./include/linux/spinlock.h:406:2> FUNC=blk_mq_dispatch_wake L=1
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/block/blk-mq.ll
+../linux-wllvm-defconfig/block/blk-mq.c

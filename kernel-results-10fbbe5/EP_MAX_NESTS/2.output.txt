@@ -1,0 +1,30 @@
+=== Taint Tracker Configuration ===
+Function: reverse_path_check_proc
+Opcode: icmp
+Constant: 4
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 4)
+
+[SOURCE] Tainting:   %3 = icmp samesign ugt i32 %1, 4, <fs/eventpoll.c:1535:12> FUNC=reverse_path_check_proc L=0
+[USE] Source instruction in data flow <fs/eventpoll.c:1535:12> FUNC=reverse_path_check_proc L=0
+[USE] Processing uses of:   %3 = icmp samesign ugt i32 %1, 4,
+  [USE] Taint flows to:   br i1 %3, label %42, label %4, <fs/eventpoll.c:1535:12> FUNC=reverse_path_check_proc L=0
+[NO USE] No uses of:   br i1 %3, label %42, label %4,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 2
+
+Earliest instruction with L=0:
+    %3 = icmp samesign ugt i32 %1, 4, <fs/eventpoll.c:1535:12> FUNC=reverse_path_check_proc L=0
+
+Latest instruction with L=0:
+    br i1 %3, label %42, label %4, <fs/eventpoll.c:1535:12> FUNC=reverse_path_check_proc L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/eventpoll.ll
+../linux-wllvm-defconfig/fs/eventpoll.c

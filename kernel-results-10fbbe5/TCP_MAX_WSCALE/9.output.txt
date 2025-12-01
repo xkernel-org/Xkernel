@@ -1,0 +1,30 @@
+=== Taint Tracker Configuration ===
+Function: tcp_select_initial_window
+Opcode: select
+Constant: 1073725440
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 1073725440)
+
+[SOURCE] Tainting:   %12 = select i1 %11, i32 1073725440, i32 %10, <net/ipv4/tcp_output.c:216:19> FUNC=tcp_select_initial_window L=0
+[USE] Source instruction in data flow <net/ipv4/tcp_output.c:216:19> FUNC=tcp_select_initial_window L=0
+[USE] Processing uses of:   %12 = select i1 %11, i32 1073725440, i32 %10,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %13 = tail call i32 @llvm.umin.i32(i32 %12, i32 %9), !dbg !17653686 <net/ipv4/tcp_output.c:218:10>
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %39 = tail call i32 @llvm.umin.i32(i32 %38, i32 %12), !dbg !17653730 <net/ipv4/tcp_output.c:245:11>
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %50 = tail call i32 @llvm.umin.i32(i32 %49, i32 %12), !dbg !17653749 <net/ipv4/tcp_output.c:250:2>
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 1
+
+Earliest instruction with L=0:
+    %12 = select i1 %11, i32 1073725440, i32 %10, <net/ipv4/tcp_output.c:216:19> FUNC=tcp_select_initial_window L=0
+
+(Earliest and latest are the same instruction)
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/ipv4/tcp_output.ll
+../linux-wllvm-defconfig/net/ipv4/tcp_output.c

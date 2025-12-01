@@ -1,0 +1,5 @@
+SOURCE_FILE=io_uring/net.c
+FUNCTION_NAME=io_recv_finish
+SOURCE_OP="icmp"
+CONSTANT_VALUE=32
+OCCURENCE=1

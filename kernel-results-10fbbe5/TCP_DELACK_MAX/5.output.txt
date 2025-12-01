@@ -1,0 +1,29 @@
+=== Taint Tracker Configuration ===
+Function: tcp_disconnect
+Opcode: store
+Constant: 200
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 2 (of constant 200)
+
+[SOURCE] Tainting:   store i32 200, ptr %147, align 8, <net/ipv4/tcp.c:3343:24> FUNC=tcp_disconnect L=0
+[USE] Source instruction in data flow <net/ipv4/tcp.c:3343:24> FUNC=tcp_disconnect L=0
+[STORE DESTINATION] Storing constant to:   %147 = getelementptr inbounds nuw i8, ptr %0, i64 1176, <net/ipv4/tcp.c:3343:24> FUNC=tcp_disconnect L=0
+[POINTER PARAMETER] Constant stored through pointer parameter <net/ipv4/tcp.c:3343:24> FUNC=tcp_disconnect L=0
+[NO USE] No uses of:   store i32 200, ptr %147, align 8,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 1
+
+Earliest instruction with L=0:
+    store i32 200, ptr %147, align 8, <net/ipv4/tcp.c:3343:24> FUNC=tcp_disconnect L=0
+
+(Earliest and latest are the same instruction)
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/ipv4/tcp.ll
+../linux-wllvm-defconfig/net/ipv4/tcp.c

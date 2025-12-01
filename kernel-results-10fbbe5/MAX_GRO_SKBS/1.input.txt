@@ -1,0 +1,5 @@
+SOURCE_FILE=net/core/gro.c
+FUNCTION_NAME=dev_gro_receive
+SOURCE_OP="icmp"
+CONSTANT_VALUE=7
+OCCURENCE=1

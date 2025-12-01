@@ -1,0 +1,5 @@
+SOURCE_FILE=net/ipv4/tcp.c
+FUNCTION_NAME=tcp_init_sock
+SOURCE_OP="store"
+CONSTANT_VALUE=200
+OCCURENCE=1

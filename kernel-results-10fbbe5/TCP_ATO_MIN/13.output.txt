@@ -1,0 +1,46 @@
+=== Taint Tracker Configuration ===
+Function: tcp_delack_timer_handler
+Opcode: or
+Constant: 40
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 40)
+
+[SOURCE] Tainting:   %53 = or disjoint i32 %52, 40, <net/ipv4/tcp_timer.c:340:28> FUNC=tcp_delack_timer_handler L=0
+[USE] Source instruction in data flow <net/ipv4/tcp_timer.c:340:28> FUNC=tcp_delack_timer_handler L=0
+[USE] Processing uses of:   %53 = or disjoint i32 %52, 40,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter <net/ipv4/tcp_timer.c:340:28>
+[UPWARD-INTERPROC] Call to tcp_delack_timer_handler taints argument 0 (pointer parameter) <net/ipv4/tcp_timer.c:374:3> FUNC=tcp_delack_timer L=1
+  [STORE DESTINATION] Marking pointer as tainted via call: ptr %0 FUNC=tcp_delack_timer L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %4 = load volatile i8, ptr %3, align 8, (base: ptr %0)  <net/ipv4/tcp_timer.c:368:8> FUNC=tcp_delack_timer L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %9 = load volatile i8, ptr %8, align 8, (base: ptr %0)  <net/ipv4/tcp_timer.c:369:7> FUNC=tcp_delack_timer L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %14 = load i32, ptr %13, align 4, (base: ptr %0)  <./include/net/sock.h:1725:21> FUNC=tcp_delack_timer L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %19 = load ptr, ptr %18, align 8, (base: ptr %0)  <./include/net/net_namespace.h:406:9> FUNC=tcp_delack_timer L=1
+  [USE] Taint flows to:   %20 = getelementptr inbounds nuw i8, ptr %19, i64 440, <net/ipv4/tcp_timer.c:376:3> FUNC=tcp_delack_timer L=1
+  [USE] Taint flows to:   %21 = load ptr, ptr %20, align 8, <net/ipv4/tcp_timer.c:376:3> FUNC=tcp_delack_timer L=1
+  [USE] Taint flows to:   %22 = getelementptr i8, ptr %21, i64 144, <net/ipv4/tcp_timer.c:376:3> FUNC=tcp_delack_timer L=1
+  [USE] Taint flows to:   tail call void asm "incq %gs:$0", "=*m,*m,~{dirflag},~{fpsr},~{flags}"(ptr elementtype(i64) %22, ptr elementtype(i64) %22) #264, <net/ipv4/tcp_timer.c:376:3> FUNC=tcp_delack_timer L=1
+  [USE] Taint flows to:   %15 = icmp eq i32 %14, 0, <./include/net/sock.h:1725:9> FUNC=tcp_delack_timer L=1
+  [USE] Taint flows to:   br i1 %15, label %16, label %17, <net/ipv4/tcp_timer.c:373:6> FUNC=tcp_delack_timer L=1
+  [USE] Taint flows to:   %10 = icmp eq i8 %9, 0, <net/ipv4/tcp_timer.c:369:7> FUNC=tcp_delack_timer L=1
+  [USE] Taint flows to:   br i1 %10, label %38, label %11, <net/ipv4/tcp_timer.c:368:68> FUNC=tcp_delack_timer L=1
+  [USE] Taint flows to:   %5 = and i8 %4, 2, <net/ipv4/tcp_timer.c:368:50> FUNC=tcp_delack_timer L=1
+  [USE] Taint flows to:   %6 = icmp eq i8 %5, 0, <net/ipv4/tcp_timer.c:368:50> FUNC=tcp_delack_timer L=1
+  [USE] Taint flows to:   br i1 %6, label %7, label %11, <net/ipv4/tcp_timer.c:368:68> FUNC=tcp_delack_timer L=1
+
+=== Maximum Level Statistics ===
+Largest L value: 1
+Number of instructions with L=1: 15
+
+Earliest instruction with L=1:
+    %4 = load volatile i8, ptr %3, align 8, <net/ipv4/tcp_timer.c:368:8> FUNC=tcp_delack_timer L=1
+
+Latest instruction with L=1:
+    tail call void asm "incq %gs:$0", "=*m,*m,~{dirflag},~{fpsr},~{flags}"(ptr elementtype(i64) %22, ptr elementtype(i64) %22) #264, <net/ipv4/tcp_timer.c:376:3> FUNC=tcp_delack_timer L=1
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/ipv4/tcp_timer.ll
+../linux-wllvm-defconfig/net/ipv4/tcp_timer.c
