@@ -174,8 +174,17 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
     }
 
     // Helper to get which pointer parameter a value derives from (returns parameter, or nullptr if not from param)
-    Argument* getPointerParameterOrigin(Value *V) {
+    Argument* getPointerParameterOrigin(Value *V, DenseSet<Value*> *Visited = nullptr) {
         if (!V) return nullptr;
+
+        // Track visited values to avoid infinite loops
+        DenseSet<Value*> LocalVisited;
+        if (!Visited) {
+            Visited = &LocalVisited;
+        }
+        if (!Visited->insert(V).second) {
+            return nullptr;  // Already visited
+        }
 
         // Strip pointer casts
         V = V->stripPointerCasts();
@@ -189,22 +198,30 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
 
         // If it's a GEP (struct field access), check the base pointer
         if (GetElementPtrInst *GEP = dyn_cast<GetElementPtrInst>(V)) {
-            return getPointerParameterOrigin(GEP->getPointerOperand());
+            return getPointerParameterOrigin(GEP->getPointerOperand(), Visited);
         }
 
         // If it's a load instruction, check what it loads from
         if (LoadInst *LI = dyn_cast<LoadInst>(V)) {
             Value *LoadPtr = LI->getPointerOperand()->stripPointerCasts();
-            // Check if we're loading from an alloca that stores a parameter
+            // Check if we're loading from an alloca that stores a parameter (or something derived from a parameter)
             if (AllocaInst *AI = dyn_cast<AllocaInst>(LoadPtr)) {
                 // Look for stores to this alloca
                 for (User *U : AI->users()) {
                     if (StoreInst *SI = dyn_cast<StoreInst>(U)) {
                         Value *StoredVal = SI->getValueOperand()->stripPointerCasts();
+
+                        // Direct parameter store
                         if (Argument *Arg = dyn_cast<Argument>(StoredVal)) {
                             if (Arg->getType()->isPointerTy()) {
                                 return Arg;
                             }
+                        }
+
+                        // Recursively check if the stored value derives from a parameter
+                        // This handles cases like: int *y = x; where x is a parameter
+                        if (Argument *Arg = getPointerParameterOrigin(StoredVal, Visited)) {
+                            return Arg;
                         }
                     }
                 }
