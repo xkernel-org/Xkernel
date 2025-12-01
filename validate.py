@@ -267,7 +267,7 @@ def common_checks(
         source_location = f"{source_file_path.name}:{line}"
         self.assertTrue(
             check_findme_in_results(results_file_path, source_location),
-            f"[{source_location}] not found in data flow"
+            f"[{source_location}] marked with FINDME not found in data flow"
         )
 
     dont_findme_line = extract_dont_findme_line_number(source_file_path)
@@ -275,7 +275,7 @@ def common_checks(
         source_location = f"{source_file_path.name}:{line}"
         self.assertTrue(
             check_dont_findme_in_results(results_file_path, source_location),
-            f"[{source_location}] found in data flow"
+            f"[{source_location}] marked with DONT FINDME found in data flow"
         )
 
     interproc_line = extract_interproc_line_number(source_file_path)
@@ -283,7 +283,7 @@ def common_checks(
         source_location = f"{source_file_path.name}:{line}"
         self.assertTrue(
             check_interproc_effects_in_results(results_file_path, source_location),
-            f"[{source_location}] not found in data flow"
+            f"[{source_location}] marked with INTERPROC not found in data flow with proper headers"
         )
 
     upward_interproc_line = extract_upward_interproc_line_number(source_file_path)
@@ -291,7 +291,7 @@ def common_checks(
         source_location = f"{source_file_path.name}:{line}"
         self.assertTrue(
             check_upward_interproc_effects_in_results(results_file_path, source_location),
-            f"[{source_location}] not found in data flow"
+            f"[{source_location}] marked with UPWARD-INTERPROC not found in data flow with proper headers"
         )
 
     external_line = extract_external_line_number(source_file_path)
@@ -299,7 +299,7 @@ def common_checks(
         source_location = f"{source_file_path.name}:{line}"
         self.assertTrue(
             check_external_effects_in_results(results_file_path, source_location),
-            f"[{source_location}] not found in data flow"
+            f"[{source_location}] marked with EXTERNAL not found in data flow with proper headers"
         )
 
     not_external_line = extract_not_external_line_number(source_file_path)
@@ -307,7 +307,7 @@ def common_checks(
         source_location = f"{source_file_path.name}:{line}"
         self.assertTrue(
             check_not_external_effects_in_results(results_file_path, source_location),
-            f"[{source_location}] found in data flow with non-external headers"
+            f"[{source_location}] marked with NOT EXTERNAL found in data flow with non-external headers"
         )
 
     func_name_and_levels = extract_func_name_and_level(source_file_path)
@@ -315,7 +315,7 @@ def common_checks(
         source_location = f"{source_file_path.name}:{line}"
         self.assertTrue(
             check_func_name_and_level_in_results(results_file_path, source_location, func_name, level),
-            f"[{source_location}] not found in data flow"
+            f"[{source_location}] doesn't have matching FUNC= or L="
         )
 
     if expect_external:
