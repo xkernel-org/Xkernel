@@ -73,3 +73,15 @@ fi
 
 echo ""
 echo "Extraction complete! Results saved in $OUTPUT_DIR/"
+
+if [[ -f skip-list.txt ]]; then
+    echo
+    echo "!! Skip the following cases by creating an empty output file:"
+    echo
+
+    for in_file in `cat skip-list.txt`; do
+        out_file="$(dirname $in_file)/$(basename $in_file .input.txt).output.txt"
+        echo $out_file
+        touch $out_file
+    done
+fi
