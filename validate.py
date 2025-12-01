@@ -32,6 +32,8 @@ known_headers = [
 
     'INTERPROC',
     'UPWARD-INTERPROC',
+
+    'POINTER PARAMETER INTRAPROC',
 ]
 
 propogation_headers = [
@@ -44,6 +46,7 @@ propogation_headers = [
     'GLOBAL',
     'POINTER PARAMETER',
     'RETURN',
+    'POINTER PARAMETER INTRAPROC',
 ]
 
 # Effect has propagated outside the original function, but we continue
@@ -419,6 +422,14 @@ class TestTaintTrackerResults(unittest.TestCase):
         source_file_path = Path(__file__).parent / "tests" / f"{name}.c"
 
         common_checks(self, True, True, False, results_file_path, source_file_path)
+
+    def test_3_child_param_other_pointers(self):
+
+        name = "3_child_param_other_pointers"
+        results_file_path = Path(__file__).parent / "tests" / f"{name}.results.txt"
+        source_file_path = Path(__file__).parent / "tests" / f"{name}.c"
+
+        common_checks(self, True, False, False, results_file_path, source_file_path)
 
     def test_3_child_extern(self):
 
