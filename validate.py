@@ -495,6 +495,22 @@ class TestTaintTrackerResults(unittest.TestCase):
 
         common_checks(self, False, True, False, results_file_path, source_file_path)
 
+    def test_6_this_param_more_indirect_struct1(self):
+
+        name = "6_this_param_more_indirect_struct1"
+        results_file_path = Path(__file__).parent / "tests" / f"{name}.results.txt"
+        source_file_path = Path(__file__).parent / "tests" / f"{name}.c"
+
+        common_checks(self, False, True, False, results_file_path, source_file_path)
+
+    def test_6_this_param_more_indirect_struct2(self):
+
+        name = "6_this_param_more_indirect_struct2"
+        results_file_path = Path(__file__).parent / "tests" / f"{name}.results.txt"
+        source_file_path = Path(__file__).parent / "tests" / f"{name}.c"
+
+        common_checks(self, False, True, False, results_file_path, source_file_path)
+
     def test_6_this_param_indirect(self):
 
         name = "6_this_param_indirect"
