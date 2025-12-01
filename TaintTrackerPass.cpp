@@ -731,6 +731,31 @@ found:
                                                 changed = true;
                                             }
                                         }
+                                    } else {
+                                        // Even without interproc mode, conservatively taint pointer parameters
+                                        // when a tainted value is passed to the function
+                                        for (unsigned i = 0; i < Call->arg_size(); ++i) {
+                                            Value *Arg = Call->getArgOperand(i);
+                                            // Check if this is a pointer argument (excluding the tainted argument itself)
+                                            if (i != argIdx && Arg->getType()->isPointerTy()) {
+                                                Value *ArgStripped = Arg->stripPointerCasts();
+                                                // If it's an alloca or GEP, mark as tainted
+                                                Value *PointedVar = nullptr;
+                                                if (AllocaInst *AI = dyn_cast<AllocaInst>(ArgStripped)) {
+                                                    PointedVar = AI;
+                                                } else if (GetElementPtrInst *GEP = dyn_cast<GetElementPtrInst>(ArgStripped)) {
+                                                    PointedVar = GEP->getPointerOperand()->stripPointerCasts();
+                                                }
+
+                                                if (PointedVar && TaintedPointers.insert(PointedVar).second) {
+                                                    errs() << "  [POINTER PARAMETER INTRAPROC] Conservatively marking pointer argument " << i
+                                                           << " as tainted: " << getValueName(PointedVar)
+                                                           << getDebugLoc(Call) << getFuncLevel(Call, ValueLevel, FunctionLevel) << "\n";
+                                                    PointerTaintOrigin[PointedVar] = Call;
+                                                    changed = true;
+                                                }
+                                            }
+                                        }
                                     }
                                 } else if (!Callee && IndirectCallMode && InterprocMode) {
                                     // Indirect call (function pointer) - try to resolve targets
@@ -888,9 +913,30 @@ found:
                                 // Only kill if this is not the original source store
                                 // (Check that this store itself is not tainted)
                                 if (!TaintedValues.count(Store)) {
-                                    KilledStores.insert(Store);
-                                    errs() << "[KILL] Store overwrites tainted pointer with non-tainted value: "
-                                           << getValueName(Store) /* << getDebugLoc(Store) */<< "\n";
+                                    // Also check that this store happens AFTER the taint origin
+                                    // If the taint origin exists and is in the same BB, only kill if after
+                                    bool isValidKill = true;
+                                    if (PointerTaintOrigin.count(Ptr)) {
+                                        Instruction *TaintOrigin = PointerTaintOrigin[Ptr];
+                                        if (Store->getParent() == TaintOrigin->getParent()) {
+                                            // Same BB - check order
+                                            bool foundOrigin = false;
+                                            for (Instruction &CheckI : *Store->getParent()) {
+                                                if (&CheckI == TaintOrigin) foundOrigin = true;
+                                                if (&CheckI == Store && !foundOrigin) {
+                                                    // Store is before taint origin - not a valid kill
+                                                    isValidKill = false;
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    if (isValidKill) {
+                                        KilledStores.insert(Store);
+                                        errs() << "[KILL] Store overwrites tainted pointer with non-tainted value: "
+                                               << getValueName(Store) /* << getDebugLoc(Store) */<< "\n";
+                                    }
                                 }
                             }
                         }
