@@ -2083,3 +2083,671 @@
 # SOURCE_OP="phi"
 # CONSTANT_VALUE=100
 # OCCURENCE=1
+
+### 68. XFS_ICOUNT_BATCH
+
+# # tail call void @percpu_counter_add_batch(ptr noundef nonnull %57, i64 noundef %49, i32 noundef 128) #10, !dbg !8305
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/xfs/xfs_trans.c
+# FUNCTION_NAME=xfs_trans_unreserve_and_mod_sb
+# SOURCE_OP="call"
+# CONSTANT_VALUE=128
+# OCCURENCE=1
+
+### 69. DEF_PRIORITY
+
+# # store i64 2049, ptr %14, align 8, !dbg !14247
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/xfs/xfs_icache.c
+# FUNCTION_NAME=xfs_inodegc_register_shrinker
+# SOURCE_OP="store"
+# CONSTANT_VALUE=2049
+# OCCURENCE=1
+
+# # %38 = phi i64 [ 0, %2 ], [ 0, %17 ], [ 0, %13 ], [ 0, %22 ], [ 4096, %26 ], !dbg !14273
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/xfs/xfs_icache.c
+# FUNCTION_NAME=xfs_inodegc_shrinker_count
+# SOURCE_OP="phi"
+# CONSTANT_VALUE=0
+# OCCURENCE=2
+
+# # store i8 12, ptr %27, align 4, !dbg !13374, !DIAssignID !13375
+# # Conclusion: []
+#
+# SOURCE_FILE=mm/vmscan.c
+# FUNCTION_NAME=kswapd
+# SOURCE_OP="store"
+# CONSTANT_VALUE=12
+# OCCURENCE=1
+
+# # %230 = icmp eq i8 %229, 10
+# # Conclusion: []
+#
+# SOURCE_FILE=mm/vmscan.c
+# FUNCTION_NAME=kswapd
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=10
+# OCCURENCE=1
+
+# # %270 = icmp slt i8 %269, 10, !dbg !13571
+# # Conclusion: []
+#
+# SOURCE_FILE=mm/vmscan.c
+# FUNCTION_NAME=kswapd
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=10
+# OCCURENCE=2
+
+# # %505 = icmp eq i8 %256, 12
+# # Conclusion: []
+#
+# SOURCE_FILE=mm/vmscan.c
+# FUNCTION_NAME=shrink_node
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=12
+# OCCURENCE=1
+
+# # %857 = icmp sgt i8 %856, 9, !dbg !15534
+# # Conclusion: []
+#
+# SOURCE_FILE=mm/vmscan.c
+# FUNCTION_NAME=shrink_node
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=9
+# OCCURENCE=1
+
+# # store i8 12, ptr %17, align 4, !dbg !21129, !DIAssignID !21143
+# # Conclusion: []
+#
+# SOURCE_FILE=mm/vmscan.c
+# FUNCTION_NAME=try_to_free_pages
+# SOURCE_OP="store"
+# CONSTANT_VALUE=12
+# OCCURENCE=1
+
+# # %163 = icmp slt i8 %162, 10, !dbg !21768
+# # Conclusion: []
+#
+# SOURCE_FILE=mm/vmscan.c
+# FUNCTION_NAME=do_try_to_free_pages
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=10
+# OCCURENCE=1
+
+# # store i8 12, ptr %7, align 4, !dbg !22101, !DIAssignID !22124
+# # Conclusion: []
+#
+# SOURCE_FILE=mm/vmscan.c
+# FUNCTION_NAME=shrink_all_memory
+# SOURCE_OP="store"
+# CONSTANT_VALUE=12
+# OCCURENCE=1
+
+### 70. BLK_PLUG_FLUSH_SIZE
+
+# # %44 = icmp ugt i32 %43, 131071, !dbg !18860
+# # Conclusion: []
+#
+# SOURCE_FILE=block/blk-mq.c
+# FUNCTION_NAME=blk_add_rq_to_plug
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=131071
+# OCCURENCE=1
+
+### 71. BOOST_GC_MULTIPLE
+
+# # %77 = mul i32 %56, 5
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/f2fs/gc.c
+# FUNCTION_NAME=do_garbage_collect
+# SOURCE_OP="mul"
+# CONSTANT_VALUE=5
+# OCCURENCE=1
+
+### 72. BTRFS_MAX_BIO_SECTORS
+
+# # %26 = shl i32 %25, 8, !dbg !7628
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/btrfs/direct-io.c
+# FUNCTION_NAME=btrfs_dio_iomap_begin
+# SOURCE_OP="shl"
+# CONSTANT_VALUE=8
+# OCCURENCE=1
+
+### 73. RBIO_CACHE_SIZE
+
+# # %58 = icmp sgt i32 %57, 1024, !dbg !10347
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/btrfs/raid56.c
+# FUNCTION_NAME=unlock_stripe
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=1024
+# OCCURENCE=1
+
+### 74. SEND_MAX_EXTENT_REFS
+
+# # %22 = icmp ugt i64 %5, 1024, !dbg !20518
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/btrfs/send.c
+# FUNCTION_NAME=check_extent_item
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=1024
+# OCCURENCE=1
+
+### 75. BTRFS_DELAYED_WRITEBACK
+
+# # %14 = icmp sgt i32 %13, 511, !dbg !9613
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/btrfs/delayed-inode.c
+# FUNCTION_NAME=btrfs_balance_delayed_items
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=511
+# OCCURENCE=1
+
+# # %53 = icmp slt i32 %50, 512
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/btrfs/delayed-inode.c
+# FUNCTION_NAME=btrfs_async_run_delayed_root
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=512
+# OCCURENCE=1
+
+### 76. BTRFS_DELAYED_BACKGROUND
+
+# # %35 = icmp slt i32 %34, 128, !dbg !8646
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/btrfs/delayed-inode.c
+# FUNCTION_NAME=btrfs_release_delayed_item
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=128
+# OCCURENCE=1
+
+# # %99 = icmp slt i32 %98, 128, !dbg !8923
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/btrfs/delayed-inode.c
+# FUNCTION_NAME=__btrfs_update_delayed_inode
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=128
+# OCCURENCE=1
+
+# # %132 = icmp slt i32 %131, 128, !dbg !8995
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/btrfs/delayed-inode.c
+# FUNCTION_NAME=__btrfs_update_delayed_inode
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=128
+# OCCURENCE=2
+
+# # %7 = icmp slt i32 %6, 128, !dbg !9602
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/btrfs/delayed-inode.c
+# FUNCTION_NAME=btrfs_balance_delayed_items
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=128
+# OCCURENCE=1
+
+# # %33 = icmp sgt i32 %32, 127, !dbg !9686
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/btrfs/delayed-inode.c
+# FUNCTION_NAME=btrfs_balance_delayed_items
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=127
+# OCCURENCE=1
+
+# # %44 = icmp sgt i32 %43, 127, !dbg !9706
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/btrfs/delayed-inode.c
+# FUNCTION_NAME=btrfs_balance_delayed_items
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=127
+# OCCURENCE=2
+
+# # %13 = icmp slt i32 %12, 64, !dbg !9774
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/btrfs/delayed-inode.c
+# FUNCTION_NAME=btrfs_async_run_delayed_root
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=64
+# OCCURENCE=1
+
+# # %46 = icmp slt i32 %45, 128, !dbg !12569
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/btrfs/delayed-inode.c
+# FUNCTION_NAME=__btrfs_kill_delayed_node
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=128
+# OCCURENCE=1
+
+# # %81 = icmp slt i32 %80, 128, !dbg !12644
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/btrfs/delayed-inode.c
+# FUNCTION_NAME=__btrfs_kill_delayed_node
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=128
+# OCCURENCE=2
+
+### 77. BTRFS_DELAYED_BATCH
+
+# # %36 = and i32 %31, 15
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/btrfs/delayed-inode.c
+# FUNCTION_NAME=btrfs_release_delayed_item
+# SOURCE_OP="and"
+# CONSTANT_VALUE=15
+# OCCURENCE=1
+
+# # %37 = icmp eq i32 %36, 15
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/btrfs/delayed-inode.c
+# FUNCTION_NAME=btrfs_release_delayed_item
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=15
+# OCCURENCE=1
+
+# # %100 = and i32 %95, 15
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/btrfs/delayed-inode.c
+# FUNCTION_NAME=__btrfs_update_delayed_inode
+# SOURCE_OP="and"
+# CONSTANT_VALUE=15
+# OCCURENCE=1
+
+# # %101 = icmp eq i32 %100, 15
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/btrfs/delayed-inode.c
+# FUNCTION_NAME=__btrfs_update_delayed_inode
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=15
+# OCCURENCE=1
+
+# # %133 = and i32 %128, 15
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/btrfs/delayed-inode.c
+# FUNCTION_NAME=__btrfs_update_delayed_inode
+# SOURCE_OP="and"
+# CONSTANT_VALUE=15
+# OCCURENCE=2
+
+# # %134 = icmp eq i32 %133, 15
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/btrfs/delayed-inode.c
+# FUNCTION_NAME=__btrfs_update_delayed_inode
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=15
+# OCCURENCE=2
+
+# # %28 = add i32 %17, 16
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/btrfs/delayed-inode.c
+# FUNCTION_NAME=btrfs_balance_delayed_items
+# SOURCE_OP="add"
+# CONSTANT_VALUE=16
+# OCCURENCE=1
+
+# # store i32 16, ptr %61, align 8, !dbg !9729
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/btrfs/delayed-inode.c
+# FUNCTION_NAME=btrfs_balance_delayed_items
+# SOURCE_OP="store"
+# CONSTANT_VALUE=16
+# OCCURENCE=1
+
+# # %47 = and i32 %42, 15
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/btrfs/delayed-inode.c
+# FUNCTION_NAME=__btrfs_kill_delayed_node
+# SOURCE_OP="and"
+# CONSTANT_VALUE=15
+# OCCURENCE=1
+
+# # %48 = icmp eq i32 %47, 15
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/btrfs/delayed-inode.c
+# FUNCTION_NAME=__btrfs_kill_delayed_node
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=15
+# OCCURENCE=1
+
+# # %82 = and i32 %77, 15
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/btrfs/delayed-inode.c
+# FUNCTION_NAME=__btrfs_kill_delayed_node
+# SOURCE_OP="and"
+# CONSTANT_VALUE=15
+# OCCURENCE=2
+
+# # %83 = icmp eq i32 %82, 15
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/btrfs/delayed-inode.c
+# FUNCTION_NAME=__btrfs_kill_delayed_node
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=15
+# OCCURENCE=2
+
+### 78. BTRFS_DEFRAG_BATCH
+
+# # %130 = call i32 @btrfs_defrag_file(ptr noundef %99, ptr noundef nonnull %3, ptr noundef nonnull %2, i64 noundef %129, i64 noundef 1024) #16, !dbg !7255
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/btrfs/defrag.c
+# FUNCTION_NAME=btrfs_run_defrag_inodes
+# SOURCE_OP="call"
+# CONSTANT_VALUE=1024
+# OCCURENCE=1
+
+### 79. RC_EXPIRE
+
+# # %6 = add i64 %5, -120000, !dbg !12695
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/nfsd/nfscache.c
+# FUNCTION_NAME=nfsd_prune_bucket_locked
+# SOURCE_OP="add"
+# CONSTANT_VALUE=-120000
+# OCCURENCE=1
+
+### 80. NFSD_LAUNDRETTE_DELAY
+
+# # %69 = tail call zeroext i1 @queue_delayed_work_on(i32 noundef 64, ptr noundef %68, ptr noundef nonnull @nfsd_filecache_laundrette, i64 noundef 2000) #14, !dbg !13190
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/nfsd/filecache.c
+# FUNCTION_NAME=nfsd_file_put
+# SOURCE_OP="call"
+# CONSTANT_VALUE=64
+# OCCURENCE=1
+
+# # %139 = call zeroext i1 @queue_delayed_work_on(i32 noundef 64, ptr noundef %138, ptr noundef nonnull @nfsd_filecache_laundrette, i64 noundef 2000) #14, !dbg !15890
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/nfsd/filecache.c
+# FUNCTION_NAME=nfsd_file_gc_worker
+# SOURCE_OP="call"
+# CONSTANT_VALUE=64
+# OCCURENCE=1
+
+### 81. MAX_MKSPC_RETRIES
+
+# # %37 = icmp eq i32 %36, 4, !dbg !6899
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/ubifs/budget.c
+# FUNCTION_NAME=make_free_space
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=4
+# OCCURENCE=1
+
+### 82. NR_TO_WRITE
+
+# # tail call void @writeback_inodes_sb_nr(ptr noundef %16, i64 noundef 16, i32 noundef 5) #6, !dbg !6852
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/ubifs/budget.c
+# FUNCTION_NAME=make_free_space
+# SOURCE_OP="call"
+# CONSTANT_VALUE=16
+# OCCURENCE=1
+
+### 83. NFS4_POLL_RETRY_MIN
+
+# # %36 = select i1 %34, i64 100, i64 %35, !dbg !19718
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/nfs/nfs4proc.c
+# FUNCTION_NAME=nfs4_handle_exception
+# SOURCE_OP="select"
+# CONSTANT_VALUE=100
+# OCCURENCE=1
+
+# # %50 = select i1 %48, i64 100, i64 %49, !dbg !19780
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/nfs/nfs4proc.c
+# FUNCTION_NAME=nfs4_handle_exception
+# SOURCE_OP="select"
+# CONSTANT_VALUE=100
+# OCCURENCE=2
+
+# # %29 = select i1 %27, i64 100, i64 %28, !dbg !21012
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/nfs/nfs4proc.c
+# FUNCTION_NAME=nfs4_async_handle_exception
+# SOURCE_OP="select"
+# CONSTANT_VALUE=100
+# OCCURENCE=1
+
+# # tail call void @rpc_delay(ptr noundef %0, i64 noundef 100) #20, !dbg !40040
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/nfs/nfs4proc.c
+# FUNCTION_NAME=nfs4_get_lease_time_done
+# SOURCE_OP="call"
+# CONSTANT_VALUE=100
+# OCCURENCE=1
+
+# # %124 = select i1 %121, i64 200, i64 %123, !dbg !40690
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/nfs/nfs4proc.c
+# FUNCTION_NAME=nfs4_proc_layoutget
+# SOURCE_OP="select"
+# CONSTANT_VALUE=200
+# OCCURENCE=1
+
+### 84. NFS4_POLL_RETRY_MAX
+
+# # tail call void @rpc_delay(ptr noundef %0, i64 noundef 15000) #20, !dbg !17785
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/nfs/nfs4proc.c
+# FUNCTION_NAME=nfs41_sequence_call_done
+# SOURCE_OP="call"
+# CONSTANT_VALUE=15000
+# OCCURENCE=1
+
+# # tail call void @rpc_delay(ptr noundef %0, i64 noundef 15000) #20, !dbg !18039
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/nfs/nfs4proc.c
+# FUNCTION_NAME=nfs41_sequence_process
+# SOURCE_OP="call"
+# CONSTANT_VALUE=15000
+# OCCURENCE=1
+
+# # %35 = tail call i64 @llvm.umin.i64(i64 %33, i64 15000), !dbg !19718
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/nfs/nfs4proc.c
+# FUNCTION_NAME=nfs4_handle_exception
+# SOURCE_OP="call"
+# CONSTANT_VALUE=15000
+# OCCURENCE=1
+
+# # %49 = tail call i64 @llvm.umin.i64(i64 %47, i64 15000), !dbg !19780
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/nfs/nfs4proc.c
+# FUNCTION_NAME=nfs4_handle_exception
+# SOURCE_OP="call"
+# CONSTANT_VALUE=15000
+# OCCURENCE=2
+
+# # %28 = tail call i64 @llvm.umin.i64(i64 %26, i64 15000), !dbg !21012
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/nfs/nfs4proc.c
+# FUNCTION_NAME=nfs4_async_handle_exception
+# SOURCE_OP="call"
+# CONSTANT_VALUE=15000
+# OCCURENCE=1
+
+# # tail call void @rpc_delay(ptr noundef %0, i64 noundef 15000) #20, !dbg !24786
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/nfs/nfs4proc.c
+# FUNCTION_NAME=nfs4_reclaim_complete_done
+# SOURCE_OP="call"
+# CONSTANT_VALUE=15000
+# OCCURENCE=1
+
+# # %122 = call i64 @llvm.umin.i64(i64 %120, i64 15000), !dbg !40690
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/nfs/nfs4proc.c
+# FUNCTION_NAME=nfs4_proc_layoutget
+# SOURCE_OP="call"
+# CONSTANT_VALUE=15000
+# OCCURENCE=1
+
+### 85. SOFT_LEBS_LIMIT
+
+# # %47 = icmp samesign ugt i32 %45, 4, !dbg !7578
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/ubifs/gc.c
+# FUNCTION_NAME=ubifs_garbage_collect
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=4
+# OCCURENCE=1
+
+# # %92 = icmp samesign ult i32 %45, 4, !dbg !7642
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/ubifs/gc.c
+# FUNCTION_NAME=ubifs_garbage_collect
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=4
+# OCCURENCE=2
+
+### 86. HARD_LEBS_LIMIT
+
+# # %52 = icmp samesign ugt i32 %45, 32, !dbg !7585
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/ubifs/gc.c
+# FUNCTION_NAME=ubifs_garbage_collect
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=32
+# OCCURENCE=1
+
+### 87. DEF_RECLAIM_PREFREE_SEGMENTS
+
+# # %32 = mul i32 %27, 5, !dbg !24812
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/f2fs/segment.c
+# FUNCTION_NAME=f2fs_build_segment_manager
+# SOURCE_OP="mul"
+# CONSTANT_VALUE=5
+# OCCURENCE=1
+
+### 88. DEF_MAX_RECLAIM_PREFREE_SEGMENTS
+
+# # %35 = icmp ugt i32 %32, 409699, !dbg !24815
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/f2fs/segment.c
+# FUNCTION_NAME=f2fs_build_segment_manager
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=409699
+# OCCURENCE=1
+
+# # %36 = select i1 %35, i32 4096, i32 %33, !dbg !24815
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/f2fs/segment.c
+# FUNCTION_NAME=f2fs_build_segment_manager
+# SOURCE_OP="select"
+# CONSTANT_VALUE=4096
+# OCCURENCE=1
+
+### 89. MAX_SKIP_GC_COUNT
+
+# # %255 = icmp ult i32 %253, 17, !dbg !8825
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/f2fs/gc.c
+# FUNCTION_NAME=f2fs_gc
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=17
+# OCCURENCE=1
+
+### 90. MAX_RA_NODE
+
+# # tail call fastcc void @f2fs_ra_node_pages(ptr noundef nonnull %2, i32 noundef %28, i32 noundef 128) #18, !dbg !13609
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/f2fs/node.c
+# FUNCTION_NAME=__get_node_page
+# SOURCE_OP="call"
+# CONSTANT_VALUE=128
+# OCCURENCE=1
+
+### 91. MAX_VMAP_RETRIES
+
+# TODO
+
+### 92. DEF_GC_THREAD_URGENT_SLEEP_TIME
+
+# # store i32 500, ptr %11, align 8, !dbg !6940
+# # Conclusion: []
+#
+# SOURCE_FILE=fs/f2fs/gc.c
+# FUNCTION_NAME=f2fs_start_gc_thread
+# SOURCE_OP="store"
+# CONSTANT_VALUE=500
+# OCCURENCE=1
+
+### 93. MAX_SOFTIRQ_TIME
+
+# # %108 = add i64 %107, -2, !dbg !10335
+# # Conclusion: []
+#
+# SOURCE_FILE=kernel/softirq.c
+# FUNCTION_NAME=handle_softirqs
+# SOURCE_OP="add"
+# CONSTANT_VALUE=-2
+# OCCURENCE=1
+
+### Try KLP bad case
+
+# %278 = icmp sgt i32 %262, 15, !dbg !17195
+# Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp.c
+# FUNCTION_NAME=tcp_sendmsg_locked
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=15
+# OCCURENCE=1

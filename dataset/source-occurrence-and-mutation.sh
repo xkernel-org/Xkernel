@@ -519,3 +519,164 @@ SED_PATTERN='s|\#define AMT_INIT_REQ_TIMEOUT	1|\#define AMT_INIT_REQ_TIMEOUT	10|
 # SOURCE_FILE=fs/xfs/xfs_discard.c
 # DEFINITION_SOURCE_FILE=fs/xfs/xfs_discard.c
 # SED_PATTERN='s|\#define XFS_DISCARD_MAX_EXAMINE	(100)|\#define XFS_DISCARD_MAX_EXAMINE	(99)|'
+
+### 68. XFS_ICOUNT_BATCH
+
+# SOURCE_FILE=fs/xfs/xfs_trans.c
+# DEFINITION_SOURCE_FILE=fs/xfs/xfs_trans.c
+# SED_PATTERN='s|\#define XFS_ICOUNT_BATCH	128|\#define XFS_ICOUNT_BATCH	64|'
+
+### 69. DEF_PRIORITY
+
+# SOURCE_FILE=fs/xfs/xfs_icache.c
+# DEFINITION_SOURCE_FILE=include/linux/mmzone.h
+# SED_PATTERN='s|\#define DEF_PRIORITY 12|\#define DEF_PRIORITY 11|'
+
+# SOURCE_FILE=mm/vmscan.c
+# DEFINITION_SOURCE_FILE=include/linux/mmzone.h
+# SED_PATTERN='s|\#define DEF_PRIORITY 12|\#define DEF_PRIORITY 11|'
+
+### 70. BLK_PLUG_FLUSH_SIZE
+
+# SOURCE_FILE=block/blk-mq.c
+# DEFINITION_SOURCE_FILE=block/blk.h
+# SED_PATTERN='s|\#define BLK_PLUG_FLUSH_SIZE	(128 \* 1024)|\#define BLK_PLUG_FLUSH_SIZE	(64 \* 1024)|'
+
+### 71. BOOST_GC_MULTIPLE
+
+# SOURCE_FILE=fs/f2fs/gc.c
+# DEFINITION_SOURCE_FILE=fs/f2fs/gc.h
+# SED_PATTERN='s|\#define BOOST_GC_MULTIPLE	5|\#define BOOST_GC_MULTIPLE	4|'
+
+### 72. BTRFS_MAX_BIO_SECTORS
+
+# SOURCE_FILE=fs/btrfs/direct-io.c
+# DEFINITION_SOURCE_FILE=fs/btrfs/bio.h
+# SED_PATTERN='s|\#define BTRFS_MAX_BIO_SECTORS		(256)|\#define BTRFS_MAX_BIO_SECTORS		(128)|'
+
+### 73. RBIO_CACHE_SIZE
+
+# SOURCE_FILE=fs/btrfs/raid56.c
+# DEFINITION_SOURCE_FILE=fs/btrfs/raid56.c
+# SED_PATTERN='s|\#define RBIO_CACHE_SIZE 1024|\#define RBIO_CACHE_SIZE 512|'
+
+### 74. SEND_MAX_EXTENT_REFS
+
+# SOURCE_FILE=fs/btrfs/send.c
+# DEFINITION_SOURCE_FILE=fs/btrfs/send.c
+# SED_PATTERN='s|\#define SEND_MAX_EXTENT_REFS	1024|\#define SEND_MAX_EXTENT_REFS	512|'
+
+### 75. BTRFS_DELAYED_WRITEBACK
+
+# SOURCE_FILE=fs/btrfs/delayed-inode.c
+# DEFINITION_SOURCE_FILE=fs/btrfs/delayed-inode.c
+# SED_PATTERN='s|\#define BTRFS_DELAYED_WRITEBACK		512|\#define BTRFS_DELAYED_WRITEBACK		256|'
+
+### 76. BTRFS_DELAYED_BACKGROUND
+
+# SOURCE_FILE=fs/btrfs/delayed-inode.c
+# DEFINITION_SOURCE_FILE=fs/btrfs/delayed-inode.c
+# SED_PATTERN='s|\#define BTRFS_DELAYED_BACKGROUND	128|\#define BTRFS_DELAYED_BACKGROUND	64|'
+
+### 77. BTRFS_DELAYED_BATCH
+
+# SOURCE_FILE=fs/btrfs/delayed-inode.c
+# DEFINITION_SOURCE_FILE=fs/btrfs/delayed-inode.c
+# SED_PATTERN='s|\#define BTRFS_DELAYED_BATCH		16|\#define BTRFS_DELAYED_BATCH		8|'
+
+### 78. BTRFS_DEFRAG_BATCH
+
+# SOURCE_FILE=fs/btrfs/defrag.c
+# DEFINITION_SOURCE_FILE=fs/btrfs/defrag.c
+# SED_PATTERN='s|\#define BTRFS_DEFRAG_BATCH	1024|\#define BTRFS_DEFRAG_BATCH	512|'
+
+### 79. RC_EXPIRE
+
+# SOURCE_FILE=fs/nfsd/nfscache.c
+# DEFINITION_SOURCE_FILE=fs/nfsd/cache.h
+# SED_PATTERN='s|\#define RC_EXPIRE		(120 \* HZ)|\#define RC_EXPIRE		(60 \* HZ)|'
+
+### 80. NFSD_LAUNDRETTE_DELAY
+
+# SOURCE_FILE=fs/nfsd/filecache.c
+# DEFINITION_SOURCE_FILE=fs/nfsd/filecache.c
+# SED_PATTERN='s|\#define NFSD_LAUNDRETTE_DELAY		     (2 \* HZ)|\#define NFSD_LAUNDRETTE_DELAY		     (1 \* HZ)|'
+
+### 81. MAX_MKSPC_RETRIES
+
+# SOURCE_FILE=fs/ubifs/budget.c
+# DEFINITION_SOURCE_FILE=fs/ubifs/budget.c
+# SED_PATTERN='s|\#define MAX_MKSPC_RETRIES 3|\#define MAX_MKSPC_RETRIES 2|'
+
+### 82. NR_TO_WRITE
+
+# SOURCE_FILE=fs/ubifs/budget.c
+# DEFINITION_SOURCE_FILE=fs/ubifs/budget.c
+# SED_PATTERN='s|\#define NR_TO_WRITE 16|\#define NR_TO_WRITE 8|'
+
+### 83. NFS4_POLL_RETRY_MIN
+
+# SOURCE_FILE=fs/nfs/nfs4proc.c
+# DEFINITION_SOURCE_FILE=fs/nfs/nfs4proc.c
+# SED_PATTERN='s|\#define NFS4_POLL_RETRY_MIN	(HZ/10)|\#define NFS4_POLL_RETRY_MIN	(HZ/20)|'
+
+### 84. NFS4_POLL_RETRY_MAX
+
+# SOURCE_FILE=fs/nfs/nfs4proc.c
+# DEFINITION_SOURCE_FILE=fs/nfs/nfs4proc.c
+# SED_PATTERN='s|\#define NFS4_POLL_RETRY_MAX	(15\*HZ)|\#define NFS4_POLL_RETRY_MAX	(10\*HZ)|'
+
+### 85. SOFT_LEBS_LIMIT
+
+# SOURCE_FILE=fs/ubifs/gc.c
+# DEFINITION_SOURCE_FILE=fs/ubifs/gc.c
+# SED_PATTERN='s|\#define SOFT_LEBS_LIMIT 4|\#define SOFT_LEBS_LIMIT 2|'
+
+### 86. HARD_LEBS_LIMIT
+
+# SOURCE_FILE=fs/ubifs/gc.c
+# DEFINITION_SOURCE_FILE=fs/ubifs/gc.c
+# SED_PATTERN='s|\#define HARD_LEBS_LIMIT 32|\#define HARD_LEBS_LIMIT 16|'
+
+### 87. DEF_RECLAIM_PREFREE_SEGMENTS
+
+# SOURCE_FILE=fs/f2fs/segment.c
+# DEFINITION_SOURCE_FILE=fs/f2fs/segment.h
+# SED_PATTERN='s|\#define DEF_RECLAIM_PREFREE_SEGMENTS	5|\#define DEF_RECLAIM_PREFREE_SEGMENTS	4|'
+
+### 88. DEF_MAX_RECLAIM_PREFREE_SEGMENTS
+
+# SOURCE_FILE=fs/f2fs/segment.c
+# DEFINITION_SOURCE_FILE=fs/f2fs/segment.h
+# SED_PATTERN='s|\#define DEF_MAX_RECLAIM_PREFREE_SEGMENTS	4096|\#define DEF_MAX_RECLAIM_PREFREE_SEGMENTS	2048|'
+
+### 89. MAX_SKIP_GC_COUNT
+
+# SOURCE_FILE=fs/f2fs/gc.c
+# DEFINITION_SOURCE_FILE=fs/f2fs/segment.h
+# SED_PATTERN='s|\#define MAX_SKIP_GC_COUNT			16|\#define MAX_SKIP_GC_COUNT			8|'
+
+### 90. MAX_RA_NODE
+
+# SOURCE_FILE=fs/f2fs/node.c
+# DEFINITION_SOURCE_FILE=fs/f2fs/node.h
+# SED_PATTERN='s|\#define MAX_RA_NODE		128|\#define MAX_RA_NODE		64|'
+
+### 91. MAX_VMAP_RETRIES
+
+# TODO huge diff
+# SOURCE_FILE=fs/f2fs/compress.c
+# DEFINITION_SOURCE_FILE=fs/f2fs/compress.c
+# SED_PATTERN='s|\#define MAX_VMAP_RETRIES	3|\#define MAX_VMAP_RETRIES	5|'
+
+### 92. DEF_GC_THREAD_URGENT_SLEEP_TIME
+
+# SOURCE_FILE=fs/f2fs/gc.c
+# DEFINITION_SOURCE_FILE=fs/f2fs/gc.h
+# SED_PATTERN='s|\#define DEF_GC_THREAD_URGENT_SLEEP_TIME	500|\#define DEF_GC_THREAD_URGENT_SLEEP_TIME	499|'
+
+### 93. MAX_SOFTIRQ_TIME
+
+# SOURCE_FILE=kernel/softirq.c
+# DEFINITION_SOURCE_FILE=kernel/softirq.c
+# SED_PATTERN='s|\#define MAX_SOFTIRQ_TIME  msecs_to_jiffies(2)|\#define MAX_SOFTIRQ_TIME  msecs_to_jiffies(3)|'
