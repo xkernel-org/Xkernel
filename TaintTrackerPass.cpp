@@ -173,6 +173,63 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
         return false;
     }
 
+    // Helper to extract struct field indices from a GEP chain
+    // Returns the field indices accessed (e.g., for s->x->y, returns [field_x, field_y])
+    SmallVector<int64_t, 4> extractStructFieldIndices(Value *V, DenseSet<Value*> *Visited = nullptr, bool Debug = false) {
+        SmallVector<int64_t, 4> indices;
+        if (!V) return indices;
+
+        DenseSet<Value*> LocalVisited;
+        if (!Visited) {
+            Visited = &LocalVisited;
+        }
+        if (!Visited->insert(V).second) {
+            return indices;  // Already visited
+        }
+
+        // Don't strip pointer casts - we need to preserve GEPs for field index extraction
+        // V = V->stripPointerCasts();
+
+        // If it's a GEP, extract the field index
+        if (GetElementPtrInst *GEP = dyn_cast<GetElementPtrInst>(V)) {
+            // First recurse on the base to get its indices
+            indices = extractStructFieldIndices(GEP->getPointerOperand(), Visited, Debug);
+
+            // Then add this GEP's field index (last index for struct field access)
+            if (GEP->getNumIndices() >= 2) {
+                // For struct access, the last index is the field
+                auto IdxIter = GEP->idx_begin();
+                std::advance(IdxIter, GEP->getNumIndices() - 1);
+                if (ConstantInt *CI = dyn_cast<ConstantInt>(&**IdxIter)) {
+                    indices.push_back(CI->getSExtValue());
+                }
+            }
+        }
+        // If it's a load, check what we're loading from
+        else if (LoadInst *LI = dyn_cast<LoadInst>(V)) {
+            // Don't strip pointer casts here because we need to preserve GEPs to extract field indices
+            Value *LoadPtr = LI->getPointerOperand();
+            if (AllocaInst *AI = dyn_cast<AllocaInst>(LoadPtr)) {
+                // Look for stores to this alloca
+                for (User *U : AI->users()) {
+                    if (StoreInst *SI = dyn_cast<StoreInst>(U)) {
+                        Value *StoredVal = SI->getValueOperand()->stripPointerCasts();
+                        auto storedIndices = extractStructFieldIndices(StoredVal, Visited, Debug);
+                        if (!storedIndices.empty()) {
+                            return storedIndices;
+                        }
+                    }
+                }
+                // If no stored values had indices, return empty
+                return indices;
+            } else {
+                return extractStructFieldIndices(LoadPtr, Visited, Debug);
+            }
+        }
+
+        return indices;
+    }
+
     // Helper to get which pointer parameter a value derives from (returns parameter, or nullptr if not from param)
     Argument* getPointerParameterOrigin(Value *V, DenseSet<Value*> *Visited = nullptr) {
         if (!V) return nullptr;
@@ -204,6 +261,7 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
         // If it's a load instruction, check what it loads from
         if (LoadInst *LI = dyn_cast<LoadInst>(V)) {
             Value *LoadPtr = LI->getPointerOperand()->stripPointerCasts();
+
             // Check if we're loading from an alloca that stores a parameter (or something derived from a parameter)
             if (AllocaInst *AI = dyn_cast<AllocaInst>(LoadPtr)) {
                 // Look for stores to this alloca
@@ -225,6 +283,12 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
                         }
                     }
                 }
+            }
+            // Also check if we're loading from a pointer that itself derives from a parameter
+            // This handles: int *y = s->x; where s is a parameter
+            // LoadPtr could be a GEP on a parameter, so recursively check it
+            else if (Argument *Arg = getPointerParameterOrigin(LoadPtr, Visited)) {
+                return Arg;
             }
         }
 
@@ -308,6 +372,7 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
                               DenseSet<Value*>& TaintedPointers,
                               DenseMap<Value*, Instruction*>& PointerTaintOrigin,
                               DenseMap<Function*, DenseSet<unsigned>>& FunctionsTaintingPointerParams,
+                              DenseMap<Function*, DenseMap<unsigned, SmallVector<int64_t, 4>>>& FunctionParamFieldAccess,
                               DenseMap<Value*, int>& ValueLevel,
                               DenseMap<Function*, int>& FunctionLevel) {
         if (Store->getValueOperand() != V) return false;
@@ -323,18 +388,29 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
                    << getFuncLevel(Store, ValueLevel, FunctionLevel) << "\n";
         }
 
-        // Check for pointer parameter tainting
-        if (Argument *PtrParam = getPointerParameterOrigin(Store->getPointerOperand())) {
-            Function *ContainingFunc = Store->getFunction();
-            if (ContainingFunc) {
-                unsigned ParamIdx = PtrParam->getArgNo();
-                errs() << "  [POINTER PARAMETER] Tainted value stored through pointer parameter"
-                       << getDebugLoc(Store) << getFuncLevel(Store, ValueLevel, FunctionLevel) << "\n";
-                if (FunctionsTaintingPointerParams[ContainingFunc].insert(ParamIdx).second) {
-                    discoveredNew = true;
-                }
-            }
-        }
+                        // Check for pointer parameter tainting
+                        if (Argument *PtrParam = getPointerParameterOrigin(Store->getPointerOperand())) {
+                            Function *ContainingFunc = Store->getFunction();
+                            if (ContainingFunc) {
+                                unsigned ParamIdx = PtrParam->getArgNo();
+                                errs() << "  [POINTER PARAMETER] Tainted value stored through pointer parameter"
+                                       << getDebugLoc(Store) << getFuncLevel(Store, ValueLevel, FunctionLevel) << "\n";
+                                if (FunctionsTaintingPointerParams[ContainingFunc].insert(ParamIdx).second) {
+                                    discoveredNew = true;
+                                }
+                                // Track which struct fields are accessed
+                                SmallVector<int64_t, 4> fieldIndices = extractStructFieldIndices(Store->getPointerOperand(), nullptr, false);
+                                if (!fieldIndices.empty()) {
+                                    DenseMap<unsigned, SmallVector<int64_t, 4>> &funcMap = FunctionParamFieldAccess[ContainingFunc];
+                                    SmallVector<int64_t, 4> &existingIndices = funcMap[ParamIdx];
+                                    for (int64_t idx : fieldIndices) {
+                                        if (std::find(existingIndices.begin(), existingIndices.end(), idx) == existingIndices.end()) {
+                                            existingIndices.push_back(idx);
+                                        }
+                                    }
+                                }
+                            }
+                        }
 
         return discoveredNew;
     }
@@ -463,6 +539,9 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
 
         // Map from Function to set of parameter indices that receive tainted values via pointer stores
         DenseMap<Function*, DenseSet<unsigned>> FunctionsTaintingPointerParams;
+
+        // Map from Function to map of parameter index to struct field indices accessed
+        DenseMap<Function*, DenseMap<unsigned, SmallVector<int64_t, 4>>> FunctionParamFieldAccess;
 
         // Map from function pointer (alloca or global) to set of possible function targets
         DenseMap<Value*, SmallVector<Function*, 4>> FunctionPointerTargets;
@@ -604,9 +683,29 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
                                                 if (ContainingFunc) {
                                                     unsigned ParamIdx = PtrParam->getArgNo();
                                                     FunctionsTaintingPointerParams[ContainingFunc].insert(ParamIdx);
+                                                    // Track which struct fields are accessed
+                                                    SmallVector<int64_t, 4> fieldIndices = extractStructFieldIndices(Store->getPointerOperand(), nullptr, false);
+                                                    if (!fieldIndices.empty()) {
+                                                        DenseMap<unsigned, SmallVector<int64_t, 4>> &funcMap = FunctionParamFieldAccess[ContainingFunc];
+                                                        SmallVector<int64_t, 4> &existingIndices = funcMap[ParamIdx];
+                                                        for (int64_t idx : fieldIndices) {
+                                                            if (std::find(existingIndices.begin(), existingIndices.end(), idx) == existingIndices.end()) {
+                                                                existingIndices.push_back(idx);
+                                                            }
+                                                        }
+                                                    }
                                                     if (Verbose) {
                                                         errs() << "  Tracking: Function " << ContainingFunc->getName()
-                                                               << " taints parameter " << ParamIdx << "\n";
+                                                               << " taints parameter " << ParamIdx;
+                                                        if (!fieldIndices.empty()) {
+                                                            errs() << " fields [";
+                                                            for (size_t i = 0; i < fieldIndices.size(); ++i) {
+                                                                if (i > 0) errs() << ", ";
+                                                                errs() << fieldIndices[i];
+                                                            }
+                                                            errs() << "]";
+                                                        }
+                                                        errs() << "\n";
                                                     }
                                                 }
                                             } else {
@@ -1138,6 +1237,62 @@ found:
                                                     errs() << "  [STORE DESTINATION] Marking pointer as tainted via call: "
                                                            << getValueName(PointedVar) << getFuncLevel(Call, ValueLevel, FunctionLevel) << "\n";
                                                     PointerTaintOrigin[PointedVar] = Call;
+
+                                                    // If this is a struct, also check for pointers stored in its fields
+                                                    // This handles cases like: struct S {int *x;}; foo(&s); where foo taints through s->x
+                                                    if (AllocaInst *AI = dyn_cast<AllocaInst>(PointedVar)) {
+                                                        Type *AllocatedType = AI->getAllocatedType();
+                                                        if (AllocatedType->isStructTy()) {
+                                                            // Get the field indices that were accessed in the callee
+                                                            SmallVector<int64_t, 4> accessedFields;
+                                                            auto funcIt = FunctionParamFieldAccess.find(TaintedFunc);
+                                                            if (funcIt != FunctionParamFieldAccess.end()) {
+                                                                auto paramIt = funcIt->second.find(ParamIdx);
+                                                                if (paramIt != funcIt->second.end()) {
+                                                                    accessedFields = paramIt->second;
+                                                                }
+                                                            }
+
+                                                            // Scan for GEPs on this struct and stores to those GEPs
+                                                            for (User *U : AI->users()) {
+                                                                if (GetElementPtrInst *GEP = dyn_cast<GetElementPtrInst>(U)) {
+                                                                    // Extract the field index from this GEP
+                                                                    int64_t fieldIdx = -1;
+                                                                    if (GEP->getNumIndices() >= 2) {
+                                                                        auto IdxIter = GEP->idx_begin();
+                                                                        std::advance(IdxIter, GEP->getNumIndices() - 1);
+                                                                        if (ConstantInt *CI = dyn_cast<ConstantInt>(&**IdxIter)) {
+                                                                            fieldIdx = CI->getSExtValue();
+                                                                        }
+                                                                    }
+
+                                                                    // Only process if this field was accessed (or if we don't have field info)
+                                                                    if (accessedFields.empty() ||
+                                                                        std::find(accessedFields.begin(), accessedFields.end(), fieldIdx) != accessedFields.end()) {
+                                                                        // Check for stores to this GEP
+                                                                        for (User *GU : GEP->users()) {
+                                                                            if (StoreInst *SI = dyn_cast<StoreInst>(GU)) {
+                                                                                if (SI->getPointerOperand() == GEP) {
+                                                                                    Value *StoredVal = SI->getValueOperand()->stripPointerCasts();
+                                                                                    // If we're storing a pointer/alloca, mark it as tainted
+                                                                                    if (StoredVal->getType()->isPointerTy()) {
+                                                                                        if (AllocaInst *StoredAlloca = dyn_cast<AllocaInst>(StoredVal)) {
+                                                                                            if (TaintedPointers.insert(StoredAlloca).second) {
+                                                                                                errs() << "  [UPWARD-INTERPROC] Marking struct field " << fieldIdx
+                                                                                                       << " target as tainted: "
+                                                                                                       << getValueName(StoredAlloca) << getFuncLevel(Call, ValueLevel, FunctionLevel) << "\n";
+                                                                                                PointerTaintOrigin[StoredAlloca] = Call;
+                                                                                            }
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }
@@ -1183,7 +1338,8 @@ found:
                             // Handle store instructions - mark destination pointer as tainted
                             if (StoreInst *Store = dyn_cast<StoreInst>(UserInst)) {
                                 if (processStoreForTaint(Store, V, TaintedPointers, PointerTaintOrigin,
-                                                        FunctionsTaintingPointerParams, ValueLevel, FunctionLevel)) {
+                                                        FunctionsTaintingPointerParams, FunctionParamFieldAccess,
+                                                        ValueLevel, FunctionLevel)) {
                                     discoveredNewFunctions = true;
                                 }
                             }
