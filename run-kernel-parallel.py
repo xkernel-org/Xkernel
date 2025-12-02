@@ -174,8 +174,8 @@ def main():
     parser.add_argument(
         '-j', '--jobs',
         type=int,
-        default=30,
-        help=f'Number of parallel jobs (default: 30)'
+        default=50,
+        help=f'Number of parallel jobs (default: 50)'
     )
     parser.add_argument(
         '--kernel-dir',
