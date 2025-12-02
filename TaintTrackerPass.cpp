@@ -393,7 +393,8 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
                             Function *ContainingFunc = Store->getFunction();
                             if (ContainingFunc) {
                                 unsigned ParamIdx = PtrParam->getArgNo();
-                                errs() << "  [POINTER PARAMETER] Tainted value stored through pointer parameter"
+                                errs() << "  [POINTER PARAMETER] Tainted value stored through pointer parameter #" << ParamIdx
+                                       << " (" << getValueName(PtrParam) << ")"
                                        << getDebugLoc(Store) << getFuncLevel(Store, ValueLevel, FunctionLevel) << "\n";
                                 if (FunctionsTaintingPointerParams[ContainingFunc].insert(ParamIdx).second) {
                                     discoveredNew = true;
@@ -408,6 +409,12 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
                                             existingIndices.push_back(idx);
                                         }
                                     }
+                                    errs() << "  [POINTER PARAMETER] Accessed struct field(s): ";
+                                    for (size_t i = 0; i < fieldIndices.size(); ++i) {
+                                        if (i > 0) errs() << ", ";
+                                        errs() << fieldIndices[i];
+                                    }
+                                    errs() << "\n";
                                 }
                             }
                         }
@@ -676,13 +683,18 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
                                                 errs() << "[GLOBAL] Constant stored to global variable: "
                                                        << GV->getName() << getDebugLoc(Store) << getFuncLevel(Store, ValueLevel, FunctionLevel) << "\n";
                                             } else if (Argument *PtrParam = getPointerParameterOrigin(Store->getPointerOperand())) {
-                                                errs() << "[POINTER PARAMETER] Constant stored through pointer parameter"
-                                                       << getDebugLoc(Store) << getFuncLevel(Store, ValueLevel, FunctionLevel) << "\n";
-                                                // Track this for upward interprocedural analysis
+                                                // Track this for upward interprocedural analysis ONLY
+                                                // We do NOT mark the parameter as tainted locally to avoid tracking
+                                                // all other operations on this parameter within this function
                                                 Function *ContainingFunc = Store->getFunction();
                                                 if (ContainingFunc) {
                                                     unsigned ParamIdx = PtrParam->getArgNo();
                                                     FunctionsTaintingPointerParams[ContainingFunc].insert(ParamIdx);
+
+                                                    errs() << "[POINTER PARAMETER] Constant stored through pointer parameter #" << ParamIdx
+                                                           << " (" << getValueName(PtrParam) << ")"
+                                                           << getDebugLoc(Store) << getFuncLevel(Store, ValueLevel, FunctionLevel) << "\n";
+
                                                     // Track which struct fields are accessed
                                                     SmallVector<int64_t, 4> fieldIndices = extractStructFieldIndices(Store->getPointerOperand(), nullptr, false);
                                                     if (!fieldIndices.empty()) {
@@ -693,6 +705,12 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
                                                                 existingIndices.push_back(idx);
                                                             }
                                                         }
+                                                        errs() << "  [POINTER PARAMETER] Accessed struct field(s): ";
+                                                        for (size_t i = 0; i < fieldIndices.size(); ++i) {
+                                                            if (i > 0) errs() << ", ";
+                                                            errs() << fieldIndices[i];
+                                                        }
+                                                        errs() << "\n";
                                                     }
                                                     if (Verbose) {
                                                         errs() << "  Tracking: Function " << ContainingFunc->getName()
@@ -950,12 +968,13 @@ found:
                                     continue;
                                 }
                                 if (Argument *PtrParam = getPointerParameterOrigin(Store->getPointerOperand())) {
-                                    errs() << "  [POINTER PARAMETER] Tainted value stored through pointer parameter"
-                                           << getDebugLoc(Store) << "\n";
                                     // Track this for upward interprocedural analysis
                                     Function *ContainingFunc = Store->getFunction();
                                     if (ContainingFunc) {
                                         unsigned ParamIdx = PtrParam->getArgNo();
+                                        errs() << "  [POINTER PARAMETER] Tainted value stored through pointer parameter #" << ParamIdx
+                                               << " (" << getValueName(PtrParam) << ")"
+                                               << getDebugLoc(Store) << "\n";
                                         FunctionsTaintingPointerParams[ContainingFunc].insert(ParamIdx);
                                         if (Verbose) {
                                             errs() << "    Tracking: Function " << ContainingFunc->getName()
@@ -1095,6 +1114,8 @@ found:
                         errs() << "Finding callers of: " << TaintedFunc->getName() << " (returns taint)\n";
                     }
 
+                    bool foundAnyCallers = false;
+
                     // Scan all functions for calls to TaintedFunc
                     for (Function &F : M) {
                         if (F.isDeclaration()) continue;
@@ -1104,6 +1125,7 @@ found:
                                 if (CallInst *Call = dyn_cast<CallInst>(&I)) {
                                     Function *Callee = Call->getCalledFunction();
                                     if (Callee == TaintedFunc) {
+                                        foundAnyCallers = true;
                                         // This call site returns a tainted value
                                         if (!TaintedValues.count(Call)) {
                                             // Upward interprocedural: level += 1
@@ -1125,6 +1147,12 @@ found:
                             }
                         }
                     }
+
+                    // Report if no callers were found
+                    if (!foundAnyCallers) {
+                        errs() << "[UPWARD-INTERPROC] No callers found for " << TaintedFunc->getName()
+                               << " (function returns tainted value)\n";
+                    }
                 }
 
                 // 5b. Find all call sites to functions that taint pointer parameters
@@ -1142,6 +1170,8 @@ found:
                         errs() << "Finding callers of: " << TaintedFunc->getName() << " (taints pointer params)\n";
                     }
 
+                    bool foundAnyCallers = false;
+
                     // Scan all functions for calls to TaintedFunc
                     for (Function &F : M) {
                         if (F.isDeclaration()) continue;
@@ -1151,6 +1181,7 @@ found:
                                 if (CallInst *Call = dyn_cast<CallInst>(&I)) {
                                     Function *Callee = Call->getCalledFunction();
                                     if (Callee == TaintedFunc) {
+                                        foundAnyCallers = true;
                                         // Check each tainted parameter
                                         // Sort TaintedParams for deterministic output
                                         SmallVector<unsigned, 8> SortedTaintedParams(TaintedParams.begin(), TaintedParams.end());
@@ -1275,6 +1306,18 @@ found:
                                 }
                             }
                         }
+                    }
+
+                    // Report if no callers were found
+                    if (!foundAnyCallers) {
+                        errs() << "[UPWARD-INTERPROC] No callers found for " << TaintedFunc->getName()
+                               << " (function taints pointer parameter";
+                        if (TaintedParams.size() == 1) {
+                            errs() << " #" << *TaintedParams.begin();
+                        } else {
+                            errs() << "s";
+                        }
+                        errs() << ")\n";
                     }
                 }
 
