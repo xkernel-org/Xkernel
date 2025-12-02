@@ -91,6 +91,11 @@ make CC=wllvm AR=llvm-ar HOSTCC=clang olddefconfig
 ./scripts/config -e TCP_CONG_BBR
 ./scripts/config -e IP_DCCP
 ./scripts/config -e TMPFS_QUOTA
+./scripts/config -e F2FS_FS
+./scripts/config -e F2FS_FS_COMPRESSION
+./scripts/config -e BLK_DEV_ZONED
+./scripts/config -e NUMA_BALANCING
+./scripts/config -e TRANSPARENT_HUGEPAGE
 make CC=wllvm AR=llvm-ar HOSTCC=clang olddefconfig
 # 2min51s 14900k
 # 4min27s c6420
