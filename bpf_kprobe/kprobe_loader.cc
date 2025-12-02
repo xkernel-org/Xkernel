@@ -16,6 +16,7 @@
 #include <vector>
 #include <chrono>
 #include <filesystem>
+#include <cstdlib>
 
 #include "loader_common.h"
 
@@ -55,12 +56,59 @@ int main(int argc, char *argv[]) {
     }
   }
 
+  // Generate cs_artifact.bpf.h before creating XKernelLoader
+  const char *cs_path = "/dev/shm/xkernel/cs";
+  
+  // Use absolute path for output file
+  std::filesystem::path current_path = std::filesystem::current_path();
+  std::string bpf_header_path = (current_path / "bpf_kprobe/bpf" / "cs_artifact.bpf.h").string();
+  
+  fprintf(stderr, "Current working directory: %s\n", current_path.c_str());
+  fprintf(stderr, "Output BPF header path: %s\n", bpf_header_path.c_str());
+  
+  int ret = generate_cs_artifact_bpf_header(cs_path, bpf_header_path.c_str());
+  if (ret) {
+    fprintf(stderr, "Failed to generate cs_artifact.bpf.h\n");
+    return 1;
+  }
+  
+  // Recompile BPF files in bpf_kprobe directory
+  // Use the current_path already declared above
+  std::string bpf_kprobe_dir = current_path.string();
+  
+  // Recompile all BPF object files using make
+  // Find all .bpf.c files and compile them
+  fprintf(stderr, "Recompiling BPF files in %s...\n", bpf_kprobe_dir.c_str());
+  
+  std::string bpf_examples_dir = bpf_kprobe_dir + "/bpf/examples";
+  if (std::filesystem::exists(bpf_examples_dir)) {
+    for (const auto &entry : std::filesystem::directory_iterator(bpf_examples_dir)) {
+      if (entry.is_regular_file() && entry.path().extension() == ".c" && 
+          entry.path().string().find(".bpf.c") != std::string::npos) {
+        std::string bpf_c_file = entry.path().string();
+        std::string bpf_o_file = bpf_c_file.substr(0, bpf_c_file.length() - 2) + ".o";
+        
+        // Compile using clang with BPF flags
+        std::string compile_cmd = "clang -g -O2 -target bpf -D__TARGET_ARCH_x86 -Ibpf/ -I/usr/include/bpf -c " + 
+                                  bpf_c_file + " -o " + bpf_o_file + " 2>&1";
+        int compile_ret = system(compile_cmd.c_str());
+        if (compile_ret != 0) {
+          fprintf(stderr, "Warning: Failed to compile %s\n", bpf_c_file.c_str());
+        } else {
+          fprintf(stderr, "Compiled: %s -> %s\n", bpf_c_file.c_str(), bpf_o_file.c_str());
+        }
+      }
+    }
+  }
+  
+  fprintf(stderr, "BPF recompilation completed\n");
+
   for (const auto &file : files) {
     std::string BPF_FILE = file;
 
     loaders.push_back(new XKernelLoader(BPF_FILE.c_str(), FLAGS_pin));
 
-    int ret = loaders.back()->load_cricial_spans("/dev/shm/xkernel/cs");
+    ret = loaders.back()->load_cricial_spans(cs_path);
     if (ret) {
       fprintf(stderr, "Failed to load critical spans\n");
       return 1;

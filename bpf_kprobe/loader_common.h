@@ -58,6 +58,9 @@ private:
   void print_stack_trace(uint32_t stack_id);
 };
 
+// Generate BPF artifact header file from critical spans file
+int generate_cs_artifact_bpf_header(const char *cs_path, const char *output_path);
+
 }; // namespace xkernel
 
 #endif

@@ -14,6 +14,11 @@
 #include <sstream>
 #include <vector>
 #include <algorithm>
+#include <filesystem>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <cerrno>
+#include <cstring>
 
 namespace xkernel {
 
@@ -231,6 +236,136 @@ int XKernelLoader::attach_all_progs() {
   }
 
   run_bpf_ktime_printer(1);
+
+  return 0;
+}
+
+int generate_cs_artifact_bpf_header(const char *cs_path, const char *output_path) {
+  std::ifstream cs_file(cs_path);
+  if (!cs_file.is_open()) {
+    fprintf(stderr, "Failed to open cs_file: %s\n", cs_path);
+    return -1;
+  }
+  
+  // The format looks like this (one per line, split by comma)
+  // function_name,function_address,soff,eoff
+  // e.g., vm_mmap_pgoff,0xffffffff98299640,0x6,0x161
+
+  std::vector<std::pair<std::string, __u32>> cs_info_list; // Store function_name and soff for BPF generation
+  std::string line;
+  while (std::getline(cs_file, line)) {
+    std::istringstream iss(line);
+    std::string function_name, function_address_str, soff_str, eoff_str;
+    std::getline(iss, function_name, ',');
+    std::getline(iss, function_address_str, ',');
+    std::getline(iss, soff_str, ',');
+    std::getline(iss, eoff_str, ',');
+    if (function_name.empty() || function_address_str.empty() || soff_str.empty() || eoff_str.empty()) {
+      fprintf(stderr, "Malformed line in %s: %s\n", cs_path, line.c_str());
+      continue;
+    }
+    // Parse soff, handling both "0x0" and "0" formats
+    __u32 soff;
+    if (soff_str.substr(0, 2) == "0x" || soff_str.substr(0, 2) == "0X") {
+      soff = std::stoul(soff_str, nullptr, 16);
+    } else {
+      soff = std::stoul(soff_str, nullptr, 16);
+    }
+    cs_info_list.push_back({function_name, soff});
+  }
+
+  // Ensure output directory exists
+  std::filesystem::path output_file_path(output_path);
+  std::filesystem::path output_dir = output_file_path.parent_path();
+  if (!output_dir.empty() && !std::filesystem::exists(output_dir)) {
+    fprintf(stderr, "Creating output directory: %s\n", output_dir.c_str());
+    if (!std::filesystem::create_directories(output_dir)) {
+      fprintf(stderr, "Failed to create output directory: %s\n", output_dir.c_str());
+      return -1;
+    }
+  }
+  
+  fprintf(stderr, "Generating BPF header file: %s\n", output_path);
+
+  // Remove old file if exists to ensure fresh generation
+  if (std::filesystem::exists(output_path)) {
+    std::filesystem::remove(output_path);
+  }
+
+  std::ofstream bpf_header(output_path, std::ios::out | std::ios::trunc);
+  if (!bpf_header.is_open()) {
+    fprintf(stderr, "Failed to create %s: %s\n", output_path, strerror(errno));
+    return -1;
+  }
+
+  bpf_header << "#ifndef __CS_ARTIFACT_BPF_H__\n";
+  bpf_header << "#define __CS_ARTIFACT_BPF_H__\n\n";
+  bpf_header << "#include <bpf/bpf_helpers.h>\n";
+  bpf_header << "#include <bpf/bpf_tracing.h>\n\n";
+  bpf_header << "#include \"xkernel.bpf.h\"\n\n";
+
+  for (size_t i = 0; i < cs_info_list.size(); i++) {
+    const std::string& function_name = cs_info_list[i].first;
+    __u32 soff = cs_info_list[i].second;
+    
+    std::string sec_name;
+    std::string bpf_func_name;
+    
+    if (soff == 0) {
+      // If soff is 0, don't add +0x0 suffix
+      sec_name = "kprobe/" + function_name;
+      bpf_func_name = function_name;
+    } else {
+      // Format soff as hex string (e.g., 0x6 -> "0x6", 0x161 -> "0x161")
+      std::ostringstream soff_hex;
+      soff_hex << "0x" << std::hex << soff;
+      std::string soff_str = soff_hex.str();
+      
+      // Generate function name: function_name_soff (e.g., vm_mmap_pgoff_6)
+      // Remove "0x" prefix for function name
+      std::string func_name_suffix = soff_str;
+      if (func_name_suffix.substr(0, 2) == "0x") {
+        func_name_suffix = func_name_suffix.substr(2);
+      }
+      bpf_func_name = function_name + "_" + func_name_suffix;
+      
+      // Generate SEC name: kprobe/function_name+soff (e.g., kprobe/vm_mmap_pgoff+0x6)
+      sec_name = "kprobe/" + function_name + "+" + soff_str;
+    }
+    
+    bpf_header << "SEC(\"" << sec_name << "\")\n";
+    bpf_header << "int BPF_KPROBE(" << bpf_func_name << ") {\n";
+    bpf_header << "    per_task_transition_handler(ctx);\n";
+    bpf_header << "    return 0;\n";
+    bpf_header << "}\n\n";
+  }
+
+  bpf_header << "#endif\n";
+  
+  // Ensure all data is written
+  bpf_header.flush();
+  if (bpf_header.fail()) {
+    fprintf(stderr, "Error: Failed to write to %s\n", output_path);
+    bpf_header.close();
+    return -1;
+  }
+  
+  bpf_header.close();
+  
+  // Verify file was created and has content
+  if (!std::filesystem::exists(output_path)) {
+    fprintf(stderr, "Error: File %s was not created\n", output_path);
+    return -1;
+  }
+  
+  auto file_size = std::filesystem::file_size(output_path);
+  if (file_size == 0) {
+    fprintf(stderr, "Error: File %s is empty\n", output_path);
+    return -1;
+  }
+  
+  fprintf(stderr, "Successfully generated %s (%zu bytes, %zu entries)\n", 
+          output_path, file_size, cs_info_list.size());
 
   return 0;
 }

@@ -110,7 +110,7 @@ static __always_inline bool check_stack_safe(struct pt_regs *ctx) {
 
     stack_len = stack_size / sizeof(__u64);
     stack_len = MIN(stack_len, MAX_STACK_DEPTH);
-    for (int i = 0; i < stack_len; i++) {
+    for (int i = 1; i < stack_len; i++) { // Skip the current function
         __u64 addr = stack[i];
         if (contains_addr(addr)) {
             bpf_printk("stack[%d] = %lx is in a critical span", i, addr);
@@ -121,20 +121,16 @@ static __always_inline bool check_stack_safe(struct pt_regs *ctx) {
     return true;
 }
 
-static __always_inline bool per_task_transition_done(struct pt_regs *ctx) {
+static __always_inline void per_task_transition_handler(struct pt_regs *ctx) {
     struct task_struct *task;
     struct task_data *data;
 
-    if (unlikely(cs_len == 0))
-        return false;
+    if (unlikely(cs_len == 0)) return;
 
-    
     task = bpf_get_current_task_btf();
     data = bpf_task_storage_get(&task_storage, task, NULL, BPF_LOCAL_STORAGE_GET_F_CREATE);
-    if (unlikely(!data))
-        return false;
-    if (likely(data->transition_done))
-        return true;
+    if (unlikely(!data)) return;
+    if (likely(data->transition_done)) return;
 
     #ifdef MEASURE_TRANSITION_TIME
     if (data->transition_start == 0)
@@ -150,6 +146,16 @@ static __always_inline bool per_task_transition_done(struct pt_regs *ctx) {
         LOG_CPU("task: [%s], ktime_ns: %lld, check time: %lld us", task->comm, data->transition_end, check_time / 1000);
     }
     #endif
+}
+
+static __always_inline bool per_task_transition_done(struct pt_regs *ctx) {
+    struct task_struct *task;
+    struct task_data *data;
+    
+    task = bpf_get_current_task_btf();
+    data = bpf_task_storage_get(&task_storage, task, NULL, BPF_LOCAL_STORAGE_GET_F_CREATE);
+    if (unlikely(!data))
+        return false;
     
     return data->transition_done;
 }
