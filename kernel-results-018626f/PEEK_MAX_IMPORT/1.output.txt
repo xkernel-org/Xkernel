@@ -1,0 +1,32 @@
+=== Taint Tracker Configuration ===
+Function: io_ring_buffers_peek
+Opcode: call
+Constant: 256
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 256)
+
+[SOURCE] Tainting:   %39 = tail call i64 @llvm.umin.i64(i64 %37, i64 256), <io_uring/kbuf.c:232:13> FUNC=io_ring_buffers_peek L=0
+[USE] Source instruction in data flow <io_uring/kbuf.c:232:13> FUNC=io_ring_buffers_peek L=0
+[CHILD FUNCTION] Constant used in call to llvm.umin.i64 at argument 1 <io_uring/kbuf.c:232:13> FUNC=io_ring_buffers_peek L=0
+[USE] Processing uses of:   %39 = tail call i64 @llvm.umin.i64(i64 %37, i64 256),
+  [USE] Taint flows to:   %40 = select i1 %38, i64 256, i64 %39, <io_uring/kbuf.c:232:13> FUNC=io_ring_buffers_peek L=0
+[USE] Processing uses of:   %40 = select i1 %38, i64 256, i64 %39,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %42 = tail call i64 @llvm.umin.i64(i64 %40, i64 %41), !dbg !17867603 <io_uring/kbuf.c:233:17>
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 2
+
+Earliest instruction with L=0:
+    %39 = tail call i64 @llvm.umin.i64(i64 %37, i64 256), <io_uring/kbuf.c:232:13> FUNC=io_ring_buffers_peek L=0
+
+Latest instruction with L=0:
+    %40 = select i1 %38, i64 256, i64 %39, <io_uring/kbuf.c:232:13> FUNC=io_ring_buffers_peek L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/io_uring/kbuf.ll
+../linux-wllvm-defconfig/io_uring/kbuf.c

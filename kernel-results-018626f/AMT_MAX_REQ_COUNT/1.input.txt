@@ -1,0 +1,5 @@
+SOURCE_FILE=drivers/net/amt.c
+FUNCTION_NAME=amt_event_work
+SOURCE_OP="icmp"
+CONSTANT_VALUE=3
+OCCURENCE=1

@@ -1,0 +1,15 @@
+=== Taint Tracker Configuration ===
+Function: nfsd_file_put
+Opcode: call
+Constant: 64
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 64)
+
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/nfsd/filecache.ll
+../linux-wllvm-defconfig/fs/nfsd/filecache.c

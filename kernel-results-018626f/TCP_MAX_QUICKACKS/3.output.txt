@@ -1,0 +1,291 @@
+=== Taint Tracker Configuration ===
+Function: tcp_event_data_recv
+Opcode: call
+Constant: 16
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 16)
+
+[SOURCE] Tainting:   %167 = tail call i32 @llvm.umin.i32(i32 %165, i32 16), <net/ipv4/tcp_input.c:313:14> FUNC=tcp_event_data_recv L=0
+[USE] Source instruction in data flow <net/ipv4/tcp_input.c:313:14> FUNC=tcp_event_data_recv L=0
+[CHILD FUNCTION] Constant used in call to llvm.umin.i32 at argument 1 <net/ipv4/tcp_input.c:313:14> FUNC=tcp_event_data_recv L=0
+[USE] Processing uses of:   %167 = tail call i32 @llvm.umin.i32(i32 %165, i32 16),
+  [USE] Taint flows to:   %168 = select i1 %166, i32 2, i32 %167, <net/ipv4/tcp_input.c:311:16> FUNC=tcp_event_data_recv L=0
+[USE] Processing uses of:   %168 = select i1 %166, i32 2, i32 %167,
+  [USE] Taint flows to:   %172 = icmp samesign ugt i32 %168, %171, <net/ipv4/tcp_input.c:314:16> FUNC=tcp_event_data_recv L=0
+  [USE] Taint flows to:   %174 = trunc nuw nsw i32 %168 to i8, <net/ipv4/tcp_input.c:315:26> FUNC=tcp_event_data_recv L=0
+[USE] Processing uses of:   %174 = trunc nuw nsw i32 %168 to i8,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter <net/ipv4/tcp_input.c:315:24>
+[USE] Processing uses of:   %172 = icmp samesign ugt i32 %168, %171,
+  [USE] Taint flows to:   br i1 %172, label %173, label %175, <net/ipv4/tcp_input.c:314:16> FUNC=tcp_event_data_recv L=0
+[NO USE] No uses of:   br i1 %172, label %173, label %175,
+[POINTER PARAMETER] Call to tcp_event_data_recv passes through pointer parameter 0 of tcp_data_queue <net/ipv4/tcp_input.c:5300:4> FUNC=tcp_data_queue L=1
+[POINTER PARAMETER] Call to tcp_event_data_recv passes through pointer parameter 0 of tcp_rcv_established <net/ipv4/tcp_input.c:6239:4> FUNC=tcp_rcv_established L=1
+[POINTER PARAMETER] Call to tcp_data_queue passes through pointer parameter 0 of tcp_rcv_state_process <net/ipv4/tcp_input.c:6996:3> FUNC=tcp_rcv_state_process L=2
+[POINTER PARAMETER] Call to tcp_rcv_established passes through pointer parameter 0 of tcp_v4_do_rcv <net/ipv4/tcp_ipv4.c:1918:3> FUNC=tcp_v4_do_rcv L=2
+[POINTER PARAMETER] Call to tcp_rcv_established passes through pointer parameter 0 of tcp_v6_do_rcv <net/ipv6/tcp_ipv6.c:1644:3> FUNC=tcp_v6_do_rcv L=2
+[POINTER PARAMETER] Call to tcp_rcv_state_process passes through pointer parameter 1 of tcp_child_process <net/ipv4/tcp_minisocks.c:937:12> FUNC=tcp_child_process L=3
+[POINTER PARAMETER] Call to tcp_v4_do_rcv passes through pointer parameter 0 of sk_backlog_rcv <net/core/sock.c:334:8> FUNC=sk_backlog_rcv L=3
+[POINTER PARAMETER] Call to tcp_v4_do_rcv passes through pointer parameter 0 of __sk_backlog_rcv <net/core/sock.c:334:8> FUNC=__sk_backlog_rcv L=3
+[POINTER PARAMETER] Call to sk_backlog_rcv passes through pointer parameter 0 of release_sock <net/core/sock.c:3123:4> FUNC=release_sock L=4
+[POINTER PARAMETER] Call to sk_backlog_rcv passes through pointer parameter 0 of __sk_receive_skb <net/core/sock.c:575:8> FUNC=__sk_receive_skb L=4
+[POINTER PARAMETER] Call to sk_backlog_rcv passes through pointer parameter 0 of __sk_flush_backlog <net/core/sock.c:3123:4> FUNC=__sk_flush_backlog L=4
+[POINTER PARAMETER] Call to sk_backlog_rcv passes through pointer parameter 0 of __release_sock <net/core/sock.c:3123:4> FUNC=__release_sock L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of selinux_netlbl_socket_setsockopt <security/selinux/netlabel.c:527:3> FUNC=selinux_netlbl_socket_setsockopt L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of selinux_netlbl_socket_connect <security/selinux/netlabel.c:616:2> FUNC=selinux_netlbl_socket_connect L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 1 of sock_fasync <net/socket.c:1430:2> FUNC=sock_fasync L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of sockopt_release_sock <net/core/sock.c:1142:2> FUNC=sockopt_release_sock L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of sk_setsockopt <net/core/sock.c:1142:2> FUNC=sk_setsockopt L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of sock_set_sndtimeo <net/core/sock.c:824:2> FUNC=sock_set_sndtimeo L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of sock_set_reuseport <net/core/sock.c:798:2> FUNC=sock_set_reuseport L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of sock_set_reuseaddr <net/core/sock.c:790:2> FUNC=sock_set_reuseaddr L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of sock_set_rcvbuf <net/core/sock.c:986:2> FUNC=sock_set_rcvbuf L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of sock_set_mark <net/core/sock.c:1002:2> FUNC=sock_set_mark L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of sock_set_keepalive <net/core/sock.c:957:2> FUNC=sock_set_keepalive L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of sock_no_linger <net/core/sock.c:807:2> FUNC=sock_no_linger L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of sock_enable_timestamps <net/core/sock.c:842:2> FUNC=sock_enable_timestamps L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of sock_bindtoindex <net/core/sock.c:671:3> FUNC=sock_bindtoindex L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of sk_wait_data <net/core/sock.c:3171:7> FUNC=sk_wait_data L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of sk_stream_wait_memory <net/core/stream.c:145:9> FUNC=sk_stream_wait_memory L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of sk_stream_wait_connect <net/core/stream.c:75:10> FUNC=sk_stream_wait_connect L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of sk_stream_wait_close <net/core/stream.c:104:8> FUNC=sk_stream_wait_close L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of netlink_insert <net/netlink/af_netlink.c:590:2> FUNC=netlink_insert L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of ipv6_getorigdst <net/netfilter/nf_conntrack_proto.c:343:2> FUNC=ipv6_getorigdst L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of getorigdst <net/netfilter/nf_conntrack_proto.c:283:2> FUNC=getorigdst L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of inet_csk_accept <net/ipv4/inet_connection_sock.c:639:3> FUNC=inet_csk_accept L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of tcp_splice_read <net/ipv4/tcp.c:872:2> FUNC=tcp_splice_read L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of tcp_splice_eof <net/ipv4/tcp.c:1377:2> FUNC=tcp_splice_eof L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of tcp_sock_set_quickack <net/ipv4/tcp.c:3599:2> FUNC=tcp_sock_set_quickack L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of tcp_sock_set_nodelay <net/ipv4/tcp.c:3574:2> FUNC=tcp_sock_set_nodelay L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of tcp_sock_set_keepidle <net/ipv4/tcp.c:3655:2> FUNC=tcp_sock_set_keepidle L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of tcp_sock_set_cork <net/ipv4/tcp.c:3550:2> FUNC=tcp_sock_set_cork L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of tcp_sendmsg <net/ipv4/tcp.c:1359:2> FUNC=tcp_sendmsg L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of tcp_recvmsg <net/ipv4/tcp.c:2866:2> FUNC=tcp_recvmsg L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of tcp_ioctl <./include/net/sock.h:1681:3> FUNC=tcp_ioctl L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of tcp_get_info <./include/net/sock.h:1681:3> FUNC=tcp_get_info L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of tcp_inq_hint <net/ipv4/tcp.c:2344:3> FUNC=tcp_inq_hint L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of tcp_close <net/ipv4/tcp.c:3235:2> FUNC=tcp_close L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of tcp_abort <net/ipv4/tcp.c:4918:4> FUNC=tcp_abort L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of ip4_datagram_connect <net/ipv4/datagram.c:93:2> FUNC=ip4_datagram_connect L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of raw_destroy <net/ipv4/raw.c:696:2> FUNC=raw_destroy L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of raw_sendmsg <net/ipv4/raw.c:661:3> FUNC=raw_sendmsg L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of raw_bind <net/ipv4/raw.c:730:2> FUNC=raw_bind L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of raw_abort <net/ipv4/raw.c:923:2> FUNC=raw_abort L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of udp_connect <net/ipv4/udp.c:2150:2> FUNC=udp_connect L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of udp_disconnect <net/ipv4/udp.c:2186:2> FUNC=udp_disconnect L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of udp_destroy_sock <./include/net/sock.h:1681:3> FUNC=udp_destroy_sock L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of udp_sendmsg <net/ipv4/udp.c:1314:5> FUNC=udp_sendmsg L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of udp_splice_eof <net/ipv4/udp.c:1562:2> FUNC=udp_splice_eof L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of udp_abort <net/ipv4/udp.c:3176:3> FUNC=udp_abort L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of udp_lib_setsockopt <net/ipv4/udp.c:2953:4> FUNC=udp_lib_setsockopt L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of ip_mc_autojoin_config <net/ipv4/devinet.c:653:2> FUNC=ip_mc_autojoin_config L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of inet_stream_connect <net/ipv4/af_inet.c:749:2> FUNC=inet_stream_connect L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of inet_getname <net/ipv4/af_inet.c:809:4> FUNC=inet_getname L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of inet_listen <net/ipv4/af_inet.c:243:2> FUNC=inet_listen L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of inet_shutdown <net/ipv4/af_inet.c:942:2> FUNC=inet_shutdown L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of inet_send_prepare <net/ipv4/af_inet.c:0> FUNC=inet_send_prepare L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of __inet_stream_connect <net/ipv4/af_inet.c:609:3> FUNC=__inet_stream_connect L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of __inet_bind <net/ipv4/af_inet.c:563:3> FUNC=__inet_bind L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of inet_dgram_connect <net/ipv4/af_inet.c:0> FUNC=inet_dgram_connect L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of ping_v4_sendmsg <net/ipv4/ping.c:829:2> FUNC=ping_v4_sendmsg L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of ping_bind <net/ipv4/ping.c:466:2> FUNC=ping_bind L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of inet6_getname <net/ipv6/af_inet6.c:0> FUNC=inet6_getname L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of __inet6_bind <net/ipv6/af_inet6.c:434:3> FUNC=__inet6_bind L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of ipv6_mc_config <net/ipv6/addrconf.c:3002:2> FUNC=ipv6_mc_config L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of udpv6_connect <net/ipv6/udp.c:1313:2> FUNC=udpv6_connect L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of udpv6_destroy_sock <net/ipv6/udp.c:1824:2> FUNC=udpv6_destroy_sock L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of udpv6_sendmsg <net/ipv6/udp.c:1569:5> FUNC=udpv6_sendmsg L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of udpv6_splice_eof <net/ipv6/udp.c:1813:2> FUNC=udpv6_splice_eof L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of raw6_destroy <net/ipv6/raw.c:1180:2> FUNC=raw6_destroy L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of rawv6_sendmsg <net/ipv6/raw.c:928:3> FUNC=rawv6_sendmsg L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of rawv6_bind <net/ipv6/raw.c:293:2> FUNC=rawv6_bind L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of ipv6_sock_mc_close <net/ipv6/mcast.c:360:2> FUNC=ipv6_sock_mc_close L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of ping_v6_sendmsg <net/ipv6/ping.c:190:2> FUNC=ping_v6_sendmsg L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of ip6_datagram_connect_v6_only <net/ipv6/datagram.c:280:2> FUNC=ip6_datagram_connect_v6_only L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of ip6_datagram_connect <net/ipv6/datagram.c:280:2> FUNC=ip6_datagram_connect L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of packet_release <net/packet/af_packet.c:3214:2> FUNC=packet_release L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of packet_setsockopt <net/packet/af_packet.c:3894:3> FUNC=packet_setsockopt L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of packet_do_bind <net/packet/af_packet.c:3330:2> FUNC=packet_do_bind L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of xs_reset_transport <net/sunrpc/xprtsock.c:1289:2> FUNC=xs_reset_transport L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of xs_stream_nospace <net/sunrpc/xprtsock.c:877:2> FUNC=xs_stream_nospace L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of xs_udp_send_request <net/sunrpc/xprtsock.c:861:2> FUNC=xs_udp_send_request L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of svc_tcp_sock_detach <net/sunrpc/svcsock.c:1576:2> FUNC=svc_tcp_sock_detach L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of svc_udp_recvfrom <net/sunrpc/svcsock.c:351:2> FUNC=svc_udp_recvfrom L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of svc_sock_detach <net/sunrpc/svcsock.c:1576:2> FUNC=svc_sock_detach L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of dccp_flush_write_queue <net/dccp/output.c:226:2> FUNC=dccp_flush_write_queue L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of inet_dccp_listen <net/dccp/proto.c:958:2> FUNC=inet_dccp_listen L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of dccp_setsockopt <net/dccp/proto.c:503:2> FUNC=dccp_setsockopt L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of dccp_setsockopt_service <net/dccp/proto.c:444:2> FUNC=dccp_setsockopt_service L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of dccp_sendmsg <net/dccp/proto.c:763:2> FUNC=dccp_sendmsg L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of dccp_recvmsg <net/dccp/proto.c:914:2> FUNC=dccp_recvmsg L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of dccp_ioctl <net/dccp/proto.c:408:2> FUNC=dccp_ioctl L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of dccp_getsockopt_service <net/dccp/proto.c:611:2> FUNC=dccp_getsockopt_service L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of dccp_close <net/dccp/proto.c:1062:2> FUNC=dccp_close L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of rds_connect <net/rds/af_rds.c:628:2> FUNC=rds_connect L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of rds_setsockopt <net/rds/af_rds.c:465:3> FUNC=rds_setsockopt L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of rds_bind <net/rds/bind.c:271:2> FUNC=rds_bind L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of rds_sendmsg <net/rds/send.c:1206:3> FUNC=rds_sendmsg L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of smc_tcp_listen_work <net/smc/af_smc.c:1717:2> FUNC=smc_tcp_listen_work L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of smc_connect_work <net/smc/af_smc.c:1626:2> FUNC=smc_connect_work L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of smc_listen_out <net/smc/af_smc.c:1906:2> FUNC=smc_listen_out L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of smc_close_non_accepted <net/smc/af_smc.c:1840:2> FUNC=smc_close_non_accepted L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of __smc_release <net/smc/af_smc.c:300:4> FUNC=__smc_release L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of smc_release <net/smc/af_smc.c:349:2> FUNC=smc_release L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of smc_bind <net/smc/af_smc.c:443:2> FUNC=smc_bind L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of smc_connect <net/smc/af_smc.c:1705:2> FUNC=smc_connect L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of smc_accept <net/smc/af_smc.c:2699:3> FUNC=smc_accept L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of smc_ioctl <net/smc/af_smc.c:3182:4> FUNC=smc_ioctl L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of smc_listen <net/smc/af_smc.c:2680:2> FUNC=smc_listen L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of smc_shutdown <net/smc/af_smc.c:2987:2> FUNC=smc_shutdown L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of smc_setsockopt <net/smc/af_smc.c:3051:2> FUNC=smc_setsockopt L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of smc_sendmsg <net/smc/af_smc.c:2802:2> FUNC=smc_sendmsg L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of smc_recvmsg <net/smc/af_smc.c:2839:2> FUNC=smc_recvmsg L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of smc_splice_read <net/smc/af_smc.c:3297:2> FUNC=smc_splice_read L=5
+[UPWARD-INTERPROC] Call to release_sock taints argument 0 (local variable) <net/smc/smc_core.c:1567:3> FUNC=__smc_lgr_terminate L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %17 = phi ptr [ %36, %35 ], [ %14, %7 ] FUNC=__smc_lgr_terminate L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of smc_conn_abort_work <net/smc/smc_core.c:1739:2> FUNC=smc_conn_abort_work L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of smc_tx_sendmsg <net/smc/smc_tx.c:115:3> FUNC=smc_tx_sendmsg L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of smc_tx_work <net/smc/smc_tx.c:689:2> FUNC=smc_tx_work L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of smc_rx_wait <net/smc/smc_rx.c:270:7> FUNC=smc_rx_wait L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of smc_rx_recvmsg <net/smc/smc_rx.c:270:7> FUNC=smc_rx_recvmsg L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of smc_close_active_abort <net/smc/smc_close.c:181:3> FUNC=smc_close_active_abort L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of smc_close_cancel_work <net/smc/smc_close.c:118:2> FUNC=smc_close_cancel_work L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of smc_close_active <net/smc/smc_close.c:226:3> FUNC=smc_close_active L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of smc_close_stream_wait <net/smc/smc_close.c:68:8> FUNC=smc_close_stream_wait L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of smc_close_shutdown_write <net/smc/smc_close.c:464:3> FUNC=smc_close_shutdown_write L=5
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of smc_close_passive_work <net/smc/smc_close.c:374:3> FUNC=smc_close_passive_work L=5
+[POINTER PARAMETER] Call to __sk_flush_backlog passes through pointer parameter 0 of tcp_sendmsg_locked <./include/net/sock.h:1185:3> FUNC=tcp_sendmsg_locked L=5
+[POINTER PARAMETER] Call to __sk_flush_backlog passes through pointer parameter 0 of tcp_recvmsg_locked <net/ipv4/tcp.c:2711:4> FUNC=tcp_recvmsg_locked L=5
+[POINTER PARAMETER] Call to __release_sock passes through pointer parameter 0 of __tcp_close <net/ipv4/tcp.c:3156:2> FUNC=__tcp_close L=5
+[POINTER PARAMETER] Call to smc_listen_out passes through pointer parameter 0 of smc_listen_work <net/smc/af_smc.c:1942:2> FUNC=smc_listen_work L=6
+[POINTER PARAMETER] Call to smc_close_active_abort passes through pointer parameter 0 of smc_conn_kill <net/smc/smc_core.c:1524:2> FUNC=smc_conn_kill L=6
+[POINTER PARAMETER] Call to xs_reset_transport passes through pointer parameter 0 of xs_tcp_shutdown <net/sunrpc/xprtsock.c:1316:2> FUNC=xs_tcp_shutdown L=6
+[POINTER PARAMETER] Call to xs_reset_transport passes through pointer parameter 0 of xs_destroy <net/sunrpc/xprtsock.c:1316:2> FUNC=xs_destroy L=6
+[POINTER PARAMETER] Call to xs_reset_transport passes through pointer parameter 0 of xs_tcp_setup_socket <net/sunrpc/xprtsock.c:2414:3> FUNC=xs_tcp_setup_socket L=6
+[POINTER PARAMETER] Call to xs_reset_transport passes through pointer parameter 0 of xs_close <net/sunrpc/xprtsock.c:1316:2> FUNC=xs_close L=6
+[POINTER PARAMETER] Call to xs_stream_nospace passes through pointer parameter 0 of xs_tcp_send_request <net/sunrpc/xprtsock.c:1158:12> FUNC=xs_tcp_send_request L=6
+[POINTER PARAMETER] Call to xs_stream_nospace passes through pointer parameter 0 of xs_local_send_request <net/sunrpc/xprtsock.c:975:12> FUNC=xs_local_send_request L=6
+[POINTER PARAMETER] Call to dccp_getsockopt_service passes through pointer parameter 0 of dccp_getsockopt <net/dccp/proto.c:634:10> FUNC=dccp_getsockopt L=6
+[POINTER PARAMETER] Call to selinux_netlbl_socket_setsockopt passes through pointer parameter 0 of selinux_socket_setsockopt <security/selinux/hooks.c:5011:9> FUNC=selinux_socket_setsockopt L=6
+[POINTER PARAMETER] Call to selinux_netlbl_socket_connect passes through pointer parameter 0 of selinux_socket_connect <security/selinux/hooks.c:4947:9> FUNC=selinux_socket_connect L=6
+[POINTER PARAMETER] Call to sockopt_release_sock passes through pointer parameter 0 of sk_get_filter <net/core/filter.c:11210:2> FUNC=sk_get_filter L=6
+[POINTER PARAMETER] Call to sockopt_release_sock passes through pointer parameter 0 of ip_sock_set_tos <net/ipv4/ip_sockglue.c:605:2> FUNC=ip_sock_set_tos L=6
+[POINTER PARAMETER] Call to sockopt_release_sock passes through pointer parameter 0 of do_ip_setsockopt <net/ipv4/ip_sockglue.c:1354:2> FUNC=do_ip_setsockopt L=6
+[POINTER PARAMETER] Call to sockopt_release_sock passes through pointer parameter 0 of do_ip_getsockopt <net/ipv4/ip_sockglue.c:1735:2> FUNC=do_ip_getsockopt L=6
+[POINTER PARAMETER] Call to sockopt_release_sock passes through pointer parameter 0 of do_tcp_setsockopt <net/ipv4/tcp.c:3743:3> FUNC=do_tcp_setsockopt L=6
+[POINTER PARAMETER] Call to sockopt_release_sock passes through pointer parameter 0 of do_tcp_getsockopt <net/ipv4/tcp.c:0> FUNC=do_tcp_getsockopt L=6
+[POINTER PARAMETER] Call to sockopt_release_sock passes through pointer parameter 0 of do_ipv6_setsockopt <net/ipv6/ipv6_sockglue.c:971:2> FUNC=do_ipv6_setsockopt L=6
+[POINTER PARAMETER] Call to sockopt_release_sock passes through pointer parameter 0 of do_ipv6_getsockopt <net/ipv6/ipv6_sockglue.c:1154:3> FUNC=do_ipv6_getsockopt L=6
+[POINTER PARAMETER] Call to sockopt_release_sock passes through pointer parameter 0 of compat_ipv6_get_msfilter <net/ipv6/ipv6_sockglue.c:1091:2> FUNC=compat_ipv6_get_msfilter L=6
+[POINTER PARAMETER] Call to sockopt_release_sock passes through pointer parameter 0 of ipv6_get_msfilter <net/ipv6/ipv6_sockglue.c:1063:2> FUNC=ipv6_get_msfilter L=6
+[POINTER PARAMETER] Call to sk_setsockopt passes through pointer parameter 0 of sock_setsockopt <net/core/sock.c:1646:9> FUNC=sock_setsockopt L=6
+[POINTER PARAMETER] Call to sk_setsockopt passes through pointer parameter 0 of __bpf_setsockopt <net/core/filter.c:5258:9> FUNC=__bpf_setsockopt L=6
+[POINTER PARAMETER] Call to sock_set_keepalive passes through pointer parameter 1 of xs_tcp_set_socket_timeouts <net/sunrpc/xprtsock.c:2281:2> FUNC=xs_tcp_set_socket_timeouts L=6
+[POINTER PARAMETER] Call to sock_no_linger passes through pointer parameter 0 of svc_tcp_kill_temp_xprt <net/sunrpc/svcsock.c:412:2> FUNC=svc_tcp_kill_temp_xprt L=6
+[POINTER PARAMETER] Call to netlink_insert passes through pointer parameter 0 of netlink_bind <net/netlink/af_netlink.c:1032:4> FUNC=netlink_bind L=6
+[POINTER PARAMETER] Call to netlink_insert passes through pointer parameter 0 of netlink_autobind <net/netlink/af_netlink.c:828:8> FUNC=netlink_autobind L=6
+[POINTER PARAMETER] Call to tcp_sendmsg passes through pointer parameter 0 of inet_sendmsg <net/ipv4/af_inet.c:851:9> FUNC=inet_sendmsg L=6
+[POINTER PARAMETER] Call to tcp_sendmsg passes through pointer parameter 0 of inet6_sendmsg <net/ipv6/af_inet6.c:659:9> FUNC=inet6_sendmsg L=6
+[POINTER PARAMETER] Call to tcp_recvmsg passes through pointer parameter 0 of inet_recvmsg <net/ipv4/af_inet.c:883:8> FUNC=inet_recvmsg L=6
+[POINTER PARAMETER] Call to tcp_recvmsg passes through pointer parameter 0 of inet6_recvmsg <net/ipv6/af_inet6.c:678:8> FUNC=inet6_recvmsg L=6
+[POINTER PARAMETER] Call to tcp_recvmsg_locked passes through pointer parameter 0 of tcp_zerocopy_receive <net/ipv4/tcp.c:1910:8> FUNC=tcp_zerocopy_receive L=6
+[POINTER PARAMETER] Call to udp_lib_setsockopt passes through pointer parameter 0 of udp_setsockopt <net/ipv4/udp.c:3050:10> FUNC=udp_setsockopt L=6
+[POINTER PARAMETER] Call to udp_lib_setsockopt passes through pointer parameter 0 of udpv6_setsockopt <net/ipv6/udp.c:1847:10> FUNC=udpv6_setsockopt L=6
+[POINTER PARAMETER] Call to ip_mc_autojoin_config passes through pointer parameter 0 of inet_rtm_newaddr <net/ipv4/devinet.c:1002:10> FUNC=inet_rtm_newaddr L=6
+[POINTER PARAMETER] Call to ip_mc_autojoin_config passes through pointer parameter 0 of inet_rtm_deladdr <net/ipv4/devinet.c:704:4> FUNC=inet_rtm_deladdr L=6
+[POINTER PARAMETER] Call to inet_send_prepare passes through pointer parameter 0 of inet_splice_eof <net/ipv4/af_inet.c:861:6> FUNC=inet_splice_eof L=6
+[POINTER PARAMETER] Call to __inet_stream_connect passes through pointer parameter 0 of tcp_sendmsg_fastopen <net/ipv4/tcp.c:1039:8> FUNC=tcp_sendmsg_fastopen L=6
+[POINTER PARAMETER] Call to __inet_bind passes through pointer parameter 0 of inet_bind <net/ipv4/af_inet.c:462:9> FUNC=inet_bind L=6
+[POINTER PARAMETER] Call to __inet_bind passes through pointer parameter 0 of inet_bind_sk <net/ipv4/af_inet.c:462:9> FUNC=inet_bind_sk L=6
+[POINTER PARAMETER] Call to __inet6_bind passes through pointer parameter 0 of inet6_bind <net/ipv6/af_inet6.c:464:9> FUNC=inet6_bind L=6
+[POINTER PARAMETER] Call to __inet6_bind passes through pointer parameter 0 of inet6_bind_sk <net/ipv6/af_inet6.c:464:9> FUNC=inet6_bind_sk L=6
+[POINTER PARAMETER] Call to ipv6_mc_config passes through pointer parameter 0 of inet6_addr_add <net/ipv6/addrconf.c:3036:13> FUNC=inet6_addr_add L=6
+[POINTER PARAMETER] Call to ipv6_mc_config passes through pointer parameter 0 of inet6_addr_del <net/ipv6/addrconf.c:3120:5> FUNC=inet6_addr_del L=6
+[POINTER PARAMETER] Call to ipv6_sock_mc_close passes through pointer parameter 0 of inet6_release <net/ipv6/af_inet6.c:482:2> FUNC=inet6_release L=6
+[POINTER PARAMETER] Call to packet_do_bind passes through pointer parameter 0 of packet_bind <net/packet/af_packet.c:3373:9> FUNC=packet_bind L=6
+[POINTER PARAMETER] Call to packet_do_bind passes through pointer parameter 0 of packet_bind_spkt <net/packet/af_packet.c:3356:9> FUNC=packet_bind_spkt L=6
+[POINTER PARAMETER] Call to sock_setsockopt passes through pointer parameter 0 of do_sock_setsockopt <net/socket.c:2299:9> FUNC=do_sock_setsockopt L=7
+[POINTER PARAMETER] Call to sk_get_filter passes through pointer parameter 0 of sk_getsockopt <net/core/sock.c:1983:9> FUNC=sk_getsockopt L=7
+[POINTER PARAMETER] Call to netlink_autobind passes through pointer parameter 0 of netlink_connect <net/netlink/af_netlink.c:1093:9> FUNC=netlink_connect L=7
+[POINTER PARAMETER] Call to netlink_autobind passes through pointer parameter 0 of netlink_sendmsg <net/netlink/af_netlink.c:1845:9> FUNC=netlink_sendmsg L=7
+[POINTER PARAMETER] Call to do_ip_setsockopt passes through pointer parameter 0 of ip_setsockopt <net/ipv4/ip_sockglue.c:1417:8> FUNC=ip_setsockopt L=7
+[POINTER PARAMETER] Call to do_ip_getsockopt passes through pointer parameter 0 of __bpf_getsockopt <net/core/filter.c:5451:10> FUNC=__bpf_getsockopt L=7
+[POINTER PARAMETER] Call to do_ip_getsockopt passes through pointer parameter 0 of ip_getsockopt <net/ipv4/ip_sockglue.c:1765:8> FUNC=ip_getsockopt L=7
+[POINTER PARAMETER] Call to do_tcp_setsockopt passes through pointer parameter 0 of sol_tcp_sockopt <net/core/filter.c:5360:8> FUNC=sol_tcp_sockopt L=7
+[POINTER PARAMETER] Call to do_tcp_setsockopt passes through pointer parameter 0 of tcp_setsockopt <net/ipv4/tcp.c:4045:9> FUNC=tcp_setsockopt L=7
+[POINTER PARAMETER] Call to do_tcp_getsockopt passes through pointer parameter 0 of tcp_getsockopt <net/ipv4/tcp.c:4686:9> FUNC=tcp_getsockopt L=7
+[POINTER PARAMETER] Call to inet_sendmsg passes through pointer parameter 0 of __sock_sendmsg <net/socket.c:718:12> FUNC=__sock_sendmsg L=7
+[POINTER PARAMETER] Call to inet_sendmsg passes through pointer parameter 0 of sock_sendmsg_nosec <net/socket.c:718:12> FUNC=sock_sendmsg_nosec L=7
+[POINTER PARAMETER] Call to inet_recvmsg passes through pointer parameter 0 of sock_recvmsg <net/socket.c:1023:12> FUNC=sock_recvmsg L=7
+[POINTER PARAMETER] Call to inet_recvmsg passes through pointer parameter 0 of sock_recvmsg_nosec <net/socket.c:1023:12> FUNC=sock_recvmsg_nosec L=7
+[POINTER PARAMETER] Call to inet6_addr_add passes through pointer parameter 0 of addrconf_add_ifaddr <net/ipv6/addrconf.c:3156:9> FUNC=addrconf_add_ifaddr L=7
+[POINTER PARAMETER] Call to inet6_addr_add passes through pointer parameter 0 of inet6_rtm_newaddr <net/ipv6/addrconf.c:5054:9> FUNC=inet6_rtm_newaddr L=7
+[POINTER PARAMETER] Call to inet6_addr_del passes through pointer parameter 0 of addrconf_del_ifaddr <net/ipv6/addrconf.c:3175:8> FUNC=addrconf_del_ifaddr L=7
+[POINTER PARAMETER] Call to inet6_addr_del passes through pointer parameter 0 of inet6_rtm_deladdr <net/ipv6/addrconf.c:4796:8> FUNC=inet6_rtm_deladdr L=7
+[POINTER PARAMETER] Call to do_ipv6_setsockopt passes through pointer parameter 0 of ipv6_setsockopt <net/ipv6/ipv6_sockglue.c:993:8> FUNC=ipv6_setsockopt L=7
+[POINTER PARAMETER] Call to do_ipv6_getsockopt passes through pointer parameter 0 of ipv6_getsockopt <net/ipv6/ipv6_sockglue.c:1483:8> FUNC=ipv6_getsockopt L=7
+[POINTER PARAMETER] Call to __sock_sendmsg passes through pointer parameter 0 of sock_write_iter <net/socket.c:1137:8> FUNC=sock_write_iter L=8
+[POINTER PARAMETER] Call to __sock_sendmsg passes through pointer parameter 0 of sock_sendmsg <net/socket.c:756:8> FUNC=sock_sendmsg L=8
+[POINTER PARAMETER] Call to __sock_sendmsg passes through pointer parameter 0 of kernel_sendmsg <net/socket.c:756:8> FUNC=kernel_sendmsg L=8
+[POINTER PARAMETER] Call to __sock_sendmsg passes through pointer parameter 0 of ____sys_sendmsg <net/socket.c:2573:8> FUNC=____sys_sendmsg L=8
+[POINTER PARAMETER] Call to sock_recvmsg passes through pointer parameter 0 of sock_read_iter <net/socket.c:1115:8> FUNC=sock_read_iter L=8
+[POINTER PARAMETER] Call to sock_recvmsg passes through pointer parameter 0 of kernel_recvmsg <net/socket.c:1070:9> FUNC=kernel_recvmsg L=8
+[POINTER PARAMETER] Call to sock_recvmsg passes through pointer parameter 0 of ____sys_recvmsg <net/socket.c:2793:9> FUNC=____sys_recvmsg L=8
+[POINTER PARAMETER] Call to sock_recvmsg passes through pointer parameter 0 of sync_thread_backup <net/netfilter/ipvs/ip_vs_sync.c:1611:8> FUNC=sync_thread_backup L=8
+[POINTER PARAMETER] Call to sock_recvmsg passes through pointer parameter 0 of xs_stream_data_receive_workfn <net/sunrpc/xprtsock.c:399:8> FUNC=xs_stream_data_receive_workfn L=8
+[POINTER PARAMETER] Call to sock_recvmsg passes through pointer parameter 0 of xs_sock_recvmsg <net/sunrpc/xprtsock.c:399:8> FUNC=xs_sock_recvmsg L=8
+[POINTER PARAMETER] Call to sock_recvmsg passes through pointer parameter 0 of svc_tcp_recvfrom <net/sunrpc/svcsock.c:271:8> FUNC=svc_tcp_recvfrom L=8
+[POINTER PARAMETER] Call to sock_recvmsg passes through pointer parameter 0 of smc_clc_wait_msg <net/smc/smc_clc.c:713:8> FUNC=smc_clc_wait_msg L=8
+[POINTER PARAMETER] Call to do_sock_setsockopt passes through pointer parameter 0 of io_uring_cmd_sock <io_uring/uring_cmd.c:321:9> FUNC=io_uring_cmd_sock L=8
+[POINTER PARAMETER] Call to sk_getsockopt passes through pointer parameter 0 of do_sock_getsockopt <net/socket.c:2356:9> FUNC=do_sock_getsockopt L=8
+[POINTER PARAMETER] Call to ip_setsockopt passes through pointer parameter 0 of raw_setsockopt <net/ipv4/raw.c:845:10> FUNC=raw_setsockopt L=8
+[POINTER PARAMETER] Call to ip_getsockopt passes through pointer parameter 0 of raw_getsockopt <net/ipv4/raw.c:865:10> FUNC=raw_getsockopt L=8
+[POINTER PARAMETER] Call to ip_getsockopt passes through pointer parameter 0 of udp_getsockopt <net/ipv4/udp.c:3122:9> FUNC=udp_getsockopt L=8
+[POINTER PARAMETER] Call to addrconf_add_ifaddr passes through pointer parameter 0 of inet6_ioctl <net/ipv6/af_inet6.c:580:10> FUNC=inet6_ioctl L=8
+[POINTER PARAMETER] Call to ipv6_setsockopt passes through pointer parameter 0 of rawv6_setsockopt <net/ipv6/raw.c:1055:10> FUNC=rawv6_setsockopt L=8
+[POINTER PARAMETER] Call to ipv6_getsockopt passes through pointer parameter 0 of udpv6_getsockopt <net/ipv6/udp.c:1858:9> FUNC=udpv6_getsockopt L=8
+[POINTER PARAMETER] Call to ipv6_getsockopt passes through pointer parameter 0 of rawv6_getsockopt <net/ipv6/raw.c:1116:10> FUNC=rawv6_getsockopt L=8
+[POINTER PARAMETER] Call to smc_clc_wait_msg passes through pointer parameter 0 of smc_connect_clc <net/smc/af_smc.c:1169:9> FUNC=smc_connect_clc L=9
+[POINTER PARAMETER] Call to smc_clc_wait_msg passes through pointer parameter 0 of smcr_clnt_conf_first_link <net/smc/af_smc.c:602:8> FUNC=smcr_clnt_conf_first_link L=9
+[POINTER PARAMETER] Call to smc_clc_wait_msg passes through pointer parameter 0 of smc_listen_rdma_finish <net/smc/af_smc.c:1872:8> FUNC=smc_listen_rdma_finish L=9
+[POINTER PARAMETER] Call to xs_sock_recvmsg passes through pointer parameter 0 of xs_read_stream_request <net/sunrpc/xprtsock.c:420:9> FUNC=xs_read_stream_request L=9
+[POINTER PARAMETER] Call to sock_sendmsg passes through pointer parameter 0 of __skb_send_sock <net/core/skbuff.c:3175:9> FUNC=__skb_send_sock L=9
+[POINTER PARAMETER] Call to sock_sendmsg passes through pointer parameter 0 of sendmsg_unlocked <net/core/skbuff.c:3175:9> FUNC=sendmsg_unlocked L=9
+[POINTER PARAMETER] Call to sock_sendmsg passes through pointer parameter 0 of xprt_sock_sendmsg <net/sunrpc/socklib.c:211:9> FUNC=xprt_sock_sendmsg L=9
+[POINTER PARAMETER] Call to sock_sendmsg passes through pointer parameter 0 of svc_tcp_sendto <net/sunrpc/svcsock.c:1227:8> FUNC=svc_tcp_sendto L=9
+[POINTER PARAMETER] Call to sock_sendmsg passes through pointer parameter 0 of svc_udp_sendto <net/sunrpc/svcsock.c:721:8> FUNC=svc_udp_sendto L=9
+[POINTER PARAMETER] Call to sock_sendmsg passes through pointer parameter 0 of tls_alert_send <net/handshake/alert.c:63:8> FUNC=tls_alert_send L=9
+[POINTER PARAMETER] Call to kernel_sendmsg passes through pointer parameter 0 of sync_thread_master <net/netfilter/ipvs/ip_vs_sync.c:1582:8> FUNC=sync_thread_master L=9
+[POINTER PARAMETER] Call to kernel_sendmsg passes through pointer parameter 0 of smc_clc_send_decline <net/smc/smc_clc.c:838:8> FUNC=smc_clc_send_decline L=9
+[POINTER PARAMETER] Call to kernel_sendmsg passes through pointer parameter 0 of smc_clc_send_proposal <net/smc/smc_clc.c:1031:8> FUNC=smc_clc_send_proposal L=9
+[POINTER PARAMETER] Call to kernel_sendmsg passes through pointer parameter 0 of smc_clc_send_confirm_accept <net/smc/smc_clc.c:1206:9> FUNC=smc_clc_send_confirm_accept L=9
+[POINTER PARAMETER] Call to ____sys_sendmsg passes through pointer parameter 0 of __sys_sendmsg_sock <net/socket.c:2639:9> FUNC=__sys_sendmsg_sock L=9
+[POINTER PARAMETER] Call to ____sys_sendmsg passes through pointer parameter 0 of ___sys_sendmsg <net/socket.c:2627:8> FUNC=___sys_sendmsg L=9
+[POINTER PARAMETER] Call to ____sys_recvmsg passes through pointer parameter 0 of __sys_recvmsg_sock <net/socket.c:2848:9> FUNC=__sys_recvmsg_sock L=9
+[POINTER PARAMETER] Call to ____sys_recvmsg passes through pointer parameter 0 of ___sys_recvmsg <net/socket.c:2835:8> FUNC=___sys_recvmsg L=9
+[POINTER PARAMETER] Call to smc_connect_clc passes through pointer parameter 0 of __smc_connect <net/smc/af_smc.c:1538:7> FUNC=__smc_connect L=10
+[POINTER PARAMETER] Call to smcr_clnt_conf_first_link passes through pointer parameter 0 of smc_connect_rdma <net/smc/af_smc.c:1344:17> FUNC=smc_connect_rdma L=10
+[POINTER PARAMETER] Call to smc_clc_send_confirm_accept passes through pointer parameter 0 of smc_clc_send_confirm <net/smc/smc_clc.c:1221:8> FUNC=smc_clc_send_confirm L=10
+[POINTER PARAMETER] Call to smc_clc_send_confirm_accept passes through pointer parameter 0 of smc_clc_send_accept <net/smc/smc_clc.c:1244:8> FUNC=smc_clc_send_accept L=10
+[POINTER PARAMETER] Call to tls_alert_send passes through pointer parameter 0 of tls_handshake_close <net/handshake/tlshd.c:445:2> FUNC=tls_handshake_close L=10
+[POINTER PARAMETER] Call to xprt_sock_sendmsg passes through pointer parameter 0 of bc_send_request <net/sunrpc/xprtsock.c:2984:8> FUNC=bc_send_request L=10
+[POINTER PARAMETER] Call to __skb_send_sock passes through pointer parameter 0 of skb_send_sock_locked <net/core/skbuff.c:3281:9> FUNC=skb_send_sock_locked L=10
+[POINTER PARAMETER] Call to __skb_send_sock passes through pointer parameter 0 of skb_send_sock <net/core/skbuff.c:3288:9> FUNC=skb_send_sock L=10
+[POINTER PARAMETER] Call to smc_clc_send_confirm passes through pointer parameter 0 of smc_connect_ism <net/smc/af_smc.c:1447:7> FUNC=smc_connect_ism L=11
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 5
+
+Earliest instruction with L=0:
+    %167 = tail call i32 @llvm.umin.i32(i32 %165, i32 16), <net/ipv4/tcp_input.c:313:14> FUNC=tcp_event_data_recv L=0
+
+Latest instruction with L=0:
+    %174 = trunc nuw nsw i32 %168 to i8, <net/ipv4/tcp_input.c:315:26> FUNC=tcp_event_data_recv L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/ipv4/tcp_input.ll
+../linux-wllvm-defconfig/net/ipv4/tcp_input.c

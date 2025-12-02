@@ -1,0 +1,30 @@
+=== Taint Tracker Configuration ===
+Function: task_numa_fault
+Opcode: icmp
+Constant: 6
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 6)
+
+[SOURCE] Tainting:   %742 = icmp sgt i32 %741, 6, <kernel/sched/fair.c:2726:15> FUNC=task_numa_fault L=0
+[USE] Source instruction in data flow <kernel/sched/fair.c:2726:15> FUNC=task_numa_fault L=0
+[USE] Processing uses of:   %742 = icmp sgt i32 %741, 6,
+  [USE] Taint flows to:   br i1 %742, label %743, label %746, <kernel/sched/fair.c:2726:15> FUNC=task_numa_fault L=0
+[NO USE] No uses of:   br i1 %742, label %743, label %746,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 2
+
+Earliest instruction with L=0:
+    %742 = icmp sgt i32 %741, 6, <kernel/sched/fair.c:2726:15> FUNC=task_numa_fault L=0
+
+Latest instruction with L=0:
+    br i1 %742, label %743, label %746, <kernel/sched/fair.c:2726:15> FUNC=task_numa_fault L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/kernel/sched/fair.ll
+../linux-wllvm-defconfig/kernel/sched/fair.c

@@ -1,0 +1,15 @@
+=== Taint Tracker Configuration ===
+Function: unlock_stripe
+Opcode: icmp
+Constant: 1024
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 1024)
+
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/btrfs/raid56.ll
+../linux-wllvm-defconfig/fs/btrfs/raid56.c

@@ -1,0 +1,5 @@
+SOURCE_FILE=net/core/filter.c
+FUNCTION_NAME=bpf_sk_assign_tcp_reqsk
+SOURCE_OP="icmp"
+CONSTANT_VALUE=14
+OCCURENCE=2

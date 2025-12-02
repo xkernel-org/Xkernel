@@ -1,0 +1,51 @@
+=== Taint Tracker Configuration ===
+Function: count_partial_free_approx
+Opcode: phi
+Constant: 5000
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 5000)
+
+[SOURCE] Tainting:   %54 = phi i64 [ %52, %51 ], [ 5000, %40 ], [ %24, %23 ], <mm/slub.c:0> FUNC=count_partial_free_approx L=0
+[USE] Source instruction in data flow <mm/slub.c:0> FUNC=count_partial_free_approx L=0
+[USE] Processing uses of:   %54 = phi i64 [ %52, %51 ], [ 5000, %40 ], [ %24, %23 ],
+  [USE] Taint flows to:   %66 = phi i64 [ %75, %59 ], [ %54, %53 ] FUNC=count_partial_free_approx L=0
+  [USE] Taint flows to:   %78 = phi i64 [ %54, %53 ], [ 10000, %63 ], [ %75, %59 ], <mm/slub.c:0> FUNC=count_partial_free_approx L=0
+[USE] Processing uses of:   %78 = phi i64 [ %54, %53 ], [ 10000, %63 ], [ %75, %59 ],
+  [USE] Taint flows to:   %80 = udiv i64 %79, %78, <mm/slub.c:3509:7> FUNC=count_partial_free_approx L=0
+  [USE] Taint flows to:   %81 = urem i64 %79, %78, <mm/slub.c:3509:7> FUNC=count_partial_free_approx L=0
+  [USE] Taint flows to:   %84 = udiv i64 %83, %78, <mm/slub.c:3509:7> FUNC=count_partial_free_approx L=0
+[USE] Processing uses of:   %84 = udiv i64 %83, %78,
+  [USE] Taint flows to:   %85 = add i64 %84, %82, <mm/slub.c:3509:7> FUNC=count_partial_free_approx L=0
+[USE] Processing uses of:   %85 = add i64 %84, %82,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %88 = tail call i64 @llvm.umin.i64(i64 %85, i64 %87), !dbg !17867644 <mm/slub.c:3510:7>
+[USE] Processing uses of:   %81 = urem i64 %79, %78,
+  [USE] Taint flows to:   %83 = mul i64 %81, %4, <mm/slub.c:3509:7> FUNC=count_partial_free_approx L=0
+[USE] Processing uses of:   %83 = mul i64 %81, %4,
+[USE] Processing uses of:   %80 = udiv i64 %79, %78,
+  [USE] Taint flows to:   %82 = mul i64 %80, %4, <mm/slub.c:3509:7> FUNC=count_partial_free_approx L=0
+[USE] Processing uses of:   %82 = mul i64 %80, %4,
+[USE] Processing uses of:   %66 = phi i64 [ %75, %59 ], [ %54, %53 ]
+  [USE] Taint flows to:   %75 = add nuw nsw i64 %66, 1, <mm/slub.c:3506:8> FUNC=count_partial_free_approx L=0
+[USE] Processing uses of:   %75 = add nuw nsw i64 %66, 1,
+  [USE] Taint flows to:   %76 = icmp eq i64 %75, 10000, <mm/slub.c:3506:18> FUNC=count_partial_free_approx L=0
+[USE] Processing uses of:   %76 = icmp eq i64 %75, 10000,
+  [USE] Taint flows to:   br i1 %76, label %77, label %59, <mm/slub.c:3506:18> FUNC=count_partial_free_approx L=0
+[NO USE] No uses of:   br i1 %76, label %77, label %59,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 12
+
+Earliest instruction with L=0:
+    %54 = phi i64 [ %52, %51 ], [ 5000, %40 ], [ %24, %23 ], <mm/slub.c:0> FUNC=count_partial_free_approx L=0
+
+Latest instruction with L=0:
+    %85 = add i64 %84, %82, <mm/slub.c:3509:7> FUNC=count_partial_free_approx L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/mm/slub.ll
+../linux-wllvm-defconfig/mm/slub.c

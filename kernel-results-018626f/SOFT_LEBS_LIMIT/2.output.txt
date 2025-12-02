@@ -1,0 +1,15 @@
+=== Taint Tracker Configuration ===
+Function: ubifs_garbage_collect
+Opcode: icmp
+Constant: 4
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 2 (of constant 4)
+
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/ubifs/gc.ll
+../linux-wllvm-defconfig/fs/ubifs/gc.c

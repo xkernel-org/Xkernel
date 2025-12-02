@@ -1,0 +1,28 @@
+=== Taint Tracker Configuration ===
+Function: select_estimate_accuracy
+Opcode: phi
+Constant: 0
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 0)
+
+[SOURCE] Tainting:   %40 = phi i64 [ 0, %9 ], [ 100000000, %22 ], [ %38, %33 ], <fs/select.c:0> FUNC=select_estimate_accuracy L=0
+[USE] Source instruction in data flow <fs/select.c:0> FUNC=select_estimate_accuracy L=0
+[USE] Processing uses of:   %40 = phi i64 [ 0, %9 ], [ 100000000, %22 ], [ %38, %33 ],
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %41 = call i64 @llvm.umax.i64(i64 %40, i64 %7), !dbg !17867508 <fs/select.c:0>
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 1
+
+Earliest instruction with L=0:
+    %40 = phi i64 [ 0, %9 ], [ 100000000, %22 ], [ %38, %33 ], <fs/select.c:0> FUNC=select_estimate_accuracy L=0
+
+(Earliest and latest are the same instruction)
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/select.ll
+../linux-wllvm-defconfig/fs/select.c

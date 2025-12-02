@@ -1,0 +1,5 @@
+SOURCE_FILE=fs/pipe.c
+FUNCTION_NAME=alloc_pipe_info
+SOURCE_OP="phi"
+CONSTANT_VALUE=2
+OCCURENCE=2

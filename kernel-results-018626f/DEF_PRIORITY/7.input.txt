@@ -1,0 +1,5 @@
+SOURCE_FILE=mm/vmscan.c
+FUNCTION_NAME=shrink_node
+SOURCE_OP="icmp"
+CONSTANT_VALUE=9
+OCCURENCE=1

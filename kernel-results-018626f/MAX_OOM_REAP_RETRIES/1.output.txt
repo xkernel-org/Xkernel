@@ -1,0 +1,30 @@
+=== Taint Tracker Configuration ===
+Function: oom_reaper
+Opcode: icmp
+Constant: 11
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 11)
+
+[SOURCE] Tainting:   %162 = icmp eq i32 %161, 11, <mm/oom_kill.c:618:20> FUNC=oom_reaper L=0
+[USE] Source instruction in data flow <mm/oom_kill.c:618:20> FUNC=oom_reaper L=0
+[USE] Processing uses of:   %162 = icmp eq i32 %161, 11,
+  [USE] Taint flows to:   br i1 %162, label %163, label %39, <mm/oom_kill.c:618:43> FUNC=oom_reaper L=0
+[NO USE] No uses of:   br i1 %162, label %163, label %39,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 2
+
+Earliest instruction with L=0:
+    %162 = icmp eq i32 %161, 11, <mm/oom_kill.c:618:20> FUNC=oom_reaper L=0
+
+Latest instruction with L=0:
+    br i1 %162, label %163, label %39, <mm/oom_kill.c:618:43> FUNC=oom_reaper L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/mm/oom_kill.ll
+../linux-wllvm-defconfig/mm/oom_kill.c

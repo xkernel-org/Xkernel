@@ -1,0 +1,15 @@
+=== Taint Tracker Configuration ===
+Function: __btrfs_kill_delayed_node
+Opcode: icmp
+Constant: 15
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 2 (of constant 15)
+
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/btrfs/delayed-inode.ll
+../linux-wllvm-defconfig/fs/btrfs/delayed-inode.c

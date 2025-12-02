@@ -1,0 +1,28 @@
+=== Taint Tracker Configuration ===
+Function: tcp_init_cwnd
+Opcode: phi
+Constant: 10
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 10)
+
+[SOURCE] Tainting:   %15 = phi i32 [ 10, %13 ], [ %11, %4 ], <net/ipv4/tcp_input.c:1011:6> FUNC=tcp_init_cwnd L=0
+[USE] Source instruction in data flow <net/ipv4/tcp_input.c:1011:6> FUNC=tcp_init_cwnd L=0
+[USE] Processing uses of:   %15 = phi i32 [ 10, %13 ], [ %11, %4 ],
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %18 = tail call i32 @llvm.umin.i32(i32 %15, i32 %17), !dbg !17867535 <net/ipv4/tcp_input.c:1013:9>
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 1
+
+Earliest instruction with L=0:
+    %15 = phi i32 [ 10, %13 ], [ %11, %4 ], <net/ipv4/tcp_input.c:1011:6> FUNC=tcp_init_cwnd L=0
+
+(Earliest and latest are the same instruction)
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/ipv4/tcp_input.ll
+../linux-wllvm-defconfig/net/ipv4/tcp_input.c

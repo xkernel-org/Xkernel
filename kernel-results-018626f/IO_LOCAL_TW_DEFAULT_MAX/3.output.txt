@@ -1,0 +1,30 @@
+=== Taint Tracker Configuration ===
+Function: __se_sys_io_uring_enter
+Opcode: call
+Constant: 20
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 2 (of constant 20)
+
+[SOURCE] Tainting:   %348 = call i32 @llvm.smax.i32(i32 %327, i32 20), <io_uring/io_uring.c:2525:7> FUNC=__se_sys_io_uring_enter L=0
+[USE] Source instruction in data flow <io_uring/io_uring.c:2525:7> FUNC=__se_sys_io_uring_enter L=0
+[CHILD FUNCTION] Constant used in call to llvm.smax.i32 at argument 1 <io_uring/io_uring.c:2525:7> FUNC=__se_sys_io_uring_enter L=0
+[USE] Processing uses of:   %348 = call i32 @llvm.smax.i32(i32 %327, i32 20),
+  [CHILD FUNCTION] Tainted value used in call to __io_run_local_work at argument 3:   %350 = call fastcc i32 @__io_run_local_work(ptr noundef %46, ptr noundef nonnull %7, i32 noundef %327, i32 noundef %348) #272, <io_uring/io_uring.c:1354:8> FUNC=__se_sys_io_uring_enter L=0
+  [POINTER PARAMETER INTRAPROC] Conservatively marking pointer argument 1 as tainted:   %7 = alloca %struct.lock_class_key, align 1, !DIAssignID !17867508 <io_uring/io_uring.c:1354:8> FUNC=__se_sys_io_uring_enter L=0
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 1
+
+Earliest instruction with L=0:
+    %348 = call i32 @llvm.smax.i32(i32 %327, i32 20), <io_uring/io_uring.c:2525:7> FUNC=__se_sys_io_uring_enter L=0
+
+(Earliest and latest are the same instruction)
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/io_uring/io_uring.ll
+../linux-wllvm-defconfig/io_uring/io_uring.c

@@ -1,0 +1,15 @@
+=== Taint Tracker Configuration ===
+Function: btrfs_balance_delayed_items
+Opcode: icmp
+Constant: 127
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 2 (of constant 127)
+
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/btrfs/delayed-inode.ll
+../linux-wllvm-defconfig/fs/btrfs/delayed-inode.c

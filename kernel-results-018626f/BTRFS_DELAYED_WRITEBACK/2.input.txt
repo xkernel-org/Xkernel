@@ -1,0 +1,5 @@
+SOURCE_FILE=fs/btrfs/delayed-inode.c
+FUNCTION_NAME=btrfs_async_run_delayed_root
+SOURCE_OP="icmp"
+CONSTANT_VALUE=512
+OCCURENCE=1

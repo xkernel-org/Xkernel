@@ -1,0 +1,15 @@
+=== Taint Tracker Configuration ===
+Function: nfsd_prune_bucket_locked
+Opcode: add
+Constant: -120000
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant -120000)
+
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/nfsd/nfscache.ll
+../linux-wllvm-defconfig/fs/nfsd/nfscache.c

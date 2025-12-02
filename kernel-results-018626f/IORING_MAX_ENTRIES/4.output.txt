@@ -1,0 +1,33 @@
+=== Taint Tracker Configuration ===
+Function: io_uring_fill_params
+Opcode: phi
+Constant: 65536
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 65536)
+
+[SOURCE] Tainting:   %37 = phi i32 [ %29, %31 ], [ 65536, %33 ], <io_uring/io_uring.c:3576:19> FUNC=io_uring_fill_params L=0
+[USE] Source instruction in data flow <io_uring/io_uring.c:3576:19> FUNC=io_uring_fill_params L=0
+[USE] Processing uses of:   %37 = phi i32 [ %29, %31 ], [ 65536, %33 ],
+  [USE] Taint flows to:   %38 = zext nneg i32 %37 to i64, <io_uring/io_uring.c:3576:19> FUNC=io_uring_fill_params L=0
+[USE] Processing uses of:   %38 = zext nneg i32 %37 to i64,
+  [USE] Taint flows to:   %39 = add nsw i64 %38, -1, <./include/linux/log2.h:57:27> FUNC=io_uring_fill_params L=0
+[USE] Processing uses of:   %39 = add nsw i64 %38, -1,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %40 = tail call i32 asm "bsrq $1,${0:q}", "=r,r,0,~{dirflag},~{fpsr},~{flags}"(i64 range(i64 -1, 4294967295) %39, i32 -1) #269, !dbg !17867564, !srcloc !17867539 <./arch/x86/include/asm/bitops.h:417:2>
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 3
+
+Earliest instruction with L=0:
+    %37 = phi i32 [ %29, %31 ], [ 65536, %33 ], <io_uring/io_uring.c:3576:19> FUNC=io_uring_fill_params L=0
+
+Latest instruction with L=0:
+    %39 = add nsw i64 %38, -1, <./include/linux/log2.h:57:27> FUNC=io_uring_fill_params L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/io_uring/io_uring.ll
+../linux-wllvm-defconfig/io_uring/io_uring.c

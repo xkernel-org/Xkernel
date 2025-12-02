@@ -1,0 +1,28 @@
+=== Taint Tracker Configuration ===
+Function: tcp_parse_options
+Opcode: call
+Constant: 14
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 14)
+
+[SOURCE] Tainting:   %95 = tail call i32 (ptr, ...) @_printk(ptr noundef nonnull @.str.1.86389, ptr noundef nonnull @__func__.tcp_parse_options, i32 noundef %89, i32 noundef 14) #270, <net/ipv4/tcp_input.c:4238:7> FUNC=tcp_parse_options L=0
+[USE] Source instruction in data flow <net/ipv4/tcp_input.c:4238:7> FUNC=tcp_parse_options L=0
+[CHILD FUNCTION] Constant used in call to _printk at argument 3 <net/ipv4/tcp_input.c:4238:7> FUNC=tcp_parse_options L=0
+[NO USE] No uses of:   %95 = tail call i32 (ptr, ...) @_printk(ptr noundef nonnull @.str.1.86389, ptr noundef nonnull @__func__.tcp_parse_options, i32 noundef %89, i32 noundef 14) #270,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 1
+
+Earliest instruction with L=0:
+    %95 = tail call i32 (ptr, ...) @_printk(ptr noundef nonnull @.str.1.86389, ptr noundef nonnull @__func__.tcp_parse_options, i32 noundef %89, i32 noundef 14) #270, <net/ipv4/tcp_input.c:4238:7> FUNC=tcp_parse_options L=0
+
+(Earliest and latest are the same instruction)
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/ipv4/tcp_input.ll
+../linux-wllvm-defconfig/net/ipv4/tcp_input.c

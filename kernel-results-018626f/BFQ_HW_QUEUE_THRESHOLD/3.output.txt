@@ -1,0 +1,15 @@
+=== Taint Tracker Configuration ===
+Function: bfq_finish_requeue_request
+Opcode: icmp
+Constant: 3
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 2 (of constant 3)
+
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/block/bfq-iosched.ll
+../linux-wllvm-defconfig/block/bfq-iosched.c

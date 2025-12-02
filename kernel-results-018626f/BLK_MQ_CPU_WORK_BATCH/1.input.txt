@@ -1,0 +1,5 @@
+SOURCE_FILE=block/blk-mq.c
+FUNCTION_NAME=blk_mq_map_swqueue
+SOURCE_OP="store"
+CONSTANT_VALUE=8
+OCCURENCE=1

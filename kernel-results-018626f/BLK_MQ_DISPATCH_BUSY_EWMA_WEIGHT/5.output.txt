@@ -1,0 +1,50 @@
+=== Taint Tracker Configuration ===
+Function: blk_mq_request_issue_directly
+Opcode: mul
+Constant: 7
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 3 (of constant 7)
+
+[SOURCE] Tainting:   %84 = mul i32 %81, 7, <block/blk-mq.c:1988:7> FUNC=blk_mq_request_issue_directly L=0
+[USE] Source instruction in data flow <block/blk-mq.c:1988:7> FUNC=blk_mq_request_issue_directly L=0
+[USE] Processing uses of:   %84 = mul i32 %81, 7,
+  [USE] Taint flows to:   %85 = lshr i32 %84, 3, <block/blk-mq.c:1991:7> FUNC=blk_mq_request_issue_directly L=0
+[USE] Processing uses of:   %85 = lshr i32 %84, 3,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter <block/blk-mq.c:1993:22>
+[POINTER PARAMETER] Call to blk_mq_request_issue_directly passes through pointer parameter 0 of blk_insert_cloned_request <block/blk-mq.c:3236:2> FUNC=blk_insert_cloned_request L=1
+[UPWARD-INTERPROC] Call to blk_mq_request_issue_directly taints argument 0 (local variable) <block/blk-mq.c:2932:9> FUNC=blk_mq_try_issue_list_directly L=1
+  [STORE DESTINATION] Marking pointer as tainted via call:   %9 = phi ptr [ %34, %33 ], [ %6, %5 ] FUNC=blk_mq_try_issue_list_directly L=1
+[SKIP] Load before taint origin, not tainting:   %12 = load ptr, ptr %11, align 8, <./include/linux/list.h:218:20> FUNC=blk_mq_try_issue_list_directly L=1
+[SKIP] Load before taint origin, not tainting:   %13 = load ptr, ptr %9, align 8, <./include/linux/list.h:218:33> FUNC=blk_mq_try_issue_list_directly L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %21 = load ptr, ptr %20, align 8, (base:   %9 = phi ptr [ %34, %33 ], [ %6, %5 ])  <block/blk-mq.c:2544:35> FUNC=blk_mq_try_issue_list_directly L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %30 = load i32, ptr %29, align 4, (base:   %9 = phi ptr [ %34, %33 ], [ %6, %5 ])  <./include/linux/blk-mq.h:1077:13> FUNC=blk_mq_try_issue_list_directly L=1
+  [USE] Taint flows to:   %31 = tail call zeroext i1 @blk_update_request(ptr noundef %10, i8 noundef zeroext %17, i32 noundef %30) #269, <block/blk-mq.c:1145:6> FUNC=blk_mq_try_issue_list_directly L=1
+  [USE] Taint flows to:   br i1 %31, label %32, label %33, <block/blk-mq.c:1145:6> FUNC=blk_mq_try_issue_list_directly L=1
+  [USE] Taint flows to:   tail call void @_raw_spin_lock(ptr noundef %21) #270, <./include/linux/spinlock.h:351:2> FUNC=blk_mq_try_issue_list_directly L=1
+  [USE] Taint flows to:   %22 = getelementptr inbounds nuw i8, ptr %21, i64 8, <block/blk-mq.c:0> FUNC=blk_mq_try_issue_list_directly L=1
+  [USE] Taint flows to:   %23 = getelementptr inbounds nuw i8, ptr %21, i64 16, <./include/linux/list.h:183:24> FUNC=blk_mq_try_issue_list_directly L=1
+  [USE] Taint flows to:   tail call void @_raw_spin_unlock(ptr noundef %21) #270, <./include/linux/spinlock.h:391:2> FUNC=blk_mq_try_issue_list_directly L=1
+  [USE] Taint flows to:   %24 = load ptr, ptr %23, align 8, <./include/linux/list.h:183:24> FUNC=blk_mq_try_issue_list_directly L=1
+  [USE] Taint flows to:   store ptr %9, ptr %23, align 8, <./include/linux/list.h:153:13> FUNC=blk_mq_try_issue_list_directly L=1
+  [USE] Taint flows to:   store ptr %24, ptr %19, align 8, <./include/linux/list.h:155:12> FUNC=blk_mq_try_issue_list_directly L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %19 = getelementptr i8, ptr %9, i64 8 <./include/linux/list.h:155:12> FUNC=blk_mq_try_issue_list_directly L=1
+  [USE] Taint flows to:   store volatile ptr %9, ptr %24, align 8, <./include/linux/list.h:156:2> FUNC=blk_mq_try_issue_list_directly L=1
+  [USE] Taint flows to:   store ptr %22, ptr %9, align 8, <./include/linux/list.h:154:12> FUNC=blk_mq_try_issue_list_directly L=1
+
+=== Maximum Level Statistics ===
+Largest L value: 1
+Number of instructions with L=1: 13
+
+Earliest instruction with L=1:
+    %21 = load ptr, ptr %20, align 8, <block/blk-mq.c:2544:35> FUNC=blk_mq_try_issue_list_directly L=1
+
+Latest instruction with L=1:
+    br i1 %31, label %32, label %33, <block/blk-mq.c:1145:6> FUNC=blk_mq_try_issue_list_directly L=1
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/block/blk-mq.ll
+../linux-wllvm-defconfig/block/blk-mq.c

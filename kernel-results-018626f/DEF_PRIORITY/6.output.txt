@@ -1,0 +1,34 @@
+=== Taint Tracker Configuration ===
+Function: shrink_node
+Opcode: icmp
+Constant: 12
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 12)
+
+[SOURCE] Tainting:   %505 = icmp eq i8 %256, 12 FUNC=shrink_node L=0
+[USE] Source instruction in data flow FUNC=shrink_node L=0
+[USE] Processing uses of:   %505 = icmp eq i8 %256, 12
+  [USE] Taint flows to:   %506 = select i1 %504, i1 %505, i1 false, <mm/vmscan.c:5735:70> FUNC=shrink_node L=0
+[USE] Processing uses of:   %506 = select i1 %504, i1 %505, i1 false,
+  [USE] Taint flows to:   %691 = select i1 %690, i1 true, i1 %506, <mm/vmscan.c:5756:36> FUNC=shrink_node L=0
+[USE] Processing uses of:   %691 = select i1 %690, i1 true, i1 %506,
+  [USE] Taint flows to:   br i1 %691, label %748, label %695, <mm/vmscan.c:5756:36> FUNC=shrink_node L=0
+[NO USE] No uses of:   br i1 %691, label %748, label %695,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 4
+
+Earliest instruction with L=0:
+    %505 = icmp eq i8 %256, 12 FUNC=shrink_node L=0
+
+Latest instruction with L=0:
+    br i1 %691, label %748, label %695, <mm/vmscan.c:5756:36> FUNC=shrink_node L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/mm/vmscan.ll
+../linux-wllvm-defconfig/mm/vmscan.c

@@ -1,0 +1,5 @@
+SOURCE_FILE=fs/xfs/xfs_icache.c
+FUNCTION_NAME=xfs_inodegc_shrinker_count
+SOURCE_OP="phi"
+CONSTANT_VALUE=0
+OCCURENCE=2

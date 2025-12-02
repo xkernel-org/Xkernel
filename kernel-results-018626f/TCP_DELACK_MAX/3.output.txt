@@ -1,0 +1,87 @@
+=== Taint Tracker Configuration ===
+Function: dccp_send_ack
+Opcode: add
+Constant: 200
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 200)
+
+[SOURCE] Tainting:   %23 = add i64 %22, 200, <./include/net/inet_connection_sock.h:0> FUNC=dccp_send_ack L=0
+[USE] Source instruction in data flow <./include/net/inet_connection_sock.h:0> FUNC=dccp_send_ack L=0
+[USE] Processing uses of:   %23 = add i64 %22, 200,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter <./include/net/inet_connection_sock.h:0>
+  [CHILD FUNCTION] Tainted value used in call to sk_reset_timer at argument 2:   tail call void @sk_reset_timer(ptr noundef %0, ptr noundef nonnull %25, i64 noundef %23) #269, <./include/net/inet_connection_sock.h:0> FUNC=dccp_send_ack L=0
+  [POINTER PARAMETER INTRAPROC] Conservatively marking pointer argument 1 as tainted: ptr %0 <./include/net/inet_connection_sock.h:0> FUNC=dccp_send_ack L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %3 = load volatile i8, ptr %2, align 2, (base: ptr %0)  <net/dccp/output.c:584:10> FUNC=dccp_send_ack L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %7 = load ptr, ptr %6, align 8, (base: ptr %0)  <net/dccp/output.c:585:39> FUNC=dccp_send_ack L=0
+[SKIP] Load before taint origin, not tainting:   %14 = load i8, ptr %13, align 8, <./include/net/inet_connection_sock.h:179:33> FUNC=dccp_send_ack L=0
+[SKIP] Load before taint origin, not tainting:   %17 = load i32, ptr %16, align 4, <net/dccp/output.c:590:31> FUNC=dccp_send_ack L=0
+[SKIP] Load before taint origin, not tainting:   %20 = load i8, ptr %13, align 8, <./include/net/inet_connection_sock.h:236:3> FUNC=dccp_send_ack L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %27 = load ptr, ptr %6, align 8, (base: ptr %0)  <net/dccp/output.c:598:24> FUNC=dccp_send_ack L=0
+[USE] Processing uses of:   %27 = load ptr, ptr %6, align 8,
+  [USE] Taint flows to:   %28 = getelementptr inbounds nuw i8, ptr %27, i64 312, <net/dccp/output.c:598:33> FUNC=dccp_send_ack L=0
+[USE] Processing uses of:   %28 = getelementptr inbounds nuw i8, ptr %27, i64 312,
+  [USE] Taint flows to:   %29 = load i32, ptr %28, align 8, <net/dccp/output.c:598:33> FUNC=dccp_send_ack L=0
+[USE] Processing uses of:   %29 = load i32, ptr %28, align 8,
+  [USE] Taint flows to:   %32 = sext i32 %29 to i64, <./include/linux/skbuff.h:2876:12> FUNC=dccp_send_ack L=0
+  [USE] Taint flows to:   %36 = add i32 %35, %29, <./include/linux/skbuff.h:2877:12> FUNC=dccp_send_ack L=0
+[USE] Processing uses of:   %36 = add i32 %35, %29,
+  [STORE DESTINATION] Marking pointer as tainted:   %34 = getelementptr inbounds nuw i8, ptr %10, i64 184, <./include/linux/skbuff.h:2877:12>
+  [USE] Taint flows to:   store i32 %36, ptr %34, align 8, <./include/linux/skbuff.h:2877:12> FUNC=dccp_send_ack L=0
+[NO USE] No uses of:   store i32 %36, ptr %34, align 8,
+[USE] Processing uses of:   %32 = sext i32 %29 to i64,
+  [USE] Taint flows to:   %33 = getelementptr i8, ptr %31, i64 %32, <./include/linux/skbuff.h:2876:12> FUNC=dccp_send_ack L=0
+[USE] Processing uses of:   %33 = getelementptr i8, ptr %31, i64 %32,
+  [STORE DESTINATION] Marking pointer as tainted:   %30 = getelementptr inbounds nuw i8, ptr %10, i64 200, <./include/linux/skbuff.h:2876:12>
+  [USE] Taint flows to:   store ptr %33, ptr %30, align 8, <./include/linux/skbuff.h:2876:12> FUNC=dccp_send_ack L=0
+[NO USE] No uses of:   store ptr %33, ptr %30, align 8,
+[USE] Processing uses of:   %7 = load ptr, ptr %6, align 8,
+  [USE] Taint flows to:   %8 = getelementptr inbounds nuw i8, ptr %7, i64 312, <net/dccp/output.c:585:48> FUNC=dccp_send_ack L=0
+[USE] Processing uses of:   %8 = getelementptr inbounds nuw i8, ptr %7, i64 312,
+  [USE] Taint flows to:   %9 = load i32, ptr %8, align 8, <net/dccp/output.c:585:48> FUNC=dccp_send_ack L=0
+[USE] Processing uses of:   %9 = load i32, ptr %8, align 8,
+  [CHILD FUNCTION] Tainted value used in call to __alloc_skb at argument 0:   %10 = tail call ptr @__alloc_skb(i32 noundef %9, i32 noundef 2080, i32 noundef 0, i32 noundef -1) #269, <./include/linux/skbuff.h:1331:9> FUNC=dccp_send_ack L=0
+[USE] Processing uses of:   %3 = load volatile i8, ptr %2, align 2,
+  [USE] Taint flows to:   %4 = icmp eq i8 %3, 7, <net/dccp/output.c:584:19> FUNC=dccp_send_ack L=0
+[USE] Processing uses of:   %4 = icmp eq i8 %3, 7,
+  [USE] Taint flows to:   br i1 %4, label %42, label %5, <net/dccp/output.c:584:19> FUNC=dccp_send_ack L=0
+[NO USE] No uses of:   br i1 %4, label %42, label %5,
+[SKIP] Load before taint origin, not tainting:   %31 = load ptr, ptr %30, align 8, <./include/linux/skbuff.h:2876:12> FUNC=dccp_send_ack L=0
+[SKIP] Load before taint origin, not tainting:   %35 = load i32, ptr %34, align 8, <./include/linux/skbuff.h:2877:12> FUNC=dccp_send_ack L=0
+[POINTER PARAMETER] Call to dccp_send_ack passes through pointer parameter 0 of dccp_rcv_request_sent_state_process <net/dccp/input.c:497:3> FUNC=dccp_rcv_request_sent_state_process L=1
+[POINTER PARAMETER] Call to dccp_send_ack passes through pointer parameter 0 of dccp_xmit_packet <net/dccp/output.c:266:4> FUNC=dccp_xmit_packet L=1
+[POINTER PARAMETER] Call to dccp_send_ack passes through pointer parameter 0 of dccp_delack_timer <net/dccp/timer.c:208:3> FUNC=dccp_delack_timer L=1
+[POINTER PARAMETER] Call to dccp_send_ack passes through pointer parameter 0 of ccid2_hc_rx_packet_recv <net/dccp/ccids/ccid2.c:772:3> FUNC=ccid2_hc_rx_packet_recv L=1
+[POINTER PARAMETER] Call to dccp_send_ack passes through pointer parameter 0 of ccid3_hc_rx_packet_recv <net/dccp/ccids/ccid3.c:635:2> FUNC=ccid3_hc_rx_packet_recv L=1
+[SKIP] Load before taint origin, not tainting:   %14 = load i8, ptr %13, align 8, <./include/net/inet_connection_sock.h:179:33> FUNC=dccp_send_ack L=0
+[SKIP] Load before taint origin, not tainting:   %17 = load i32, ptr %16, align 4, <net/dccp/output.c:590:31> FUNC=dccp_send_ack L=0
+[SKIP] Load before taint origin, not tainting:   %20 = load i8, ptr %13, align 8, <./include/net/inet_connection_sock.h:236:3> FUNC=dccp_send_ack L=0
+[SKIP] Load before taint origin, not tainting:   %31 = load ptr, ptr %30, align 8, <./include/linux/skbuff.h:2876:12> FUNC=dccp_send_ack L=0
+[SKIP] Load before taint origin, not tainting:   %35 = load i32, ptr %34, align 8, <./include/linux/skbuff.h:2877:12> FUNC=dccp_send_ack L=0
+[POINTER PARAMETER] Call to dccp_rcv_request_sent_state_process passes through pointer parameter 0 of dccp_rcv_state_process <net/dccp/input.c:676:12> FUNC=dccp_rcv_state_process L=2
+[POINTER PARAMETER] Call to dccp_xmit_packet passes through pointer parameter 0 of dccp_flush_write_queue <net/dccp/output.c:340:4> FUNC=dccp_flush_write_queue L=2
+[POINTER PARAMETER] Call to dccp_xmit_packet passes through pointer parameter 0 of dccp_write_xmit <net/dccp/output.c:366:4> FUNC=dccp_write_xmit L=2
+[POINTER PARAMETER] Call to dccp_rcv_state_process passes through pointer parameter 1 of dccp_child_process <net/dccp/minisocks.c:222:9> FUNC=dccp_child_process L=3
+[POINTER PARAMETER] Call to dccp_rcv_state_process passes through pointer parameter 0 of dccp_v4_do_rcv <net/dccp/ipv4.c:710:6> FUNC=dccp_v4_do_rcv L=3
+[POINTER PARAMETER] Call to dccp_rcv_state_process passes through pointer parameter 0 of dccp_v6_do_rcv <net/dccp/ipv6.c:657:6> FUNC=dccp_v6_do_rcv L=3
+[POINTER PARAMETER] Call to dccp_flush_write_queue passes through pointer parameter 0 of dccp_close <net/dccp/proto.c:1040:3> FUNC=dccp_close L=3
+[POINTER PARAMETER] Call to dccp_write_xmit passes through pointer parameter 0 of dccp_sendmsg <net/dccp/proto.c:801:3> FUNC=dccp_sendmsg L=3
+[POINTER PARAMETER] Call to dccp_write_xmit passes through pointer parameter 0 of dccp_write_xmitlet <net/dccp/timer.c:231:3> FUNC=dccp_write_xmitlet L=3
+[POINTER PARAMETER] Call to dccp_write_xmitlet passes through pointer parameter 0 of dccp_write_xmit_timer <net/dccp/timer.c:240:2> FUNC=dccp_write_xmit_timer L=4
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 15
+
+Earliest instruction with L=0:
+    %3 = load volatile i8, ptr %2, align 2, <net/dccp/output.c:584:10> FUNC=dccp_send_ack L=0
+
+Latest instruction with L=0:
+    store i32 %36, ptr %34, align 8, <./include/linux/skbuff.h:2877:12> FUNC=dccp_send_ack L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/dccp/output.ll
+../linux-wllvm-defconfig/net/dccp/output.c

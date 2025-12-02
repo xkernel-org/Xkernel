@@ -1,0 +1,5 @@
+SOURCE_FILE=mm/percpu.c
+FUNCTION_NAME=pcpu_alloc_noprof
+SOURCE_OP="icmp"
+CONSTANT_VALUE=2
+OCCURENCE=1
