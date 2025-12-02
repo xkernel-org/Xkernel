@@ -191,7 +191,7 @@
 
 ### 9. MLD_MAX_QUEUE
 
-# FIXME there was a huge diff during IR localization
+# TODO there was a huge diff during IR localization
 
 ### 10. MLD_MAX_SKBS
 
@@ -462,7 +462,7 @@
 # CONSTANT_VALUE=200
 # OCCURENCE=1
 
-# FIXME there was a huge diff during IR localization
+# TODO there was a huge diff during IR localization
 
 ### 14. TCP_DELACK_MIN
 
@@ -3902,8 +3902,8 @@
 
 ### Try KLP bad case
 
-# %278 = icmp sgt i32 %262, 15, !dbg !17195
-# Conclusion: []
+# # %278 = icmp sgt i32 %262, 15, !dbg !17224
+# # Conclusion: []
 #
 # SOURCE_FILE=net/ipv4/tcp.c
 # FUNCTION_NAME=tcp_sendmsg_locked

@@ -52,7 +52,7 @@
 
 ### 9. MLD_MAX_QUEUE
 
-# FIXME huge diff
+# TODO huge diff
 
 # SOURCE_FILE=net/ipv6/mcast.c
 # DEFINITION_SOURCE_FILE=include/net/mld.h
@@ -114,7 +114,7 @@
 # DEFINITION_SOURCE_FILE=include/net/tcp.h
 # SED_PATTERN='s|\#define TCP_DELACK_MAX	((unsigned)(HZ/5))|\#define TCP_DELACK_MAX	10|'
 
-# FIXME huge diff
+# TODO huge diff
 # SOURCE_FILE=net/ipv4/tcp_output.c
 # DEFINITION_SOURCE_FILE=include/net/tcp.h
 # SED_PATTERN='s|\#define TCP_DELACK_MAX	((unsigned)(HZ/5))|\#define TCP_DELACK_MAX	10|'
@@ -229,9 +229,9 @@
 
 ### 24. AMT_INIT_REQ_TIMEOUT
 
-SOURCE_FILE=drivers/net/amt.c
-DEFINITION_SOURCE_FILE=include/net/amt.h
-SED_PATTERN='s|\#define AMT_INIT_REQ_TIMEOUT	1|\#define AMT_INIT_REQ_TIMEOUT	10|'
+# SOURCE_FILE=drivers/net/amt.c
+# DEFINITION_SOURCE_FILE=include/net/amt.h
+# SED_PATTERN='s|\#define AMT_INIT_REQ_TIMEOUT	1|\#define AMT_INIT_REQ_TIMEOUT	10|'
 
 ### 25. AMT_MAX_REQ_TIMEOUT
 
