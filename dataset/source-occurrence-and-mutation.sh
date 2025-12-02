@@ -839,3 +839,147 @@ SED_PATTERN='s|\#define AMT_INIT_REQ_TIMEOUT	1|\#define AMT_INIT_REQ_TIMEOUT	10|
 # SOURCE_FILE=kernel/sched/fair.c
 # DEFINITION_SOURCE_FILE=kernel/sched/sched.h
 # SED_PATTERN='s|\# define SCHED_NR_MIGRATE_BREAK 32|\# define SCHED_NR_MIGRATE_BREAK 16|'
+
+### 118. fits_capacity
+
+# SOURCE_FILE=kernel/sched/fair.c
+# DEFINITION_SOURCE_FILE=kernel/sched/fair.c
+# SED_PATTERN='s|\#define fits_capacity(cap, max)	((cap) \* 1280 < (max) \* 1024)|\#define fits_capacity(cap, max)	((cap) \* 1280 < (max) \* 512)|'
+
+### 119. capacity_greater
+
+# SOURCE_FILE=kernel/sched/fair.c
+# DEFINITION_SOURCE_FILE=kernel/sched/fair.c
+# SED_PATTERN='s|\#define capacity_greater(cap1, cap2) ((cap1) \* 1024 > (cap2) \* 1078)|\#define capacity_greater(cap1, cap2) ((cap1) \* 1024 > (cap2) \* 1200)|'
+
+### 120. NUMA_MIGRATION_ADJUST_STEPS
+
+# SOURCE_FILE=kernel/sched/fair.c
+# DEFINITION_SOURCE_FILE=kernel/sched/fair.c
+# SED_PATTERN='s|\#define NUMA_MIGRATION_ADJUST_STEPS	16|\#define NUMA_MIGRATION_ADJUST_STEPS	8|'
+
+### 121. VMA_PID_RESET_PERIOD
+
+# SOURCE_FILE=kernel/sched/fair.c
+# DEFINITION_SOURCE_FILE=kernel/sched/fair.c
+# SED_PATTERN='s|\#define VMA_PID_RESET_PERIOD (4 \* sysctl_numa_balancing_scan_delay)|\#define VMA_PID_RESET_PERIOD (2 \* sysctl_numa_balancing_scan_delay)|'
+
+### 122. UTIL_EST_MARGIN
+
+# SOURCE_FILE=kernel/sched/fair.c
+# DEFINITION_SOURCE_FILE=kernel/sched/fair.c
+# SED_PATTERN='s|\#define UTIL_EST_MARGIN (SCHED_CAPACITY_SCALE / 100)|\#define UTIL_EST_MARGIN (SCHED_CAPACITY_SCALE / 200)|'
+
+### 123. tcp_min_rtt
+
+# SOURCE_FILE=net/ipv4/tcp_recovery.c
+# DEFINITION_SOURCE_FILE=net/ipv4/tcp_recovery.c
+# SED_PATTERN='s|tcp_min_rtt(tp) >> 2|tcp_min_rtt(tp) \>\> 3|'
+
+### 124. node_stamp__2__TICK_NSEC
+
+# SOURCE_FILE=kernel/sched/fair.c
+# DEFINITION_SOURCE_FILE=kernel/sched/fair.c
+# SED_PATTERN='s|p->node_stamp += 2 \* TICK_NSEC|p->node_stamp \+\= 3 \* TICK_NSEC|'
+
+### 125. numa_scan_seq
+
+# SOURCE_FILE=kernel/sched/fair.c
+# DEFINITION_SOURCE_FILE=kernel/sched/fair.c
+# SED_PATTERN='s|p->numa_scan_seq <= 4|p->numa_scan_seq \<\= 6|'
+
+### 126. node_stamp__32__diff
+
+# SOURCE_FILE=kernel/sched/fair.c
+# DEFINITION_SOURCE_FILE=kernel/sched/fair.c
+# SED_PATTERN='s|p->node_stamp += 32 \* diff|p\-\>node_stamp \+\= 64 \* diff|'
+
+### 127. group_faults
+
+# SOURCE_FILE=kernel/sched/fair.c
+# DEFINITION_SOURCE_FILE=kernel/sched/fair.c
+# SED_PATTERN='s|group_faults(p, dst_nid) \* 4|\group_faults(p, dst_nid) \* 5|'
+
+### 128. ca__delay_min
+
+# SOURCE_FILE=net/ipv4/tcp_cubic.c
+# DEFINITION_SOURCE_FILE=net/ipv4/tcp_cubic.c
+# SED_PATTERN='s|ca->delay_min >> 3|ca->delay_min \>\> 1|'
+
+### 129. delta__freeable__2
+
+# SOURCE_FILE=mm/shrinker.c
+# DEFINITION_SOURCE_FILE=mm/shrinker.c
+# SED_PATTERN='s|delta = freeable / 2;|delta = freeable / 4;|'
+
+### 130. delta__4
+
+# SOURCE_FILE=mm/shrinker.c
+# DEFINITION_SOURCE_FILE=mm/shrinker.c
+# SED_PATTERN='s|delta \*= 4|delta \*\= 2|'
+
+### 131. bfq_back_penalty
+
+# SOURCE_FILE=block/bfq-iosched.c
+# DEFINITION_SOURCE_FILE=block/bfq-iosched.c
+# SED_PATTERN='s|static const int bfq_back_penalty = 2;|static const int bfq_back_penalty \= 4;|'
+
+### 132. bfq_back_max
+
+# SOURCE_FILE=block/bfq-iosched.c
+# DEFINITION_SOURCE_FILE=block/bfq-iosched.c
+# SED_PATTERN='s|static const int bfq_back_max = 16 \* 1024;|static const int bfq_back_max = 32 \* 1024;|'
+
+### 133. bfq_stats_min_budgets
+
+# SOURCE_FILE=block/bfq-iosched.c
+# DEFINITION_SOURCE_FILE=block/bfq-iosched.c
+# SED_PATTERN='s|static const int bfq_stats_min_budgets = 194;|static const int bfq_stats_min_budgets \= 388;|'
+
+### 134. bfq_default_max_budget
+
+# SOURCE_FILE=block/bfq-iosched.c
+# DEFINITION_SOURCE_FILE=block/bfq-iosched.c
+# SED_PATTERN='s|static const int bfq_default_max_budget = 16 \* 1024;|static const int bfq_default_max_budget \= 32 \* 1024;|'
+
+### 135. BFQ_RATE_MIN_SAMPLES
+
+# SOURCE_FILE=block/bfq-iosched.c
+# DEFINITION_SOURCE_FILE=block/bfq-iosched.c
+# SED_PATTERN='s|\#define BFQ_RATE_MIN_SAMPLES	32|\#define BFQ_RATE_MIN_SAMPLES	16|'
+
+### 136. BFQ_RATE_MIN_INTERVAL
+
+# SOURCE_FILE=block/bfq-iosched.c
+# DEFINITION_SOURCE_FILE=block/bfq-iosched.c
+# SED_PATTERN='s|\#define BFQ_RATE_MIN_INTERVAL	(300\*NSEC_PER_MSEC)|\#define BFQ_RATE_MIN_INTERVAL	(200\*NSEC_PER_MSEC)|'
+
+### 137. max_service_from_wr
+
+# SOURCE_FILE=block/bfq-iosched.c
+# DEFINITION_SOURCE_FILE=block/bfq-iosched.c
+# SED_PATTERN='s|static const unsigned long max_service_from_wr = 120000;|static const unsigned long max_service_from_wr \= 240000;|'
+
+### 138. bfq_activation_stable_merging
+
+# SOURCE_FILE=block/bfq-iosched.c
+# DEFINITION_SOURCE_FILE=block/bfq-iosched.c
+# SED_PATTERN='s|static const unsigned long bfq_activation_stable_merging = 600;|static const unsigned long bfq_activation_stable_merging \= 1200;|'
+
+### 139. bfq_late_stable_merging
+
+# SOURCE_FILE=block/bfq-iosched.c
+# DEFINITION_SOURCE_FILE=block/bfq-iosched.c
+# SED_PATTERN='s|static const unsigned long bfq_late_stable_merging = 600;|static const unsigned long bfq_late_stable_merging \= 1200;|'
+
+### 140. BLK_MQ_BUDGET_DELAY
+
+# SOURCE_FILE=block/blk-mq-sched.c
+# DEFINITION_SOURCE_FILE=block/blk-mq-sched.c
+# SED_PATTERN='s|\#define BLK_MQ_BUDGET_DELAY	3|\#define BLK_MQ_BUDGET_DELAY	2|'
+
+### Try KLP bad case
+
+# SOURCE_FILE=net/ipv4/tcp.c
+# DEFINITION_SOURCE_FILE=net/ipv4/tcp.c
+# SED_PATTERN='s|			if (unlikely(process_backlog >= 16)) {|			if (unlikely(process_backlog \>\= 8)) {|'

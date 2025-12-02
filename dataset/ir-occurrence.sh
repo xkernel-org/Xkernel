@@ -3440,6 +3440,466 @@
 # CONSTANT_VALUE=32
 # OCCURENCE=3
 
+### 118. fits_capacity
+
+# # %400 = shl i64 %399, 10, !dbg !11842
+# # Conclusion: []
+#
+# SOURCE_FILE=kernel/sched/fair.c
+# FUNCTION_NAME=select_task_rq_fair
+# SOURCE_OP="shl"
+# CONSTANT_VALUE=10
+# OCCURENCE=1
+
+# # %431 = shl i64 %430, 10, !dbg !11936
+# # Conclusion: []
+#
+# SOURCE_FILE=kernel/sched/fair.c
+# FUNCTION_NAME=select_task_rq_fair
+# SOURCE_OP="shl"
+# CONSTANT_VALUE=10
+# OCCURENCE=2
+
+# # %471 = shl i64 %470, 10, !dbg !12004
+# # Conclusion: []
+#
+# SOURCE_FILE=kernel/sched/fair.c
+# FUNCTION_NAME=select_task_rq_fair
+# SOURCE_OP="shl"
+# CONSTANT_VALUE=10
+# OCCURENCE=3
+
+# # %513 = shl i64 %512, 10, !dbg !12050
+# # Conclusion: []
+#
+# SOURCE_FILE=kernel/sched/fair.c
+# FUNCTION_NAME=select_task_rq_fair
+# SOURCE_OP="shl"
+# CONSTANT_VALUE=10
+# OCCURENCE=4
+
+# # %599 = shl i64 %598, 10, !dbg !12229
+# # Conclusion: []
+#
+# SOURCE_FILE=kernel/sched/fair.c
+# FUNCTION_NAME=select_task_rq_fair
+# SOURCE_OP="shl"
+# CONSTANT_VALUE=10
+# OCCURENCE=5
+
+# # %32 = shl i64 %30, 10, !dbg !17739
+# # Conclusion: []
+#
+# SOURCE_FILE=kernel/sched/fair.c
+# FUNCTION_NAME=update_misfit_status
+# SOURCE_OP="shl"
+# CONSTANT_VALUE=10
+# OCCURENCE=1
+
+# # %346 = shl i64 %344, 10, !dbg !18389
+# # Conclusion: []
+#
+# SOURCE_FILE=kernel/sched/fair.c
+# FUNCTION_NAME=sched_balance_find_dst_cpu
+# SOURCE_OP="shl"
+# CONSTANT_VALUE=10
+# OCCURENCE=1
+
+# # %1320 = shl i64 %1318, 10, !dbg !21718
+# # Conclusion: []
+#
+# SOURCE_FILE=kernel/sched/fair.c
+# FUNCTION_NAME=sched_balance_rq
+# SOURCE_OP="shl"
+# CONSTANT_VALUE=10
+# OCCURENCE=8
+
+### 119. capacity_greater
+
+# # %506 = mul i64 %505, 1078, !dbg !20736
+# # Conclusion: []
+#
+# SOURCE_FILE=kernel/sched/fair.c
+# FUNCTION_NAME=sched_balance_rq
+# SOURCE_OP="mul"
+# CONSTANT_VALUE=1078
+# OCCURENCE=1
+
+# # %591 = mul i64 %590, 1078, !dbg !20805
+# # Conclusion: []
+#
+# SOURCE_FILE=kernel/sched/fair.c
+# FUNCTION_NAME=sched_balance_rq
+# SOURCE_OP="mul"
+# CONSTANT_VALUE=1078
+# OCCURENCE=2
+
+# # %1007 = mul i64 %991, 1078, !dbg !21314
+# # Conclusion: []
+#
+# SOURCE_FILE=kernel/sched/fair.c
+# FUNCTION_NAME=sched_balance_rq
+# SOURCE_OP="mul"
+# CONSTANT_VALUE=1078
+# OCCURENCE=3
+
+### 120. NUMA_MIGRATION_ADJUST_STEPS
+
+# # %77 = lshr i32 %76, 4, !dbg !24422
+# # Conclusion: []
+#
+# SOURCE_FILE=kernel/sched/fair.c
+# FUNCTION_NAME=should_numa_migrate_memory
+# SOURCE_OP="lshr"
+# CONSTANT_VALUE=4
+# OCCURENCE=2
+
+### 121. VMA_PID_RESET_PERIOD
+
+# # %206 = shl i32 %201, 2, !dbg !28925
+# # Conclusion: []
+#
+# SOURCE_FILE=kernel/sched/fair.c
+# FUNCTION_NAME=task_numa_work
+# SOURCE_OP="shl"
+# CONSTANT_VALUE=2
+# OCCURENCE=1
+
+# # %254 = shl i32 %253, 2, !dbg !29004
+# # Conclusion: []
+#
+# SOURCE_FILE=kernel/sched/fair.c
+# FUNCTION_NAME=task_numa_work
+# SOURCE_OP="shl"
+# CONSTANT_VALUE=2
+# OCCURENCE=2
+
+### 122. UTIL_EST_MARGIN
+
+# # %57 = icmp samesign ult i32 %56, 10, !dbg !10338
+# # Conclusion: []
+#
+# SOURCE_FILE=kernel/sched/fair.c
+# FUNCTION_NAME=dequeue_task_fair
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=10
+# OCCURENCE=1
+
+# # %67 = add nuw nsw i64 %59, 10, !dbg !10350
+# # Conclusion: []
+#
+# SOURCE_FILE=kernel/sched/fair.c
+# FUNCTION_NAME=dequeue_task_fair
+# SOURCE_OP="add"
+# CONSTANT_VALUE=10
+# OCCURENCE=1
+
+### 123. tcp_min_rtt
+
+# # %27 = lshr i32 %26, 2, !dbg !12584
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp_recovery.c
+# FUNCTION_NAME=tcp_rack_detect_loss
+# SOURCE_OP="lshr"
+# CONSTANT_VALUE=2
+# OCCURENCE=1
+
+### 124. node_stamp__2__TICK_NSEC
+
+# # %46 = add i64 %45, 2000000, !dbg !28531
+# # Conclusion: []
+#
+# SOURCE_FILE=kernel/sched/fair.c
+# FUNCTION_NAME=task_numa_work
+# SOURCE_OP="add"
+# CONSTANT_VALUE=2000000
+# OCCURENCE=1
+
+### 125. numa_scan_seq
+
+# # %162 = icmp slt i32 %161, 5, !dbg !24582
+# # Conclusion: []
+#
+# SOURCE_FILE=kernel/sched/fair.c
+# FUNCTION_NAME=should_numa_migrate_memory
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=5
+# OCCURENCE=1
+
+### 126. node_stamp__32__diff
+
+# # %435 = shl i64 %434, 5, !dbg !29322
+# # Conclusion: []
+#
+# SOURCE_FILE=kernel/sched/fair.c
+# FUNCTION_NAME=task_numa_work
+# SOURCE_OP="shl"
+# CONSTANT_VALUE=5
+# OCCURENCE=1
+
+### 127. group_faults
+
+# # %251 = shl i64 %215, 2, !dbg !24722
+# # Conclusion: []
+#
+# SOURCE_FILE=kernel/sched/fair.c
+# FUNCTION_NAME=should_numa_migrate_memory
+# SOURCE_OP="shl"
+# CONSTANT_VALUE=2
+# OCCURENCE=1
+
+### 128. ca__delay_min
+
+# # %125 = icmp ugt i32 %124, 127999, !dbg !12906
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp_cubic.c
+# FUNCTION_NAME=cubictcp_acked
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=127999
+# OCCURENCE=1
+
+# # %126 = tail call i32 @llvm.umax.i32(i32 %124, i32 32007), !dbg !12906
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp_cubic.c
+# FUNCTION_NAME=cubictcp_acked
+# SOURCE_OP="call"
+# CONSTANT_VALUE=32007
+# OCCURENCE=1
+
+# # %127 = lshr i32 %126, 3, !dbg !12906
+# # Conclusion: []
+#
+# SOURCE_FILE=net/ipv4/tcp_cubic.c
+# FUNCTION_NAME=cubictcp_acked
+# SOURCE_OP="lshr"
+# CONSTANT_VALUE=3
+# OCCURENCE=1
+
+### 129. delta__freeable__2
+
+# # %76 = sdiv i64 %45, 2, !dbg !6631
+# # Conclusion: []
+#
+# SOURCE_FILE=mm/shrinker.c
+# FUNCTION_NAME=shrink_slab
+# SOURCE_OP="sdiv"
+# CONSTANT_VALUE=2
+# OCCURENCE=1
+
+### 130. delta__4
+
+# # %72 = shl i64 %71, 2, !dbg !6627
+# # Conclusion: []
+#
+# SOURCE_FILE=mm/shrinker.c
+# FUNCTION_NAME=shrink_slab
+# SOURCE_OP="shl"
+# CONSTANT_VALUE=2
+# OCCURENCE=1
+
+### 131. bfq_back_penalty
+
+# # store i32 2, ptr %98, align 8, !dbg !7599
+# # Conclusion: []
+#
+# SOURCE_FILE=block/bfq-iosched.c
+# FUNCTION_NAME=bfq_init_queue
+# SOURCE_OP="store"
+# CONSTANT_VALUE=2
+# OCCURENCE=2
+
+### 132. bfq_back_max
+
+# # store i32 16384, ptr %97, align 4, !dbg !7597
+# # Conclusion: []
+#
+# SOURCE_FILE=block/bfq-iosched.c
+# FUNCTION_NAME=bfq_init_queue
+# SOURCE_OP="store"
+# CONSTANT_VALUE=16384
+# OCCURENCE=2
+
+### 133. bfq_stats_min_budgets
+
+# # %202 = icmp slt i32 %201, 194, !dbg !14557
+# # Conclusion: []
+#
+# SOURCE_FILE=block/bfq-iosched.c
+# FUNCTION_NAME=bfq_bfqq_expire
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=194
+# OCCURENCE=1
+
+# # %256 = icmp slt i32 %255, 194, !dbg !14625
+# # Conclusion: []
+#
+# SOURCE_FILE=block/bfq-iosched.c
+# FUNCTION_NAME=bfq_bfqq_expire
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=194
+# OCCURENCE=2
+
+# # %340 = icmp sgt i32 %339, 193, !dbg !14722
+# # Conclusion: []
+#
+# SOURCE_FILE=block/bfq-iosched.c
+# FUNCTION_NAME=bfq_bfqq_expire
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=193
+# OCCURENCE=1
+
+# # %648 = icmp slt i32 %647, 194, !dbg !17589
+# # Conclusion: []
+#
+# SOURCE_FILE=block/bfq-iosched.c
+# FUNCTION_NAME=bfq_add_request
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=194
+# OCCURENCE=1
+
+# # %62 = icmp slt i32 %61, 194, !dbg !18409
+# # Conclusion: []
+#
+# SOURCE_FILE=block/bfq-iosched.c
+# FUNCTION_NAME=bfq_init_bfqq
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=194
+# OCCURENCE=1
+
+### 134. bfq_default_max_budget
+
+# # store i32 16384, ptr %94, align 4, !dbg !7591
+# # Conclusion: []
+#
+# SOURCE_FILE=block/bfq-iosched.c
+# FUNCTION_NAME=bfq_init_queue
+# SOURCE_OP="store"
+# CONSTANT_VALUE=16384
+# OCCURENCE=1
+
+# # %208 = phi i32 [ %206, %203 ], [ 512, %196 ], !dbg !14561
+# # Conclusion: []
+#
+# SOURCE_FILE=block/bfq-iosched.c
+# FUNCTION_NAME=bfq_bfqq_expire
+# SOURCE_OP="phi"
+# CONSTANT_VALUE=512
+# OCCURENCE=1
+
+# # %262 = phi i32 [ %260, %257 ], [ 512, %254 ], !dbg !14629
+# # Conclusion: []
+#
+# SOURCE_FILE=block/bfq-iosched.c
+# FUNCTION_NAME=bfq_bfqq_expire
+# SOURCE_OP="phi"
+# CONSTANT_VALUE=512
+# OCCURENCE=2
+
+# # %655 = phi i32 [ %653, %649 ], [ 1024, %641 ], !dbg !17593
+# # Conclusion: []
+#
+# SOURCE_FILE=block/bfq-iosched.c
+# FUNCTION_NAME=bfq_add_request
+# SOURCE_OP="phi"
+# CONSTANT_VALUE=1024
+# OCCURENCE=1
+
+# # %69 = phi i32 [ %67, %63 ], [ 10922, %52 ], !dbg !18414
+# # Conclusion: []
+#
+# SOURCE_FILE=block/bfq-iosched.c
+# FUNCTION_NAME=bfq_init_bfqq
+# SOURCE_OP="phi"
+# CONSTANT_VALUE=10922
+# OCCURENCE=1
+
+### 135. BFQ_RATE_MIN_SAMPLES
+
+# # %5 = icmp slt i32 %4, 32, !dbg !13967
+# # Conclusion: []
+#
+# SOURCE_FILE=block/bfq-iosched.c
+# FUNCTION_NAME=bfq_update_rate_reset
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=32
+# OCCURENCE=1
+
+### 136. BFQ_RATE_MIN_INTERVAL
+
+# # %9 = icmp ult i64 %8, 300000000, !dbg !13970
+# # Conclusion: []
+#
+# SOURCE_FILE=block/bfq-iosched.c
+# FUNCTION_NAME=bfq_update_rate_reset
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=300000000
+# OCCURENCE=1
+
+### 137. max_service_from_wr
+
+# # %1275 = icmp ugt i64 %1274, 120000, !dbg !11870
+# # Conclusion: []
+#
+# SOURCE_FILE=block/bfq-iosched.c
+# FUNCTION_NAME=bfq_dispatch_request
+# SOURCE_OP="icmp"
+# CONSTANT_VALUE=120000
+# OCCURENCE=1
+
+### 138. bfq_activation_stable_merging
+
+# # %204 = add i64 %203, 600, !dbg !15742
+# # Conclusion: []
+#
+# SOURCE_FILE=block/bfq-iosched.c
+# FUNCTION_NAME=bfq_get_queue
+# SOURCE_OP="add"
+# CONSTANT_VALUE=600
+# OCCURENCE=1
+
+### 139. bfq_late_stable_merging
+
+# # %39 = add i64 %38, 600, !dbg !16372
+# # Conclusion: []
+#
+# SOURCE_FILE=block/bfq-iosched.c
+# FUNCTION_NAME=bfq_setup_cooperator
+# SOURCE_OP="add"
+# CONSTANT_VALUE=600
+# OCCURENCE=1
+
+# # %46 = add i64 %45, 600, !dbg !16374
+# # Conclusion: []
+#
+# SOURCE_FILE=block/bfq-iosched.c
+# FUNCTION_NAME=bfq_setup_cooperator
+# SOURCE_OP="add"
+# CONSTANT_VALUE=600
+# OCCURENCE=2
+
+### 140. BLK_MQ_BUDGET_DELAY
+
+# # call void @blk_mq_delay_run_hw_queues(ptr noundef %59, i64 noundef 3) #5, !dbg !6513
+# # Conclusion: []
+#
+# SOURCE_FILE=block/blk-mq-sched.c
+# FUNCTION_NAME=__blk_mq_sched_dispatch_requests
+# SOURCE_OP="call"
+# CONSTANT_VALUE=3
+# OCCURENCE=1
+
+# # call void @blk_mq_delay_run_hw_queues(ptr noundef %214, i64 noundef 3) #5, !dbg !6736
+# # Conclusion: []
+#
+# SOURCE_FILE=block/blk-mq-sched.c
+# FUNCTION_NAME=__blk_mq_sched_dispatch_requests
+# SOURCE_OP="call"
+# CONSTANT_VALUE=3
+# OCCURENCE=2
+
 ### Try KLP bad case
 
 # %278 = icmp sgt i32 %262, 15, !dbg !17195
