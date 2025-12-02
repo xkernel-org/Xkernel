@@ -680,3 +680,162 @@ SED_PATTERN='s|\#define AMT_INIT_REQ_TIMEOUT	1|\#define AMT_INIT_REQ_TIMEOUT	10|
 # SOURCE_FILE=kernel/softirq.c
 # DEFINITION_SOURCE_FILE=kernel/softirq.c
 # SED_PATTERN='s|\#define MAX_SOFTIRQ_TIME  msecs_to_jiffies(2)|\#define MAX_SOFTIRQ_TIME  msecs_to_jiffies(3)|'
+
+### 94. MAX_SOFTIRQ_RESTART
+
+# SOURCE_FILE=kernel/softirq.c
+# DEFINITION_SOURCE_FILE=kernel/softirq.c
+# SED_PATTERN='s|\#define MAX_SOFTIRQ_RESTART 10|\#define MAX_SOFTIRQ_RESTART 9|'
+
+### 95. BH_WORKER_JIFFIES
+
+# SOURCE_FILE=kernel/workqueue.c
+# DEFINITION_SOURCE_FILE=kernel/workqueue.c
+# SED_PATTERN='s|\#define BH_WORKER_JIFFIES	msecs_to_jiffies(2)|\#define BH_WORKER_JIFFIES	msecs_to_jiffies(3)|'
+
+### 96. BH_WORKER_RESTARTS
+
+# SOURCE_FILE=kernel/workqueue.c
+# DEFINITION_SOURCE_FILE=kernel/workqueue.c
+# SED_PATTERN='s|\#define BH_WORKER_RESTARTS	10|\#define BH_WORKER_RESTARTS	9|'
+
+### 97. DEF_DISCARD_URGENT_UTIL
+
+# SOURCE_FILE=fs/f2fs/segment.c
+# DEFINITION_SOURCE_FILE=fs/f2fs/f2fs.h
+# SED_PATTERN='s|\#define DEF_DISCARD_URGENT_UTIL		80|\#define DEF_DISCARD_URGENT_UTIL		40|'
+
+### 98. NUMA_IMBALANCE_MIN
+
+# SOURCE_FILE=kernel/sched/fair.c
+# DEFINITION_SOURCE_FILE=kernel/sched/fair.c
+# SED_PATTERN='s|\#define NUMA_IMBALANCE_MIN 2|\#define NUMA_IMBALANCE_MIN 3|'
+
+### 99. MAX_SCAN_WINDOW
+
+# SOURCE_FILE=kernel/sched/fair.c
+# DEFINITION_SOURCE_FILE=kernel/sched/fair.c
+# SED_PATTERN='s|\#define MAX_SCAN_WINDOW 2560|\#define MAX_SCAN_WINDOW 1280|'
+
+### 100. NUMA_PERIOD_THRESHOLD
+
+# SOURCE_FILE=kernel/sched/fair.c
+# DEFINITION_SOURCE_FILE=kernel/sched/fair.c
+# SED_PATTERN='s|\#define NUMA_PERIOD_THRESHOLD 7|\#define NUMA_PERIOD_THRESHOLD 6|'
+
+### 101. NR_MAX_BATCHED_MIGRATION
+
+# SOURCE_FILE=mm/migrate.c
+# DEFINITION_SOURCE_FILE=mm/migrate.c
+# SED_PATTERN='s|\#define NR_MAX_BATCHED_MIGRATION	HPAGE_PMD_NR|\#define NR_MAX_BATCHED_MIGRATION	256|'
+
+### 102. SMALLIMP
+
+# SOURCE_FILE=kernel/sched/fair.c
+# DEFINITION_SOURCE_FILE=kernel/sched/fair.c
+# SED_PATTERN='s|\#define SMALLIMP	30|\#define SMALLIMP	31|'
+
+### 103. MAX_PINNED_INTERVAL
+
+# SOURCE_FILE=kernel/sched/fair.c
+# DEFINITION_SOURCE_FILE=kernel/sched/fair.c
+# SED_PATTERN='s|\#define MAX_PINNED_INTERVAL	512|\#define MAX_PINNED_INTERVAL	256|'
+
+### 104. BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT
+
+# SOURCE_FILE=block/blk-mq.c
+# DEFINITION_SOURCE_FILE=block/blk-mq.c
+# SED_PATTERN='s|\#define BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT  8|\#define BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT  4|'
+
+### 105. BLK_MQ_DISPATCH_BUSY_EWMA_FACTOR
+
+# SOURCE_FILE=block/blk-mq.c
+# DEFINITION_SOURCE_FILE=block/blk-mq.c
+# SED_PATTERN='s|\#define BLK_MQ_DISPATCH_BUSY_EWMA_FACTOR  4|\#define BLK_MQ_DISPATCH_BUSY_EWMA_FACTOR  2|'
+
+### 106. BLK_MQ_RESOURCE_DELAY
+
+# SOURCE_FILE=block/blk-mq.c
+# DEFINITION_SOURCE_FILE=block/blk-mq.c
+# SED_PATTERN='s|\#define BLK_MQ_RESOURCE_DELAY	3|\#define BLK_MQ_RESOURCE_DELAY	2|'
+
+### 107. BLK_ZONE_WPLUG_DEFAULT_POOL_SIZE
+
+# SOURCE_FILE=block/blk-zoned.c
+# DEFINITION_SOURCE_FILE=block/blk-zoned.c
+# SED_PATTERN='s|\#define BLK_ZONE_WPLUG_DEFAULT_POOL_SIZE	128|\#define BLK_ZONE_WPLUG_DEFAULT_POOL_SIZE	64|'
+
+### 108. ALLOC_CACHE_THRESHOLD
+
+# SOURCE_FILE=block/bio.c
+# DEFINITION_SOURCE_FILE=block/bio.c
+# SED_PATTERN='s|\#define ALLOC_CACHE_THRESHOLD	16|\#define ALLOC_CACHE_THRESHOLD	8|'
+
+### 109. ALLOC_CACHE_MAX
+
+# SOURCE_FILE=block/bio.c
+# DEFINITION_SOURCE_FILE=block/bio.c
+# SED_PATTERN='s|\#define ALLOC_CACHE_MAX		256|\#define ALLOC_CACHE_MAX		128|'
+
+### 110. BFQ_RATE_MIN_SAMPLES
+
+# SOURCE_FILE=block/bfq-iosched.c
+# DEFINITION_SOURCE_FILE=block/bfq-iosched.c
+# SED_PATTERN='s|\#define BFQ_RATE_MIN_SAMPLES	32|\#define BFQ_RATE_MIN_SAMPLES	16|'
+
+### 111. BFQ_HW_QUEUE_SAMPLES
+
+# SOURCE_FILE=block/bfq-iosched.c
+# DEFINITION_SOURCE_FILE=block/bfq-iosched.c
+# SED_PATTERN='s|\#define BFQ_HW_QUEUE_SAMPLES	32|\#define BFQ_HW_QUEUE_SAMPLES	16|'
+
+### 112. BFQ_HW_QUEUE_THRESHOLD
+
+# SOURCE_FILE=block/bfq-iosched.c
+# DEFINITION_SOURCE_FILE=block/bfq-iosched.c
+# SED_PATTERN='s|\#define BFQ_HW_QUEUE_THRESHOLD	3|\#define BFQ_HW_QUEUE_THRESHOLD	2|'
+
+### 113. BFQ_MIN_TT
+
+# SOURCE_FILE=block/bfq-iosched.c
+# DEFINITION_SOURCE_FILE=block/bfq-iosched.c
+# SED_PATTERN='s|\#define BFQ_MIN_TT		(2 \* NSEC_PER_MSEC)|\#define BFQ_MIN_TT		(1 \* NSEC_PER_MSEC)|'
+
+### 114. MAX_PARTIAL_TO_SCAN
+
+# SOURCE_FILE=mm/slub.c
+# DEFINITION_SOURCE_FILE=mm/slub.c
+# SED_PATTERN='s|\#define MAX_PARTIAL_TO_SCAN 10000|\#define MAX_PARTIAL_TO_SCAN 5000|'
+
+### 115. KFREE_DRAIN_JIFFIES
+
+# SOURCE_FILE=mm/slab_common.c
+# DEFINITION_SOURCE_FILE=mm/slab_common.c
+# SED_PATTERN='s|\#define KFREE_DRAIN_JIFFIES (5 \* HZ)|\#define KFREE_DRAIN_JIFFIES (1 \* HZ)|'
+
+### 116. BLKDEV_DEFAULT_RQ
+
+# SOURCE_FILE=block/blk-core.c
+# DEFINITION_SOURCE_FILE=include/linux/blk-mq.h
+# SED_PATTERN='s|\#define BLKDEV_DEFAULT_RQ	128|\#define BLKDEV_DEFAULT_RQ	64|'
+
+# SOURCE_FILE=block/blk-mq-sched.c
+# DEFINITION_SOURCE_FILE=include/linux/blk-mq.h
+# SED_PATTERN='s|\#define BLKDEV_DEFAULT_RQ	128|\#define BLKDEV_DEFAULT_RQ	64|'
+
+## Not included in all-cases.txt?
+## SOURCE_FILE=drivers/block/rbd.c
+## DEFINITION_SOURCE_FILE=include/linux/blk-mq.h
+## SED_PATTERN='s|\#define BLKDEV_DEFAULT_RQ	128|\#define BLKDEV_DEFAULT_RQ	64|'
+
+### 117. SCHED_NR_MIGRATE_BREAK
+# Assumes CONFIG_PREEMPT_RT=n
+
+## Not included in all-cases.txt?
+## SOURCE_FILE=kernel/sched/core.c
+## DEFINITION_SOURCE_FILE=kernel/sched/sched.h
+## SED_PATTERN='s|\# define SCHED_NR_MIGRATE_BREAK 32|\# define SCHED_NR_MIGRATE_BREAK 16|'
+
+# SOURCE_FILE=kernel/sched/fair.c
+# DEFINITION_SOURCE_FILE=kernel/sched/sched.h
+# SED_PATTERN='s|\# define SCHED_NR_MIGRATE_BREAK 32|\# define SCHED_NR_MIGRATE_BREAK 16|'
