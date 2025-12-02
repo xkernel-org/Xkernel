@@ -1,0 +1,30 @@
+=== Taint Tracker Configuration ===
+Function: shmem_read_file_info
+Opcode: store
+Constant: 604800
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 604800)
+
+[SOURCE] Tainting:   store i32 604800, ptr %13, align 8, <mm/shmem_quota.c:77:19> FUNC=shmem_read_file_info L=0
+[USE] Source instruction in data flow <mm/shmem_quota.c:77:19> FUNC=shmem_read_file_info L=0
+[STORE DESTINATION] Storing constant to:   %13 = getelementptr inbounds nuw i8, ptr %5, i64 40, <mm/shmem_quota.c:77:19> FUNC=shmem_read_file_info L=0
+[POINTER PARAMETER] Constant stored through pointer parameter #0 (ptr %0) <mm/shmem_quota.c:77:19> FUNC=shmem_read_file_info L=0
+[NO USE] No uses of:   store i32 604800, ptr %13, align 8,
+[UPWARD-INTERPROC] No callers found for shmem_read_file_info (function taints pointer parameter #0)
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 1
+
+Earliest instruction with L=0:
+    store i32 604800, ptr %13, align 8, <mm/shmem_quota.c:77:19> FUNC=shmem_read_file_info L=0
+
+(Earliest and latest are the same instruction)
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/mm/shmem_quota.ll
+../linux-wllvm-defconfig/mm/shmem_quota.c

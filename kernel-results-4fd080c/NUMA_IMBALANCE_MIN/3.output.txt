@@ -1,0 +1,36 @@
+=== Taint Tracker Configuration ===
+Function: task_numa_find_cpu
+Opcode: icmp
+Constant: 3
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 3)
+
+[SOURCE] Tainting:   %19 = icmp slt i32 %14, 3, <kernel/sched/fair.c:1420:18> FUNC=task_numa_find_cpu L=0
+[USE] Source instruction in data flow <kernel/sched/fair.c:1420:18> FUNC=task_numa_find_cpu L=0
+[USE] Processing uses of:   %19 = icmp slt i32 %14, 3,
+  [USE] Taint flows to:   %20 = select i1 %19, i32 0, i32 %15, <kernel/sched/fair.c:1420:18> FUNC=task_numa_find_cpu L=0
+[USE] Processing uses of:   %20 = select i1 %19, i32 0, i32 %15,
+  [USE] Taint flows to:   %21 = select i1 %18, i32 %15, i32 %20, <kernel/sched/fair.c:1420:18> FUNC=task_numa_find_cpu L=0
+[USE] Processing uses of:   %21 = select i1 %18, i32 %15, i32 %20,
+  [USE] Taint flows to:   %22 = icmp eq i32 %21, 0, <kernel/sched/fair.c:2459:8> FUNC=task_numa_find_cpu L=0
+[USE] Processing uses of:   %22 = icmp eq i32 %21, 0,
+  [USE] Taint flows to:   br i1 %22, label %23, label %124, <kernel/sched/fair.c:2459:7> FUNC=task_numa_find_cpu L=0
+[NO USE] No uses of:   br i1 %22, label %23, label %124,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 5
+
+Earliest instruction with L=0:
+    %19 = icmp slt i32 %14, 3, <kernel/sched/fair.c:1420:18> FUNC=task_numa_find_cpu L=0
+
+Latest instruction with L=0:
+    br i1 %22, label %23, label %124, <kernel/sched/fair.c:2459:7> FUNC=task_numa_find_cpu L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/kernel/sched/fair.ll
+../linux-wllvm-defconfig/kernel/sched/fair.c

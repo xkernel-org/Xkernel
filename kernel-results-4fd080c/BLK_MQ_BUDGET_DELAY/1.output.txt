@@ -1,0 +1,28 @@
+=== Taint Tracker Configuration ===
+Function: __blk_mq_sched_dispatch_requests
+Opcode: call
+Constant: 3
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 3)
+
+[SOURCE] Tainting:   call void @blk_mq_delay_run_hw_queues(ptr noundef %59, i64 noundef 3) #279, <block/blk-mq-sched.c:156:4> FUNC=__blk_mq_sched_dispatch_requests L=0
+[USE] Source instruction in data flow <block/blk-mq-sched.c:156:4> FUNC=__blk_mq_sched_dispatch_requests L=0
+[CHILD FUNCTION] Constant used in call to blk_mq_delay_run_hw_queues at argument 1 <block/blk-mq-sched.c:156:4> FUNC=__blk_mq_sched_dispatch_requests L=0
+[NO USE] No uses of:   call void @blk_mq_delay_run_hw_queues(ptr noundef %59, i64 noundef 3) #279,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 1
+
+Earliest instruction with L=0:
+    call void @blk_mq_delay_run_hw_queues(ptr noundef %59, i64 noundef 3) #279, <block/blk-mq-sched.c:156:4> FUNC=__blk_mq_sched_dispatch_requests L=0
+
+(Earliest and latest are the same instruction)
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/block/blk-mq-sched.ll
+../linux-wllvm-defconfig/block/blk-mq-sched.c

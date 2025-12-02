@@ -1,0 +1,40 @@
+=== Taint Tracker Configuration ===
+Function: bbr_main
+Opcode: phi
+Constant: 11
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 3 (of constant 11)
+
+[SOURCE] Tainting:   %355 = phi i32 [ %353, %342 ], [ 11, %338 ], <net/ipv4/tcp_bbr.c:0> FUNC=bbr_main L=0
+[USE] Source instruction in data flow <net/ipv4/tcp_bbr.c:0> FUNC=bbr_main L=0
+[USE] Processing uses of:   %355 = phi i32 [ %353, %342 ], [ 11, %338 ],
+  [USE] Taint flows to:   %371 = add i32 %370, %355, <net/ipv4/tcp_bbr.c:403:15> FUNC=bbr_main L=0
+[USE] Processing uses of:   %371 = add i32 %370, %355,
+  [USE] Taint flows to:   %372 = and i32 %371, -2, <net/ipv4/tcp_bbr.c:403:20> FUNC=bbr_main L=0
+[USE] Processing uses of:   %372 = and i32 %371, -2,
+  [USE] Taint flows to:   %380 = add i32 %372, 2 FUNC=bbr_main L=0
+  [USE] Taint flows to:   %381 = select i1 %379, i32 %380, i32 %372, <net/ipv4/tcp_bbr.c:406:32> FUNC=bbr_main L=0
+  [USE] Taint flows to:   %383 = phi i32 [ %372, %354 ], [ %381, %376 ], <net/ipv4/tcp_bbr.c:0> FUNC=bbr_main L=0
+[USE] Processing uses of:   %383 = phi i32 [ %372, %354 ], [ %381, %376 ],
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #0 (ptr %0) <net/ipv4/tcp_bbr.c:899:28>
+[USE] Processing uses of:   %381 = select i1 %379, i32 %380, i32 %372,
+[USE] Processing uses of:   %380 = add i32 %372, 2
+[UPWARD-INTERPROC] No callers found for bbr_main (function taints pointer parameter #0)
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 6
+
+Earliest instruction with L=0:
+    %355 = phi i32 [ %353, %342 ], [ 11, %338 ], <net/ipv4/tcp_bbr.c:0> FUNC=bbr_main L=0
+
+Latest instruction with L=0:
+    %383 = phi i32 [ %372, %354 ], [ %381, %376 ], <net/ipv4/tcp_bbr.c:0> FUNC=bbr_main L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/ipv4/tcp_bbr.ll
+../linux-wllvm-defconfig/net/ipv4/tcp_bbr.c

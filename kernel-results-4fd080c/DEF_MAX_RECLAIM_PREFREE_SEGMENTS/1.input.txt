@@ -1,0 +1,5 @@
+SOURCE_FILE=fs/f2fs/segment.c
+FUNCTION_NAME=f2fs_build_segment_manager
+SOURCE_OP="icmp"
+CONSTANT_VALUE=409699
+OCCURENCE=1

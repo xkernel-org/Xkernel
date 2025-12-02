@@ -1,0 +1,30 @@
+=== Taint Tracker Configuration ===
+Function: io_recv_finish
+Opcode: icmp
+Constant: 32
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 32)
+
+[SOURCE] Tainting:   %89 = icmp ult i32 %87, 32, <io_uring/net.c:874:33> FUNC=io_recv_finish L=0
+[USE] Source instruction in data flow <io_uring/net.c:874:33> FUNC=io_recv_finish L=0
+[USE] Processing uses of:   %89 = icmp ult i32 %87, 32,
+  [USE] Taint flows to:   br i1 %89, label %130, label %90, <io_uring/net.c:874:33> FUNC=io_recv_finish L=0
+[NO USE] No uses of:   br i1 %89, label %130, label %90,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 2
+
+Earliest instruction with L=0:
+    %89 = icmp ult i32 %87, 32, <io_uring/net.c:874:33> FUNC=io_recv_finish L=0
+
+Latest instruction with L=0:
+    br i1 %89, label %130, label %90, <io_uring/net.c:874:33> FUNC=io_recv_finish L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/io_uring/net.ll
+../linux-wllvm-defconfig/io_uring/net.c

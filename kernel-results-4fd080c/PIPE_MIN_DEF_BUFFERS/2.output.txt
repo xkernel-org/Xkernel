@@ -1,0 +1,56 @@
+=== Taint Tracker Configuration ===
+Function: alloc_pipe_info
+Opcode: phi
+Constant: 2
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 2 (of constant 2)
+
+[SOURCE] Tainting:   %46 = phi i64 [ 2, %40 ], [ %28, %38 ], [ %28, %27 ], [ %28, %36 ], <fs/pipe.c:0> FUNC=alloc_pipe_info L=0
+[USE] Source instruction in data flow <fs/pipe.c:0> FUNC=alloc_pipe_info L=0
+[USE] Processing uses of:   %46 = phi i64 [ 2, %40 ], [ %28, %38 ], [ %28, %27 ], [ %28, %36 ],
+  [USE] Taint flows to:   %56 = mul nuw nsw i64 %46, 40, <./include/linux/slab.h:942:6> FUNC=alloc_pipe_info L=0
+  [USE] Taint flows to:   %65 = trunc nuw nsw i64 %46 to i32, <fs/pipe.c:819:21> FUNC=alloc_pipe_info L=0
+  [USE] Taint flows to:   %71 = sub nsw i64 0, %46, <fs/pipe.c:765:36> FUNC=alloc_pipe_info L=0
+[USE] Processing uses of:   %71 = sub nsw i64 0, %46,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %72 = tail call i64 asm sideeffect ".pushsection .smp_locks,\22a\22\0A.balign 4\0A.long 671f - .\0A.popsection\0A671:\0A\09lock; xaddq ${0:q}, $1\0A", "=r,=*m,0,*m,~{memory},~{cc},~{dirflag},~{fpsr},~{flags}"(ptr nonnull elementtype(i64) %29, i64 %71, ptr nonnull elementtype(i64) %29) #279, !dbg !18658293, !srcloc !18658188 <./arch/x86/include/asm/atomic64_64.h:79:13>
+  [USE] Taint flows to:   %72 = tail call i64 asm sideeffect ".pushsection .smp_locks,\22a\22\0A.balign 4\0A.long 671f - .\0A.popsection\0A671:\0A\09lock; xaddq ${0:q}, $1\0A", "=r,=*m,0,*m,~{memory},~{cc},~{dirflag},~{fpsr},~{flags}"(ptr nonnull elementtype(i64) %29, i64 %71, ptr nonnull elementtype(i64) %29) #279, <./arch/x86/include/asm/atomic64_64.h:79:13> FUNC=alloc_pipe_info L=0
+[NO USE] No uses of:   %72 = tail call i64 asm sideeffect ".pushsection .smp_locks,\22a\22\0A.balign 4\0A.long 671f - .\0A.popsection\0A671:\0A\09lock; xaddq ${0:q}, $1\0A", "=r,=*m,0,*m,~{memory},~{cc},~{dirflag},~{fpsr},~{flags}"(ptr nonnull elementtype(i64) %29, i64 %71, ptr nonnull elementtype(i64) %29) #279,
+[USE] Processing uses of:   %65 = trunc nuw nsw i64 %46 to i32,
+  [STORE DESTINATION] Marking pointer as tainted:   %66 = getelementptr inbounds nuw i8, ptr %18, i64 88, <fs/pipe.c:819:19>
+  [USE] Taint flows to:   store i32 %65, ptr %66, align 8, <fs/pipe.c:819:19> FUNC=alloc_pipe_info L=0
+  [STORE DESTINATION] Marking pointer as tainted:   %67 = getelementptr inbounds nuw i8, ptr %18, i64 92, <fs/pipe.c:820:19>
+  [USE] Taint flows to:   store i32 %65, ptr %67, align 4, <fs/pipe.c:820:19> FUNC=alloc_pipe_info L=0
+  [STORE DESTINATION] Marking pointer as tainted:   %68 = getelementptr inbounds nuw i8, ptr %18, i64 96, <fs/pipe.c:821:22>
+  [USE] Taint flows to:   store i32 %65, ptr %68, align 8, <fs/pipe.c:821:22> FUNC=alloc_pipe_info L=0
+[NO USE] No uses of:   store i32 %65, ptr %68, align 8,
+[NO USE] No uses of:   store i32 %65, ptr %67, align 4,
+[NO USE] No uses of:   store i32 %65, ptr %66, align 8,
+[USE] Processing uses of:   %56 = mul nuw nsw i64 %46, 40,
+  [CHILD FUNCTION] Tainted value used in call to __kmalloc_noprof at argument 0:   %57 = tail call noalias align 8 ptr @__kmalloc_noprof(i64 noundef range(i64 0, 171798691801) %56, i32 noundef range(i32 4197824, 4206017) 4197824) #282, <./include/linux/slab.h:905:9> FUNC=alloc_pipe_info L=0
+  [USE] Taint flows to:   %57 = tail call noalias align 8 ptr @__kmalloc_noprof(i64 noundef range(i64 0, 171798691801) %56, i32 noundef range(i32 4197824, 4206017) 4197824) #282, <./include/linux/slab.h:905:9> FUNC=alloc_pipe_info L=0
+[USE] Processing uses of:   %57 = tail call noalias align 8 ptr @__kmalloc_noprof(i64 noundef range(i64 0, 171798691801) %56, i32 noundef range(i32 4197824, 4206017) 4197824) #282,
+  [STORE DESTINATION] Marking pointer as tainted:   %58 = getelementptr inbounds nuw i8, ptr %18, i64 152, <fs/pipe.c:812:13>
+  [USE] Taint flows to:   store ptr %57, ptr %58, align 8, <fs/pipe.c:812:13> FUNC=alloc_pipe_info L=0
+  [USE] Taint flows to:   %59 = icmp eq ptr %57, null, <fs/pipe.c:815:6> FUNC=alloc_pipe_info L=0
+[USE] Processing uses of:   %59 = icmp eq ptr %57, null,
+  [USE] Taint flows to:   br i1 %59, label %70, label %60, <fs/pipe.c:815:6> FUNC=alloc_pipe_info L=0
+[NO USE] No uses of:   br i1 %59, label %70, label %60,
+[NO USE] No uses of:   store ptr %57, ptr %58, align 8,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 12
+
+Earliest instruction with L=0:
+    %46 = phi i64 [ 2, %40 ], [ %28, %38 ], [ %28, %27 ], [ %28, %36 ], <fs/pipe.c:0> FUNC=alloc_pipe_info L=0
+
+Latest instruction with L=0:
+    %72 = tail call i64 asm sideeffect ".pushsection .smp_locks,\22a\22\0A.balign 4\0A.long 671f - .\0A.popsection\0A671:\0A\09lock; xaddq ${0:q}, $1\0A", "=r,=*m,0,*m,~{memory},~{cc},~{dirflag},~{fpsr},~{flags}"(ptr nonnull elementtype(i64) %29, i64 %71, ptr nonnull elementtype(i64) %29) #279, <./arch/x86/include/asm/atomic64_64.h:79:13> FUNC=alloc_pipe_info L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/pipe.ll
+../linux-wllvm-defconfig/fs/pipe.c

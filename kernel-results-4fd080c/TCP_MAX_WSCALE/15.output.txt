@@ -1,0 +1,45 @@
+=== Taint Tracker Configuration ===
+Function: tcp_options
+Opcode: call
+Constant: 14
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 14)
+
+[SOURCE] Tainting:   %68 = call i8 @llvm.umin.i8(i8 %67, i8 14), <net/netfilter/nf_conntrack_proto_tcp.c:379:25> FUNC=tcp_options L=0
+[USE] Source instruction in data flow <net/netfilter/nf_conntrack_proto_tcp.c:379:25> FUNC=tcp_options L=0
+[CHILD FUNCTION] Constant used in call to llvm.umin.i8 at argument 1 <net/netfilter/nf_conntrack_proto_tcp.c:379:25> FUNC=tcp_options L=0
+[USE] Processing uses of:   %68 = call i8 @llvm.umin.i8(i8 %67, i8 14),
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #3 (ptr %3) <net/netfilter/nf_conntrack_proto_tcp.c:0>
+[UPWARD-INTERPROC] Call to tcp_options taints argument 3 (local variable) <net/netfilter/nf_conntrack_proto_tcp.c:1089:4> FUNC=nf_conntrack_tcp_packet L=1
+  [STORE DESTINATION] Marking pointer as tainted via call:   %8 = alloca %struct.intel_cdclk_config, align 4, !DIAssignID !18658056 FUNC=nf_conntrack_tcp_packet L=1
+[POINTER PARAMETER] Call to tcp_options passes through pointer parameter 0 of nf_conntrack_tcp_packet <net/netfilter/nf_conntrack_proto_tcp.c:470:2> FUNC=nf_conntrack_tcp_packet L=1
+[POINTER PARAMETER] Call to tcp_options passes through pointer parameter 0 of tcp_new <net/netfilter/nf_conntrack_proto_tcp.c:868:3> FUNC=tcp_new L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %216 = load i8, ptr %215, align 1, (base:   %8 = alloca %struct.intel_cdclk_config, align 4, !DIAssignID !18658056)  <net/netfilter/nf_conntrack_proto_tcp.c:1090:13> FUNC=nf_conntrack_tcp_packet L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %223 = load i8, ptr %222, align 4, (base:   %8 = alloca %struct.intel_cdclk_config, align 4, !DIAssignID !18658056)  <net/netfilter/nf_conntrack_proto_tcp.c:1093:38> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   store i8 %223, ptr %213, align 2, <net/netfilter/nf_conntrack_proto_tcp.c:1093:31> FUNC=nf_conntrack_tcp_packet L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %213 = getelementptr inbounds nuw i8, ptr %0, i64 242, <net/netfilter/nf_conntrack_proto_tcp.c:1093:31> FUNC=nf_conntrack_tcp_packet L=1
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #0 (ptr %0) <net/netfilter/nf_conntrack_proto_tcp.c:1093:31> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %217 = and i8 %216, 1, <net/netfilter/nf_conntrack_proto_tcp.c:1090:19> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %225 = and i8 %216, 2, <net/netfilter/nf_conntrack_proto_tcp.c:1095:19> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %226 = icmp eq i8 %225, 0, <net/netfilter/nf_conntrack_proto_tcp.c:1095:19> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   br i1 %226, label %230, label %227, <net/netfilter/nf_conntrack_proto_tcp.c:1095:19> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   %218 = icmp eq i8 %217, 0, <net/netfilter/nf_conntrack_proto_tcp.c:1090:19> FUNC=nf_conntrack_tcp_packet L=1
+  [USE] Taint flows to:   br i1 %218, label %224, label %219, <net/netfilter/nf_conntrack_proto_tcp.c:1090:19> FUNC=nf_conntrack_tcp_packet L=1
+
+=== Maximum Level Statistics ===
+Largest L value: 1
+Number of instructions with L=1: 9
+
+Earliest instruction with L=1:
+    %216 = load i8, ptr %215, align 1, <net/netfilter/nf_conntrack_proto_tcp.c:1090:13> FUNC=nf_conntrack_tcp_packet L=1
+
+Latest instruction with L=1:
+    br i1 %226, label %230, label %227, <net/netfilter/nf_conntrack_proto_tcp.c:1095:19> FUNC=nf_conntrack_tcp_packet L=1
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/netfilter/nf_conntrack_proto_tcp.ll
+../linux-wllvm-defconfig/net/netfilter/nf_conntrack_proto_tcp.c

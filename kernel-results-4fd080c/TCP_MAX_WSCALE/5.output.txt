@@ -1,0 +1,32 @@
+=== Taint Tracker Configuration ===
+Function: tcp_repair_options_est
+Opcode: icmp
+Constant: 983040
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 983040)
+
+[SOURCE] Tainting:   %36 = icmp ult i32 %33, 983040 FUNC=tcp_repair_options_est L=0
+[USE] Source instruction in data flow FUNC=tcp_repair_options_est L=0
+[USE] Processing uses of:   %36 = icmp ult i32 %33, 983040
+  [USE] Taint flows to:   %37 = and i1 %36, %35, <net/ipv4/tcp.c:3482:37> FUNC=tcp_repair_options_est L=0
+[USE] Processing uses of:   %37 = and i1 %36, %35,
+  [USE] Taint flows to:   br i1 %37, label %38, label %64, <net/ipv4/tcp.c:3482:37> FUNC=tcp_repair_options_est L=0
+[NO USE] No uses of:   br i1 %37, label %38, label %64,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 3
+
+Earliest instruction with L=0:
+    %36 = icmp ult i32 %33, 983040 FUNC=tcp_repair_options_est L=0
+
+Latest instruction with L=0:
+    br i1 %37, label %38, label %64, <net/ipv4/tcp.c:3482:37> FUNC=tcp_repair_options_est L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/ipv4/tcp.ll
+../linux-wllvm-defconfig/net/ipv4/tcp.c

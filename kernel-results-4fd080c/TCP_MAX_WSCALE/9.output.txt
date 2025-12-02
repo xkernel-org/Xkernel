@@ -1,0 +1,226 @@
+=== Taint Tracker Configuration ===
+Function: tcp_select_initial_window
+Opcode: select
+Constant: 1073725440
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 1073725440)
+
+[SOURCE] Tainting:   %12 = select i1 %11, i32 1073725440, i32 %10, <net/ipv4/tcp_output.c:216:19> FUNC=tcp_select_initial_window L=0
+[USE] Source instruction in data flow <net/ipv4/tcp_output.c:216:19> FUNC=tcp_select_initial_window L=0
+[USE] Processing uses of:   %12 = select i1 %11, i32 1073725440, i32 %10,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %13 = tail call i32 @llvm.umin.i32(i32 %12, i32 %9), !dbg !18658077 <net/ipv4/tcp_output.c:218:10>
+  [USE] Taint flows to:   %13 = tail call i32 @llvm.umin.i32(i32 %12, i32 %9), <net/ipv4/tcp_output.c:218:10> FUNC=tcp_select_initial_window L=0
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %39 = tail call i32 @llvm.umin.i32(i32 %38, i32 %12), !dbg !18658121 <net/ipv4/tcp_output.c:245:11>
+  [USE] Taint flows to:   %39 = tail call i32 @llvm.umin.i32(i32 %38, i32 %12), <net/ipv4/tcp_output.c:245:11> FUNC=tcp_select_initial_window L=0
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %50 = tail call i32 @llvm.umin.i32(i32 %49, i32 %12), !dbg !18658140 <net/ipv4/tcp_output.c:250:2>
+  [USE] Taint flows to:   %50 = tail call i32 @llvm.umin.i32(i32 %49, i32 %12), <net/ipv4/tcp_output.c:250:2> FUNC=tcp_select_initial_window L=0
+[USE] Processing uses of:   %50 = tail call i32 @llvm.umin.i32(i32 %49, i32 %12),
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #4 (ptr %4) <net/ipv4/tcp_output.c:250:2>
+[USE] Processing uses of:   %39 = tail call i32 @llvm.umin.i32(i32 %38, i32 %12),
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %40 = tail call i32 asm "bsrl $1,$0", "=r,r,0,~{dirflag},~{fpsr},~{flags}"(i32 %39, i32 -1) #278, !dbg !18658135, !srcloc !18658136 <./arch/x86/include/asm/bitops.h:378:2>
+  [USE] Taint flows to:   %40 = tail call i32 asm "bsrl $1,$0", "=r,r,0,~{dirflag},~{fpsr},~{flags}"(i32 %39, i32 -1) #278, <./arch/x86/include/asm/bitops.h:378:2> FUNC=tcp_select_initial_window L=0
+[USE] Processing uses of:   %40 = tail call i32 asm "bsrl $1,$0", "=r,r,0,~{dirflag},~{fpsr},~{flags}"(i32 %39, i32 -1) #278,
+  [USE] Taint flows to:   %41 = add i32 %40, -15, <net/ipv4/tcp_output.c:246:17> FUNC=tcp_select_initial_window L=0
+[USE] Processing uses of:   %41 = add i32 %40, -15,
+  [USE] Taint flows to:   %42 = icmp sgt i32 %41, 13, <net/ipv4/tcp_output.c:246:17> FUNC=tcp_select_initial_window L=0
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %43 = tail call i32 @llvm.smax.i32(i32 %41, i32 0), !dbg !18658137 <net/ipv4/tcp_output.c:246:17>
+  [USE] Taint flows to:   %43 = tail call i32 @llvm.smax.i32(i32 %41, i32 0), <net/ipv4/tcp_output.c:246:17> FUNC=tcp_select_initial_window L=0
+[USE] Processing uses of:   %43 = tail call i32 @llvm.smax.i32(i32 %41, i32 0),
+  [USE] Taint flows to:   %44 = trunc i32 %43 to i8, <net/ipv4/tcp_output.c:246:17> FUNC=tcp_select_initial_window L=0
+[USE] Processing uses of:   %44 = trunc i32 %43 to i8,
+  [USE] Taint flows to:   %45 = select i1 %42, i8 14, i8 %44, <net/ipv4/tcp_output.c:246:17> FUNC=tcp_select_initial_window L=0
+[USE] Processing uses of:   %45 = select i1 %42, i8 14, i8 %44,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #6 (ptr %6) <net/ipv4/tcp_output.c:246:15>
+  [USE] Taint flows to:   %46 = zext nneg i8 %45 to i32, <net/ipv4/tcp_output.c:250:2> FUNC=tcp_select_initial_window L=0
+[USE] Processing uses of:   %46 = zext nneg i8 %45 to i32,
+  [USE] Taint flows to:   %48 = phi i32 [ 0, %18 ], [ %46, %32 ], <net/ipv4/tcp_output.c:250:2> FUNC=tcp_select_initial_window L=0
+[USE] Processing uses of:   %48 = phi i32 [ 0, %18 ], [ %46, %32 ],
+  [USE] Taint flows to:   %49 = shl i32 65535, %48, <net/ipv4/tcp_output.c:250:2> FUNC=tcp_select_initial_window L=0
+[USE] Processing uses of:   %49 = shl i32 65535, %48,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %50 = tail call i32 @llvm.umin.i32(i32 %49, i32 %12), !dbg !18658140 <net/ipv4/tcp_output.c:250:2>
+[USE] Processing uses of:   %42 = icmp sgt i32 %41, 13,
+[USE] Processing uses of:   %13 = tail call i32 @llvm.umin.i32(i32 %12, i32 %9),
+  [USE] Taint flows to:   %14 = icmp ugt i32 %13, %2, <net/ipv4/tcp_output.c:221:12> FUNC=tcp_select_initial_window L=0
+  [USE] Taint flows to:   %16 = urem i32 %13, %2, <net/ipv4/tcp_output.c:222:11> FUNC=tcp_select_initial_window L=0
+  [USE] Taint flows to:   %17 = sub nsw i32 %13, %16, <net/ipv4/tcp_output.c:222:11> FUNC=tcp_select_initial_window L=0
+  [USE] Taint flows to:   %19 = phi i32 [ %17, %15 ], [ %13, %8 ], <net/ipv4/tcp_output.c:0> FUNC=tcp_select_initial_window L=0
+[USE] Processing uses of:   %19 = phi i32 [ %17, %15 ], [ %13, %8 ],
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %25 = tail call i32 @llvm.umin.i32(i32 %19, i32 32767), !dbg !18658103 <net/ipv4/tcp_output.c:232:6>
+  [USE] Taint flows to:   %25 = tail call i32 @llvm.umin.i32(i32 %19, i32 32767), <net/ipv4/tcp_output.c:232:6> FUNC=tcp_select_initial_window L=0
+  [USE] Taint flows to:   %26 = select i1 %24, i32 %19, i32 %25, <net/ipv4/tcp_output.c:232:6> FUNC=tcp_select_initial_window L=0
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %36 = tail call i32 @llvm.umax.i32(i32 %19, i32 %35), !dbg !18658115 <net/ipv4/tcp_output.c:243:11>
+  [USE] Taint flows to:   %36 = tail call i32 @llvm.umax.i32(i32 %19, i32 %35), <net/ipv4/tcp_output.c:243:11> FUNC=tcp_select_initial_window L=0
+[USE] Processing uses of:   %36 = tail call i32 @llvm.umax.i32(i32 %19, i32 %35),
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %38 = tail call i32 @llvm.umax.i32(i32 %36, i32 %37), !dbg !18658119 <net/ipv4/tcp_output.c:244:11>
+  [USE] Taint flows to:   %38 = tail call i32 @llvm.umax.i32(i32 %36, i32 %37), <net/ipv4/tcp_output.c:244:11> FUNC=tcp_select_initial_window L=0
+[USE] Processing uses of:   %38 = tail call i32 @llvm.umax.i32(i32 %36, i32 %37),
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %39 = tail call i32 @llvm.umin.i32(i32 %38, i32 %12), !dbg !18658121 <net/ipv4/tcp_output.c:245:11>
+[USE] Processing uses of:   %26 = select i1 %24, i32 %19, i32 %25,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %29 = tail call i32 @llvm.umin.i32(i32 %26, i32 %28), !dbg !18658104 <net/ipv4/tcp_output.c:237:6>
+  [USE] Taint flows to:   %29 = tail call i32 @llvm.umin.i32(i32 %26, i32 %28), <net/ipv4/tcp_output.c:237:6> FUNC=tcp_select_initial_window L=0
+  [USE] Taint flows to:   %30 = select i1 %27, i32 %26, i32 %29, <net/ipv4/tcp_output.c:237:6> FUNC=tcp_select_initial_window L=0
+[USE] Processing uses of:   %30 = select i1 %27, i32 %26, i32 %29,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #3 (ptr %3) <net/ipv4/tcp_output.c:0>
+[USE] Processing uses of:   %29 = tail call i32 @llvm.umin.i32(i32 %26, i32 %28),
+[USE] Processing uses of:   %25 = tail call i32 @llvm.umin.i32(i32 %19, i32 32767),
+[USE] Processing uses of:   %17 = sub nsw i32 %13, %16,
+[USE] Processing uses of:   %16 = urem i32 %13, %2,
+[USE] Processing uses of:   %14 = icmp ugt i32 %13, %2,
+  [USE] Taint flows to:   br i1 %14, label %15, label %18, <net/ipv4/tcp_output.c:221:12> FUNC=tcp_select_initial_window L=0
+[NO USE] No uses of:   br i1 %14, label %15, label %18,
+[POINTER PARAMETER] Call to tcp_select_initial_window passes through pointer parameter 0 of tcp_openreq_init_rwin <net/ipv4/tcp_minisocks.c:451:2> FUNC=tcp_openreq_init_rwin L=1
+[UPWARD-INTERPROC] Call to tcp_select_initial_window taints argument 6 (local variable) <net/ipv4/tcp_minisocks.c:451:2> FUNC=tcp_openreq_init_rwin L=1
+  [STORE DESTINATION] Marking pointer as tainted via call:   %4 = alloca i8, align 1, !DIAssignID !18658038 FUNC=tcp_openreq_init_rwin L=1
+[UPWARD-INTERPROC] Call to tcp_select_initial_window taints argument 3 (local variable) <net/ipv4/syncookies.c:473:2> FUNC=cookie_v4_check L=1
+  [STORE DESTINATION] Marking pointer as tainted via call:   %171 = phi ptr [ %25, %50 ], [ %166, %168 ] FUNC=cookie_v4_check L=1
+[UPWARD-INTERPROC] Call to tcp_select_initial_window taints argument 6 (local variable) <net/ipv4/syncookies.c:473:2> FUNC=cookie_v4_check L=1
+  [STORE DESTINATION] Marking pointer as tainted via call:   %5 = alloca i8, align 1, !DIAssignID !18658052 FUNC=cookie_v4_check L=1
+[UPWARD-INTERPROC] Call to tcp_select_initial_window taints argument 3 (local variable) <net/ipv6/syncookies.c:256:2> FUNC=cookie_v6_check L=1
+  [STORE DESTINATION] Marking pointer as tainted via call:   %100 = phi ptr [ %39, %38 ], [ %97, %96 ], FUNC=cookie_v6_check L=1
+[UPWARD-INTERPROC] Call to tcp_select_initial_window taints argument 6 (local variable) <net/ipv6/syncookies.c:256:2> FUNC=cookie_v6_check L=1
+  [STORE DESTINATION] Marking pointer as tainted via call:   %4 = alloca i8, align 1, !DIAssignID !18658055 FUNC=cookie_v6_check L=1
+[LOAD] Tainted load from tracked pointer:   %73 = load i8, ptr %4, align 1, (  %4 = alloca i8, align 1, !DIAssignID !18658038)  <net/ipv4/tcp_minisocks.c:458:21> FUNC=tcp_openreq_init_rwin L=1
+[LOAD] Tainted load from tracked pointer:   %314 = load i8, ptr %5, align 1, (  %5 = alloca i8, align 1, !DIAssignID !18658052)  <net/ipv4/syncookies.c:482:22> FUNC=cookie_v4_check L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %212 = load i32, ptr %211, align 4, (base:   %171 = phi ptr [ %25, %50 ], [ %166, %168 ])  <net/ipv4/syncookies.c:452:33> FUNC=cookie_v4_check L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %214 = load i32, ptr %213, align 4, (base:   %171 = phi ptr [ %25, %50 ], [ %166, %168 ])  <net/ipv4/syncookies.c:452:47> FUNC=cookie_v4_check L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %239 = load i32, ptr %179, align 4, (base:   %171 = phi ptr [ %25, %50 ], [ %166, %168 ])  <net/ipv4/syncookies.c:456:13> FUNC=cookie_v4_check L=1
+[SKIP] Load before taint origin, not tainting:   %295 = load i16, ptr %294, align 8, <net/ipv4/syncookies.c:473:49> FUNC=cookie_v4_check L=1
+[SKIP] Load before taint origin, not tainting:   %299 = load i16, ptr %298, align 8, <net/ipv4/syncookies.c:475:13> FUNC=cookie_v4_check L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %310 = load i8, ptr %309, align 1, (base:   %171 = phi ptr [ %25, %50 ], [ %166, %168 ])  <net/ipv4/syncookies.c:481:12> FUNC=cookie_v4_check L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %315 = load i16, ptr %298, align 8, (base:   %171 = phi ptr [ %25, %50 ], [ %166, %168 ])  <net/ipv4/syncookies.c:482:20> FUNC=cookie_v4_check L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %325 = load i16, ptr %298, align 8, (base:   %171 = phi ptr [ %25, %50 ], [ %166, %168 ])  <net/ipv4/syncookies.c:483:15> FUNC=cookie_v4_check L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %336 = load i16, ptr %298, align 8, (base:   %171 = phi ptr [ %25, %50 ], [ %166, %168 ])  <net/ipv4/syncookies.c:483:15> FUNC=cookie_v4_check L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %351 = load ptr, ptr %350, align 8, (base:   %171 = phi ptr [ %25, %50 ], [ %166, %168 ])  <./include/net/request_sock.h:133:7> FUNC=cookie_v4_check L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %355 = load ptr, ptr %354, align 8, (base:   %171 = phi ptr [ %25, %50 ], [ %166, %168 ])  <./include/net/request_sock.h:134:11> FUNC=cookie_v4_check L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %367 = load ptr, ptr %366, align 8, (base:   %171 = phi ptr [ %25, %50 ], [ %166, %168 ])  <./include/net/request_sock.h:136:13> FUNC=cookie_v4_check L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %368 = load ptr, ptr %350, align 8, (base:   %171 = phi ptr [ %25, %50 ], [ %166, %168 ])  <./include/net/request_sock.h:137:23> FUNC=cookie_v4_check L=1
+[LOAD] Tainted load from tracked pointer:   %224 = load i8, ptr %4, align 1, (  %4 = alloca i8, align 1, !DIAssignID !18658055)  <net/ipv6/syncookies.c:265:22> FUNC=cookie_v6_check L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %157 = load i32, ptr %156, align 4, (base:   %100 = phi ptr [ %39, %38 ], [ %97, %96 ],)  <net/ipv6/syncookies.c:235:26> FUNC=cookie_v6_check L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %159 = load i32, ptr %158, align 4, (base:   %100 = phi ptr [ %39, %38 ], [ %97, %96 ],)  <net/ipv6/syncookies.c:236:27> FUNC=cookie_v6_check L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %162 = load i16, ptr %161, align 4, (base:   %100 = phi ptr [ %39, %38 ], [ %97, %96 ],)  <net/ipv6/syncookies.c:237:25> FUNC=cookie_v6_check L=1
+[SKIP] Load before taint origin, not tainting:   %205 = load i16, ptr %204, align 8, <net/ipv6/syncookies.c:256:49> FUNC=cookie_v6_check L=1
+[SKIP] Load before taint origin, not tainting:   %209 = load i16, ptr %208, align 8, <net/ipv6/syncookies.c:258:13> FUNC=cookie_v6_check L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %220 = load i8, ptr %219, align 1, (base:   %100 = phi ptr [ %39, %38 ], [ %97, %96 ],)  <net/ipv6/syncookies.c:264:12> FUNC=cookie_v6_check L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %225 = load i16, ptr %208, align 8, (base:   %100 = phi ptr [ %39, %38 ], [ %97, %96 ],)  <net/ipv6/syncookies.c:265:20> FUNC=cookie_v6_check L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %235 = load i16, ptr %208, align 8, (base:   %100 = phi ptr [ %39, %38 ], [ %97, %96 ],)  <net/ipv6/syncookies.c:266:15> FUNC=cookie_v6_check L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %246 = load i16, ptr %208, align 8, (base:   %100 = phi ptr [ %39, %38 ], [ %97, %96 ],)  <net/ipv6/syncookies.c:266:15> FUNC=cookie_v6_check L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %259 = load ptr, ptr %258, align 8, (base:   %100 = phi ptr [ %39, %38 ], [ %97, %96 ],)  <./include/net/request_sock.h:133:7> FUNC=cookie_v6_check L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %263 = load ptr, ptr %262, align 8, (base:   %100 = phi ptr [ %39, %38 ], [ %97, %96 ],)  <./include/net/request_sock.h:134:11> FUNC=cookie_v6_check L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %275 = load ptr, ptr %274, align 8, (base:   %100 = phi ptr [ %39, %38 ], [ %97, %96 ],)  <./include/net/request_sock.h:136:13> FUNC=cookie_v6_check L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %276 = load ptr, ptr %258, align 8, (base:   %100 = phi ptr [ %39, %38 ], [ %97, %96 ],)  <./include/net/request_sock.h:137:23> FUNC=cookie_v6_check L=1
+  [USE] Taint flows to:   %277 = getelementptr inbounds nuw i8, ptr %276, i64 8, <./include/net/request_sock.h:137:32> FUNC=cookie_v6_check L=1
+  [USE] Taint flows to:   %278 = load ptr, ptr %277, align 8, <./include/net/request_sock.h:137:32> FUNC=cookie_v6_check L=1
+  [USE] Taint flows to:   call void @kmem_cache_free(ptr noundef %278, ptr noundef nonnull %100) #279, <./include/net/request_sock.h:137:2> FUNC=cookie_v6_check L=1
+  [USE] Taint flows to:   call void @kfree(ptr noundef %275) #279, <./include/net/request_sock.h:136:2> FUNC=cookie_v6_check L=1
+  [USE] Taint flows to:   %264 = icmp eq ptr %263, null, <./include/net/request_sock.h:134:6> FUNC=cookie_v6_check L=1
+  [USE] Taint flows to:   %266 = getelementptr inbounds nuw i8, ptr %263, i64 128, <./include/net/sock.h:1913:33> FUNC=cookie_v6_check L=1
+  [USE] Taint flows to:   call void @sk_free(ptr noundef nonnull %263) #279, <./include/net/sock.h:1914:3> FUNC=cookie_v6_check L=1
+  [USE] Taint flows to:   %267 = call i32 asm sideeffect ".pushsection .smp_locks,\22a\22\0A.balign 4\0A.long 671f - .\0A.popsection\0A671:\0A\09lock; xaddl $0, $1\0A", "=r,=*m,0,*m,~{memory},~{cc},~{dirflag},~{fpsr},~{flags}"(ptr nonnull elementtype(i32) %266, i32 -1, ptr nonnull elementtype(i32) %266) #278, <./arch/x86/include/asm/atomic.h:93:9> FUNC=cookie_v6_check L=1
+  [USE] Taint flows to:   call void @refcount_warn_saturate(ptr noundef nonnull %266, i32 noundef 3) #279, <./include/linux/refcount.h:275:3> FUNC=cookie_v6_check L=1
+  [USE] Taint flows to:   %268 = icmp eq i32 %267, 1 FUNC=cookie_v6_check L=1
+  [USE] Taint flows to:   %270 = icmp slt i32 %267, 1, <./include/linux/refcount.h:274:6> FUNC=cookie_v6_check L=1
+  [USE] Taint flows to:   br i1 %270, label %271, label %273, <./include/linux/refcount.h:274:6> FUNC=cookie_v6_check L=1
+  [USE] Taint flows to:   br i1 %268, label %272, label %269, <./include/linux/refcount.h:269:14> FUNC=cookie_v6_check L=1
+  [USE] Taint flows to:   br i1 %264, label %273, label %265, <./include/net/request_sock.h:134:6> FUNC=cookie_v6_check L=1
+  [USE] Taint flows to:   %260 = getelementptr inbounds nuw i8, ptr %259, i64 48, <./include/net/request_sock.h:133:16> FUNC=cookie_v6_check L=1
+  [USE] Taint flows to:   %261 = load ptr, ptr %260, align 8, <./include/net/request_sock.h:133:16> FUNC=cookie_v6_check L=1
+  [USE] Taint flows to:   call void %261(ptr noundef nonnull %100) #279, <./include/net/request_sock.h:133:2> FUNC=cookie_v6_check L=1
+  [USE] Taint flows to:   %247 = and i16 %246, 2048, <net/ipv6/syncookies.c:266:15> FUNC=cookie_v6_check L=1
+  [USE] Taint flows to:   %250 = phi i16 [ %235, %234 ], [ %246, %237 ] FUNC=cookie_v6_check L=1
+  [USE] Taint flows to:   %252 = and i16 %250, -2049, <net/ipv6/syncookies.c:266:15> FUNC=cookie_v6_check L=1
+  [USE] Taint flows to:   %253 = or disjoint i16 %252, %251, <net/ipv6/syncookies.c:266:15> FUNC=cookie_v6_check L=1
+  [USE] Taint flows to:   store i16 %253, ptr %208, align 8, <net/ipv6/syncookies.c:266:15> FUNC=cookie_v6_check L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %208 = getelementptr inbounds nuw i8, ptr %100, i64 232, <net/ipv6/syncookies.c:266:15> FUNC=cookie_v6_check L=1
+  [USE] Taint flows to:   %248 = select i1 %245, i16 0, i16 %247, <net/ipv6/syncookies.c:266:15> FUNC=cookie_v6_check L=1
+  [USE] Taint flows to:   %251 = phi i16 [ %236, %234 ], [ %248, %237 ], <net/ipv6/syncookies.c:266:15> FUNC=cookie_v6_check L=1
+  [USE] Taint flows to:   %236 = and i16 %235, 2048, <net/ipv6/syncookies.c:266:15> FUNC=cookie_v6_check L=1
+  [USE] Taint flows to:   %228 = and i16 %225, -241, <net/ipv6/syncookies.c:265:20> FUNC=cookie_v6_check L=1
+  [USE] Taint flows to:   %229 = or disjoint i16 %228, %227, <net/ipv6/syncookies.c:265:20> FUNC=cookie_v6_check L=1
+  [USE] Taint flows to:   store i16 %229, ptr %208, align 8, <net/ipv6/syncookies.c:265:20> FUNC=cookie_v6_check L=1
+  [USE] Taint flows to:   %221 = and i8 %220, 1, <net/ipv6/syncookies.c:264:12> FUNC=cookie_v6_check L=1
+  [USE] Taint flows to:   %222 = icmp eq i8 %221, 0, <net/ipv6/syncookies.c:264:7> FUNC=cookie_v6_check L=1
+  [USE] Taint flows to:   br i1 %222, label %223, label %230, <net/ipv6/syncookies.c:264:6> FUNC=cookie_v6_check L=1
+  [USE] Taint flows to:   store i16 %162, ptr %163, align 4, <net/ipv6/syncookies.c:237:17> FUNC=cookie_v6_check L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %163 = getelementptr inbounds nuw i8, ptr %6, i64 76, <net/ipv6/syncookies.c:237:17> FUNC=cookie_v6_check L=1
+  [USE] Taint flows to:   store i32 %159, ptr %160, align 4, <net/ipv6/syncookies.c:236:19> FUNC=cookie_v6_check L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %160 = getelementptr inbounds nuw i8, ptr %6, i64 12, <net/ipv6/syncookies.c:236:19> FUNC=cookie_v6_check L=1
+  [USE] Taint flows to:   store i32 %157, ptr %6, align 8, <net/ipv6/syncookies.c:235:18> FUNC=cookie_v6_check L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %6 = alloca %struct.flowi6, align 8, !DIAssignID !18658059 <net/ipv6/syncookies.c:235:18> FUNC=cookie_v6_check L=1
+  [USE] Taint flows to:   %226 = shl i8 %224, 4, <net/ipv6/syncookies.c:265:20> FUNC=cookie_v6_check L=1
+  [USE] Taint flows to:   %227 = zext i8 %226 to i16, <net/ipv6/syncookies.c:265:20> FUNC=cookie_v6_check L=1
+  [USE] Taint flows to:   %369 = getelementptr inbounds nuw i8, ptr %368, i64 8, <./include/net/request_sock.h:137:32> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   %370 = load ptr, ptr %369, align 8, <./include/net/request_sock.h:137:32> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   call void @kmem_cache_free(ptr noundef %370, ptr noundef nonnull %171) #279, <./include/net/request_sock.h:137:2> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   call void @kfree(ptr noundef %367) #279, <./include/net/request_sock.h:136:2> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   %356 = icmp eq ptr %355, null, <./include/net/request_sock.h:134:6> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   %358 = getelementptr inbounds nuw i8, ptr %355, i64 128, <./include/net/sock.h:1913:33> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   call void @sk_free(ptr noundef nonnull %355) #279, <./include/net/sock.h:1914:3> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   %359 = call i32 asm sideeffect ".pushsection .smp_locks,\22a\22\0A.balign 4\0A.long 671f - .\0A.popsection\0A671:\0A\09lock; xaddl $0, $1\0A", "=r,=*m,0,*m,~{memory},~{cc},~{dirflag},~{fpsr},~{flags}"(ptr nonnull elementtype(i32) %358, i32 -1, ptr nonnull elementtype(i32) %358) #278, <./arch/x86/include/asm/atomic.h:93:9> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   call void @refcount_warn_saturate(ptr noundef nonnull %358, i32 noundef 3) #279, <./include/linux/refcount.h:275:3> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   %360 = icmp eq i32 %359, 1 FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   %362 = icmp slt i32 %359, 1, <./include/linux/refcount.h:274:6> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   br i1 %362, label %363, label %365, <./include/linux/refcount.h:274:6> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   br i1 %360, label %364, label %361, <./include/linux/refcount.h:269:14> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   br i1 %356, label %365, label %357, <./include/net/request_sock.h:134:6> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   %352 = getelementptr inbounds nuw i8, ptr %351, i64 48, <./include/net/request_sock.h:133:16> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   %353 = load ptr, ptr %352, align 8, <./include/net/request_sock.h:133:16> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   call void %353(ptr noundef nonnull %171) #279, <./include/net/request_sock.h:133:2> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   %337 = and i16 %336, 2048, <net/ipv4/syncookies.c:483:15> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   %340 = phi i16 [ %325, %324 ], [ %336, %327 ] FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   %342 = and i16 %340, -2049, <net/ipv4/syncookies.c:483:15> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   %343 = or disjoint i16 %342, %341, <net/ipv4/syncookies.c:483:15> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   store i16 %343, ptr %298, align 8, <net/ipv4/syncookies.c:483:15> FUNC=cookie_v4_check L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %298 = getelementptr inbounds nuw i8, ptr %171, i64 232, <net/ipv4/syncookies.c:483:15> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   %338 = select i1 %335, i16 0, i16 %337, <net/ipv4/syncookies.c:483:15> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   %341 = phi i16 [ %326, %324 ], [ %338, %327 ], <net/ipv4/syncookies.c:483:15> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   %326 = and i16 %325, 2048, <net/ipv4/syncookies.c:483:15> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   %318 = and i16 %315, -241, <net/ipv4/syncookies.c:482:20> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   %319 = or disjoint i16 %318, %317, <net/ipv4/syncookies.c:482:20> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   store i16 %319, ptr %298, align 8, <net/ipv4/syncookies.c:482:20> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   %311 = and i8 %310, 1, <net/ipv4/syncookies.c:481:12> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   %312 = icmp eq i8 %311, 0, <net/ipv4/syncookies.c:481:7> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   br i1 %312, label %313, label %320, <net/ipv4/syncookies.c:481:6> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   store i32 %239, ptr %256, align 8, <./include/net/flow.h:112:13> FUNC=cookie_v4_check L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %256 = getelementptr inbounds nuw i8, ptr %4, i64 40, <./include/net/flow.h:112:13> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   store i32 %214, ptr %247, align 4, <./include/net/flow.h:103:19> FUNC=cookie_v4_check L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %247 = getelementptr inbounds nuw i8, ptr %4, i64 12, <./include/net/flow.h:103:19> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   store i32 %212, ptr %4, align 8, <./include/net/flow.h:100:18> FUNC=cookie_v4_check L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %4 = alloca %struct.flowi4, align 8, !DIAssignID !18658050 <./include/net/flow.h:100:18> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   %316 = shl i8 %314, 4, <net/ipv4/syncookies.c:482:20> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   %317 = zext i8 %316 to i16, <net/ipv4/syncookies.c:482:20> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   %75 = shl i8 %73, 4, <net/ipv4/tcp_minisocks.c:458:19> FUNC=tcp_openreq_init_rwin L=1
+  [USE] Taint flows to:   %76 = zext i8 %75 to i16, <net/ipv4/tcp_minisocks.c:458:19> FUNC=tcp_openreq_init_rwin L=1
+  [USE] Taint flows to:   %78 = or disjoint i16 %77, %76, <net/ipv4/tcp_minisocks.c:458:19> FUNC=tcp_openreq_init_rwin L=1
+  [USE] Taint flows to:   store i16 %78, ptr %63, align 8, <net/ipv4/tcp_minisocks.c:458:19> FUNC=tcp_openreq_init_rwin L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %63 = getelementptr inbounds nuw i8, ptr %0, i64 232, <net/ipv4/tcp_minisocks.c:458:19> FUNC=tcp_openreq_init_rwin L=1
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #0 (ptr %0) <net/ipv4/tcp_minisocks.c:458:19> FUNC=tcp_openreq_init_rwin L=1
+[SKIP] Load before taint origin, not tainting:   %64 = load i16, ptr %63, align 8, <net/ipv4/tcp_minisocks.c:452:16> FUNC=tcp_openreq_init_rwin L=1
+[SKIP] Load before taint origin, not tainting:   %74 = load i16, ptr %63, align 8, <net/ipv4/tcp_minisocks.c:458:19> FUNC=tcp_openreq_init_rwin L=1
+[LOAD] Tainted load from tracked pointer:   %299 = load i16, ptr %298, align 8, (  %298 = getelementptr inbounds nuw i8, ptr %171, i64 232, !dbg !18658821)  <net/ipv4/syncookies.c:475:13> FUNC=cookie_v4_check L=1
+[LOAD] Tainted load from tracked pointer:   %209 = load i16, ptr %208, align 8, (  %208 = getelementptr inbounds nuw i8, ptr %100, i64 232, !dbg !18658513)  <net/ipv6/syncookies.c:258:13> FUNC=cookie_v6_check L=1
+  [USE] Taint flows to:   %210 = lshr i16 %209, 10, <net/ipv6/syncookies.c:258:13> FUNC=cookie_v6_check L=1
+  [USE] Taint flows to:   %211 = and i16 %210, 1, <net/ipv6/syncookies.c:258:13> FUNC=cookie_v6_check L=1
+  [USE] Taint flows to:   %212 = zext nneg i16 %211 to i32, <net/ipv6/syncookies.c:258:7> FUNC=cookie_v6_check L=1
+  [USE] Taint flows to:   call void @tcp_select_initial_window(ptr noundef %0, i32 noundef %194, i32 noundef %206, ptr noundef nonnull %207, ptr noundef nonnull %185, i32 noundef %212, ptr noundef nonnull %4, i32 noundef %218) #279, <net/ipv6/syncookies.c:256:2> FUNC=cookie_v6_check L=1
+  [USE] Taint flows to:   %300 = lshr i16 %299, 10, <net/ipv4/syncookies.c:475:13> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   %301 = and i16 %300, 1, <net/ipv4/syncookies.c:475:13> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   %302 = zext nneg i16 %301 to i32, <net/ipv4/syncookies.c:475:7> FUNC=cookie_v4_check L=1
+  [USE] Taint flows to:   call void @tcp_select_initial_window(ptr noundef %0, i32 noundef %284, i32 noundef %296, ptr noundef nonnull %297, ptr noundef nonnull %275, i32 noundef %302, ptr noundef nonnull %5, i32 noundef %308) #279, <net/ipv4/syncookies.c:473:2> FUNC=cookie_v4_check L=1
+
+=== Maximum Level Statistics ===
+Largest L value: 1
+Number of instructions with L=1: 111
+
+Earliest instruction with L=1:
+    %73 = load i8, ptr %4, align 1, <net/ipv4/tcp_minisocks.c:458:21> FUNC=tcp_openreq_init_rwin L=1
+
+Latest instruction with L=1:
+    call void @kmem_cache_free(ptr noundef %278, ptr noundef nonnull %100) #279, <./include/net/request_sock.h:137:2> FUNC=cookie_v6_check L=1
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/ipv4/tcp_output.ll
+../linux-wllvm-defconfig/net/ipv4/tcp_output.c

@@ -1,0 +1,5 @@
+SOURCE_FILE=net/ipv4/tcp_recovery.c
+FUNCTION_NAME=tcp_rack_update_reo_wnd
+SOURCE_OP="or"
+CONSTANT_VALUE=16
+OCCURENCE=1

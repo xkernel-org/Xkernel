@@ -1,0 +1,5 @@
+SOURCE_FILE=fs/btrfs/delayed-inode.c
+FUNCTION_NAME=__btrfs_kill_delayed_node
+SOURCE_OP="icmp"
+CONSTANT_VALUE=15
+OCCURENCE=1

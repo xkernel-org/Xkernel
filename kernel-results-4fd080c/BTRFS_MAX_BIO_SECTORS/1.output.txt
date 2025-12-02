@@ -1,0 +1,300 @@
+=== Taint Tracker Configuration ===
+Function: btrfs_dio_iomap_begin
+Opcode: shl
+Constant: 8
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 8)
+
+[SOURCE] Tainting:   %26 = shl i32 %25, 8, <fs/btrfs/direct-io.c:388:9> FUNC=btrfs_dio_iomap_begin L=0
+[USE] Source instruction in data flow <fs/btrfs/direct-io.c:388:9> FUNC=btrfs_dio_iomap_begin L=0
+[USE] Processing uses of:   %26 = shl i32 %25, 8,
+  [USE] Taint flows to:   %27 = zext i32 %26 to i64, <fs/btrfs/direct-io.c:388:9> FUNC=btrfs_dio_iomap_begin L=0
+[USE] Processing uses of:   %27 = zext i32 %26 to i64,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %28 = tail call i64 @llvm.umin.i64(i64 %2, i64 %27), !dbg !18658158 <fs/btrfs/direct-io.c:388:9>
+  [USE] Taint flows to:   %28 = tail call i64 @llvm.umin.i64(i64 %2, i64 %27), <fs/btrfs/direct-io.c:388:9> FUNC=btrfs_dio_iomap_begin L=0
+[USE] Processing uses of:   %28 = tail call i64 @llvm.umin.i64(i64 %2, i64 %27),
+  [STORE DESTINATION] Marking pointer as tainted:   %9 = alloca i64, align 8, !DIAssignID !18658138 <fs/btrfs/direct-io.c:388:7>
+  [USE] Taint flows to:   store i64 %28, ptr %9, align 8, <fs/btrfs/direct-io.c:388:7> FUNC=btrfs_dio_iomap_begin L=0
+  [USE] Taint flows to:   %30 = phi i64 [ %2, %6 ], [ %28, %23 ], <fs/btrfs/direct-io.c:391:20> FUNC=btrfs_dio_iomap_begin L=0
+[USE] Processing uses of:   %30 = phi i64 [ %2, %6 ], [ %28, %23 ],
+  [USE] Taint flows to:   %32 = add i64 %31, %30, <fs/btrfs/direct-io.c:391:24> FUNC=btrfs_dio_iomap_begin L=0
+  [CHILD FUNCTION] Tainted value used in call to btrfs_lookup_ordered_range at argument 2:   %90 = call ptr @btrfs_lookup_ordered_range(ptr noundef %10, i64 noundef %1, i64 noundef %30) #279, <fs/btrfs/direct-io.c:66:13> FUNC=btrfs_dio_iomap_begin L=0
+  [USE] Taint flows to:   %90 = call ptr @btrfs_lookup_ordered_range(ptr noundef %10, i64 noundef %1, i64 noundef %30) #279, <fs/btrfs/direct-io.c:66:13> FUNC=btrfs_dio_iomap_begin L=0
+[USE] Processing uses of:   %90 = call ptr @btrfs_lookup_ordered_range(ptr noundef %10, i64 noundef %1, i64 noundef %30) #279,
+  [USE] Taint flows to:   %91 = icmp eq ptr %90, null, <fs/btrfs/direct-io.c:76:8> FUNC=btrfs_dio_iomap_begin L=0
+  [CHILD FUNCTION] Tainted value used in call to btrfs_put_ordered_extent at argument 0:   call void @btrfs_put_ordered_extent(ptr noundef nonnull %90) #279, <fs/btrfs/direct-io.c:85:5> FUNC=btrfs_dio_iomap_begin L=0
+  [USE] Taint flows to:   call void @btrfs_put_ordered_extent(ptr noundef nonnull %90) #279, <fs/btrfs/direct-io.c:85:5> FUNC=btrfs_dio_iomap_begin L=0
+  [USE] Taint flows to:   %102 = getelementptr inbounds nuw i8, ptr %90, i64 64, <fs/btrfs/direct-io.c:105:8> FUNC=btrfs_dio_iomap_begin L=0
+  [CHILD FUNCTION] Tainted value used in call to btrfs_put_ordered_extent at argument 0:   call void @btrfs_put_ordered_extent(ptr noundef nonnull %90) #279, <fs/btrfs/direct-io.c:109:4> FUNC=btrfs_dio_iomap_begin L=0
+  [USE] Taint flows to:   call void @btrfs_put_ordered_extent(ptr noundef nonnull %90) #279, <fs/btrfs/direct-io.c:109:4> FUNC=btrfs_dio_iomap_begin L=0
+  [CHILD FUNCTION] Tainted value used in call to btrfs_start_ordered_extent at argument 0:   call void @btrfs_start_ordered_extent(ptr noundef nonnull %90) #279, <fs/btrfs/direct-io.c:106:5> FUNC=btrfs_dio_iomap_begin L=0
+  [USE] Taint flows to:   call void @btrfs_start_ordered_extent(ptr noundef nonnull %90) #279, <fs/btrfs/direct-io.c:106:5> FUNC=btrfs_dio_iomap_begin L=0
+  [CHILD FUNCTION] Tainted value used in call to btrfs_put_ordered_extent at argument 0:   call void @btrfs_put_ordered_extent(ptr noundef nonnull %90) #279, <fs/btrfs/direct-io.c:109:4> FUNC=btrfs_dio_iomap_begin L=0
+  [USE] Taint flows to:   call void @btrfs_put_ordered_extent(ptr noundef nonnull %90) #279, <fs/btrfs/direct-io.c:109:4> FUNC=btrfs_dio_iomap_begin L=0
+[NO USE] No uses of:   call void @btrfs_put_ordered_extent(ptr noundef nonnull %90) #279,
+[NO USE] No uses of:   call void @btrfs_start_ordered_extent(ptr noundef nonnull %90) #279,
+[NO USE] No uses of:   call void @btrfs_put_ordered_extent(ptr noundef nonnull %90) #279,
+[USE] Processing uses of:   %102 = getelementptr inbounds nuw i8, ptr %90, i64 64,
+  [USE] Taint flows to:   %103 = load volatile i64, ptr %102, align 8, <./arch/x86/include/asm/bitops.h:206:4> FUNC=btrfs_dio_iomap_begin L=0
+[USE] Processing uses of:   %103 = load volatile i64, ptr %102, align 8,
+  [USE] Taint flows to:   %104 = and i64 %103, 16, <./arch/x86/include/asm/bitops.h:205:44> FUNC=btrfs_dio_iomap_begin L=0
+[USE] Processing uses of:   %104 = and i64 %103, 16,
+  [USE] Taint flows to:   %105 = icmp eq i64 %104, 0, <./arch/x86/include/asm/bitops.h:206:37> FUNC=btrfs_dio_iomap_begin L=0
+[USE] Processing uses of:   %105 = icmp eq i64 %104, 0,
+  [USE] Taint flows to:   br i1 %105, label %109, label %110, <fs/btrfs/direct-io.c:104:16> FUNC=btrfs_dio_iomap_begin L=0
+[NO USE] No uses of:   br i1 %105, label %109, label %110,
+[NO USE] No uses of:   call void @btrfs_put_ordered_extent(ptr noundef nonnull %90) #279,
+[USE] Processing uses of:   %91 = icmp eq ptr %90, null,
+  [USE] Taint flows to:   br i1 %91, label %92, label %97, <fs/btrfs/direct-io.c:76:16> FUNC=btrfs_dio_iomap_begin L=0
+[NO USE] No uses of:   br i1 %91, label %92, label %97,
+[USE] Processing uses of:   %32 = add i64 %31, %30,
+  [CHILD FUNCTION] Tainted value used in call to filemap_range_has_writeback at argument 2:   %52 = tail call zeroext i1 @filemap_range_has_writeback(ptr noundef %41, i64 noundef %1, i64 noundef %32) #279, <./include/linux/pagemap.h:1336:9> FUNC=btrfs_dio_iomap_begin L=0
+  [USE] Taint flows to:   %52 = tail call zeroext i1 @filemap_range_has_writeback(ptr noundef %41, i64 noundef %1, i64 noundef %32) #279, <./include/linux/pagemap.h:1336:9> FUNC=btrfs_dio_iomap_begin L=0
+  [CHILD FUNCTION] Tainted value used in call to __try_lock_extent at argument 2:   %78 = call zeroext i1 @__try_lock_extent(ptr noundef %76, i64 noundef %1, i64 noundef %32, i32 noundef 8, ptr noundef nonnull %8) #279, <fs/btrfs/extent-io-tree.h:237:9> FUNC=btrfs_dio_iomap_begin L=0
+  [USE] Taint flows to:   %78 = call zeroext i1 @__try_lock_extent(ptr noundef %76, i64 noundef %1, i64 noundef %32, i32 noundef 8, ptr noundef nonnull %8) #279, <fs/btrfs/extent-io-tree.h:237:9> FUNC=btrfs_dio_iomap_begin L=0
+  [CHILD FUNCTION] Tainted value used in call to __lock_extent at argument 2:   %81 = call i32 @__lock_extent(ptr noundef %80, i64 noundef %1, i64 noundef %32, i32 noundef 8, ptr noundef nonnull %8) #279, <fs/btrfs/extent-io-tree.h:231:9> FUNC=btrfs_dio_iomap_begin L=0
+  [USE] Taint flows to:   %81 = call i32 @__lock_extent(ptr noundef %80, i64 noundef %1, i64 noundef %32, i32 noundef 8, ptr noundef nonnull %8) #279, <fs/btrfs/extent-io-tree.h:231:9> FUNC=btrfs_dio_iomap_begin L=0
+  [CHILD FUNCTION] Tainted value used in call to __try_lock_extent at argument 2:   %86 = call zeroext i1 @__try_lock_extent(ptr noundef %83, i64 noundef %1, i64 noundef %32, i32 noundef 4, ptr noundef nonnull %8) #279, <fs/btrfs/extent-io-tree.h:154:9> FUNC=btrfs_dio_iomap_begin L=0
+  [USE] Taint flows to:   %86 = call zeroext i1 @__try_lock_extent(ptr noundef %83, i64 noundef %1, i64 noundef %32, i32 noundef 4, ptr noundef nonnull %8) #279, <fs/btrfs/extent-io-tree.h:154:9> FUNC=btrfs_dio_iomap_begin L=0
+  [CHILD FUNCTION] Tainted value used in call to __lock_extent at argument 2:   %88 = call i32 @__lock_extent(ptr noundef %83, i64 noundef %1, i64 noundef %32, i32 noundef 4, ptr noundef nonnull %8) #279, <fs/btrfs/extent-io-tree.h:148:9> FUNC=btrfs_dio_iomap_begin L=0
+  [USE] Taint flows to:   %88 = call i32 @__lock_extent(ptr noundef %83, i64 noundef %1, i64 noundef %32, i32 noundef 4, ptr noundef nonnull %8) #279, <fs/btrfs/extent-io-tree.h:148:9> FUNC=btrfs_dio_iomap_begin L=0
+  [CHILD FUNCTION] Tainted value used in call to filemap_range_has_page at argument 2:   %96 = call zeroext i1 @filemap_range_has_page(ptr noundef %95, i64 noundef %1, i64 noundef %32) #279, <fs/btrfs/direct-io.c:77:21> FUNC=btrfs_dio_iomap_begin L=0
+  [USE] Taint flows to:   %96 = call zeroext i1 @filemap_range_has_page(ptr noundef %95, i64 noundef %1, i64 noundef %32) #279, <fs/btrfs/direct-io.c:77:21> FUNC=btrfs_dio_iomap_begin L=0
+  [CHILD FUNCTION] Tainted value used in call to __clear_extent_bit at argument 2:   %98 = call i32 @__clear_extent_bit(ptr noundef %83, i64 noundef %1, i64 noundef %32, i32 noundef 4, ptr noundef nonnull %8, ptr noundef null) #279, <fs/btrfs/extent-io-tree.h:185:9> FUNC=btrfs_dio_iomap_begin L=0
+  [USE] Taint flows to:   %98 = call i32 @__clear_extent_bit(ptr noundef %83, i64 noundef %1, i64 noundef %32, i32 noundef 4, ptr noundef nonnull %8, ptr noundef null) #279, <fs/btrfs/extent-io-tree.h:185:9> FUNC=btrfs_dio_iomap_begin L=0
+  [CHILD FUNCTION] Tainted value used in call to __clear_extent_bit at argument 2:   %107 = call i32 @__clear_extent_bit(ptr noundef %83, i64 noundef %1, i64 noundef %32, i32 noundef 4, ptr noundef nonnull %8, ptr noundef null) #279, <fs/btrfs/extent-io-tree.h:185:9> FUNC=btrfs_dio_iomap_begin L=0
+  [USE] Taint flows to:   %107 = call i32 @__clear_extent_bit(ptr noundef %83, i64 noundef %1, i64 noundef %32, i32 noundef 4, ptr noundef nonnull %8, ptr noundef null) #279, <fs/btrfs/extent-io-tree.h:185:9> FUNC=btrfs_dio_iomap_begin L=0
+  [CHILD FUNCTION] Tainted value used in call to __clear_extent_bit at argument 2:   %217 = call i32 @__clear_extent_bit(ptr noundef %83, i64 noundef %1, i64 noundef %32, i32 noundef range(i32 4, 13) %216, ptr noundef nonnull %8, ptr noundef null) #279, <fs/btrfs/extent-io-tree.h:179:9> FUNC=btrfs_dio_iomap_begin L=0
+  [USE] Taint flows to:   %217 = call i32 @__clear_extent_bit(ptr noundef %83, i64 noundef %1, i64 noundef %32, i32 noundef range(i32 4, 13) %216, ptr noundef nonnull %8, ptr noundef null) #279, <fs/btrfs/extent-io-tree.h:179:9> FUNC=btrfs_dio_iomap_begin L=0
+  [USE] Taint flows to:   %221 = icmp ult i64 %220, %32, <fs/btrfs/direct-io.c:581:30> FUNC=btrfs_dio_iomap_begin L=0
+  [CHILD FUNCTION] Tainted value used in call to __clear_extent_bit at argument 2:   %223 = call i32 @__clear_extent_bit(ptr noundef %83, i64 noundef %220, i64 noundef %32, i32 noundef 8, ptr noundef null, ptr noundef null) #279, <fs/btrfs/extent-io-tree.h:243:9> FUNC=btrfs_dio_iomap_begin L=0
+  [USE] Taint flows to:   %223 = call i32 @__clear_extent_bit(ptr noundef %83, i64 noundef %220, i64 noundef %32, i32 noundef 8, ptr noundef null, ptr noundef null) #279, <fs/btrfs/extent-io-tree.h:243:9> FUNC=btrfs_dio_iomap_begin L=0
+  [CHILD FUNCTION] Tainted value used in call to __clear_extent_bit at argument 2:   %227 = call i32 @__clear_extent_bit(ptr noundef %83, i64 noundef %1, i64 noundef %32, i32 noundef %225, ptr noundef nonnull %8, ptr noundef null) #279, <fs/btrfs/direct-io.c:0> FUNC=btrfs_dio_iomap_begin L=0
+  [USE] Taint flows to:   %227 = call i32 @__clear_extent_bit(ptr noundef %83, i64 noundef %1, i64 noundef %32, i32 noundef %225, ptr noundef nonnull %8, ptr noundef null) #279, <fs/btrfs/direct-io.c:0> FUNC=btrfs_dio_iomap_begin L=0
+[NO USE] No uses of:   %227 = call i32 @__clear_extent_bit(ptr noundef %83, i64 noundef %1, i64 noundef %32, i32 noundef %225, ptr noundef nonnull %8, ptr noundef null) #279,
+[NO USE] No uses of:   %223 = call i32 @__clear_extent_bit(ptr noundef %83, i64 noundef %220, i64 noundef %32, i32 noundef 8, ptr noundef null, ptr noundef null) #279,
+[USE] Processing uses of:   %221 = icmp ult i64 %220, %32,
+  [USE] Taint flows to:   br i1 %221, label %222, label %240, <fs/btrfs/direct-io.c:581:13> FUNC=btrfs_dio_iomap_begin L=0
+[NO USE] No uses of:   br i1 %221, label %222, label %240,
+[NO USE] No uses of:   %217 = call i32 @__clear_extent_bit(ptr noundef %83, i64 noundef %1, i64 noundef %32, i32 noundef range(i32 4, 13) %216, ptr noundef nonnull %8, ptr noundef null) #279,
+[NO USE] No uses of:   %107 = call i32 @__clear_extent_bit(ptr noundef %83, i64 noundef %1, i64 noundef %32, i32 noundef 4, ptr noundef nonnull %8, ptr noundef null) #279,
+[NO USE] No uses of:   %98 = call i32 @__clear_extent_bit(ptr noundef %83, i64 noundef %1, i64 noundef %32, i32 noundef 4, ptr noundef nonnull %8, ptr noundef null) #279,
+[USE] Processing uses of:   %96 = call zeroext i1 @filemap_range_has_page(ptr noundef %95, i64 noundef %1, i64 noundef %32) #279,
+  [USE] Taint flows to:   br i1 %96, label %106, label %112, <fs/btrfs/direct-io.c:76:16> FUNC=btrfs_dio_iomap_begin L=0
+[NO USE] No uses of:   br i1 %96, label %106, label %112,
+[NO USE] No uses of:   %88 = call i32 @__lock_extent(ptr noundef %83, i64 noundef %1, i64 noundef %32, i32 noundef 4, ptr noundef nonnull %8) #279,
+[USE] Processing uses of:   %86 = call zeroext i1 @__try_lock_extent(ptr noundef %83, i64 noundef %1, i64 noundef %32, i32 noundef 4, ptr noundef nonnull %8) #279,
+  [USE] Taint flows to:   br i1 %86, label %89, label %224, <fs/btrfs/direct-io.c:53:8> FUNC=btrfs_dio_iomap_begin L=0
+[NO USE] No uses of:   br i1 %86, label %89, label %224,
+[NO USE] No uses of:   %81 = call i32 @__lock_extent(ptr noundef %80, i64 noundef %1, i64 noundef %32, i32 noundef 8, ptr noundef nonnull %8) #279,
+[USE] Processing uses of:   %78 = call zeroext i1 @__try_lock_extent(ptr noundef %76, i64 noundef %1, i64 noundef %32, i32 noundef 8, ptr noundef nonnull %8) #279,
+  [USE] Taint flows to:   br i1 %78, label %82, label %228, <fs/btrfs/direct-io.c:45:7> FUNC=btrfs_dio_iomap_begin L=0
+[NO USE] No uses of:   br i1 %78, label %82, label %228,
+[USE] Processing uses of:   %52 = tail call zeroext i1 @filemap_range_has_writeback(ptr noundef %41, i64 noundef %1, i64 noundef %32) #279,
+  [USE] Taint flows to:   br i1 %52, label %240, label %57, <fs/btrfs/direct-io.c:414:8> FUNC=btrfs_dio_iomap_begin L=0
+[NO USE] No uses of:   br i1 %52, label %240, label %57,
+[NO USE] No uses of:   store i64 %28, ptr %9, align 8,
+[KILL] Store overwrites tainted pointer with non-tainted value:   store i64 %2, ptr %9, align 8,
+[KILL] Store overwrites tainted pointer with non-tainted value:   store i64 %138, ptr %9, align 8,
+[KILL] Store overwrites tainted pointer with non-tainted value:   store i64 %156, ptr %9, align 8,
+[LOAD] Tainted load from tracked pointer:   %113 = load i64, ptr %9, align 8, (  %9 = alloca i64, align 8, !DIAssignID !18658138)  <fs/btrfs/direct-io.c:456:53> FUNC=btrfs_dio_iomap_begin L=0
+[LOAD] Tainted load from tracked pointer:   %131 = load i64, ptr %9, align 8, (  %9 = alloca i64, align 8, !DIAssignID !18658138)  <fs/btrfs/direct-io.c:494:8> FUNC=btrfs_dio_iomap_begin L=0
+[LOAD] Tainted load from tracked pointer:   %148 = load i64, ptr %9, align 8, (  %9 = alloca i64, align 8, !DIAssignID !18658138)  <fs/btrfs/direct-io.c:529:9> FUNC=btrfs_dio_iomap_begin L=0
+[LOAD] Tainted load from tracked pointer:   %219 = load i64, ptr %9, align 8, (  %9 = alloca i64, align 8, !DIAssignID !18658138)  <fs/btrfs/direct-io.c:581:25> FUNC=btrfs_dio_iomap_begin L=0
+[USE] Processing uses of:   %219 = load i64, ptr %9, align 8,
+  [USE] Taint flows to:   %220 = add i64 %219, %1, <fs/btrfs/direct-io.c:581:23> FUNC=btrfs_dio_iomap_begin L=0
+[USE] Processing uses of:   %220 = add i64 %219, %1,
+  [CHILD FUNCTION] Tainted value used in call to __clear_extent_bit at argument 1:   %223 = call i32 @__clear_extent_bit(ptr noundef %83, i64 noundef %220, i64 noundef %32, i32 noundef 8, ptr noundef null, ptr noundef null) #279, <fs/btrfs/extent-io-tree.h:243:9> FUNC=btrfs_dio_iomap_begin L=0
+[USE] Processing uses of:   %148 = load i64, ptr %9, align 8,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %156 = call i64 @llvm.umin.i64(i64 %148, i64 %155), !dbg !18658443 <fs/btrfs/direct-io.c:529:9>
+  [USE] Taint flows to:   %156 = call i64 @llvm.umin.i64(i64 %148, i64 %155), <fs/btrfs/direct-io.c:529:9> FUNC=btrfs_dio_iomap_begin L=0
+[USE] Processing uses of:   %156 = call i64 @llvm.umin.i64(i64 %148, i64 %155),
+  [USE] Taint flows to:   store i64 %156, ptr %9, align 8, <fs/btrfs/direct-io.c:529:7> FUNC=btrfs_dio_iomap_begin L=0
+  [USE] Taint flows to:   %165 = icmp ult i64 %156, %2, <fs/btrfs/direct-io.c:537:19> FUNC=btrfs_dio_iomap_begin L=0
+  [USE] Taint flows to:   %167 = add i64 %156, %1, <fs/btrfs/direct-io.c:538:28> FUNC=btrfs_dio_iomap_begin L=0
+  [USE] Taint flows to:   %168 = sub nuw i64 %2, %156, <fs/btrfs/direct-io.c:539:34> FUNC=btrfs_dio_iomap_begin L=0
+  [USE] Taint flows to:   %177 = phi i64 [ %156, %164 ], [ %156, %169 ], [ %156, %173 ], [ %156, %147 ], [ %138, %143 ] FUNC=btrfs_dio_iomap_begin L=0
+[USE] Processing uses of:   %177 = phi i64 [ %156, %164 ], [ %156, %169 ], [ %156, %173 ], [ %156, %147 ], [ %138, %143 ]
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #4 (ptr %4) <fs/btrfs/direct-io.c:565:16>
+[USE] Processing uses of:   %168 = sub nuw i64 %2, %156,
+  [USE] Taint flows to:   %170 = phi i64 [ %168, %166 ], [ %2, %160 ], <fs/btrfs/direct-io.c:0> FUNC=btrfs_dio_iomap_begin L=0
+[USE] Processing uses of:   %170 = phi i64 [ %168, %166 ], [ %2, %160 ],
+  [USE] Taint flows to:   %172 = icmp eq i64 %170, 0, <fs/btrfs/direct-io.c:542:20> FUNC=btrfs_dio_iomap_begin L=0
+  [CHILD FUNCTION] Tainted value used in call to btrfs_free_reserved_data_space at argument 3:   call void @btrfs_free_reserved_data_space(ptr noundef %10, ptr noundef %175, i64 noundef %171, i64 noundef %170) #279, <fs/btrfs/direct-io.c:543:5> FUNC=btrfs_dio_iomap_begin L=0
+  [USE] Taint flows to:   call void @btrfs_free_reserved_data_space(ptr noundef %10, ptr noundef %175, i64 noundef %171, i64 noundef %170) #279, <fs/btrfs/direct-io.c:543:5> FUNC=btrfs_dio_iomap_begin L=0
+[NO USE] No uses of:   call void @btrfs_free_reserved_data_space(ptr noundef %10, ptr noundef %175, i64 noundef %171, i64 noundef %170) #279,
+[USE] Processing uses of:   %172 = icmp eq i64 %170, 0,
+  [USE] Taint flows to:   br i1 %172, label %176, label %173, <fs/btrfs/direct-io.c:542:20> FUNC=btrfs_dio_iomap_begin L=0
+[NO USE] No uses of:   br i1 %172, label %176, label %173,
+[USE] Processing uses of:   %167 = add i64 %156, %1,
+  [USE] Taint flows to:   %171 = phi i64 [ %167, %166 ], [ %1, %160 ], <fs/btrfs/direct-io.c:0> FUNC=btrfs_dio_iomap_begin L=0
+[USE] Processing uses of:   %171 = phi i64 [ %167, %166 ], [ %1, %160 ],
+  [CHILD FUNCTION] Tainted value used in call to btrfs_free_reserved_data_space at argument 2:   call void @btrfs_free_reserved_data_space(ptr noundef %10, ptr noundef %175, i64 noundef %171, i64 noundef %170) #279, <fs/btrfs/direct-io.c:543:5> FUNC=btrfs_dio_iomap_begin L=0
+[USE] Processing uses of:   %165 = icmp ult i64 %156, %2,
+  [USE] Taint flows to:   br i1 %165, label %166, label %176, <fs/btrfs/direct-io.c:537:19> FUNC=btrfs_dio_iomap_begin L=0
+[NO USE] No uses of:   br i1 %165, label %166, label %176,
+[NO USE] No uses of:   store i64 %156, ptr %9, align 8,
+[USE] Processing uses of:   %131 = load i64, ptr %9, align 8,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %138 = call i64 @llvm.umin.i64(i64 %131, i64 %137), !dbg !18658429 <fs/btrfs/direct-io.c:494:8>
+  [USE] Taint flows to:   %138 = call i64 @llvm.umin.i64(i64 %131, i64 %137), <fs/btrfs/direct-io.c:494:8> FUNC=btrfs_dio_iomap_begin L=0
+[USE] Processing uses of:   %138 = call i64 @llvm.umin.i64(i64 %131, i64 %137),
+  [USE] Taint flows to:   store i64 %138, ptr %9, align 8, <fs/btrfs/direct-io.c:494:6> FUNC=btrfs_dio_iomap_begin L=0
+  [USE] Taint flows to:   %140 = icmp ult i64 %138, %2 FUNC=btrfs_dio_iomap_begin L=0
+[USE] Processing uses of:   %140 = icmp ult i64 %138, %2
+  [USE] Taint flows to:   %141 = select i1 %139, i1 %140, i1 false, <fs/btrfs/direct-io.c:517:29> FUNC=btrfs_dio_iomap_begin L=0
+[USE] Processing uses of:   %141 = select i1 %139, i1 %140, i1 false,
+  [USE] Taint flows to:   br i1 %141, label %142, label %143, <fs/btrfs/direct-io.c:517:29> FUNC=btrfs_dio_iomap_begin L=0
+[NO USE] No uses of:   br i1 %141, label %142, label %143,
+[NO USE] No uses of:   store i64 %138, ptr %9, align 8,
+[USE] Processing uses of:   %113 = load i64, ptr %9, align 8,
+  [CHILD FUNCTION] Tainted value used in call to btrfs_get_extent at argument 3:   %114 = call ptr @btrfs_get_extent(ptr noundef %10, ptr noundef null, i64 noundef %1, i64 noundef %113) #279, <fs/btrfs/direct-io.c:456:7> FUNC=btrfs_dio_iomap_begin L=0
+  [USE] Taint flows to:   %114 = call ptr @btrfs_get_extent(ptr noundef %10, ptr noundef null, i64 noundef %1, i64 noundef %113) #279, <fs/btrfs/direct-io.c:456:7> FUNC=btrfs_dio_iomap_begin L=0
+[USE] Processing uses of:   %114 = call ptr @btrfs_get_extent(ptr noundef %10, ptr noundef null, i64 noundef %1, i64 noundef %113) #279,
+  [STORE DESTINATION] Marking pointer as tainted:   %7 = alloca ptr, align 8, !DIAssignID !18658135 <fs/btrfs/direct-io.c:456:5>
+  [USE] Taint flows to:   store ptr %114, ptr %7, align 8, <fs/btrfs/direct-io.c:456:5> FUNC=btrfs_dio_iomap_begin L=0
+  [USE] Taint flows to:   %115 = icmp ugt ptr %114, inttoptr (i64 -4096 to ptr), <./include/linux/err.h:67:9> FUNC=btrfs_dio_iomap_begin L=0
+  [USE] Taint flows to:   %117 = ptrtoint ptr %114 to i64, <./include/linux/err.h:54:9> FUNC=btrfs_dio_iomap_begin L=0
+  [USE] Taint flows to:   %120 = getelementptr inbounds nuw i8, ptr %114, i64 80, <fs/btrfs/extent_map.h:142:14> FUNC=btrfs_dio_iomap_begin L=0
+  [USE] Taint flows to:   %125 = getelementptr inbounds nuw i8, ptr %114, i64 40, <fs/btrfs/direct-io.c:476:42> FUNC=btrfs_dio_iomap_begin L=0
+  [CHILD FUNCTION] Tainted value used in call to free_extent_map at argument 0:   call void @free_extent_map(ptr noundef %114) #279, <fs/btrfs/direct-io.c:477:3> FUNC=btrfs_dio_iomap_begin L=0
+  [USE] Taint flows to:   call void @free_extent_map(ptr noundef %114) #279, <fs/btrfs/direct-io.c:477:3> FUNC=btrfs_dio_iomap_begin L=0
+  [USE] Taint flows to:   %132 = getelementptr inbounds nuw i8, ptr %114, i64 32, <fs/btrfs/direct-io.c:494:8> FUNC=btrfs_dio_iomap_begin L=0
+  [USE] Taint flows to:   %134 = getelementptr inbounds nuw i8, ptr %114, i64 24, <fs/btrfs/direct-io.c:494:8> FUNC=btrfs_dio_iomap_begin L=0
+  [CHILD FUNCTION] Tainted value used in call to free_extent_map at argument 0:   call void @free_extent_map(ptr noundef %114) #279, <fs/btrfs/direct-io.c:518:3> FUNC=btrfs_dio_iomap_begin L=0
+  [USE] Taint flows to:   call void @free_extent_map(ptr noundef %114) #279, <fs/btrfs/direct-io.c:518:3> FUNC=btrfs_dio_iomap_begin L=0
+  [USE] Taint flows to:   %178 = phi ptr [ %149, %164 ], [ %149, %169 ], [ %149, %173 ], [ %149, %147 ], [ %114, %143 ], <fs/btrfs/direct-io.c:555:7> FUNC=btrfs_dio_iomap_begin L=0
+[USE] Processing uses of:   %178 = phi ptr [ %149, %164 ], [ %149, %169 ], [ %149, %173 ], [ %149, %147 ], [ %114, %143 ],
+  [USE] Taint flows to:   %179 = getelementptr inbounds nuw i8, ptr %178, i64 40, <fs/btrfs/direct-io.c:555:11> FUNC=btrfs_dio_iomap_begin L=0
+  [USE] Taint flows to:   %183 = getelementptr inbounds nuw i8, ptr %178, i64 80, <fs/btrfs/direct-io.c:556:12> FUNC=btrfs_dio_iomap_begin L=0
+  [USE] Taint flows to:   %194 = getelementptr inbounds nuw i8, ptr %178, i64 56, <fs/btrfs/extent_map.h:157:32> FUNC=btrfs_dio_iomap_begin L=0
+  [USE] Taint flows to:   %199 = getelementptr inbounds nuw i8, ptr %178, i64 24, <fs/btrfs/direct-io.c:560:59> FUNC=btrfs_dio_iomap_begin L=0
+  [CHILD FUNCTION] Tainted value used in call to free_extent_map at argument 0:   call void @free_extent_map(ptr noundef %178) #279, <fs/btrfs/direct-io.c:566:2> FUNC=btrfs_dio_iomap_begin L=0
+  [USE] Taint flows to:   call void @free_extent_map(ptr noundef %178) #279, <fs/btrfs/direct-io.c:566:2> FUNC=btrfs_dio_iomap_begin L=0
+[NO USE] No uses of:   call void @free_extent_map(ptr noundef %178) #279,
+[USE] Processing uses of:   %199 = getelementptr inbounds nuw i8, ptr %178, i64 24,
+  [USE] Taint flows to:   %200 = load i64, ptr %199, align 8, <fs/btrfs/direct-io.c:560:59> FUNC=btrfs_dio_iomap_begin L=0
+[USE] Processing uses of:   %200 = load i64, ptr %199, align 8,
+  [USE] Taint flows to:   %202 = sub i64 %201, %200, <fs/btrfs/direct-io.c:560:44> FUNC=btrfs_dio_iomap_begin L=0
+[USE] Processing uses of:   %202 = sub i64 %201, %200,
+  [USE] Taint flows to:   %204 = phi i64 [ %202, %197 ], [ -1, %182 ], [ -1, %176 ] FUNC=btrfs_dio_iomap_begin L=0
+[USE] Processing uses of:   %204 = phi i64 [ %202, %197 ], [ -1, %182 ], [ -1, %176 ]
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #4 (ptr %4) <fs/btrfs/direct-io.c:0>
+[USE] Processing uses of:   %194 = getelementptr inbounds nuw i8, ptr %178, i64 56,
+  [USE] Taint flows to:   %195 = load i64, ptr %194, align 8, <fs/btrfs/extent_map.h:157:32> FUNC=btrfs_dio_iomap_begin L=0
+[USE] Processing uses of:   %195 = load i64, ptr %194, align 8,
+  [USE] Taint flows to:   %196 = add i64 %195, %180, <fs/btrfs/extent_map.h:157:26> FUNC=btrfs_dio_iomap_begin L=0
+[USE] Processing uses of:   %196 = add i64 %195, %180,
+  [USE] Taint flows to:   %198 = phi i64 [ %196, %193 ], [ %180, %188 ], <fs/btrfs/extent_map.h:0> FUNC=btrfs_dio_iomap_begin L=0
+[USE] Processing uses of:   %198 = phi i64 [ %196, %193 ], [ %180, %188 ],
+  [USE] Taint flows to:   %201 = add i64 %198, %1, <fs/btrfs/direct-io.c:560:53> FUNC=btrfs_dio_iomap_begin L=0
+[USE] Processing uses of:   %201 = add i64 %198, %1,
+[USE] Processing uses of:   %183 = getelementptr inbounds nuw i8, ptr %178, i64 80,
+  [USE] Taint flows to:   %184 = load i32, ptr %183, align 8, <fs/btrfs/direct-io.c:556:12> FUNC=btrfs_dio_iomap_begin L=0
+[USE] Processing uses of:   %184 = load i32, ptr %183, align 8,
+  [USE] Taint flows to:   %185 = and i32 %184, 16, <fs/btrfs/direct-io.c:556:18> FUNC=btrfs_dio_iomap_begin L=0
+  [USE] Taint flows to:   %190 = and i32 %184, 14 FUNC=btrfs_dio_iomap_begin L=0
+[USE] Processing uses of:   %190 = and i32 %184, 14
+  [USE] Taint flows to:   %191 = icmp eq i32 %190, 0 FUNC=btrfs_dio_iomap_begin L=0
+[USE] Processing uses of:   %191 = icmp eq i32 %190, 0
+  [USE] Taint flows to:   %192 = and i1 %189, %191, <fs/btrfs/extent_map.h:154:22> FUNC=btrfs_dio_iomap_begin L=0
+[USE] Processing uses of:   %192 = and i1 %189, %191,
+  [USE] Taint flows to:   br i1 %192, label %193, label %197, <fs/btrfs/extent_map.h:154:22> FUNC=btrfs_dio_iomap_begin L=0
+[NO USE] No uses of:   br i1 %192, label %193, label %197,
+[USE] Processing uses of:   %185 = and i32 %184, 16,
+  [USE] Taint flows to:   %186 = icmp eq i32 %185, 0, <fs/btrfs/direct-io.c:556:18> FUNC=btrfs_dio_iomap_begin L=0
+[USE] Processing uses of:   %186 = icmp eq i32 %185, 0,
+  [USE] Taint flows to:   %187 = or i1 %17, %186, <fs/btrfs/direct-io.c:556:42> FUNC=btrfs_dio_iomap_begin L=0
+[USE] Processing uses of:   %187 = or i1 %17, %186,
+  [USE] Taint flows to:   br i1 %187, label %188, label %203, <fs/btrfs/direct-io.c:556:42> FUNC=btrfs_dio_iomap_begin L=0
+[NO USE] No uses of:   br i1 %187, label %188, label %203,
+[USE] Processing uses of:   %179 = getelementptr inbounds nuw i8, ptr %178, i64 40,
+  [USE] Taint flows to:   %180 = load i64, ptr %179, align 8, <fs/btrfs/direct-io.c:555:11> FUNC=btrfs_dio_iomap_begin L=0
+[USE] Processing uses of:   %180 = load i64, ptr %179, align 8,
+  [USE] Taint flows to:   %181 = icmp eq i64 %180, -3, <fs/btrfs/direct-io.c:555:23> FUNC=btrfs_dio_iomap_begin L=0
+  [USE] Taint flows to:   %189 = icmp ult i64 %180, -4, <fs/btrfs/extent_map.h:154:22> FUNC=btrfs_dio_iomap_begin L=0
+[USE] Processing uses of:   %189 = icmp ult i64 %180, -4,
+[USE] Processing uses of:   %181 = icmp eq i64 %180, -3,
+  [USE] Taint flows to:   br i1 %181, label %203, label %182, <fs/btrfs/direct-io.c:555:43> FUNC=btrfs_dio_iomap_begin L=0
+[NO USE] No uses of:   br i1 %181, label %203, label %182,
+[NO USE] No uses of:   call void @free_extent_map(ptr noundef %114) #279,
+[USE] Processing uses of:   %134 = getelementptr inbounds nuw i8, ptr %114, i64 24,
+  [USE] Taint flows to:   %135 = load i64, ptr %134, align 8, <fs/btrfs/direct-io.c:494:8> FUNC=btrfs_dio_iomap_begin L=0
+[USE] Processing uses of:   %135 = load i64, ptr %134, align 8,
+  [USE] Taint flows to:   %137 = add i64 %136, %135, <fs/btrfs/direct-io.c:494:8> FUNC=btrfs_dio_iomap_begin L=0
+[USE] Processing uses of:   %137 = add i64 %136, %135,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %138 = call i64 @llvm.umin.i64(i64 %131, i64 %137), !dbg !18658429 <fs/btrfs/direct-io.c:494:8>
+[USE] Processing uses of:   %132 = getelementptr inbounds nuw i8, ptr %114, i64 32,
+  [USE] Taint flows to:   %133 = load i64, ptr %132, align 8, <fs/btrfs/direct-io.c:494:8> FUNC=btrfs_dio_iomap_begin L=0
+[USE] Processing uses of:   %133 = load i64, ptr %132, align 8,
+  [USE] Taint flows to:   %136 = sub i64 %133, %1, <fs/btrfs/direct-io.c:494:8> FUNC=btrfs_dio_iomap_begin L=0
+[USE] Processing uses of:   %136 = sub i64 %133, %1,
+[NO USE] No uses of:   call void @free_extent_map(ptr noundef %114) #279,
+[USE] Processing uses of:   %125 = getelementptr inbounds nuw i8, ptr %114, i64 40,
+  [USE] Taint flows to:   %126 = load i64, ptr %125, align 8, <fs/btrfs/direct-io.c:476:42> FUNC=btrfs_dio_iomap_begin L=0
+[USE] Processing uses of:   %126 = load i64, ptr %125, align 8,
+  [USE] Taint flows to:   %127 = icmp eq i64 %126, -2, <fs/btrfs/direct-io.c:476:54> FUNC=btrfs_dio_iomap_begin L=0
+[USE] Processing uses of:   %127 = icmp eq i64 %126, -2,
+  [USE] Taint flows to:   br i1 %127, label %128, label %130, <fs/btrfs/direct-io.c:476:35> FUNC=btrfs_dio_iomap_begin L=0
+[NO USE] No uses of:   br i1 %127, label %128, label %130,
+[USE] Processing uses of:   %120 = getelementptr inbounds nuw i8, ptr %114, i64 80,
+  [USE] Taint flows to:   %121 = load i32, ptr %120, align 8, <fs/btrfs/extent_map.h:142:14> FUNC=btrfs_dio_iomap_begin L=0
+[USE] Processing uses of:   %121 = load i32, ptr %120, align 8,
+  [USE] Taint flows to:   %122 = and i32 %121, 14, <fs/btrfs/extent_map.h:142:20> FUNC=btrfs_dio_iomap_begin L=0
+[USE] Processing uses of:   %122 = and i32 %121, 14,
+  [USE] Taint flows to:   %123 = icmp eq i32 %122, 0, <fs/btrfs/extent_map.h:144:37> FUNC=btrfs_dio_iomap_begin L=0
+[USE] Processing uses of:   %123 = icmp eq i32 %122, 0,
+  [USE] Taint flows to:   br i1 %123, label %124, label %128, <fs/btrfs/direct-io.c:476:35> FUNC=btrfs_dio_iomap_begin L=0
+[NO USE] No uses of:   br i1 %123, label %124, label %128,
+[USE] Processing uses of:   %117 = ptrtoint ptr %114 to i64,
+  [USE] Taint flows to:   %118 = trunc i64 %117 to i32, <fs/btrfs/direct-io.c:458:9> FUNC=btrfs_dio_iomap_begin L=0
+[USE] Processing uses of:   %118 = trunc i64 %117 to i32,
+  [USE] Taint flows to:   %226 = phi i32 [ -15, %109 ], [ %108, %106 ], [ -11, %99 ], [ %145, %144 ], [ -11, %142 ], [ %129, %128 ], [ %118, %116 ], [ -11, %85 ] FUNC=btrfs_dio_iomap_begin L=0
+[USE] Processing uses of:   %226 = phi i32 [ -15, %109 ], [ %108, %106 ], [ -11, %99 ], [ %145, %144 ], [ -11, %142 ], [ %129, %128 ], [ %118, %116 ], [ -11, %85 ]
+  [USE] Taint flows to:   %229 = phi i32 [ %64, %68 ], [ -11, %77 ], [ %226, %224 ], <fs/btrfs/direct-io.c:0> FUNC=btrfs_dio_iomap_begin L=0
+[USE] Processing uses of:   %229 = phi i32 [ %64, %68 ], [ -11, %77 ], [ %226, %224 ],
+  [USE] Taint flows to:   %241 = phi i32 [ -11, %18 ], [ -11, %51 ], [ %55, %53 ], [ 0, %222 ], [ 0, %218 ], [ 0, %203 ], [ %229, %228 ], [ %229, %233 ], [ %229, %238 ], <fs/btrfs/direct-io.c:0> FUNC=btrfs_dio_iomap_begin L=0
+[USE] Processing uses of:   %241 = phi i32 [ -11, %18 ], [ -11, %51 ], [ %55, %53 ], [ 0, %222 ], [ 0, %218 ], [ 0, %203 ], [ %229, %228 ], [ %229, %233 ], [ %229, %238 ],
+  [RETURN] Stop: Tainted value is returned:   ret i32 %241, <fs/btrfs/direct-io.c:604:1>
+[USE] Processing uses of:   %115 = icmp ugt ptr %114, inttoptr (i64 -4096 to ptr),
+  [USE] Taint flows to:   br i1 %115, label %116, label %119, <fs/btrfs/direct-io.c:457:6> FUNC=btrfs_dio_iomap_begin L=0
+[NO USE] No uses of:   br i1 %115, label %116, label %119,
+[NO USE] No uses of:   store ptr %114, ptr %7, align 8,
+[KILL] Store overwrites tainted pointer with non-tainted value:   store i64 %2, ptr %9, align 8,
+[KILL] Store overwrites tainted pointer with non-tainted value:   store ptr null, ptr %7, align 8,
+[LOAD] Tainted load from tracked pointer:   %149 = load ptr, ptr %7, align 8, (  %7 = alloca ptr, align 8, !DIAssignID !18658135)  <fs/btrfs/direct-io.c:529:9> FUNC=btrfs_dio_iomap_begin L=0
+[USE] Processing uses of:   %149 = load ptr, ptr %7, align 8,
+  [USE] Taint flows to:   %150 = getelementptr inbounds nuw i8, ptr %149, i64 32, <fs/btrfs/direct-io.c:529:9> FUNC=btrfs_dio_iomap_begin L=0
+  [USE] Taint flows to:   %152 = getelementptr inbounds nuw i8, ptr %149, i64 24, <fs/btrfs/direct-io.c:529:9> FUNC=btrfs_dio_iomap_begin L=0
+[USE] Processing uses of:   %152 = getelementptr inbounds nuw i8, ptr %149, i64 24,
+  [USE] Taint flows to:   %153 = load i64, ptr %152, align 8, <fs/btrfs/direct-io.c:529:9> FUNC=btrfs_dio_iomap_begin L=0
+[USE] Processing uses of:   %153 = load i64, ptr %152, align 8,
+  [USE] Taint flows to:   %155 = add i64 %154, %153, <fs/btrfs/direct-io.c:529:9> FUNC=btrfs_dio_iomap_begin L=0
+[USE] Processing uses of:   %155 = add i64 %154, %153,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %156 = call i64 @llvm.umin.i64(i64 %148, i64 %155), !dbg !18658443 <fs/btrfs/direct-io.c:529:9>
+[USE] Processing uses of:   %150 = getelementptr inbounds nuw i8, ptr %149, i64 32,
+  [USE] Taint flows to:   %151 = load i64, ptr %150, align 8, <fs/btrfs/direct-io.c:529:9> FUNC=btrfs_dio_iomap_begin L=0
+[USE] Processing uses of:   %151 = load i64, ptr %150, align 8,
+  [USE] Taint flows to:   %154 = sub i64 %151, %1, <fs/btrfs/direct-io.c:529:9> FUNC=btrfs_dio_iomap_begin L=0
+[USE] Processing uses of:   %154 = sub i64 %151, %1,
+[KILL] Store overwrites tainted pointer with non-tainted value:   store i64 %2, ptr %9, align 8,
+[KILL] Store overwrites tainted pointer with non-tainted value:   store ptr null, ptr %7, align 8,
+[UPWARD-INTERPROC] No callers found for btrfs_dio_iomap_begin (function returns tainted value)
+[UPWARD-INTERPROC] No callers found for btrfs_dio_iomap_begin (function taints pointer parameter #4)
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 116
+
+Earliest instruction with L=0:
+    %26 = shl i32 %25, 8, <fs/btrfs/direct-io.c:388:9> FUNC=btrfs_dio_iomap_begin L=0
+
+Latest instruction with L=0:
+    %241 = phi i32 [ -11, %18 ], [ -11, %51 ], [ %55, %53 ], [ 0, %222 ], [ 0, %218 ], [ 0, %203 ], [ %229, %228 ], [ %229, %233 ], [ %229, %238 ], <fs/btrfs/direct-io.c:0> FUNC=btrfs_dio_iomap_begin L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/btrfs/direct-io.ll
+../linux-wllvm-defconfig/fs/btrfs/direct-io.c

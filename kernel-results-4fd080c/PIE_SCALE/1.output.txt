@@ -1,0 +1,35 @@
+=== Taint Tracker Configuration ===
+Function: pie_dump_stats
+Opcode: lshr
+Constant: 8
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 8)
+
+[SOURCE] Tainting:   %39 = lshr i64 %38, 8, <net/sched/sch_pie.c:518:29> FUNC=pie_dump_stats L=0
+[USE] Source instruction in data flow <net/sched/sch_pie.c:518:29> FUNC=pie_dump_stats L=0
+[USE] Processing uses of:   %39 = lshr i64 %38, 8,
+  [USE] Taint flows to:   %40 = trunc i64 %39 to i32, <net/sched/sch_pie.c:517:20> FUNC=pie_dump_stats L=0
+[USE] Processing uses of:   %40 = trunc i64 %39 to i32,
+  [STORE DESTINATION] Marking pointer as tainted:   %13 = getelementptr inbounds nuw i8, ptr %3, i64 12, <net/sched/sch_pie.c:517:18>
+  [USE] Taint flows to:   store i32 %40, ptr %13, align 4, <net/sched/sch_pie.c:517:18> FUNC=pie_dump_stats L=0
+[NO USE] No uses of:   store i32 %40, ptr %13, align 4,
+[KILL] Store overwrites tainted pointer with non-tainted value:   store i32 0, ptr %13, align 4,
+[KILL] Store overwrites tainted pointer with non-tainted value:   store i32 0, ptr %13, align 4,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 3
+
+Earliest instruction with L=0:
+    %39 = lshr i64 %38, 8, <net/sched/sch_pie.c:518:29> FUNC=pie_dump_stats L=0
+
+Latest instruction with L=0:
+    store i32 %40, ptr %13, align 4, <net/sched/sch_pie.c:517:18> FUNC=pie_dump_stats L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/sched/sch_pie.ll
+../linux-wllvm-defconfig/net/sched/sch_pie.c

@@ -1,0 +1,33 @@
+=== Taint Tracker Configuration ===
+Function: tcp_init_sock
+Opcode: store
+Constant: 10
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 10)
+
+[SOURCE] Tainting:   store i32 10, ptr %26, align 4, <./include/net/tcp.h:1337:15> FUNC=tcp_init_sock L=0
+[USE] Source instruction in data flow <./include/net/tcp.h:1337:15> FUNC=tcp_init_sock L=0
+[STORE DESTINATION] Storing constant to:   %26 = getelementptr inbounds nuw i8, ptr %0, i64 1444, <./include/net/tcp.h:1337:15> FUNC=tcp_init_sock L=0
+[POINTER PARAMETER] Constant stored through pointer parameter #0 (ptr %0) <./include/net/tcp.h:1337:15> FUNC=tcp_init_sock L=0
+[NO USE] No uses of:   store i32 10, ptr %26, align 4,
+[POINTER PARAMETER] Call to tcp_init_sock passes through pointer parameter 0 of tcp_v4_init_sock <net/ipv4/tcp_ipv4.c:2496:2> FUNC=tcp_v4_init_sock L=1
+[POINTER PARAMETER] Call to tcp_init_sock passes through pointer parameter 0 of tcp_v6_init_sock <net/ipv6/tcp_ipv6.c:2126:2> FUNC=tcp_v6_init_sock L=1
+[UPWARD-INTERPROC] No callers found for tcp_v4_init_sock (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for tcp_v6_init_sock (function taints pointer parameter #0)
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 1
+
+Earliest instruction with L=0:
+    store i32 10, ptr %26, align 4, <./include/net/tcp.h:1337:15> FUNC=tcp_init_sock L=0
+
+(Earliest and latest are the same instruction)
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/ipv4/tcp.ll
+../linux-wllvm-defconfig/net/ipv4/tcp.c

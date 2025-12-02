@@ -1,0 +1,28 @@
+=== Taint Tracker Configuration ===
+Function: blk_mq_map_swqueue
+Opcode: store
+Constant: 8
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 8)
+
+[SOURCE] Tainting:   store i32 8, ptr %251, align 4, <block/blk-mq.c:4199:24> FUNC=blk_mq_map_swqueue L=0
+[USE] Source instruction in data flow <block/blk-mq.c:4199:24> FUNC=blk_mq_map_swqueue L=0
+[STORE DESTINATION] Storing constant to:   %251 = getelementptr inbounds nuw i8, ptr %162, i64 164, <block/blk-mq.c:4199:24> FUNC=blk_mq_map_swqueue L=0
+[NO USE] No uses of:   store i32 8, ptr %251, align 4,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 1
+
+Earliest instruction with L=0:
+    store i32 8, ptr %251, align 4, <block/blk-mq.c:4199:24> FUNC=blk_mq_map_swqueue L=0
+
+(Earliest and latest are the same instruction)
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/block/blk-mq.ll
+../linux-wllvm-defconfig/block/blk-mq.c

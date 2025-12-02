@@ -1,0 +1,28 @@
+=== Taint Tracker Configuration ===
+Function: btrfs_balance_delayed_items
+Opcode: store
+Constant: 16
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 16)
+
+[SOURCE] Tainting:   store i32 16, ptr %61, align 8, <fs/btrfs/delayed-inode.c:1390:17> FUNC=btrfs_balance_delayed_items L=0
+[USE] Source instruction in data flow <fs/btrfs/delayed-inode.c:1390:17> FUNC=btrfs_balance_delayed_items L=0
+[STORE DESTINATION] Storing constant to:   %61 = getelementptr inbounds nuw i8, ptr %57, i64 8, <fs/btrfs/delayed-inode.c:1390:17> FUNC=btrfs_balance_delayed_items L=0
+[NO USE] No uses of:   store i32 16, ptr %61, align 8,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 1
+
+Earliest instruction with L=0:
+    store i32 16, ptr %61, align 8, <fs/btrfs/delayed-inode.c:1390:17> FUNC=btrfs_balance_delayed_items L=0
+
+(Earliest and latest are the same instruction)
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/btrfs/delayed-inode.ll
+../linux-wllvm-defconfig/fs/btrfs/delayed-inode.c

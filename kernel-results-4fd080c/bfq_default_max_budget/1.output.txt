@@ -1,0 +1,28 @@
+=== Taint Tracker Configuration ===
+Function: bfq_init_queue
+Opcode: store
+Constant: 16384
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 16384)
+
+[SOURCE] Tainting:   store i32 16384, ptr %94, align 4, <block/bfq-iosched.c:7335:23> FUNC=bfq_init_queue L=0
+[USE] Source instruction in data flow <block/bfq-iosched.c:7335:23> FUNC=bfq_init_queue L=0
+[STORE DESTINATION] Storing constant to:   %94 = getelementptr inbounds nuw i8, ptr %13, i64 348, <block/bfq-iosched.c:7335:23> FUNC=bfq_init_queue L=0
+[NO USE] No uses of:   store i32 16384, ptr %94, align 4,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 1
+
+Earliest instruction with L=0:
+    store i32 16384, ptr %94, align 4, <block/bfq-iosched.c:7335:23> FUNC=bfq_init_queue L=0
+
+(Earliest and latest are the same instruction)
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/block/bfq-iosched.ll
+../linux-wllvm-defconfig/block/bfq-iosched.c

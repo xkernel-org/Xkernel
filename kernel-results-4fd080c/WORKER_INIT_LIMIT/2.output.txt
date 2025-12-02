@@ -1,0 +1,30 @@
+=== Taint Tracker Configuration ===
+Function: create_io_worker
+Opcode: icmp
+Constant: 2
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 2 (of constant 2)
+
+[SOURCE] Tainting:   %70 = icmp sgt i32 %68, 2, <io_uring/io-wq.c:759:29> FUNC=create_io_worker L=0
+[USE] Source instruction in data flow <io_uring/io-wq.c:759:29> FUNC=create_io_worker L=0
+[USE] Processing uses of:   %70 = icmp sgt i32 %68, 2,
+  [USE] Taint flows to:   br i1 %70, label %72, label %71, <io_uring/io-wq.c:759:29> FUNC=create_io_worker L=0
+[NO USE] No uses of:   br i1 %70, label %72, label %71,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 2
+
+Earliest instruction with L=0:
+    %70 = icmp sgt i32 %68, 2, <io_uring/io-wq.c:759:29> FUNC=create_io_worker L=0
+
+Latest instruction with L=0:
+    br i1 %70, label %72, label %71, <io_uring/io-wq.c:759:29> FUNC=create_io_worker L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/io_uring/io-wq.ll
+../linux-wllvm-defconfig/io_uring/io-wq.c

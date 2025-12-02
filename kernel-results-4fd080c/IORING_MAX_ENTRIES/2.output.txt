@@ -1,0 +1,156 @@
+=== Taint Tracker Configuration ===
+Function: io_uring_fill_params
+Opcode: phi
+Constant: 32768
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 32768)
+
+[SOURCE] Tainting:   %12 = phi i32 [ 32768, %8 ], [ %0, %4 ] FUNC=io_uring_fill_params L=0
+[USE] Source instruction in data flow FUNC=io_uring_fill_params L=0
+[USE] Processing uses of:   %12 = phi i32 [ 32768, %8 ], [ %0, %4 ]
+  [USE] Taint flows to:   %18 = zext nneg i32 %12 to i64, <io_uring/io_uring.c:3562:18> FUNC=io_uring_fill_params L=0
+[USE] Processing uses of:   %18 = zext nneg i32 %12 to i64,
+  [USE] Taint flows to:   %19 = add nsw i64 %18, -1, <./include/linux/log2.h:57:27> FUNC=io_uring_fill_params L=0
+[USE] Processing uses of:   %19 = add nsw i64 %18, -1,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %20 = tail call i32 asm "bsrq $1,${0:q}", "=r,r,0,~{dirflag},~{fpsr},~{flags}"(i64 range(i64 -1, 4294967295) %19, i32 -1) #278, !dbg !18658063, !srcloc !18658064 <./arch/x86/include/asm/bitops.h:417:2>
+  [USE] Taint flows to:   %20 = tail call i32 asm "bsrq $1,${0:q}", "=r,r,0,~{dirflag},~{fpsr},~{flags}"(i64 range(i64 -1, 4294967295) %19, i32 -1) #278, <./arch/x86/include/asm/bitops.h:417:2> FUNC=io_uring_fill_params L=0
+[USE] Processing uses of:   %20 = tail call i32 asm "bsrq $1,${0:q}", "=r,r,0,~{dirflag},~{fpsr},~{flags}"(i64 range(i64 -1, 4294967295) %19, i32 -1) #278,
+  [USE] Taint flows to:   %21 = add i32 %20, 1, <./arch/x86/include/asm/bitops.h:420:16> FUNC=io_uring_fill_params L=0
+[USE] Processing uses of:   %21 = add i32 %20, 1,
+  [USE] Taint flows to:   %22 = zext nneg i32 %21 to i64, <./include/linux/log2.h:57:13> FUNC=io_uring_fill_params L=0
+[USE] Processing uses of:   %22 = zext nneg i32 %21 to i64,
+  [USE] Taint flows to:   %23 = shl nuw i64 1, %22, <./include/linux/log2.h:57:13> FUNC=io_uring_fill_params L=0
+[USE] Processing uses of:   %23 = shl nuw i64 1, %22,
+  [USE] Taint flows to:   %24 = trunc i64 %23 to i32, <io_uring/io_uring.c:3562:18> FUNC=io_uring_fill_params L=0
+[USE] Processing uses of:   %24 = trunc i64 %23 to i32,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #1 (ptr %1) <io_uring/io_uring.c:3562:16>
+  [USE] Taint flows to:   %45 = icmp ugt i32 %24, %44, <io_uring/io_uring.c:3577:21> FUNC=io_uring_fill_params L=0
+  [USE] Taint flows to:   %47 = shl i32 %24, 1, <io_uring/io_uring.c:3580:21> FUNC=io_uring_fill_params L=0
+[USE] Processing uses of:   %47 = shl i32 %24, 1,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #1 (ptr %1) <io_uring/io_uring.c:3580:17>
+[USE] Processing uses of:   %45 = icmp ugt i32 %24, %44,
+  [USE] Taint flows to:   br i1 %45, label %70, label %49, <io_uring/io_uring.c:3577:21> FUNC=io_uring_fill_params L=0
+[NO USE] No uses of:   br i1 %45, label %70, label %49,
+[POINTER PARAMETER] Call to io_uring_fill_params passes through pointer parameter 1 of io_uring_create <io_uring/io_uring.c:3615:8> FUNC=io_uring_create L=1
+[UPWARD-INTERPROC] Call to io_uring_fill_params taints argument 1 (local variable) <io_uring/register.c:421:8> FUNC=io_register_resize_rings L=1
+  [STORE DESTINATION] Marking pointer as tainted via call:   %7 = alloca %struct.io_uring_params, align 8, !DIAssignID !18658107 FUNC=io_register_resize_rings L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %29 = load i32, ptr %28, align 8, (base:   %7 = alloca %struct.io_uring_params, align 8, !DIAssignID !18658107)  <io_uring/register.c:415:8> FUNC=io_register_resize_rings L=1
+[SKIP] Load before taint origin, not tainting:   %36 = load i32, ptr %7, align 8, <io_uring/register.c:421:31> FUNC=io_register_resize_rings L=1
+[LOAD] Tainted load from tracked pointer:   %40 = load i32, ptr %7, align 8, (  %7 = alloca %struct.io_uring_params, align 8, !DIAssignID !18658107)  <io_uring/register.c:426:8> FUNC=io_register_resize_rings L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %46 = load i32, ptr %45, align 4, (base:   %7 = alloca %struct.io_uring_params, align 8, !DIAssignID !18658107)  <io_uring/register.c:0> FUNC=io_register_resize_rings L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %56 = load i32, ptr %28, align 8, (base:   %7 = alloca %struct.io_uring_params, align 8, !DIAssignID !18658107)  <io_uring/register.c:432:22> FUNC=io_register_resize_rings L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %64 = load i32, ptr %28, align 8, (base:   %7 = alloca %struct.io_uring_params, align 8, !DIAssignID !18658107)  <io_uring/register.c:439:8> FUNC=io_register_resize_rings L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %69 = load i64, ptr %68, align 8, (base:   %7 = alloca %struct.io_uring_params, align 8, !DIAssignID !18658107)  <io_uring/register.c:440:27> FUNC=io_register_resize_rings L=1
+[LOAD] Tainted load from tracked pointer:   %78 = load i32, ptr %7, align 8, (  %7 = alloca %struct.io_uring_params, align 8, !DIAssignID !18658107)  <io_uring/register.c:458:2> FUNC=io_register_resize_rings L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %81 = load i32, ptr %57, align 4, (base:   %7 = alloca %struct.io_uring_params, align 8, !DIAssignID !18658107)  <io_uring/register.c:459:2> FUNC=io_register_resize_rings L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %90 = load i32, ptr %28, align 8, (base:   %7 = alloca %struct.io_uring_params, align 8, !DIAssignID !18658107)  <io_uring/register.c:468:8> FUNC=io_register_resize_rings L=1
+[LOAD] Tainted load from tracked pointer:   %93 = load i32, ptr %7, align 8, (  %7 = alloca %struct.io_uring_params, align 8, !DIAssignID !18658107)  <io_uring/register.c:468:14> FUNC=io_register_resize_rings L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %103 = load i64, ptr %102, align 8, (base:   %7 = alloca %struct.io_uring_params, align 8, !DIAssignID !18658107)  <io_uring/register.c:480:27> FUNC=io_register_resize_rings L=1
+[LOAD] Tainted load from tracked pointer:   %130 = load i32, ptr %7, align 8, (  %7 = alloca %struct.io_uring_params, align 8, !DIAssignID !18658107)  <io_uring/register.c:521:26> FUNC=io_register_resize_rings L=1
+[LOAD] Tainted load from tracked pointer:   %139 = load i32, ptr %7, align 8, (  %7 = alloca %struct.io_uring_params, align 8, !DIAssignID !18658107)  <io_uring/register.c:525:30> FUNC=io_register_resize_rings L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %158 = load i32, ptr %57, align 4, (base:   %7 = alloca %struct.io_uring_params, align 8, !DIAssignID !18658107)  <io_uring/register.c:534:26> FUNC=io_register_resize_rings L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %171 = load i32, ptr %57, align 4, (base:   %7 = alloca %struct.io_uring_params, align 8, !DIAssignID !18658107)  <io_uring/register.c:545:30> FUNC=io_register_resize_rings L=1
+[LOAD] Tainted load from tracked pointer:   %207 = load i32, ptr %7, align 8, (  %7 = alloca %struct.io_uring_params, align 8, !DIAssignID !18658107)  <io_uring/register.c:563:22> FUNC=io_register_resize_rings L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %208 = load i32, ptr %57, align 4, (base:   %7 = alloca %struct.io_uring_params, align 8, !DIAssignID !18658107)  <io_uring/register.c:564:22> FUNC=io_register_resize_rings L=1
+  [USE] Taint flows to:   store i32 %208, ptr %209, align 4, <io_uring/register.c:564:18> FUNC=io_register_resize_rings L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %209 = getelementptr inbounds nuw i8, ptr %0, i64 468, <io_uring/register.c:564:18> FUNC=io_register_resize_rings L=1
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #0 (ptr %0) <io_uring/register.c:564:18> FUNC=io_register_resize_rings L=1
+  [USE] Taint flows to:   store i32 %207, ptr %42, align 4, <io_uring/register.c:563:18> FUNC=io_register_resize_rings L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %42 = getelementptr inbounds nuw i8, ptr %0, i64 116, <io_uring/register.c:563:18> FUNC=io_register_resize_rings L=1
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #0 (ptr %0) <io_uring/register.c:563:18> FUNC=io_register_resize_rings L=1
+  [USE] Taint flows to:   %172 = add i32 %171, -1, <io_uring/register.c:545:41> FUNC=io_register_resize_rings L=1
+  [USE] Taint flows to:   %173 = and i32 %172, %167, <io_uring/register.c:545:25> FUNC=io_register_resize_rings L=1
+  [USE] Taint flows to:   %176 = zext i32 %173 to i64, <io_uring/register.c:547:3> FUNC=io_register_resize_rings L=1
+  [USE] Taint flows to:   %177 = getelementptr [0 x %struct.io_uring_cqe], ptr %175, i64 0, i64 %176, <io_uring/register.c:547:3> FUNC=io_register_resize_rings L=1
+  [USE] Taint flows to:   call void @llvm.memcpy.p0.p0.i64(ptr noundef align 16 dereferenceable(16) %177, ptr noundef align 16 dereferenceable(16) %179, i64 16, i1 false), <io_uring/register.c:547:29> FUNC=io_register_resize_rings L=1
+  [USE] Taint flows to:   %159 = icmp ugt i32 %157, %158, <io_uring/register.c:534:22> FUNC=io_register_resize_rings L=1
+  [USE] Taint flows to:   br i1 %159, label %165, label %160, <io_uring/register.c:534:22> FUNC=io_register_resize_rings L=1
+  [USE] Taint flows to:   %140 = add i32 %139, -1, <io_uring/register.c:525:41> FUNC=io_register_resize_rings L=1
+  [USE] Taint flows to:   %141 = and i32 %140, %135, <io_uring/register.c:525:25> FUNC=io_register_resize_rings L=1
+  [USE] Taint flows to:   %143 = zext i32 %141 to i64, <io_uring/register.c:527:3> FUNC=io_register_resize_rings L=1
+  [USE] Taint flows to:   %144 = getelementptr %struct.io_uring_sqe, ptr %142, i64 %143, <io_uring/register.c:527:3> FUNC=io_register_resize_rings L=1
+  [USE] Taint flows to:   call void @llvm.memcpy.p0.p0.i64(ptr noundef align 8 dereferenceable(64) %144, ptr noundef align 8 dereferenceable(64) %146, i64 64, i1 false), <io_uring/register.c:527:25> FUNC=io_register_resize_rings L=1
+  [USE] Taint flows to:   %131 = icmp ugt i32 %129, %130, <io_uring/register.c:521:22> FUNC=io_register_resize_rings L=1
+  [USE] Taint flows to:   br i1 %131, label %165, label %132, <io_uring/register.c:521:22> FUNC=io_register_resize_rings L=1
+  [USE] Taint flows to:   store i64 %103, ptr %3, align 8, <io_uring/register.c:480:16> FUNC=io_register_resize_rings L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %3 = alloca %struct.io_uring_region_desc, align 8, !DIAssignID !18658102 <io_uring/register.c:480:16> FUNC=io_register_resize_rings L=1
+  [USE] Taint flows to:   %94 = zext i32 %93 to i64, <io_uring/register.c:468:14> FUNC=io_register_resize_rings L=1
+  [USE] Taint flows to:   %96 = shl nuw nsw i64 %94, %95, <io_uring/register.c:468:14> FUNC=io_register_resize_rings L=1
+  [USE] Taint flows to:   %97 = add nuw nsw i64 %96, 4095, <io_uring/register.c:478:12> FUNC=io_register_resize_rings L=1
+  [USE] Taint flows to:   %98 = and i64 %97, 1099511623680, <io_uring/register.c:478:12> FUNC=io_register_resize_rings L=1
+  [USE] Taint flows to:   store i64 %98, ptr %63, align 8, <io_uring/register.c:478:10> FUNC=io_register_resize_rings L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %63 = getelementptr inbounds nuw i8, ptr %3, i64 8, <io_uring/register.c:478:10> FUNC=io_register_resize_rings L=1
+  [USE] Taint flows to:   %91 = and i32 %90, 1024, <io_uring/register.c:468:14> FUNC=io_register_resize_rings L=1
+  [USE] Taint flows to:   %99 = and i32 %90, 16384, <io_uring/register.c:479:14> FUNC=io_register_resize_rings L=1
+  [USE] Taint flows to:   %100 = icmp eq i32 %99, 0, <io_uring/register.c:479:14> FUNC=io_register_resize_rings L=1
+  [USE] Taint flows to:   br i1 %100, label %105, label %101, <io_uring/register.c:479:14> FUNC=io_register_resize_rings L=1
+  [USE] Taint flows to:   %92 = icmp eq i32 %91, 0, <io_uring/register.c:468:14> FUNC=io_register_resize_rings L=1
+  [USE] Taint flows to:   %95 = select i1 %92, i64 6, i64 7, <io_uring/register.c:468:14> FUNC=io_register_resize_rings L=1
+  [USE] Taint flows to:   %82 = add i32 %81, -1, <io_uring/register.c:459:2> FUNC=io_register_resize_rings L=1
+  [USE] Taint flows to:   store volatile i32 %81, ptr %85, align 4, <io_uring/register.c:461:2> FUNC=io_register_resize_rings L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %85 = getelementptr inbounds nuw i8, ptr %77, i64 28, <io_uring/register.c:461:2> FUNC=io_register_resize_rings L=1
+  [USE] Taint flows to:   store volatile i32 %82, ptr %83, align 4, <io_uring/register.c:459:2> FUNC=io_register_resize_rings L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %83 = getelementptr inbounds nuw i8, ptr %77, i64 20, <io_uring/register.c:459:2> FUNC=io_register_resize_rings L=1
+  [USE] Taint flows to:   %79 = add i32 %78, -1, <io_uring/register.c:458:2> FUNC=io_register_resize_rings L=1
+  [USE] Taint flows to:   store volatile i32 %78, ptr %84, align 8, <io_uring/register.c:460:2> FUNC=io_register_resize_rings L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %84 = getelementptr inbounds nuw i8, ptr %77, i64 24, <io_uring/register.c:460:2> FUNC=io_register_resize_rings L=1
+  [USE] Taint flows to:   store volatile i32 %79, ptr %80, align 16, <io_uring/register.c:458:2> FUNC=io_register_resize_rings L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %80 = getelementptr inbounds nuw i8, ptr %77, i64 16, <io_uring/register.c:458:2> FUNC=io_register_resize_rings L=1
+  [USE] Taint flows to:   store i64 %69, ptr %3, align 8, <io_uring/register.c:440:16> FUNC=io_register_resize_rings L=1
+  [USE] Taint flows to:   %65 = and i32 %64, 16384, <io_uring/register.c:439:14> FUNC=io_register_resize_rings L=1
+  [USE] Taint flows to:   %66 = icmp eq i32 %65, 0, <io_uring/register.c:439:14> FUNC=io_register_resize_rings L=1
+  [USE] Taint flows to:   br i1 %66, label %71, label %67, <io_uring/register.c:439:14> FUNC=io_register_resize_rings L=1
+  [USE] Taint flows to:   %58 = call i64 @rings_size(i32 noundef %56, i32 noundef %40, i32 noundef %46, ptr noundef nonnull %6) #280, <io_uring/register.c:432:9> FUNC=io_register_resize_rings L=1
+  [USE] Taint flows to:   %59 = icmp eq i64 %58, -1, <io_uring/register.c:434:11> FUNC=io_register_resize_rings L=1
+  [USE] Taint flows to:   %61 = add i64 %58, 4095, <io_uring/register.c:438:12> FUNC=io_register_resize_rings L=1
+  [USE] Taint flows to:   %62 = and i64 %61, -4096, <io_uring/register.c:438:12> FUNC=io_register_resize_rings L=1
+  [USE] Taint flows to:   store i64 %62, ptr %63, align 8, <io_uring/register.c:438:10> FUNC=io_register_resize_rings L=1
+  [USE] Taint flows to:   br i1 %59, label %220, label %60, <io_uring/register.c:434:11> FUNC=io_register_resize_rings L=1
+  [USE] Taint flows to:   %50 = icmp eq i32 %46, %49, <io_uring/register.c:426:54> FUNC=io_register_resize_rings L=1
+  [USE] Taint flows to:   br i1 %50, label %51, label %55, <io_uring/register.c:426:38> FUNC=io_register_resize_rings L=1
+  [USE] Taint flows to:   %44 = icmp eq i32 %40, %43, <io_uring/register.c:426:19> FUNC=io_register_resize_rings L=1
+  [USE] Taint flows to:   br i1 %44, label %47, label %55, <io_uring/register.c:426:38> FUNC=io_register_resize_rings L=1
+  [USE] Taint flows to:   %30 = and i32 %29, -25, <io_uring/register.c:415:14> FUNC=io_register_resize_rings L=1
+  [USE] Taint flows to:   %35 = or disjoint i32 %34, %29, <io_uring/register.c:419:10> FUNC=io_register_resize_rings L=1
+  [USE] Taint flows to:   store i32 %35, ptr %28, align 8, <io_uring/register.c:419:10> FUNC=io_register_resize_rings L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %28 = getelementptr inbounds nuw i8, ptr %7, i64 8, <io_uring/register.c:419:10> FUNC=io_register_resize_rings L=1
+  [USE] Taint flows to:   %31 = icmp eq i32 %30, 0, <io_uring/register.c:415:14> FUNC=io_register_resize_rings L=1
+  [USE] Taint flows to:   br i1 %31, label %32, label %220, <io_uring/register.c:415:14> FUNC=io_register_resize_rings L=1
+[LOAD] Tainted load from tracked pointer:   %43 = load i32, ptr %42, align 4, (  %42 = getelementptr inbounds nuw i8, ptr %0, i64 116, !dbg !18658172)  <io_uring/register.c:426:27> FUNC=io_register_resize_rings L=1
+[LOAD] Tainted load from tracked pointer:   %136 = load i32, ptr %42, align 4, (  %42 = getelementptr inbounds nuw i8, ptr %0, i64 116, !dbg !18658172)  <io_uring/register.c:524:33> FUNC=io_register_resize_rings L=1
+  [USE] Taint flows to:   %137 = add i32 %136, -1, <io_uring/register.c:524:44> FUNC=io_register_resize_rings L=1
+  [USE] Taint flows to:   %138 = and i32 %137, %135, <io_uring/register.c:524:25> FUNC=io_register_resize_rings L=1
+  [USE] Taint flows to:   %145 = zext i32 %138 to i64, <io_uring/register.c:527:25> FUNC=io_register_resize_rings L=1
+  [USE] Taint flows to:   %146 = getelementptr %struct.io_uring_sqe, ptr %124, i64 %145, <io_uring/register.c:527:25> FUNC=io_register_resize_rings L=1
+[UPWARD-INTERPROC] Call to io_uring_create taints argument 1 (local variable) <io_uring/io_uring.c:3793:9> FUNC=__se_sys_io_uring_setup L=2
+  [STORE DESTINATION] Marking pointer as tainted via call:   %3 = alloca %struct.io_uring_params, align 8, !DIAssignID !18658029 FUNC=__se_sys_io_uring_setup L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %20 = load i32, ptr %19, align 4, (base:   %3 = alloca %struct.io_uring_params, align 8, !DIAssignID !18658029)  <io_uring/io_uring.c:3778:7> FUNC=__se_sys_io_uring_setup L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %23 = load i32, ptr %22, align 8, (base:   %3 = alloca %struct.io_uring_params, align 8, !DIAssignID !18658029)  <io_uring/io_uring.c:3778:7> FUNC=__se_sys_io_uring_setup L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %27 = load i32, ptr %26, align 4, (base:   %3 = alloca %struct.io_uring_params, align 8, !DIAssignID !18658029)  <io_uring/io_uring.c:3778:7> FUNC=__se_sys_io_uring_setup L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %31 = load i32, ptr %30, align 8 (base:   %3 = alloca %struct.io_uring_params, align 8, !DIAssignID !18658029)  FUNC=__se_sys_io_uring_setup L=2
+  [USE] Taint flows to:   %32 = icmp ult i32 %31, 262144 FUNC=__se_sys_io_uring_setup L=2
+  [USE] Taint flows to:   %33 = select i1 %29, i1 %32, i1 false, <io_uring/io_uring.c:3778:7> FUNC=__se_sys_io_uring_setup L=2
+  [USE] Taint flows to:   br i1 %33, label %34, label %37, <io_uring/io_uring.c:3778:7> FUNC=__se_sys_io_uring_setup L=2
+  [USE] Taint flows to:   %28 = icmp eq i32 %27, 0, <io_uring/io_uring.c:3778:7> FUNC=__se_sys_io_uring_setup L=2
+  [USE] Taint flows to:   %29 = select i1 %25, i1 %28, i1 false, <io_uring/io_uring.c:3778:7> FUNC=__se_sys_io_uring_setup L=2
+  [USE] Taint flows to:   %24 = icmp eq i32 %23, 0, <io_uring/io_uring.c:3778:7> FUNC=__se_sys_io_uring_setup L=2
+  [USE] Taint flows to:   %25 = select i1 %21, i1 %24, i1 false, <io_uring/io_uring.c:3778:7> FUNC=__se_sys_io_uring_setup L=2
+  [USE] Taint flows to:   %21 = icmp eq i32 %20, 0, <io_uring/io_uring.c:3778:7> FUNC=__se_sys_io_uring_setup L=2
+
+=== Maximum Level Statistics ===
+Largest L value: 2
+Number of instructions with L=2: 12
+
+Earliest instruction with L=2:
+    %20 = load i32, ptr %19, align 4, <io_uring/io_uring.c:3778:7> FUNC=__se_sys_io_uring_setup L=2
+
+Latest instruction with L=2:
+    br i1 %33, label %34, label %37, <io_uring/io_uring.c:3778:7> FUNC=__se_sys_io_uring_setup L=2
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/io_uring/io_uring.ll
+../linux-wllvm-defconfig/io_uring/io_uring.c

@@ -1,0 +1,30 @@
+=== Taint Tracker Configuration ===
+Function: bfq_finish_requeue_request
+Opcode: icmp
+Constant: 2000
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 2000)
+
+[SOURCE] Tainting:   %233 = icmp samesign ugt i64 %232, 2000, <block/bfq-iosched.c:6413:15> FUNC=bfq_finish_requeue_request L=0
+[USE] Source instruction in data flow <block/bfq-iosched.c:6413:15> FUNC=bfq_finish_requeue_request L=0
+[USE] Processing uses of:   %233 = icmp samesign ugt i64 %232, 2000,
+  [USE] Taint flows to:   br i1 %233, label %234, label %242, <block/bfq-iosched.c:6413:42> FUNC=bfq_finish_requeue_request L=0
+[NO USE] No uses of:   br i1 %233, label %234, label %242,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 2
+
+Earliest instruction with L=0:
+    %233 = icmp samesign ugt i64 %232, 2000, <block/bfq-iosched.c:6413:15> FUNC=bfq_finish_requeue_request L=0
+
+Latest instruction with L=0:
+    br i1 %233, label %234, label %242, <block/bfq-iosched.c:6413:42> FUNC=bfq_finish_requeue_request L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/block/bfq-iosched.ll
+../linux-wllvm-defconfig/block/bfq-iosched.c

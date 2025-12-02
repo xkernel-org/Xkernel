@@ -1,0 +1,31 @@
+=== Taint Tracker Configuration ===
+Function: bfq_bfqq_expire
+Opcode: phi
+Constant: 512
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 2 (of constant 512)
+
+[SOURCE] Tainting:   %278 = phi i32 [ %276, %273 ], [ 512, %266 ], <block/bfq-iosched.c:0> FUNC=bfq_bfqq_expire L=0
+[USE] Source instruction in data flow <block/bfq-iosched.c:0> FUNC=bfq_bfqq_expire L=0
+[USE] Processing uses of:   %278 = phi i32 [ %276, %273 ], [ 512, %266 ],
+  [CHILD FUNCTION] Tainted value used in call to __blk_trace_note_message at argument 5:   call void (ptr, ptr, ptr, ...) @__blk_trace_note_message(ptr noundef nonnull %264, ptr noundef %270, ptr noundef nonnull @.str.11.44763, ptr noundef nonnull %6, i32 noundef %225, i32 noundef %278) #280, <block/bfq-iosched.c:3994:2> FUNC=bfq_bfqq_expire L=0
+  [USE] Taint flows to:   call void (ptr, ptr, ptr, ...) @__blk_trace_note_message(ptr noundef nonnull %264, ptr noundef %270, ptr noundef nonnull @.str.11.44763, ptr noundef nonnull %6, i32 noundef %225, i32 noundef %278) #280, <block/bfq-iosched.c:3994:2> FUNC=bfq_bfqq_expire L=0
+[NO USE] No uses of:   call void (ptr, ptr, ptr, ...) @__blk_trace_note_message(ptr noundef nonnull %264, ptr noundef %270, ptr noundef nonnull @.str.11.44763, ptr noundef nonnull %6, i32 noundef %225, i32 noundef %278) #280,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 2
+
+Earliest instruction with L=0:
+    %278 = phi i32 [ %276, %273 ], [ 512, %266 ], <block/bfq-iosched.c:0> FUNC=bfq_bfqq_expire L=0
+
+Latest instruction with L=0:
+    call void (ptr, ptr, ptr, ...) @__blk_trace_note_message(ptr noundef nonnull %264, ptr noundef %270, ptr noundef nonnull @.str.11.44763, ptr noundef nonnull %6, i32 noundef %225, i32 noundef %278) #280, <block/bfq-iosched.c:3994:2> FUNC=bfq_bfqq_expire L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/block/bfq-iosched.ll
+../linux-wllvm-defconfig/block/bfq-iosched.c

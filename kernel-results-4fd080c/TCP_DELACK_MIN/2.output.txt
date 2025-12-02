@@ -1,0 +1,30 @@
+=== Taint Tracker Configuration ===
+Function: tcp_send_delayed_ack
+Opcode: icmp
+Constant: 40
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 40)
+
+[SOURCE] Tainting:   %6 = icmp samesign ugt i32 %5, 40, <net/ipv4/tcp_output.c:4189:10> FUNC=tcp_send_delayed_ack L=0
+[USE] Source instruction in data flow <net/ipv4/tcp_output.c:4189:10> FUNC=tcp_send_delayed_ack L=0
+[USE] Processing uses of:   %6 = icmp samesign ugt i32 %5, 40,
+  [USE] Taint flows to:   br i1 %6, label %7, label %35, <net/ipv4/tcp_output.c:4189:10> FUNC=tcp_send_delayed_ack L=0
+[NO USE] No uses of:   br i1 %6, label %7, label %35,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 2
+
+Earliest instruction with L=0:
+    %6 = icmp samesign ugt i32 %5, 40, <net/ipv4/tcp_output.c:4189:10> FUNC=tcp_send_delayed_ack L=0
+
+Latest instruction with L=0:
+    br i1 %6, label %7, label %35, <net/ipv4/tcp_output.c:4189:10> FUNC=tcp_send_delayed_ack L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/ipv4/tcp_output.ll
+../linux-wllvm-defconfig/net/ipv4/tcp_output.c

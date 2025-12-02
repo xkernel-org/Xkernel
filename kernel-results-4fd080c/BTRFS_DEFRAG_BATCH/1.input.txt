@@ -1,0 +1,5 @@
+SOURCE_FILE=fs/btrfs/defrag.c
+FUNCTION_NAME=btrfs_run_defrag_inodes
+SOURCE_OP="call"
+CONSTANT_VALUE=1024
+OCCURENCE=1

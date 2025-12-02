@@ -1,0 +1,41 @@
+=== Taint Tracker Configuration ===
+Function: param_set_first_fqs_jiffies
+Opcode: lshr
+Constant: 8
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 8)
+
+[SOURCE] Tainting:   %19 = lshr i32 %18, 8, <kernel/rcu/tree.c:455:31> FUNC=param_set_first_fqs_jiffies L=0
+[USE] Source instruction in data flow <kernel/rcu/tree.c:455:31> FUNC=param_set_first_fqs_jiffies L=0
+[USE] Processing uses of:   %19 = lshr i32 %18, 8,
+  [USE] Taint flows to:   %20 = add nuw nsw i32 %19, 100, <kernel/rcu/tree.c:455:18> FUNC=param_set_first_fqs_jiffies L=0
+[USE] Processing uses of:   %20 = add nuw nsw i32 %19, 100,
+  [USE] Taint flows to:   %21 = zext nneg i32 %20 to i64, <kernel/rcu/tree.c:455:10> FUNC=param_set_first_fqs_jiffies L=0
+[USE] Processing uses of:   %21 = zext nneg i32 %20 to i64,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %22 = call i64 @llvm.umax.i64(i64 %17, i64 %21), !dbg !18658072 <kernel/rcu/tree.c:455:8>
+  [USE] Taint flows to:   %22 = call i64 @llvm.umax.i64(i64 %17, i64 %21), <kernel/rcu/tree.c:455:8> FUNC=param_set_first_fqs_jiffies L=0
+[USE] Processing uses of:   %22 = call i64 @llvm.umax.i64(i64 %17, i64 %21),
+  [CHILD FUNCTION] Tainted value used in call to _printk at argument 1:   %23 = call i32 (ptr, ...) @_printk(ptr noundef nonnull @.str.178.9633, i64 noundef %22) #280, <kernel/rcu/tree.c:457:2> FUNC=param_set_first_fqs_jiffies L=0
+  [USE] Taint flows to:   %23 = call i32 (ptr, ...) @_printk(ptr noundef nonnull @.str.178.9633, i64 noundef %22) #280, <kernel/rcu/tree.c:457:2> FUNC=param_set_first_fqs_jiffies L=0
+  [USE] Taint flows to:   %25 = phi i64 [ %22, %13 ], [ %11, %6 ] FUNC=param_set_first_fqs_jiffies L=0
+[USE] Processing uses of:   %25 = phi i64 [ %22, %13 ], [ %11, %6 ]
+  [GLOBAL] Tainted value stored to global variable: jiffies_to_sched_qs <kernel/rcu/tree.c:0>
+[NO USE] No uses of:   %23 = call i32 (ptr, ...) @_printk(ptr noundef nonnull @.str.178.9633, i64 noundef %22) #280,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 6
+
+Earliest instruction with L=0:
+    %19 = lshr i32 %18, 8, <kernel/rcu/tree.c:455:31> FUNC=param_set_first_fqs_jiffies L=0
+
+Latest instruction with L=0:
+    %25 = phi i64 [ %22, %13 ], [ %11, %6 ] FUNC=param_set_first_fqs_jiffies L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/kernel/rcu/tree.ll
+../linux-wllvm-defconfig/kernel/rcu/tree.c

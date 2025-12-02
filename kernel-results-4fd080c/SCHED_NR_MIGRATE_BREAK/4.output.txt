@@ -1,0 +1,44 @@
+=== Taint Tracker Configuration ===
+Function: sched_balance_rq
+Opcode: store
+Constant: 32
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 3 (of constant 32)
+
+[SOURCE] Tainting:   store i32 32, ptr %32, align 8, <kernel/sched/fair.c:11872:20> FUNC=sched_balance_rq L=0
+[USE] Source instruction in data flow <kernel/sched/fair.c:11872:20> FUNC=sched_balance_rq L=0
+[STORE DESTINATION] Storing constant to:   %32 = getelementptr inbounds nuw i8, ptr %10, i64 72, <kernel/sched/fair.c:11872:20> FUNC=sched_balance_rq L=0
+[NO USE] No uses of:   store i32 32, ptr %32, align 8,
+[KILL] Store overwrites tainted pointer with non-tainted value:   store i32 32, ptr %32, align 8,
+[KILL] Store overwrites tainted pointer with non-tainted value:   store i32 %1186, ptr %32, align 8,
+[KILL] Store overwrites tainted pointer with non-tainted value:   store i32 32, ptr %32, align 8,
+[LOAD] Tainted load from tracked pointer:   %1183 = load i32, ptr %32, align 8, (  %32 = getelementptr inbounds nuw i8, ptr %10, i64 72, !dbg !18658053)  <kernel/sched/fair.c:9554:24> FUNC=sched_balance_rq L=0
+[USE] Processing uses of:   %1183 = load i32, ptr %32, align 8,
+  [USE] Taint flows to:   %1184 = icmp ugt i32 %1179, %1183, <kernel/sched/fair.c:9554:17> FUNC=sched_balance_rq L=0
+  [USE] Taint flows to:   %1186 = add i32 %1183, 32, <kernel/sched/fair.c:9555:20> FUNC=sched_balance_rq L=0
+[USE] Processing uses of:   %1186 = add i32 %1183, 32,
+  [USE] Taint flows to:   store i32 %1186, ptr %32, align 8, <kernel/sched/fair.c:9555:20> FUNC=sched_balance_rq L=0
+[NO USE] No uses of:   store i32 %1186, ptr %32, align 8,
+[USE] Processing uses of:   %1184 = icmp ugt i32 %1179, %1183,
+  [USE] Taint flows to:   br i1 %1184, label %1185, label %1189, <kernel/sched/fair.c:9554:17> FUNC=sched_balance_rq L=0
+[NO USE] No uses of:   br i1 %1184, label %1185, label %1189,
+[KILL] Store overwrites tainted pointer with non-tainted value:   store i32 32, ptr %32, align 8,
+[KILL] Store overwrites tainted pointer with non-tainted value:   store i32 32, ptr %32, align 8,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 6
+
+Earliest instruction with L=0:
+    %1183 = load i32, ptr %32, align 8, <kernel/sched/fair.c:9554:24> FUNC=sched_balance_rq L=0
+
+Latest instruction with L=0:
+    store i32 32, ptr %32, align 8, <kernel/sched/fair.c:11872:20> FUNC=sched_balance_rq L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/kernel/sched/fair.ll
+../linux-wllvm-defconfig/kernel/sched/fair.c

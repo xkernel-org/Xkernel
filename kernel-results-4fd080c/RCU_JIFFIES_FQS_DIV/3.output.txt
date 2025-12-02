@@ -1,0 +1,47 @@
+=== Taint Tracker Configuration ===
+Function: rcu_init_geometry
+Opcode: lshr
+Constant: 8
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 8)
+
+[SOURCE] Tainting:   %12 = lshr i32 %10, 8, <kernel/rcu/tree.c:4687:45> FUNC=rcu_init_geometry L=0
+[USE] Source instruction in data flow <kernel/rcu/tree.c:4687:45> FUNC=rcu_init_geometry L=0
+[USE] Processing uses of:   %12 = lshr i32 %10, 8,
+  [USE] Taint flows to:   %13 = add nuw nsw i32 %12, 3, <kernel/rcu/tree.c:4687:32> FUNC=rcu_init_geometry L=0
+  [USE] Taint flows to:   %30 = add nuw nsw i32 %12, 100, <kernel/rcu/tree.c:455:18> FUNC=rcu_init_geometry L=0
+[USE] Processing uses of:   %30 = add nuw nsw i32 %12, 100,
+  [USE] Taint flows to:   %31 = zext nneg i32 %30 to i64, <kernel/rcu/tree.c:455:10> FUNC=rcu_init_geometry L=0
+[USE] Processing uses of:   %31 = zext nneg i32 %30 to i64,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %32 = tail call i64 @llvm.umax.i64(i64 %29, i64 %31), !dbg !18658075 <kernel/rcu/tree.c:455:8>
+  [USE] Taint flows to:   %32 = tail call i64 @llvm.umax.i64(i64 %29, i64 %31), <kernel/rcu/tree.c:455:8> FUNC=rcu_init_geometry L=0
+[USE] Processing uses of:   %32 = tail call i64 @llvm.umax.i64(i64 %29, i64 %31),
+  [CHILD FUNCTION] Tainted value used in call to _printk at argument 1:   %33 = tail call i32 (ptr, ...) @_printk(ptr noundef nonnull @.str.178.9633, i64 noundef %32) #279, <kernel/rcu/tree.c:457:2> FUNC=rcu_init_geometry L=0
+  [USE] Taint flows to:   %33 = tail call i32 (ptr, ...) @_printk(ptr noundef nonnull @.str.178.9633, i64 noundef %32) #279, <kernel/rcu/tree.c:457:2> FUNC=rcu_init_geometry L=0
+  [USE] Taint flows to:   %37 = phi i64 [ %32, %25 ], [ %23, %22 ] FUNC=rcu_init_geometry L=0
+[USE] Processing uses of:   %37 = phi i64 [ %32, %25 ], [ %23, %22 ]
+  [GLOBAL] Tainted value stored to global variable: jiffies_to_sched_qs <kernel/rcu/tree.c:0>
+[NO USE] No uses of:   %33 = tail call i32 (ptr, ...) @_printk(ptr noundef nonnull @.str.178.9633, i64 noundef %32) #279,
+[USE] Processing uses of:   %13 = add nuw nsw i32 %12, 3,
+  [USE] Taint flows to:   %14 = zext nneg i32 %13 to i64, <kernel/rcu/tree.c:4687:6> FUNC=rcu_init_geometry L=0
+[USE] Processing uses of:   %14 = zext nneg i32 %13 to i64,
+  [GLOBAL] Tainted value stored to global variable: jiffies_till_first_fqs <kernel/rcu/tree.c:4689:26>
+  [GLOBAL] Tainted value stored to global variable: jiffies_till_next_fqs <kernel/rcu/tree.c:4691:25>
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 8
+
+Earliest instruction with L=0:
+    %12 = lshr i32 %10, 8, <kernel/rcu/tree.c:4687:45> FUNC=rcu_init_geometry L=0
+
+Latest instruction with L=0:
+    %37 = phi i64 [ %32, %25 ], [ %23, %22 ] FUNC=rcu_init_geometry L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/kernel/rcu/tree.ll
+../linux-wllvm-defconfig/kernel/rcu/tree.c

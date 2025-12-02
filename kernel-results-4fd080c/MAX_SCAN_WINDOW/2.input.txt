@@ -1,0 +1,5 @@
+SOURCE_FILE=kernel/sched/fair.c
+FUNCTION_NAME=task_scan_start
+SOURCE_OP="udiv"
+CONSTANT_VALUE=2560
+OCCURENCE=1

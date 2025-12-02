@@ -1,0 +1,44 @@
+=== Taint Tracker Configuration ===
+Function: bsg_ioctl
+Opcode: call
+Constant: 7000
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 7000)
+
+[SOURCE] Tainting:   %146 = call range(i32 7000, 0) i32 @llvm.umax.i32(i32 %145, i32 7000), <block/bsg.c:54:9> FUNC=bsg_ioctl L=0
+[USE] Source instruction in data flow <block/bsg.c:54:9> FUNC=bsg_ioctl L=0
+[CHILD FUNCTION] Constant used in call to llvm.umax.i32 at argument 1 <block/bsg.c:54:9> FUNC=bsg_ioctl L=0
+[USE] Processing uses of:   %146 = call range(i32 7000, 0) i32 @llvm.umax.i32(i32 %145, i32 7000),
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %147 = call i32 %131(ptr noundef %132, ptr noundef nonnull %4, i1 noundef zeroext %123, i32 noundef %146) #279, !dbg !18658239 <block/bsg.c:67:8>
+  [USE] Taint flows to:   %147 = call i32 %131(ptr noundef %132, ptr noundef nonnull %4, i1 noundef zeroext %123, i32 noundef %146) #279, <block/bsg.c:67:8> FUNC=bsg_ioctl L=0
+[USE] Processing uses of:   %147 = call i32 %131(ptr noundef %132, ptr noundef nonnull %4, i1 noundef zeroext %123, i32 noundef %146) #279,
+  [USE] Taint flows to:   %148 = icmp eq i32 %147, 0, <block/bsg.c:69:7> FUNC=bsg_ioctl L=0
+  [USE] Taint flows to:   %153 = sext i32 %147 to i64, <block/bsg.c:151:10> FUNC=bsg_ioctl L=0
+[USE] Processing uses of:   %153 = sext i32 %147 to i64,
+  [USE] Taint flows to:   %155 = phi i64 [ %153, %152 ], [ -14, %119 ], [ -22, %126 ], [ -14, %149 ], <block/bsg.c:0> FUNC=bsg_ioctl L=0
+[USE] Processing uses of:   %155 = phi i64 [ %153, %152 ], [ -14, %119 ], [ -22, %126 ], [ -14, %149 ],
+  [USE] Taint flows to:   %165 = phi i64 [ %155, %154 ], [ %118, %111 ], [ 0, %104 ], [ %92, %78 ], [ %77, %73 ], [ 0, %67 ], [ %58, %51 ], [ %50, %43 ], [ %42, %35 ], [ %21, %12 ], [ -14, %59 ], [ -14, %93 ], [ -22, %102 ], [ -22, %159 ], [ -22, %156 ], [ -25, %3 ], [ 0, %33 ], [ -14, %22 ], [ -22, %31 ], <block/bsg.c:0> FUNC=bsg_ioctl L=0
+[USE] Processing uses of:   %165 = phi i64 [ %155, %154 ], [ %118, %111 ], [ 0, %104 ], [ %92, %78 ], [ %77, %73 ], [ 0, %67 ], [ %58, %51 ], [ %50, %43 ], [ %42, %35 ], [ %21, %12 ], [ -14, %59 ], [ -14, %93 ], [ -22, %102 ], [ -22, %159 ], [ -22, %156 ], [ -25, %3 ], [ 0, %33 ], [ -14, %22 ], [ -22, %31 ],
+  [RETURN] Stop: Tainted value is returned:   ret i64 %165, <block/bsg.c:159:1>
+[USE] Processing uses of:   %148 = icmp eq i32 %147, 0,
+  [USE] Taint flows to:   br i1 %148, label %149, label %152, <block/bsg.c:69:11> FUNC=bsg_ioctl L=0
+[NO USE] No uses of:   br i1 %148, label %149, label %152,
+[UPWARD-INTERPROC] No callers found for bsg_ioctl (function returns tainted value)
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 7
+
+Earliest instruction with L=0:
+    %146 = call range(i32 7000, 0) i32 @llvm.umax.i32(i32 %145, i32 7000), <block/bsg.c:54:9> FUNC=bsg_ioctl L=0
+
+Latest instruction with L=0:
+    %165 = phi i64 [ %155, %154 ], [ %118, %111 ], [ 0, %104 ], [ %92, %78 ], [ %77, %73 ], [ 0, %67 ], [ %58, %51 ], [ %50, %43 ], [ %42, %35 ], [ %21, %12 ], [ -14, %59 ], [ -14, %93 ], [ -22, %102 ], [ -22, %159 ], [ -22, %156 ], [ -25, %3 ], [ 0, %33 ], [ -14, %22 ], [ -22, %31 ], <block/bsg.c:0> FUNC=bsg_ioctl L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/block/bsg.ll
+../linux-wllvm-defconfig/block/bsg.c
