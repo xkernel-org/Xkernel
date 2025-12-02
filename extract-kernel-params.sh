@@ -14,7 +14,7 @@ in_case=false
 case_data=""
 
 while IFS= read -r line; do
-    if [[ "$line" =~ ^###[[:space:]]+[0-9]+\.[[:space:]]+([A-Z_]+) ]]; then
+    if [[ "$line" =~ ^###[[:space:]]+[0-9]+\.[[:space:]]+([A-Za-z_0-9]+) ]]; then
 
         if [ -n "$current_macro" ] && [ -n "$case_data" ]; then
             macro_dir="$OUTPUT_DIR/$current_macro"
