@@ -1,0 +1,34 @@
+=== Taint Tracker Configuration ===
+Function: bfq_setup_cooperator
+Opcode: add
+Constant: 600
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 600)
+
+[SOURCE] Tainting:   %39 = add i64 %38, 600, <block/bfq-iosched.c:2950:7> FUNC=bfq_setup_cooperator L=0
+[USE] Source instruction in data flow <block/bfq-iosched.c:2950:7> FUNC=bfq_setup_cooperator L=0
+[USE] Processing uses of:   %39 = add i64 %38, 600,
+  [USE] Taint flows to:   %41 = sub i64 %39, %40, <block/bfq-iosched.c:2950:7> FUNC=bfq_setup_cooperator L=0
+[USE] Processing uses of:   %41 = sub i64 %39, %40,
+  [USE] Taint flows to:   %42 = icmp slt i64 %41, 0, <block/bfq-iosched.c:2950:7> FUNC=bfq_setup_cooperator L=0
+[USE] Processing uses of:   %42 = icmp slt i64 %41, 0,
+  [USE] Taint flows to:   br i1 %42, label %43, label %52, <block/bfq-iosched.c:2951:51> FUNC=bfq_setup_cooperator L=0
+[NO USE] No uses of:   br i1 %42, label %43, label %52,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 4
+
+Earliest instruction with L=0:
+    %39 = add i64 %38, 600, <block/bfq-iosched.c:2950:7> FUNC=bfq_setup_cooperator L=0
+
+Latest instruction with L=0:
+    br i1 %42, label %43, label %52, <block/bfq-iosched.c:2951:51> FUNC=bfq_setup_cooperator L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/block/bfq-iosched.ll
+../linux-wllvm-defconfig/block/bfq-iosched.c

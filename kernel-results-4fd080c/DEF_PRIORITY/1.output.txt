@@ -1,0 +1,32 @@
+=== Taint Tracker Configuration ===
+Function: xfs_inodegc_register_shrinker
+Opcode: store
+Constant: 2049
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 2049)
+
+[SOURCE] Tainting:   store i64 2049, ptr %14, align 8, <fs/xfs/xfs_icache.c:2341:32> FUNC=xfs_inodegc_register_shrinker L=0
+[USE] Source instruction in data flow <fs/xfs/xfs_icache.c:2341:32> FUNC=xfs_inodegc_register_shrinker L=0
+[STORE DESTINATION] Storing constant to:   %14 = getelementptr inbounds nuw i8, ptr %13, i64 16, <fs/xfs/xfs_icache.c:2341:32> FUNC=xfs_inodegc_register_shrinker L=0
+[POINTER PARAMETER] Constant stored through pointer parameter #0 (ptr %0) <fs/xfs/xfs_icache.c:2341:32> FUNC=xfs_inodegc_register_shrinker L=0
+[NO USE] No uses of:   store i64 2049, ptr %14, align 8,
+[POINTER PARAMETER] Call to xfs_inodegc_register_shrinker passes through pointer parameter 0 of xfs_mountfs <fs/xfs/xfs_mount.c:862:10> FUNC=xfs_mountfs L=1
+[POINTER PARAMETER] Call to xfs_mountfs passes through pointer parameter 0 of xfs_fs_fill_super <fs/xfs/xfs_super.c:1817:10> FUNC=xfs_fs_fill_super L=2
+[UPWARD-INTERPROC] No callers found for xfs_fs_fill_super (function taints pointer parameter #0)
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 1
+
+Earliest instruction with L=0:
+    store i64 2049, ptr %14, align 8, <fs/xfs/xfs_icache.c:2341:32> FUNC=xfs_inodegc_register_shrinker L=0
+
+(Earliest and latest are the same instruction)
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/xfs/xfs_icache.ll
+../linux-wllvm-defconfig/fs/xfs/xfs_icache.c

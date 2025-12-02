@@ -1,0 +1,30 @@
+=== Taint Tracker Configuration ===
+Function: bio_put
+Opcode: icmp
+Constant: 256
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 256)
+
+[SOURCE] Tainting:   %37 = icmp ugt i32 %36, 256, <block/bio.c:776:43> FUNC=bio_put L=0
+[USE] Source instruction in data flow <block/bio.c:776:43> FUNC=bio_put L=0
+[USE] Processing uses of:   %37 = icmp ugt i32 %36, 256,
+  [USE] Taint flows to:   br i1 %37, label %106, label %38, <block/bio.c:776:43> FUNC=bio_put L=0
+[NO USE] No uses of:   br i1 %37, label %106, label %38,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 2
+
+Earliest instruction with L=0:
+    %37 = icmp ugt i32 %36, 256, <block/bio.c:776:43> FUNC=bio_put L=0
+
+Latest instruction with L=0:
+    br i1 %37, label %106, label %38, <block/bio.c:776:43> FUNC=bio_put L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/block/bio.ll
+../linux-wllvm-defconfig/block/bio.c

@@ -1,0 +1,29 @@
+=== Taint Tracker Configuration ===
+Function: dccp_delack_timer
+Opcode: or
+Constant: 40
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 40)
+
+[SOURCE] Tainting:   %58 = or disjoint i32 %57, 40, <net/dccp/timer.c:206:23> FUNC=dccp_delack_timer L=0
+[USE] Source instruction in data flow <net/dccp/timer.c:206:23> FUNC=dccp_delack_timer L=0
+[USE] Processing uses of:   %58 = or disjoint i32 %57, 40,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #0 (ptr %0) <net/dccp/timer.c:206:23>
+[UPWARD-INTERPROC] No callers found for dccp_delack_timer (function taints pointer parameter #0)
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 1
+
+Earliest instruction with L=0:
+    %58 = or disjoint i32 %57, 40, <net/dccp/timer.c:206:23> FUNC=dccp_delack_timer L=0
+
+(Earliest and latest are the same instruction)
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/dccp/timer.ll
+../linux-wllvm-defconfig/net/dccp/timer.c

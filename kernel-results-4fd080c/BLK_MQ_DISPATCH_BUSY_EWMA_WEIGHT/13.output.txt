@@ -1,0 +1,33 @@
+=== Taint Tracker Configuration ===
+Function: blk_mq_try_issue_directly
+Opcode: mul
+Constant: 7
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 2 (of constant 7)
+
+[SOURCE] Tainting:   %83 = mul i32 %82, 7, <block/blk-mq.c:1988:7> FUNC=blk_mq_try_issue_directly L=0
+[USE] Source instruction in data flow <block/blk-mq.c:1988:7> FUNC=blk_mq_try_issue_directly L=0
+[USE] Processing uses of:   %83 = mul i32 %82, 7,
+  [USE] Taint flows to:   %84 = add i32 %83, 16 FUNC=blk_mq_try_issue_directly L=0
+[USE] Processing uses of:   %84 = add i32 %83, 16
+  [USE] Taint flows to:   %85 = lshr i32 %84, 3, <block/blk-mq.c:1991:7> FUNC=blk_mq_try_issue_directly L=0
+[USE] Processing uses of:   %85 = lshr i32 %84, 3,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #0 (ptr %0) <block/blk-mq.c:1993:22>
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 3
+
+Earliest instruction with L=0:
+    %83 = mul i32 %82, 7, <block/blk-mq.c:1988:7> FUNC=blk_mq_try_issue_directly L=0
+
+Latest instruction with L=0:
+    %85 = lshr i32 %84, 3, <block/blk-mq.c:1991:7> FUNC=blk_mq_try_issue_directly L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/block/blk-mq.ll
+../linux-wllvm-defconfig/block/blk-mq.c

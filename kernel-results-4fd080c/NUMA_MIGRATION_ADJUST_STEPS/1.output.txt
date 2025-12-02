@@ -1,0 +1,50 @@
+=== Taint Tracker Configuration ===
+Function: should_numa_migrate_memory
+Opcode: lshr
+Constant: 4
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 2 (of constant 4)
+
+[SOURCE] Tainting:   %77 = lshr i32 %76, 4, <kernel/sched/fair.c:1897:24> FUNC=should_numa_migrate_memory L=0
+[USE] Source instruction in data flow <kernel/sched/fair.c:1897:24> FUNC=should_numa_migrate_memory L=0
+[USE] Processing uses of:   %77 = lshr i32 %76, 4,
+  [USE] Taint flows to:   %86 = sub i32 %81, %77, <kernel/sched/fair.c:1900:9> FUNC=should_numa_migrate_memory L=0
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %87 = tail call i32 @llvm.umax.i32(i32 %86, i32 %77), !dbg !18658384 <kernel/sched/fair.c:1900:9>
+  [USE] Taint flows to:   %87 = tail call i32 @llvm.umax.i32(i32 %86, i32 %77), <kernel/sched/fair.c:1900:9> FUNC=should_numa_migrate_memory L=0
+  [USE] Taint flows to:   %93 = add i32 %81, %77, <kernel/sched/fair.c:1902:9> FUNC=should_numa_migrate_memory L=0
+[USE] Processing uses of:   %93 = add i32 %81, %77,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %94 = tail call i32 @llvm.umin.i32(i32 %93, i32 %76), !dbg !18658390 <kernel/sched/fair.c:1902:9>
+  [USE] Taint flows to:   %94 = tail call i32 @llvm.umin.i32(i32 %93, i32 %76), <kernel/sched/fair.c:1902:9> FUNC=should_numa_migrate_memory L=0
+[USE] Processing uses of:   %94 = tail call i32 @llvm.umin.i32(i32 %93, i32 %76),
+  [USE] Taint flows to:   %96 = phi i32 [ %87, %85 ], [ %94, %92 ], [ %81, %88 ], <kernel/sched/fair.c:0> FUNC=should_numa_migrate_memory L=0
+[USE] Processing uses of:   %96 = phi i32 [ %87, %85 ], [ %94, %92 ], [ %81, %88 ],
+  [STORE DESTINATION] Marking pointer as tainted:   %78 = getelementptr inbounds nuw i8, ptr %22, i64 14256, <kernel/sched/fair.c:1904:24>
+  [USE] Taint flows to:   store i32 %96, ptr %78, align 16, <kernel/sched/fair.c:1904:24> FUNC=should_numa_migrate_memory L=0
+[NO USE] No uses of:   store i32 %96, ptr %78, align 16,
+[USE] Processing uses of:   %87 = tail call i32 @llvm.umax.i32(i32 %86, i32 %77),
+[USE] Processing uses of:   %86 = sub i32 %81, %77,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %87 = tail call i32 @llvm.umax.i32(i32 %86, i32 %77), !dbg !18658384 <kernel/sched/fair.c:1900:9>
+[LOAD] Tainted load from tracked pointer:   %79 = load i32, ptr %78, align 16, (  %78 = getelementptr inbounds nuw i8, ptr %22, i64 14256, !dbg !18658379)  <kernel/sched/fair.c:1898:15> FUNC=should_numa_migrate_memory L=0
+[USE] Processing uses of:   %79 = load i32, ptr %78, align 16,
+  [USE] Taint flows to:   %80 = icmp eq i32 %79, 0, <kernel/sched/fair.c:1898:8> FUNC=should_numa_migrate_memory L=0
+  [USE] Taint flows to:   %81 = select i1 %80, i32 %53, i32 %79, <kernel/sched/fair.c:1898:8> FUNC=should_numa_migrate_memory L=0
+[USE] Processing uses of:   %81 = select i1 %80, i32 %53, i32 %79,
+[USE] Processing uses of:   %80 = icmp eq i32 %79, 0,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 10
+
+Earliest instruction with L=0:
+    %77 = lshr i32 %76, 4, <kernel/sched/fair.c:1897:24> FUNC=should_numa_migrate_memory L=0
+
+Latest instruction with L=0:
+    store i32 %96, ptr %78, align 16, <kernel/sched/fair.c:1904:24> FUNC=should_numa_migrate_memory L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/kernel/sched/fair.ll
+../linux-wllvm-defconfig/kernel/sched/fair.c

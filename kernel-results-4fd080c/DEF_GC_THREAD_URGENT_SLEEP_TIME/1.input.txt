@@ -1,0 +1,5 @@
+SOURCE_FILE=fs/f2fs/gc.c
+FUNCTION_NAME=f2fs_start_gc_thread
+SOURCE_OP="store"
+CONSTANT_VALUE=500
+OCCURENCE=1

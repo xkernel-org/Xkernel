@@ -1,0 +1,30 @@
+=== Taint Tracker Configuration ===
+Function: should_numa_migrate_memory
+Opcode: icmp
+Constant: 5
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 5)
+
+[SOURCE] Tainting:   %162 = icmp slt i32 %161, 5, <kernel/sched/fair.c:1964:65> FUNC=should_numa_migrate_memory L=0
+[USE] Source instruction in data flow <kernel/sched/fair.c:1964:65> FUNC=should_numa_migrate_memory L=0
+[USE] Processing uses of:   %162 = icmp slt i32 %161, 5,
+  [USE] Taint flows to:   br i1 %162, label %163, label %172, <kernel/sched/fair.c:1964:71> FUNC=should_numa_migrate_memory L=0
+[NO USE] No uses of:   br i1 %162, label %163, label %172,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 2
+
+Earliest instruction with L=0:
+    %162 = icmp slt i32 %161, 5, <kernel/sched/fair.c:1964:65> FUNC=should_numa_migrate_memory L=0
+
+Latest instruction with L=0:
+    br i1 %162, label %163, label %172, <kernel/sched/fair.c:1964:71> FUNC=should_numa_migrate_memory L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/kernel/sched/fair.ll
+../linux-wllvm-defconfig/kernel/sched/fair.c

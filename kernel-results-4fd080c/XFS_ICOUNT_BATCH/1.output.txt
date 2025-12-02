@@ -1,0 +1,28 @@
+=== Taint Tracker Configuration ===
+Function: xfs_trans_unreserve_and_mod_sb
+Opcode: call
+Constant: 128
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 128)
+
+[SOURCE] Tainting:   tail call void @percpu_counter_add_batch(ptr noundef nonnull %57, i64 noundef %49, i32 noundef 128) #278, <fs/xfs/xfs_trans.c:662:3> FUNC=xfs_trans_unreserve_and_mod_sb L=0
+[USE] Source instruction in data flow <fs/xfs/xfs_trans.c:662:3> FUNC=xfs_trans_unreserve_and_mod_sb L=0
+[CHILD FUNCTION] Constant used in call to percpu_counter_add_batch at argument 2 <fs/xfs/xfs_trans.c:662:3> FUNC=xfs_trans_unreserve_and_mod_sb L=0
+[NO USE] No uses of:   tail call void @percpu_counter_add_batch(ptr noundef nonnull %57, i64 noundef %49, i32 noundef 128) #278,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 1
+
+Earliest instruction with L=0:
+    tail call void @percpu_counter_add_batch(ptr noundef nonnull %57, i64 noundef %49, i32 noundef 128) #278, <fs/xfs/xfs_trans.c:662:3> FUNC=xfs_trans_unreserve_and_mod_sb L=0
+
+(Earliest and latest are the same instruction)
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/xfs/xfs_trans.ll
+../linux-wllvm-defconfig/fs/xfs/xfs_trans.c

@@ -1,0 +1,30 @@
+=== Taint Tracker Configuration ===
+Function: count_partial_free_approx
+Opcode: icmp
+Constant: 10000
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 10000)
+
+[SOURCE] Tainting:   %76 = icmp eq i64 %75, 10000, <mm/slub.c:3506:18> FUNC=count_partial_free_approx L=0
+[USE] Source instruction in data flow <mm/slub.c:3506:18> FUNC=count_partial_free_approx L=0
+[USE] Processing uses of:   %76 = icmp eq i64 %75, 10000,
+  [USE] Taint flows to:   br i1 %76, label %77, label %59, <mm/slub.c:3506:18> FUNC=count_partial_free_approx L=0
+[NO USE] No uses of:   br i1 %76, label %77, label %59,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 2
+
+Earliest instruction with L=0:
+    %76 = icmp eq i64 %75, 10000, <mm/slub.c:3506:18> FUNC=count_partial_free_approx L=0
+
+Latest instruction with L=0:
+    br i1 %76, label %77, label %59, <mm/slub.c:3506:18> FUNC=count_partial_free_approx L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/mm/slub.ll
+../linux-wllvm-defconfig/mm/slub.c

@@ -1,0 +1,5 @@
+SOURCE_FILE=fs/btrfs/delayed-inode.c
+FUNCTION_NAME=btrfs_release_delayed_item
+SOURCE_OP="icmp"
+CONSTANT_VALUE=128
+OCCURENCE=1

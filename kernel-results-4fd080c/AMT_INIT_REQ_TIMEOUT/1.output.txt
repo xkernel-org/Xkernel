@@ -1,0 +1,30 @@
+=== Taint Tracker Configuration ===
+Function: amt_event_work
+Opcode: store
+Constant: 1
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 8 (of constant 1)
+
+[SOURCE] Tainting:   store i8 1, ptr %13, align 1, <drivers/net/amt.c:960:11> FUNC=amt_event_work L=0
+[USE] Source instruction in data flow <drivers/net/amt.c:960:11> FUNC=amt_event_work L=0
+[STORE DESTINATION] Storing constant to:   %13 = getelementptr i8, ptr %0, i64 115 <drivers/net/amt.c:960:11> FUNC=amt_event_work L=0
+[POINTER PARAMETER] Constant stored through pointer parameter #0 (ptr %0) <drivers/net/amt.c:960:11> FUNC=amt_event_work L=0
+[NO USE] No uses of:   store i8 1, ptr %13, align 1,
+[UPWARD-INTERPROC] No callers found for amt_event_work (function taints pointer parameter #0)
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 1
+
+Earliest instruction with L=0:
+    store i8 1, ptr %13, align 1, <drivers/net/amt.c:960:11> FUNC=amt_event_work L=0
+
+(Earliest and latest are the same instruction)
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/drivers/net/amt.ll
+../linux-wllvm-defconfig/drivers/net/amt.c

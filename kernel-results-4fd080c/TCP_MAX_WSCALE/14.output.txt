@@ -1,0 +1,139 @@
+=== Taint Tracker Configuration ===
+Function: tcp_connect
+Opcode: select
+Constant: 14
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 14)
+
+[SOURCE] Tainting:   %285 = select i1 %282, i8 14, i8 %284, <net/ipv4/tcp_output.c:246:17> FUNC=tcp_connect L=0
+[USE] Source instruction in data flow <net/ipv4/tcp_output.c:246:17> FUNC=tcp_connect L=0
+[USE] Processing uses of:   %285 = select i1 %282, i8 14, i8 %284,
+  [USE] Taint flows to:   %286 = zext nneg i8 %285 to i32, <net/ipv4/tcp_output.c:250:2> FUNC=tcp_connect L=0
+  [USE] Taint flows to:   %287 = and i8 %285, 15, <net/ipv4/tcp_output.c:3926:24> FUNC=tcp_connect L=0
+[USE] Processing uses of:   %287 = and i8 %285, 15,
+  [USE] Taint flows to:   %288 = zext nneg i8 %287 to i16, <net/ipv4/tcp_output.c:3926:24> FUNC=tcp_connect L=0
+[USE] Processing uses of:   %288 = zext nneg i8 %287 to i16,
+  [USE] Taint flows to:   %289 = shl nuw i16 %288, 12, <net/ipv4/tcp_output.c:3926:24> FUNC=tcp_connect L=0
+[USE] Processing uses of:   %289 = shl nuw i16 %288, 12,
+  [USE] Taint flows to:   %291 = phi i16 [ 0, %261 ], [ %289, %273 ], <net/ipv4/tcp_output.c:0> FUNC=tcp_connect L=0
+[USE] Processing uses of:   %291 = phi i16 [ 0, %261 ], [ %289, %273 ],
+  [USE] Taint flows to:   %298 = or disjoint i16 %297, %291, <net/ipv4/tcp_output.c:3926:24> FUNC=tcp_connect L=0
+[USE] Processing uses of:   %298 = or disjoint i16 %297, %291,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #0 (ptr %0) <net/ipv4/tcp_output.c:3926:24>
+[USE] Processing uses of:   %286 = zext nneg i8 %285 to i32,
+  [USE] Taint flows to:   %292 = phi i32 [ 0, %261 ], [ %286, %273 ], <net/ipv4/tcp_output.c:250:2> FUNC=tcp_connect L=0
+[USE] Processing uses of:   %292 = phi i32 [ 0, %261 ], [ %286, %273 ],
+  [USE] Taint flows to:   %293 = shl i32 65535, %292, <net/ipv4/tcp_output.c:250:2> FUNC=tcp_connect L=0
+[USE] Processing uses of:   %293 = shl i32 65535, %292,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %294 = tail call i32 @llvm.umin.i32(i32 %293, i32 %255), !dbg !18658679 <net/ipv4/tcp_output.c:250:2>
+  [USE] Taint flows to:   %294 = tail call i32 @llvm.umin.i32(i32 %293, i32 %255), <net/ipv4/tcp_output.c:250:2> FUNC=tcp_connect L=0
+[USE] Processing uses of:   %294 = tail call i32 @llvm.umin.i32(i32 %293, i32 %255),
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #0 (ptr %0) <net/ipv4/tcp_output.c:250:2>
+[POINTER PARAMETER] Call to tcp_connect passes through pointer parameter 0 of tcp_sendmsg_fastopen <net/ipv4/tcp.c:1030:9> FUNC=tcp_sendmsg_fastopen L=1
+[POINTER PARAMETER] Call to tcp_connect passes through pointer parameter 0 of tcp_v4_connect <net/ipv4/tcp_ipv4.c:343:8> FUNC=tcp_v4_connect L=1
+[POINTER PARAMETER] Call to tcp_connect passes through pointer parameter 0 of tcp_v6_connect <net/ipv6/tcp_ipv6.c:333:8> FUNC=tcp_v6_connect L=1
+[POINTER PARAMETER] Call to tcp_sendmsg_fastopen passes through pointer parameter 0 of tcp_sendmsg_locked <net/ipv4/tcp.c:1091:9> FUNC=tcp_sendmsg_locked L=2
+[UPWARD-INTERPROC] No callers found for tcp_v6_connect (function taints pointer parameter #0)
+[POINTER PARAMETER] Call to tcp_sendmsg_locked passes through pointer parameter 0 of tcp_sendmsg <net/ipv4/tcp.c:1358:8> FUNC=tcp_sendmsg L=3
+[UPWARD-INTERPROC] No callers found for tcp_v6_connect (function taints pointer parameter #0)
+[POINTER PARAMETER] Call to tcp_sendmsg passes through pointer parameter 0 of inet_sendmsg <net/ipv4/af_inet.c:851:9> FUNC=inet_sendmsg L=4
+[POINTER PARAMETER] Call to tcp_sendmsg passes through pointer parameter 0 of inet6_sendmsg <net/ipv6/af_inet6.c:659:9> FUNC=inet6_sendmsg L=4
+[UPWARD-INTERPROC] No callers found for tcp_v6_connect (function taints pointer parameter #0)
+[POINTER PARAMETER] Call to inet_sendmsg passes through pointer parameter 0 of __sock_sendmsg <net/socket.c:718:12> FUNC=__sock_sendmsg L=5
+[POINTER PARAMETER] Call to inet_sendmsg passes through pointer parameter 0 of sock_sendmsg_nosec <net/socket.c:718:12> FUNC=sock_sendmsg_nosec L=5
+[UPWARD-INTERPROC] No callers found for tcp_v6_connect (function taints pointer parameter #0)
+[POINTER PARAMETER] Call to __sock_sendmsg passes through pointer parameter 0 of sock_write_iter <net/socket.c:1137:8> FUNC=sock_write_iter L=6
+[POINTER PARAMETER] Call to __sock_sendmsg passes through pointer parameter 0 of sock_sendmsg <net/socket.c:756:8> FUNC=sock_sendmsg L=6
+[POINTER PARAMETER] Call to __sock_sendmsg passes through pointer parameter 0 of kernel_sendmsg <net/socket.c:756:8> FUNC=kernel_sendmsg L=6
+[POINTER PARAMETER] Call to __sock_sendmsg passes through pointer parameter 0 of ____sys_sendmsg <net/socket.c:2573:8> FUNC=____sys_sendmsg L=6
+[UPWARD-INTERPROC] No callers found for tcp_v6_connect (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for sock_write_iter (function taints pointer parameter #0)
+[POINTER PARAMETER] Call to sock_sendmsg passes through pointer parameter 0 of __skb_send_sock <net/core/skbuff.c:3175:9> FUNC=__skb_send_sock L=7
+[POINTER PARAMETER] Call to sock_sendmsg passes through pointer parameter 0 of sendmsg_unlocked <net/core/skbuff.c:3175:9> FUNC=sendmsg_unlocked L=7
+[POINTER PARAMETER] Call to sock_sendmsg passes through pointer parameter 0 of xprt_sock_sendmsg <net/sunrpc/socklib.c:211:9> FUNC=xprt_sock_sendmsg L=7
+[POINTER PARAMETER] Call to sock_sendmsg passes through pointer parameter 0 of svc_tcp_sendto <net/sunrpc/svcsock.c:1227:8> FUNC=svc_tcp_sendto L=7
+[POINTER PARAMETER] Call to sock_sendmsg passes through pointer parameter 0 of svc_udp_sendto <net/sunrpc/svcsock.c:721:8> FUNC=svc_udp_sendto L=7
+[POINTER PARAMETER] Call to sock_sendmsg passes through pointer parameter 0 of tls_alert_send <net/handshake/alert.c:63:8> FUNC=tls_alert_send L=7
+[POINTER PARAMETER] Call to kernel_sendmsg passes through pointer parameter 0 of sync_thread_master <net/netfilter/ipvs/ip_vs_sync.c:1582:8> FUNC=sync_thread_master L=7
+[POINTER PARAMETER] Call to kernel_sendmsg passes through pointer parameter 0 of smc_clc_send_decline <net/smc/smc_clc.c:838:8> FUNC=smc_clc_send_decline L=7
+[POINTER PARAMETER] Call to kernel_sendmsg passes through pointer parameter 0 of smc_clc_send_proposal <net/smc/smc_clc.c:1031:8> FUNC=smc_clc_send_proposal L=7
+[POINTER PARAMETER] Call to kernel_sendmsg passes through pointer parameter 0 of smc_clc_send_confirm_accept <net/smc/smc_clc.c:1206:9> FUNC=smc_clc_send_confirm_accept L=7
+[POINTER PARAMETER] Call to ____sys_sendmsg passes through pointer parameter 0 of __sys_sendmsg_sock <net/socket.c:2639:9> FUNC=__sys_sendmsg_sock L=7
+[POINTER PARAMETER] Call to ____sys_sendmsg passes through pointer parameter 0 of ___sys_sendmsg <net/socket.c:2627:8> FUNC=___sys_sendmsg L=7
+[UPWARD-INTERPROC] No callers found for tcp_v6_connect (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for sync_thread_master (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for svc_tcp_sendto (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for svc_udp_sendto (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for sock_write_iter (function taints pointer parameter #0)
+[POINTER PARAMETER] Call to __skb_send_sock passes through pointer parameter 0 of skb_send_sock_locked <net/core/skbuff.c:3281:9> FUNC=skb_send_sock_locked L=8
+[POINTER PARAMETER] Call to __skb_send_sock passes through pointer parameter 0 of skb_send_sock <net/core/skbuff.c:3288:9> FUNC=skb_send_sock L=8
+[UPWARD-INTERPROC] No callers found for sendmsg_unlocked (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for tcp_v6_connect (function taints pointer parameter #0)
+[POINTER PARAMETER] Call to xprt_sock_sendmsg passes through pointer parameter 0 of bc_send_request <net/sunrpc/xprtsock.c:2984:8> FUNC=bc_send_request L=8
+[POINTER PARAMETER] Call to xprt_sock_sendmsg passes through pointer parameter 0 of xs_tcp_send_request <net/sunrpc/xprtsock.c:1127:12> FUNC=xs_tcp_send_request L=8
+[POINTER PARAMETER] Call to xprt_sock_sendmsg passes through pointer parameter 0 of xs_udp_send_request <net/sunrpc/xprtsock.c:1027:11> FUNC=xs_udp_send_request L=8
+[POINTER PARAMETER] Call to xprt_sock_sendmsg passes through pointer parameter 0 of xs_local_send_request <net/sunrpc/xprtsock.c:956:11> FUNC=xs_local_send_request L=8
+[POINTER PARAMETER] Call to smc_clc_send_decline passes through pointer parameter 0 of __smc_connect <net/smc/af_smc.c:965:8> FUNC=__smc_connect L=8
+[POINTER PARAMETER] Call to smc_clc_send_decline passes through pointer parameter 0 of smc_listen_work <net/smc/af_smc.c:1958:7> FUNC=smc_listen_work L=8
+[POINTER PARAMETER] Call to smc_clc_send_proposal passes through pointer parameter 0 of smc_connect_clc <net/smc/af_smc.c:1165:7> FUNC=smc_connect_clc L=8
+[POINTER PARAMETER] Call to smc_clc_send_confirm_accept passes through pointer parameter 0 of smc_clc_send_confirm <net/smc/smc_clc.c:1221:8> FUNC=smc_clc_send_confirm L=8
+[POINTER PARAMETER] Call to smc_clc_send_confirm_accept passes through pointer parameter 0 of smc_clc_send_accept <net/smc/smc_clc.c:1244:8> FUNC=smc_clc_send_accept L=8
+[POINTER PARAMETER] Call to tls_alert_send passes through pointer parameter 0 of tls_handshake_close <net/handshake/tlshd.c:445:2> FUNC=tls_handshake_close L=8
+[UPWARD-INTERPROC] No callers found for sync_thread_master (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for svc_tcp_sendto (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for svc_udp_sendto (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for sock_write_iter (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for skb_send_sock_locked (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for sendmsg_unlocked (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for skb_send_sock (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for tcp_v6_connect (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for bc_send_request (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for xs_tcp_send_request (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for xs_udp_send_request (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for xs_local_send_request (function taints pointer parameter #0)
+[POINTER PARAMETER] Call to __smc_connect passes through pointer parameter 0 of smc_connect_work <net/smc/af_smc.c:1613:7> FUNC=smc_connect_work L=9
+[POINTER PARAMETER] Call to __smc_connect passes through pointer parameter 0 of smc_connect <net/smc/af_smc.c:1696:8> FUNC=smc_connect L=9
+[UPWARD-INTERPROC] No callers found for smc_listen_work (function taints pointer parameter #0)
+[POINTER PARAMETER] Call to smc_clc_send_confirm passes through pointer parameter 0 of smc_connect_rdma <net/smc/af_smc.c:1334:16> FUNC=smc_connect_rdma L=9
+[POINTER PARAMETER] Call to smc_clc_send_confirm passes through pointer parameter 0 of smc_connect_ism <net/smc/af_smc.c:1447:7> FUNC=smc_connect_ism L=9
+[POINTER PARAMETER] Call to tls_handshake_close passes through pointer parameter 0 of xs_tcp_shutdown <net/sunrpc/xprtsock.c:1315:3> FUNC=xs_tcp_shutdown L=9
+[POINTER PARAMETER] Call to tls_handshake_close passes through pointer parameter 0 of xs_destroy <net/sunrpc/xprtsock.c:1315:3> FUNC=xs_destroy L=9
+[POINTER PARAMETER] Call to tls_handshake_close passes through pointer parameter 0 of xs_close <net/sunrpc/xprtsock.c:1315:3> FUNC=xs_close L=9
+[POINTER PARAMETER] Call to tls_handshake_close passes through pointer parameter 0 of svc_tcp_sock_detach <net/sunrpc/svcsock.c:1586:2> FUNC=svc_tcp_sock_detach L=9
+[UPWARD-INTERPROC] No callers found for sync_thread_master (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for svc_tcp_sendto (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for svc_tcp_sock_detach (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for svc_udp_sendto (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for sock_write_iter (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for skb_send_sock_locked (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for sendmsg_unlocked (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for skb_send_sock (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for tcp_v6_connect (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for bc_send_request (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for xs_tcp_send_request (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for xs_tcp_shutdown (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for xs_destroy (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for xs_udp_send_request (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for xs_close (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for xs_local_send_request (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for smc_connect_work (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for smc_listen_work (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for smc_connect (function taints pointer parameter #0)
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 10
+
+Earliest instruction with L=0:
+    %285 = select i1 %282, i8 14, i8 %284, <net/ipv4/tcp_output.c:246:17> FUNC=tcp_connect L=0
+
+Latest instruction with L=0:
+    %298 = or disjoint i16 %297, %291, <net/ipv4/tcp_output.c:3926:24> FUNC=tcp_connect L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/ipv4/tcp_output.ll
+../linux-wllvm-defconfig/net/ipv4/tcp_output.c

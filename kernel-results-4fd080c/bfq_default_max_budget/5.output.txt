@@ -1,0 +1,77 @@
+=== Taint Tracker Configuration ===
+Function: bfq_init_bfqq
+Opcode: phi
+Constant: 10922
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 10922)
+
+[SOURCE] Tainting:   %69 = phi i32 [ %67, %63 ], [ 10922, %52 ], <block/bfq-iosched.c:0> FUNC=bfq_init_bfqq L=0
+[USE] Source instruction in data flow <block/bfq-iosched.c:0> FUNC=bfq_init_bfqq L=0
+[USE] Processing uses of:   %69 = phi i32 [ %67, %63 ], [ 10922, %52 ],
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #1 (ptr %1) <block/bfq-iosched.c:5650:19>
+[UPWARD-INTERPROC] Call to bfq_init_bfqq taints argument 1 (local variable) <block/bfq-iosched.c:7264:2> FUNC=bfq_init_queue L=1
+  [STORE DESTINATION] Marking pointer as tainted via call:   %13 = tail call noalias align 8 dereferenceable_or_null(2032) ptr @__kmalloc_cache_node_noprof(ptr noundef %12, i32 noundef 3520, i32 noundef %11, i64 noundef 2032) #279, FUNC=bfq_init_queue L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %22 = load i32, ptr %21, align 8, (base:   %13 = tail call noalias align 8 dereferenceable_or_null(2032) ptr @__kmalloc_cache_node_noprof(ptr noundef %12, i32 noundef 3520, i32 noundef %11, i64 noundef 2032) #279,)  <block/bfq-iosched.c:7265:20> FUNC=bfq_init_queue L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %57 = load i32, ptr %32, align 4, (base:   %13 = tail call noalias align 8 dereferenceable_or_null(2032) ptr @__kmalloc_cache_node_noprof(ptr noundef %12, i32 noundef 3520, i32 noundef %11, i64 noundef 2032) #279,)  <block/bfq-iosched.c:7301:26> FUNC=bfq_init_queue L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %61 = load i32, ptr %32, align 4, (base:   %13 = tail call noalias align 8 dereferenceable_or_null(2032) ptr @__kmalloc_cache_node_noprof(ptr noundef %12, i32 noundef 3520, i32 noundef %11, i64 noundef 2032) #279,)  <block/bfq-iosched.c:7310:12> FUNC=bfq_init_queue L=1
+[LOAD] Tainted load from tracked pointer:   %87 = load ptr, ptr %13, align 8, (  %13 = tail call noalias align 8 dereferenceable_or_null(2032) ptr @__kmalloc_cache_node_noprof(ptr noundef %12, i32 noundef 3520, i32 noundef %11, i64 noundef 2032) #279, !dbg !18658077)  <block/bfq-iosched.c:7333:31> FUNC=bfq_init_queue L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %146 = load ptr, ptr %136, align 8, (base:   %13 = tail call noalias align 8 dereferenceable_or_null(2032) ptr @__kmalloc_cache_node_noprof(ptr noundef %12, i32 noundef 3520, i32 noundef %11, i64 noundef 2032) #279,)  <block/bfq-iosched.c:7396:48> FUNC=bfq_init_queue L=1
+  [USE] Taint flows to:   tail call void @bfq_init_entity(ptr noundef nonnull %28, ptr noundef %146) #278, <block/bfq-iosched.c:7396:2> FUNC=bfq_init_queue L=1
+  [USE] Taint flows to:   %88 = getelementptr inbounds nuw i8, ptr %87, i64 120, <block/bfq-iosched.c:7333:31> FUNC=bfq_init_queue L=1
+  [USE] Taint flows to:   %89 = load i32, ptr %88, align 8, <block/bfq-iosched.c:7333:31> FUNC=bfq_init_queue L=1
+  [USE] Taint flows to:   %110 = load i32, ptr %88, align 8, <block/bfq-iosched.c:7368:33> FUNC=bfq_init_queue L=1
+  [USE] Taint flows to:   %122 = load i32, ptr %88, align 8, <block/bfq-iosched.c:7370:29> FUNC=bfq_init_queue L=1
+  [USE] Taint flows to:   %123 = lshr i32 %122, 2, <block/bfq-iosched.c:7370:29> FUNC=bfq_init_queue L=1
+  [USE] Taint flows to:   %124 = and i32 %123, 1, <block/bfq-iosched.c:7370:29> FUNC=bfq_init_queue L=1
+  [USE] Taint flows to:   %125 = xor i32 %124, 1, <block/bfq-iosched.c:7370:29> FUNC=bfq_init_queue L=1
+  [USE] Taint flows to:   %126 = zext nneg i32 %125 to i64, <block/bfq-iosched.c:7370:20> FUNC=bfq_init_queue L=1
+  [USE] Taint flows to:   %127 = getelementptr [2 x i32], ptr @ref_rate, i64 0, i64 %126, <block/bfq-iosched.c:7370:20> FUNC=bfq_init_queue L=1
+  [USE] Taint flows to:   %128 = load i32, ptr %127, align 4, <block/bfq-iosched.c:7370:20> FUNC=bfq_init_queue L=1
+  [USE] Taint flows to:   %129 = shl i32 %128, 1, <block/bfq-iosched.c:7370:60> FUNC=bfq_init_queue L=1
+  [USE] Taint flows to:   %130 = sdiv i32 %129, 3, <block/bfq-iosched.c:7370:64> FUNC=bfq_init_queue L=1
+  [USE] Taint flows to:   store i32 %130, ptr %131, align 8, <block/bfq-iosched.c:7370:18> FUNC=bfq_init_queue L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %131 = getelementptr inbounds nuw i8, ptr %13, i64 344, <block/bfq-iosched.c:7370:18> FUNC=bfq_init_queue L=1
+  [USE] Taint flows to:   %111 = lshr i32 %110, 2, <block/bfq-iosched.c:7368:33> FUNC=bfq_init_queue L=1
+  [USE] Taint flows to:   %112 = and i32 %111, 1, <block/bfq-iosched.c:7368:33> FUNC=bfq_init_queue L=1
+  [USE] Taint flows to:   %113 = xor i32 %112, 1, <block/bfq-iosched.c:7368:33> FUNC=bfq_init_queue L=1
+  [USE] Taint flows to:   %114 = zext nneg i32 %113 to i64, <block/bfq-iosched.c:7368:24> FUNC=bfq_init_queue L=1
+  [USE] Taint flows to:   %115 = getelementptr [2 x i32], ptr @ref_rate, i64 0, i64 %114, <block/bfq-iosched.c:7368:24> FUNC=bfq_init_queue L=1
+  [USE] Taint flows to:   %117 = getelementptr [2 x i32], ptr @ref_wr_duration, i64 0, i64 %114, <block/bfq-iosched.c:7369:3> FUNC=bfq_init_queue L=1
+  [USE] Taint flows to:   %118 = load i32, ptr %117, align 4, <block/bfq-iosched.c:7369:3> FUNC=bfq_init_queue L=1
+  [USE] Taint flows to:   %119 = mul i32 %118, %116, <block/bfq-iosched.c:7368:64> FUNC=bfq_init_queue L=1
+  [USE] Taint flows to:   %120 = sext i32 %119 to i64, <block/bfq-iosched.c:7368:24> FUNC=bfq_init_queue L=1
+  [USE] Taint flows to:   store i64 %120, ptr %121, align 8, <block/bfq-iosched.c:7368:22> FUNC=bfq_init_queue L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %121 = getelementptr inbounds nuw i8, ptr %13, i64 624, <block/bfq-iosched.c:7368:22> FUNC=bfq_init_queue L=1
+  [USE] Taint flows to:   %116 = load i32, ptr %115, align 4, <block/bfq-iosched.c:7368:24> FUNC=bfq_init_queue L=1
+  [USE] Taint flows to:   %90 = and i32 %89, 4, <block/bfq-iosched.c:7333:31> FUNC=bfq_init_queue L=1
+  [USE] Taint flows to:   %91 = icmp eq i32 %90, 0, <block/bfq-iosched.c:7333:31> FUNC=bfq_init_queue L=1
+  [USE] Taint flows to:   %93 = zext i1 %91 to i8, <block/bfq-iosched.c:7333:29> FUNC=bfq_init_queue L=1
+  [USE] Taint flows to:   store i8 %93, ptr %92, align 4, <block/bfq-iosched.c:7333:29> FUNC=bfq_init_queue L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %92 = getelementptr inbounds nuw i8, ptr %13, i64 108, <block/bfq-iosched.c:7333:29> FUNC=bfq_init_queue L=1
+  [USE] Taint flows to:   %63 = phi i32 [ %61, %60 ], [ %57, %47 ], <block/bfq-iosched.c:7310:12> FUNC=bfq_init_queue L=1
+  [USE] Taint flows to:   %64 = icmp eq i32 %63, 1, <block/bfq-iosched.c:7310:26> FUNC=bfq_init_queue L=1
+  [USE] Taint flows to:   br i1 %64, label %65, label %73, <block/bfq-iosched.c:7310:26> FUNC=bfq_init_queue L=1
+  [USE] Taint flows to:   %58 = zext i32 %57 to i64, <block/bfq-iosched.c:7301:18> FUNC=bfq_init_queue L=1
+  [USE] Taint flows to:   %59 = icmp samesign ult i64 %56, %58, <block/bfq-iosched.c:7301:18> FUNC=bfq_init_queue L=1
+  [USE] Taint flows to:   br i1 %59, label %47, label %62, <block/bfq-iosched.c:7301:4> FUNC=bfq_init_queue L=1
+  [USE] Taint flows to:   %23 = add i32 %22, 1, <block/bfq-iosched.c:7265:20> FUNC=bfq_init_queue L=1
+  [USE] Taint flows to:   store i32 %23, ptr %21, align 8, <block/bfq-iosched.c:7265:20> FUNC=bfq_init_queue L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %21 = getelementptr inbounds nuw i8, ptr %13, i64 632, <block/bfq-iosched.c:7265:20> FUNC=bfq_init_queue L=1
+
+=== Maximum Level Statistics ===
+Largest L value: 1
+Number of instructions with L=1: 42
+
+Earliest instruction with L=1:
+    %22 = load i32, ptr %21, align 8, <block/bfq-iosched.c:7265:20> FUNC=bfq_init_queue L=1
+
+Latest instruction with L=1:
+    tail call void @bfq_init_entity(ptr noundef nonnull %28, ptr noundef %146) #278, <block/bfq-iosched.c:7396:2> FUNC=bfq_init_queue L=1
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/block/bfq-iosched.ll
+../linux-wllvm-defconfig/block/bfq-iosched.c

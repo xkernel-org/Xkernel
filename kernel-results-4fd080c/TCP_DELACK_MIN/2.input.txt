@@ -1,0 +1,5 @@
+SOURCE_FILE=net/ipv4/tcp_output.c
+FUNCTION_NAME=tcp_send_delayed_ack
+SOURCE_OP="icmp"
+CONSTANT_VALUE=40
+OCCURENCE=1

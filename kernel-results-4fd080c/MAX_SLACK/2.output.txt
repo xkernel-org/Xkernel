@@ -1,0 +1,49 @@
+=== Taint Tracker Configuration ===
+Function: select_estimate_accuracy
+Opcode: call
+Constant: 100000000
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 100000000)
+
+[SOURCE] Tainting:   %38 = call i64 @llvm.smin.i64(i64 %37, i64 100000000), <fs/select.c:0> FUNC=select_estimate_accuracy L=0
+[USE] Source instruction in data flow <fs/select.c:0> FUNC=select_estimate_accuracy L=0
+[CHILD FUNCTION] Constant used in call to llvm.smin.i64 at argument 1 <fs/select.c:0> FUNC=select_estimate_accuracy L=0
+[USE] Processing uses of:   %38 = call i64 @llvm.smin.i64(i64 %37, i64 100000000),
+  [USE] Taint flows to:   %40 = phi i64 [ 0, %9 ], [ 100000000, %22 ], [ %38, %33 ], <fs/select.c:0> FUNC=select_estimate_accuracy L=0
+[USE] Processing uses of:   %40 = phi i64 [ 0, %9 ], [ 100000000, %22 ], [ %38, %33 ],
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %41 = call i64 @llvm.umax.i64(i64 %40, i64 %7), !dbg !18658033 <fs/select.c:0>
+  [USE] Taint flows to:   %41 = call i64 @llvm.umax.i64(i64 %40, i64 %7), <fs/select.c:0> FUNC=select_estimate_accuracy L=0
+[USE] Processing uses of:   %41 = call i64 @llvm.umax.i64(i64 %40, i64 %7),
+  [USE] Taint flows to:   %43 = phi i64 [ 0, %1 ], [ %41, %39 ], <fs/select.c:0> FUNC=select_estimate_accuracy L=0
+[USE] Processing uses of:   %43 = phi i64 [ 0, %1 ], [ %41, %39 ],
+  [RETURN] Stop: Tainted value is returned:   ret i64 %43, <fs/select.c:91:1>
+[UPWARD-INTERPROC] Call to select_estimate_accuracy returns tainted value <fs/eventpoll.c:2011:11> FUNC=do_epoll_wait L=1
+  [USE] Taint flows to:   %51 = phi i64 [ %40, %39 ], [ 0, %47 ], <fs/eventpoll.c:0> FUNC=do_epoll_wait L=1
+  [USE] Taint flows to:   %284 = call i32 @schedule_hrtimeout_range(ptr noundef %52, i64 noundef %51, i32 noundef 0) #279, <fs/eventpoll.c:2099:17> FUNC=do_epoll_wait L=1
+  [USE] Taint flows to:   %285 = icmp eq i32 %284, 0, <fs/eventpoll.c:2099:16> FUNC=do_epoll_wait L=1
+  [USE] Taint flows to:   %286 = zext i1 %285 to i32, <fs/eventpoll.c:2099:16> FUNC=do_epoll_wait L=1
+  [USE] Taint flows to:   %289 = phi i32 [ %286, %282 ], [ 0, %287 ], <fs/eventpoll.c:0> FUNC=do_epoll_wait L=1
+  [USE] Taint flows to:   %296 = icmp eq i32 %289, 0, <fs/eventpoll.c:2119:8> FUNC=do_epoll_wait L=1
+  [USE] Taint flows to:   %310 = phi i32 [ 0, %238 ], [ 0, %241 ], [ 0, %244 ], [ %289, %292 ], [ %289, %303 ] FUNC=do_epoll_wait L=1
+  [USE] Taint flows to:   %84 = phi i32 [ %50, %65 ], [ %310, %308 ], <fs/eventpoll.c:2003:19> FUNC=do_epoll_wait L=1
+  [USE] Taint flows to:   %220 = icmp eq i32 %84, 0, <fs/eventpoll.c:2047:7> FUNC=do_epoll_wait L=1
+  [USE] Taint flows to:   br i1 %220, label %221, label %311, <fs/eventpoll.c:2047:7> FUNC=do_epoll_wait L=1
+  [USE] Taint flows to:   br i1 %296, label %297, label %299, <fs/eventpoll.c:2119:8> FUNC=do_epoll_wait L=1
+
+=== Maximum Level Statistics ===
+Largest L value: 1
+Number of instructions with L=1: 12
+
+Earliest instruction with L=1:
+    %40 = tail call i64 @select_estimate_accuracy(ptr noundef nonnull %3) #279, <fs/eventpoll.c:2011:11> FUNC=do_epoll_wait L=1
+
+Latest instruction with L=1:
+    %310 = phi i32 [ 0, %238 ], [ 0, %241 ], [ 0, %244 ], [ %289, %292 ], [ %289, %303 ] FUNC=do_epoll_wait L=1
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/select.ll
+../linux-wllvm-defconfig/fs/select.c

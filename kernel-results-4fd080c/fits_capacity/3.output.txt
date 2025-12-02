@@ -1,0 +1,32 @@
+=== Taint Tracker Configuration ===
+Function: select_task_rq_fair
+Opcode: shl
+Constant: 10
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 3 (of constant 10)
+
+[SOURCE] Tainting:   %471 = shl i64 %470, 10, <kernel/sched/fair.c:4983:9> FUNC=select_task_rq_fair L=0
+[USE] Source instruction in data flow <kernel/sched/fair.c:4983:9> FUNC=select_task_rq_fair L=0
+[USE] Processing uses of:   %471 = shl i64 %470, 10,
+  [USE] Taint flows to:   %472 = icmp ult i64 %375, %471, <kernel/sched/fair.c:4983:9> FUNC=select_task_rq_fair L=0
+[USE] Processing uses of:   %472 = icmp ult i64 %375, %471,
+  [USE] Taint flows to:   br i1 %472, label %930, label %473, <kernel/sched/fair.c:7868:33> FUNC=select_task_rq_fair L=0
+[NO USE] No uses of:   br i1 %472, label %930, label %473,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 3
+
+Earliest instruction with L=0:
+    %471 = shl i64 %470, 10, <kernel/sched/fair.c:4983:9> FUNC=select_task_rq_fair L=0
+
+Latest instruction with L=0:
+    br i1 %472, label %930, label %473, <kernel/sched/fair.c:7868:33> FUNC=select_task_rq_fair L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/kernel/sched/fair.ll
+../linux-wllvm-defconfig/kernel/sched/fair.c

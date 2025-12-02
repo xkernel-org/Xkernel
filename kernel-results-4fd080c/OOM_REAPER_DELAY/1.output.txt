@@ -1,0 +1,31 @@
+=== Taint Tracker Configuration ===
+Function: out_of_memory
+Opcode: add
+Constant: 2000
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 2000)
+
+[SOURCE] Tainting:   %42 = add i64 %41, 2000, <mm/oom_kill.c:703:42> FUNC=out_of_memory L=0
+[USE] Source instruction in data flow <mm/oom_kill.c:703:42> FUNC=out_of_memory L=0
+[USE] Processing uses of:   %42 = add i64 %41, 2000,
+  [STORE DESTINATION] Marking pointer as tainted:   %43 = getelementptr inbounds nuw i8, ptr %18, i64 2880, <mm/oom_kill.c:703:32>
+  [USE] Taint flows to:   store i64 %42, ptr %43, align 16, <mm/oom_kill.c:703:32> FUNC=out_of_memory L=0
+[NO USE] No uses of:   store i64 %42, ptr %43, align 16,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 2
+
+Earliest instruction with L=0:
+    %42 = add i64 %41, 2000, <mm/oom_kill.c:703:42> FUNC=out_of_memory L=0
+
+Latest instruction with L=0:
+    store i64 %42, ptr %43, align 16, <mm/oom_kill.c:703:32> FUNC=out_of_memory L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/mm/oom_kill.ll
+../linux-wllvm-defconfig/mm/oom_kill.c

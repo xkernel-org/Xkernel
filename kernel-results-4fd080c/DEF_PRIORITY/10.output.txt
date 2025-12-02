@@ -1,0 +1,28 @@
+=== Taint Tracker Configuration ===
+Function: shrink_all_memory
+Opcode: store
+Constant: 12
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 12)
+
+[SOURCE] Tainting:   store i8 12, ptr %7, align 4, <mm/vmscan.c:7338:27> FUNC=shrink_all_memory L=0
+[USE] Source instruction in data flow <mm/vmscan.c:7338:27> FUNC=shrink_all_memory L=0
+[STORE DESTINATION] Storing constant to:   %7 = getelementptr inbounds nuw i8, ptr %2, i64 44, <mm/vmscan.c:7338:27> FUNC=shrink_all_memory L=0
+[NO USE] No uses of:   store i8 12, ptr %7, align 4,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 1
+
+Earliest instruction with L=0:
+    store i8 12, ptr %7, align 4, <mm/vmscan.c:7338:27> FUNC=shrink_all_memory L=0
+
+(Earliest and latest are the same instruction)
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/mm/vmscan.ll
+../linux-wllvm-defconfig/mm/vmscan.c

@@ -1,0 +1,5 @@
+SOURCE_FILE=block/bfq-iosched.c
+FUNCTION_NAME=bfq_setup_cooperator
+SOURCE_OP="add"
+CONSTANT_VALUE=600
+OCCURENCE=1

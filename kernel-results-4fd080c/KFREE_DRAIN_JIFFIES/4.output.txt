@@ -1,0 +1,28 @@
+=== Taint Tracker Configuration ===
+Function: schedule_delayed_monitor_work
+Opcode: call
+Constant: 64
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 64)
+
+[SOURCE] Tainting:   %26 = tail call zeroext i1 @mod_delayed_work_on(i32 noundef 64, ptr noundef %25, ptr noundef nonnull %14, i64 noundef range(i64 1, 5001) %13) #278, <./include/linux/workqueue.h:692:9> FUNC=schedule_delayed_monitor_work L=0
+[USE] Source instruction in data flow <./include/linux/workqueue.h:692:9> FUNC=schedule_delayed_monitor_work L=0
+[CHILD FUNCTION] Constant used in call to mod_delayed_work_on at argument 0 <./include/linux/workqueue.h:692:9> FUNC=schedule_delayed_monitor_work L=0
+[NO USE] No uses of:   %26 = tail call zeroext i1 @mod_delayed_work_on(i32 noundef 64, ptr noundef %25, ptr noundef nonnull %14, i64 noundef range(i64 1, 5001) %13) #278,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 1
+
+Earliest instruction with L=0:
+    %26 = tail call zeroext i1 @mod_delayed_work_on(i32 noundef 64, ptr noundef %25, ptr noundef nonnull %14, i64 noundef range(i64 1, 5001) %13) #278, <./include/linux/workqueue.h:692:9> FUNC=schedule_delayed_monitor_work L=0
+
+(Earliest and latest are the same instruction)
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/mm/slab_common.ll
+../linux-wllvm-defconfig/mm/slab_common.c

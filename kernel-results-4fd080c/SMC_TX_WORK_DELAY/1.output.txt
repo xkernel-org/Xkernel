@@ -1,0 +1,28 @@
+=== Taint Tracker Configuration ===
+Function: smc_tx_sndbuf_nonempty
+Opcode: call
+Constant: 0
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 2 (of constant 0)
+
+[SOURCE] Tainting:   %144 = call zeroext i1 @mod_delayed_work_on(i32 noundef 64, ptr noundef %142, ptr noundef nonnull %143, i64 noundef 0) #279, <./include/linux/workqueue.h:692:9> FUNC=smc_tx_sndbuf_nonempty L=0
+[USE] Source instruction in data flow <./include/linux/workqueue.h:692:9> FUNC=smc_tx_sndbuf_nonempty L=0
+[CHILD FUNCTION] Constant used in call to mod_delayed_work_on at argument 3 <./include/linux/workqueue.h:692:9> FUNC=smc_tx_sndbuf_nonempty L=0
+[NO USE] No uses of:   %144 = call zeroext i1 @mod_delayed_work_on(i32 noundef 64, ptr noundef %142, ptr noundef nonnull %143, i64 noundef 0) #279,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 1
+
+Earliest instruction with L=0:
+    %144 = call zeroext i1 @mod_delayed_work_on(i32 noundef 64, ptr noundef %142, ptr noundef nonnull %143, i64 noundef 0) #279, <./include/linux/workqueue.h:692:9> FUNC=smc_tx_sndbuf_nonempty L=0
+
+(Earliest and latest are the same instruction)
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/smc/smc_tx.ll
+../linux-wllvm-defconfig/net/smc/smc_tx.c

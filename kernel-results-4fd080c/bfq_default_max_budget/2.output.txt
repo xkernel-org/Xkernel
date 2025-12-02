@@ -1,0 +1,962 @@
+=== Taint Tracker Configuration ===
+Function: bfq_bfqq_expire
+Opcode: phi
+Constant: 512
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 512)
+
+[SOURCE] Tainting:   %216 = phi i32 [ %214, %211 ], [ 512, %204 ], <block/bfq-iosched.c:0> FUNC=bfq_bfqq_expire L=0
+[USE] Source instruction in data flow <block/bfq-iosched.c:0> FUNC=bfq_bfqq_expire L=0
+[USE] Processing uses of:   %216 = phi i32 [ %214, %211 ], [ 512, %204 ],
+  [USE] Taint flows to:   %223 = shl nsw i32 %216, 1, <block/bfq-iosched.c:3990:14> FUNC=bfq_bfqq_expire L=0
+  [USE] Taint flows to:   %330 = mul nsw i32 %216, 5, <block/bfq-iosched.c:4033:20> FUNC=bfq_bfqq_expire L=0
+  [USE] Taint flows to:   %333 = shl nsw i32 %216, 2, <block/bfq-iosched.c:4034:18> FUNC=bfq_bfqq_expire L=0
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %348 = call i32 @llvm.smax.i32(i32 %347, i32 %216), !dbg !18658602 <block/bfq-iosched.c:4093:13>
+  [USE] Taint flows to:   %348 = call i32 @llvm.smax.i32(i32 %347, i32 %216), <block/bfq-iosched.c:4093:13> FUNC=bfq_bfqq_expire L=0
+  [USE] Taint flows to:   %357 = phi i32 [ %348, %345 ], [ %344, %340 ], [ %339, %335 ], [ %328, %324 ], [ %334, %332 ], [ %225, %349 ], [ %355, %353 ], [ %216, %329 ], <block/bfq-iosched.c:0> FUNC=bfq_bfqq_expire L=0
+[USE] Processing uses of:   %357 = phi i32 [ %348, %345 ], [ %344, %340 ], [ %339, %335 ], [ %328, %324 ], [ %334, %332 ], [ %225, %349 ], [ %355, %353 ], [ %216, %329 ],
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #1 (ptr %1) <block/bfq-iosched.c:4108:19>
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %368 = call i32 @llvm.smin.i32(i32 %357, i32 %367), !dbg !18658628 <block/bfq-iosched.c:4112:22>
+  [USE] Taint flows to:   %368 = call i32 @llvm.smin.i32(i32 %357, i32 %367), <block/bfq-iosched.c:4112:22> FUNC=bfq_bfqq_expire L=0
+  [USE] Taint flows to:   %370 = phi i32 [ %368, %365 ], [ %357, %361 ], [ %357, %356 ] FUNC=bfq_bfqq_expire L=0
+[USE] Processing uses of:   %370 = phi i32 [ %368, %365 ], [ %357, %361 ], [ %357, %356 ]
+  [USE] Taint flows to:   %375 = sext i32 %370 to i64, <block/bfq-iosched.c:4126:25> FUNC=bfq_bfqq_expire L=0
+[USE] Processing uses of:   %375 = sext i32 %370 to i64,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %444 = call i64 @llvm.umax.i64(i64 %443, i64 %375), !dbg !18658633 <block/bfq-iosched.c:4126:25>
+  [USE] Taint flows to:   %444 = call i64 @llvm.umax.i64(i64 %443, i64 %375), <block/bfq-iosched.c:4126:25> FUNC=bfq_bfqq_expire L=0
+[USE] Processing uses of:   %444 = call i64 @llvm.umax.i64(i64 %443, i64 %375),
+  [USE] Taint flows to:   %445 = trunc nsw i64 %444 to i32, <block/bfq-iosched.c:4126:25> FUNC=bfq_bfqq_expire L=0
+[USE] Processing uses of:   %445 = trunc nsw i64 %444 to i32,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #1 (ptr %1) <block/bfq-iosched.c:4126:23>
+[USE] Processing uses of:   %368 = call i32 @llvm.smin.i32(i32 %357, i32 %367),
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #1 (ptr %1) <block/bfq-iosched.c:4112:20>
+[USE] Processing uses of:   %348 = call i32 @llvm.smax.i32(i32 %347, i32 %216),
+[USE] Processing uses of:   %333 = shl nsw i32 %216, 2,
+  [USE] Taint flows to:   %334 = sub i32 %225, %333, <block/bfq-iosched.c:4034:13> FUNC=bfq_bfqq_expire L=0
+[USE] Processing uses of:   %334 = sub i32 %225, %333,
+[USE] Processing uses of:   %330 = mul nsw i32 %216, 5,
+  [USE] Taint flows to:   %331 = icmp sgt i32 %225, %330, <block/bfq-iosched.c:4033:16> FUNC=bfq_bfqq_expire L=0
+[USE] Processing uses of:   %331 = icmp sgt i32 %225, %330,
+  [USE] Taint flows to:   br i1 %331, label %332, label %356, <block/bfq-iosched.c:4033:16> FUNC=bfq_bfqq_expire L=0
+[NO USE] No uses of:   br i1 %331, label %332, label %356,
+[USE] Processing uses of:   %223 = shl nsw i32 %216, 1,
+  [USE] Taint flows to:   %225 = phi i32 [ %221, %219 ], [ %223, %222 ], <block/bfq-iosched.c:0> FUNC=bfq_bfqq_expire L=0
+[USE] Processing uses of:   %225 = phi i32 [ %221, %219 ], [ %223, %222 ],
+  [CHILD FUNCTION] Tainted value used in call to __blk_trace_note_message at argument 4:   call void (ptr, ptr, ptr, ...) @__blk_trace_note_message(ptr noundef nonnull %264, ptr noundef %270, ptr noundef nonnull @.str.11.44763, ptr noundef nonnull %6, i32 noundef %225, i32 noundef %278) #280, <block/bfq-iosched.c:3994:2> FUNC=bfq_bfqq_expire L=0
+  [USE] Taint flows to:   call void (ptr, ptr, ptr, ...) @__blk_trace_note_message(ptr noundef nonnull %264, ptr noundef %270, ptr noundef nonnull @.str.11.44763, ptr noundef nonnull %6, i32 noundef %225, i32 noundef %278) #280, <block/bfq-iosched.c:3994:2> FUNC=bfq_bfqq_expire L=0
+  [USE] Taint flows to:   %327 = shl i32 %225, 1, <block/bfq-iosched.c:4031:14> FUNC=bfq_bfqq_expire L=0
+  [USE] Taint flows to:   %338 = shl i32 %225, 1, <block/bfq-iosched.c:4046:13> FUNC=bfq_bfqq_expire L=0
+  [USE] Taint flows to:   %343 = shl i32 %225, 2, <block/bfq-iosched.c:4058:13> FUNC=bfq_bfqq_expire L=0
+[USE] Processing uses of:   %343 = shl i32 %225, 2,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %344 = call i32 @llvm.smin.i32(i32 %343, i32 %342), !dbg !18658600 <block/bfq-iosched.c:4058:13>
+  [USE] Taint flows to:   %344 = call i32 @llvm.smin.i32(i32 %343, i32 %342), <block/bfq-iosched.c:4058:13> FUNC=bfq_bfqq_expire L=0
+[USE] Processing uses of:   %344 = call i32 @llvm.smin.i32(i32 %343, i32 %342),
+[USE] Processing uses of:   %338 = shl i32 %225, 1,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %339 = call i32 @llvm.smin.i32(i32 %338, i32 %337), !dbg !18658597 <block/bfq-iosched.c:4046:13>
+  [USE] Taint flows to:   %339 = call i32 @llvm.smin.i32(i32 %338, i32 %337), <block/bfq-iosched.c:4046:13> FUNC=bfq_bfqq_expire L=0
+[USE] Processing uses of:   %339 = call i32 @llvm.smin.i32(i32 %338, i32 %337),
+[USE] Processing uses of:   %327 = shl i32 %225, 1,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %328 = call i32 @llvm.smin.i32(i32 %327, i32 %326), !dbg !18658587 <block/bfq-iosched.c:4031:14>
+  [USE] Taint flows to:   %328 = call i32 @llvm.smin.i32(i32 %327, i32 %326), <block/bfq-iosched.c:4031:14> FUNC=bfq_bfqq_expire L=0
+[USE] Processing uses of:   %328 = call i32 @llvm.smin.i32(i32 %327, i32 %326),
+[NO USE] No uses of:   call void (ptr, ptr, ptr, ...) @__blk_trace_note_message(ptr noundef nonnull %264, ptr noundef %270, ptr noundef nonnull @.str.11.44763, ptr noundef nonnull %6, i32 noundef %225, i32 noundef %278) #280,
+[POINTER PARAMETER] Call to bfq_bfqq_expire passes through pointer parameter 0 of bfq_finish_requeue_request <block/bfq-iosched.c:0> FUNC=bfq_finish_requeue_request L=1
+[POINTER PARAMETER] Call to bfq_bfqq_expire passes through pointer parameter 0 of bfq_add_request <block/bfq-iosched.c:1992:3> FUNC=bfq_add_request L=1
+[POINTER PARAMETER] Call to bfq_bfqq_expire passes through pointer parameter 0 of bfq_idle_slice_timer <block/bfq-iosched.c:7059:2> FUNC=bfq_idle_slice_timer L=1
+[POINTER PARAMETER] Call to bfq_bfqq_expire passes through pointer parameter 0 of bfq_bfqq_move <block/bfq-cgroup.c:673:3> FUNC=bfq_bfqq_move L=1
+[POINTER PARAMETER] Call to bfq_finish_requeue_request passes through pointer parameter 0 of bfq_finish_request <block/bfq-iosched.c:6719:2> FUNC=bfq_finish_request L=2
+[UPWARD-INTERPROC] Call to bfq_add_request taints argument 0 (local variable) <block/bfq-iosched.c:6208:2> FUNC=bfq_insert_requests L=2
+  [STORE DESTINATION] Marking pointer as tainted via call:   %16 = phi ptr [ %8, %10 ], [ %1054, %1053 ] FUNC=bfq_insert_requests L=2
+[UPWARD-INTERPROC] No callers found for bfq_idle_slice_timer (function taints pointer parameter #0)
+[POINTER PARAMETER] Call to bfq_bfqq_move passes through pointer parameter 0 of __bfq_put_async_bfqq <block/bfq-iosched.c:7097:3> FUNC=__bfq_put_async_bfqq L=2
+[POINTER PARAMETER] Call to bfq_bfqq_move passes through pointer parameter 0 of bfq_pd_offline <block/bfq-cgroup.c:837:2> FUNC=bfq_pd_offline L=2
+[POINTER PARAMETER] Call to bfq_bfqq_move passes through pointer parameter 0 of __bfq_bic_change_cgroup <block/bfq-cgroup.c:714:4> FUNC=__bfq_bic_change_cgroup L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %19 = load ptr, ptr %18, align 8, (base:   %16 = phi ptr [ %8, %10 ], [ %1054, %1053 ])  <./include/linux/list.h:218:20> FUNC=bfq_insert_requests L=2
+[LOAD] Tainted load from tracked pointer:   %20 = load ptr, ptr %16, align 8, (  %16 = phi ptr [ %8, %10 ], [ %1054, %1053 ])  <./include/linux/list.h:218:33> FUNC=bfq_insert_requests L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %29 = load ptr, ptr %28, align 8, (base:   %16 = phi ptr [ %8, %10 ], [ %1054, %1053 ])  <block/bfq-iosched.c:6264:51> FUNC=bfq_insert_requests L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %34 = load ptr, ptr %17, align 8, (base:   %16 = phi ptr [ %8, %10 ], [ %1054, %1053 ])  <block/bfq-iosched.c:6946:32> FUNC=bfq_insert_requests L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %36 = load ptr, ptr %35, align 8, (base:   %16 = phi ptr [ %8, %10 ], [ %1054, %1053 ])  <block/bfq-iosched.c:6947:24> FUNC=bfq_insert_requests L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %42 = load i32, ptr %41, align 8, (base:   %16 = phi ptr [ %8, %10 ], [ %1054, %1053 ])  <./include/linux/blk-mq.h:1008:24> FUNC=bfq_insert_requests L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %86 = load ptr, ptr %85, align 8, (base:   %16 = phi ptr [ %8, %10 ], [ %1054, %1053 ])  <block/bfq-iosched.c:6954:6> FUNC=bfq_insert_requests L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %91 = load ptr, ptr %90, align 8, (base:   %16 = phi ptr [ %8, %10 ], [ %1054, %1053 ])  <block/bfq-iosched.c:6964:6> FUNC=bfq_insert_requests L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %585 = load ptr, ptr %584, align 8, (base:   %16 = phi ptr [ %8, %10 ], [ %1054, %1053 ])  <block/bfq-iosched.c:6166:27> FUNC=bfq_insert_requests L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %586 = load ptr, ptr %583, align 8, (base:   %16 = phi ptr [ %8, %10 ], [ %1054, %1053 ])  <block/bfq-iosched.c:6168:8> FUNC=bfq_insert_requests L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %612 = load ptr, ptr %583, align 8, (base:   %16 = phi ptr [ %8, %10 ], [ %1054, %1053 ])  <block/bfq-iosched.c:6188:19> FUNC=bfq_insert_requests L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %617 = load ptr, ptr %35, align 8, (base:   %16 = phi ptr [ %8, %10 ], [ %1054, %1053 ])  <block/bfq-iosched.c:6189:34> FUNC=bfq_insert_requests L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %659 = load ptr, ptr %583, align 8, (base:   %16 = phi ptr [ %8, %10 ], [ %1054, %1053 ])  <block/bfq-iosched.c:6191:34> FUNC=bfq_insert_requests L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %722 = load ptr, ptr %583, align 8, (base:   %16 = phi ptr [ %8, %10 ], [ %1054, %1053 ])  <block/bfq-iosched.c:6204:41> FUNC=bfq_insert_requests L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %800 = load i64, ptr %799, align 8, (base:   %16 = phi ptr [ %8, %10 ], [ %1054, %1053 ])  <./include/linux/blk-mq.h:1072:13> FUNC=bfq_insert_requests L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %812 = load i32, ptr %811, align 4, (base:   %16 = phi ptr [ %8, %10 ], [ %1054, %1053 ])  <./include/linux/blk-mq.h:1077:13> FUNC=bfq_insert_requests L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %912 = load i32, ptr %41, align 8, (base:   %16 = phi ptr [ %8, %10 ], [ %1054, %1053 ])  <./include/linux/blk-mq.h:1008:24> FUNC=bfq_insert_requests L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %926 = load i32, ptr %41, align 8, (base:   %16 = phi ptr [ %8, %10 ], [ %1054, %1053 ])  <block/bfq-iosched.c:6094:10> FUNC=bfq_insert_requests L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %935 = load i64, ptr %934, align 8, (base:   %16 = phi ptr [ %8, %10 ], [ %1054, %1053 ])  <./include/linux/blk-mq.h:1072:13> FUNC=bfq_insert_requests L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %937 = load i32, ptr %936, align 4, (base:   %16 = phi ptr [ %8, %10 ], [ %1054, %1053 ])  <./include/linux/blk-mq.h:1077:13> FUNC=bfq_insert_requests L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %950 = load i32, ptr %41, align 8, (base:   %16 = phi ptr [ %8, %10 ], [ %1054, %1053 ])  <./include/linux/blk-mq.h:1008:24> FUNC=bfq_insert_requests L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %967 = load i32, ptr %936, align 4, (base:   %16 = phi ptr [ %8, %10 ], [ %1054, %1053 ])  <./include/linux/blk-mq.h:1077:13> FUNC=bfq_insert_requests L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %1034 = load i32, ptr %41, align 8, (base:   %16 = phi ptr [ %8, %10 ], [ %1054, %1053 ])  <./include/linux/blk-mq.h:217:35> FUNC=bfq_insert_requests L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %1044 = load i32, ptr %1043, align 4, (base:   %16 = phi ptr [ %8, %10 ], [ %1054, %1053 ])  <block/blk.h:164:10> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %1045 = and i32 %1044, 4099, <block/blk.h:164:19> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %1046 = icmp eq i32 %1045, 0, <block/blk.h:164:19> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %1046, label %1047, label %1052, <block/bfq-iosched.c:6290:7> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %1035 = and i32 %1034, 254, <./include/linux/blkdev.h:282:5> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %1038 = trunc i32 %1034 to i8, <block/blk.h:153:17> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %1040 = and i32 %1034, 409600, <block/blk.h:162:20> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %1041 = icmp eq i32 %1040, 0, <block/blk.h:162:20> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %1041, label %1042, label %1052, <block/blk.h:162:20> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   switch i8 %1038, label %1039 [
+    i8 2, label %1052
+    i8 9, label %1052
+    i8 7, label %1052
+  ], <block/blk.h:153:17> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %1036 = icmp eq i32 %1035, 34, <./include/linux/blkdev.h:283:29> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %1036, label %1052, label %1037, <block/blk.h:150:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %968 = icmp ult i32 %967, 16384, <block/bfq-iosched.c:6101:25> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %968, label %974, label %1028, <block/bfq-iosched.c:6120:17> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %951 = and i32 %950, 255, <./include/linux/blk_types.h:457:13> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %953 = and i32 %950, 395264, <./include/linux/blk_types.h:457:43> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %954 = icmp ne i32 %953, 0, <./include/linux/blk_types.h:457:43> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %955 = or i1 %952, %954, <./include/linux/blk_types.h:457:43> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %956 = zext i1 %955 to i64, <block/bfq-iosched.c:6100:20> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %957 = getelementptr [2 x i32], ptr %949, i64 0, i64 %956, <block/bfq-iosched.c:6100:20> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %958 = load i32, ptr %957, align 4, <block/bfq-iosched.c:6100:20> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %959 = icmp eq i32 %958, 1, <block/bfq-iosched.c:6100:49> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %959, label %966, label %960, <block/bfq-iosched.c:6100:54> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %952 = icmp eq i32 %951, 0, <./include/linux/blk_types.h:457:28> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %938 = lshr i32 %937, 9, <./include/linux/blk-mq.h:1091:26> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %939 = zext nneg i32 %938 to i64, <block/bfq-iosched.c:6097:44> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %940 = add i64 %935, %939, <block/bfq-iosched.c:6097:42> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store i64 %940, ptr %795, align 8, <block/bfq-iosched.c:6097:25> FUNC=bfq_insert_requests L=2
+  [STORE DESTINATION] Marking pointer as tainted:   %795 = getelementptr inbounds nuw i8, ptr %666, i64 400, <block/bfq-iosched.c:6097:25> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %927 = and i32 %926, 4096, <block/bfq-iosched.c:6094:20> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %928 = icmp eq i32 %927, 0, <block/bfq-iosched.c:6094:20> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %928, label %933, label %929, <block/bfq-iosched.c:6094:20> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %913 = and i32 %912, 255, <./include/linux/blk_types.h:457:13> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %915 = and i32 %912, 395264, <./include/linux/blk_types.h:457:43> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %916 = icmp ne i32 %915, 0, <./include/linux/blk_types.h:457:43> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %917 = or i1 %914, %916, <./include/linux/blk_types.h:457:43> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %918 = zext i1 %917 to i64, <block/bfq-iosched.c:6211:38> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %919 = getelementptr [2 x i64], ptr %911, i64 0, i64 %918, <block/bfq-iosched.c:6211:38> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %920 = load i64, ptr %919, align 8, <block/bfq-iosched.c:6211:38> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %921 = add i64 %920, %910, <block/bfq-iosched.c:6211:36> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store i64 %921, ptr %922, align 8, <block/bfq-iosched.c:6211:16> FUNC=bfq_insert_requests L=2
+  [STORE DESTINATION] Marking pointer as tainted:   %922 = getelementptr i8, ptr %16, i64 152, <block/bfq-iosched.c:6211:16> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %914 = icmp eq i32 %913, 0, <./include/linux/blk_types.h:457:28> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %813 = icmp ult i32 %812, 32768, <block/bfq-iosched.c:5933:24> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %814 = zext i1 %813 to i32, <block/bfq-iosched.c:5933:24> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %816 = phi i32 [ 0, %798 ], [ 1, %804 ], [ %814, %810 ], [ 0, %791 ], <block/bfq-iosched.c:0> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %817 = or disjoint i32 %816, %794, <block/bfq-iosched.c:5933:21> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store i32 %817, ptr %792, align 8, <block/bfq-iosched.c:5933:21> FUNC=bfq_insert_requests L=2
+  [STORE DESTINATION] Marking pointer as tainted:   %792 = getelementptr inbounds nuw i8, ptr %666, i64 376, <block/bfq-iosched.c:5933:21> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %828 = icmp eq i32 %817, -1 FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %829 = select i1 %827, i1 %828, i1 false, <block/bfq-iosched.c:5936:56> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %829, label %830, label %878, <block/bfq-iosched.c:5936:56> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %801 = sub i64 %800, %796, <block/bfq-iosched.c:2386:10> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %802 = call i64 @llvm.abs.i64(i64 %801, i1 false), <block/bfq-iosched.c:2386:10> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %803 = icmp ugt i64 %802, 800, <block/bfq-iosched.c:5933:24> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %803, label %804, label %815, <block/bfq-iosched.c:5933:24> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %746 = getelementptr inbounds nuw i8, ptr %722, i64 8, <block/bfq-iosched.c:5984:28> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %747 = load ptr, ptr %746, align 8, <block/bfq-iosched.c:5984:28> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %748 = getelementptr inbounds nuw i8, ptr %747, i64 8, <block/bfq-iosched.c:5984:33> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %749 = load volatile i32, ptr %748, align 4, <./arch/x86/include/asm/atomic.h:23:9> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %750 = icmp eq i32 %749, 0, <block/bfq-iosched.c:5984:45> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %750, label %761, label %751, <block/bfq-iosched.c:5984:50> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %660 = call fastcc ptr @bfq_merge_bfqqs(ptr noundef %26, ptr noundef %659, ptr noundef %658) #280, <block/bfq-iosched.c:6191:12> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %658 = phi ptr [ %660, %657 ], [ %585, %649 ] FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %661 = icmp eq ptr %660, %587, <block/bfq-iosched.c:6190:16> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %663 = phi ptr [ %585, %649 ], [ %660, %657 ], <block/bfq-iosched.c:6166:20> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %666 = phi ptr [ %663, %662 ], [ %585, %582 ], <block/bfq-iosched.c:6166:20> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %667 = getelementptr inbounds nuw i8, ptr %666, i64 328, <block/bfq-iosched.c:5909:35> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %668 = getelementptr inbounds nuw i8, ptr %666, i64 296, <block/bfq-iosched.c:5917:12> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %672 = getelementptr inbounds nuw i8, ptr %666, i64 304, <block/bfq-iosched.c:151:1> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %707 = getelementptr inbounds nuw i8, ptr %666, i64 344, <block/bfq-iosched.c:5922:35> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %712 = getelementptr inbounds nuw i8, ptr %666, i64 336, <block/bfq-iosched.c:5923:40> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %720 = getelementptr inbounds nuw i8, ptr %666, i64 352, <block/bfq-iosched.c:5924:9> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %723 = getelementptr inbounds nuw i8, ptr %666, i64 304, <block/bfq-iosched.c:156:1> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %728 = getelementptr inbounds nuw i8, ptr %666, i64 18, <block/bfq-iosched.c:5970:30> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %736 = getelementptr inbounds nuw i8, ptr %666, i64 488, <block/bfq-iosched.c:5975:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %752 = getelementptr inbounds nuw i8, ptr %666, i64 344, <block/bfq-iosched.c:5985:7> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %756 = getelementptr inbounds nuw i8, ptr %666, i64 352, <block/bfq-iosched.c:5986:19> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %772 = getelementptr inbounds nuw i8, ptr %666, i64 24, <block/bfq-iosched.c:6080:29> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %777 = getelementptr inbounds nuw i8, ptr %666, i64 40, <block/bfq-iosched.c:6081:7> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %789 = getelementptr inbounds nuw i8, ptr %666, i64 32, <block/bfq-iosched.c:0> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %792 = getelementptr inbounds nuw i8, ptr %666, i64 376, <block/bfq-iosched.c:5932:8> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %795 = getelementptr inbounds nuw i8, ptr %666, i64 400, <block/bfq-iosched.c:5933:24> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %818 = getelementptr inbounds nuw i8, ptr %666, i64 448, <block/bfq-iosched.c:5935:12> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %822 = getelementptr inbounds nuw i8, ptr %666, i64 424, <block/bfq-iosched.c:5936:12> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %831 = getelementptr inbounds nuw i8, ptr %666, i64 480, <block/bfq-iosched.c:5938:7> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %846 = getelementptr inbounds nuw i8, ptr %666, i64 8, <block/bfq-iosched.c:2629:12> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %854 = getelementptr inbounds nuw i8, ptr %666, i64 432, <block/bfq-iosched.c:2630:9> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %876 = getelementptr inbounds nuw i8, ptr %666, i64 440, <block/bfq-iosched.c:0> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %877 = getelementptr inbounds nuw i8, ptr %666, i64 256, <block/bfq-iosched.c:0> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %879 = icmp eq ptr %666, null, <block/bfq-iosched.c:6207:12> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %923 = getelementptr inbounds nuw i8, ptr %666, i64 120, <block/bfq-iosched.c:6212:39> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %924 = getelementptr inbounds nuw i8, ptr %666, i64 128, <./include/linux/list.h:183:24> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %930 = getelementptr inbounds nuw i8, ptr %666, i64 112, <block/bfq-iosched.c:6095:9> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %943 = icmp eq ptr %666, %942, <block/bfq-iosched.c:6099:11> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %949 = getelementptr inbounds nuw i8, ptr %666, i64 104, <block/bfq-iosched.c:6100:26> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %962 = getelementptr inbounds nuw i8, ptr %666, i64 288, <block/bfq-iosched.c:4477:9> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %970 = getelementptr inbounds nuw i8, ptr %666, i64 288, <block/bfq-iosched.c:4477:9> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %986 = load i32, ptr %666, align 8, <block/bfq-iosched.c:1212:15> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %987 = getelementptr inbounds nuw i8, ptr %666, i64 208, <block/bfq-iosched.c:1212:34> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %989 = getelementptr inbounds nuw i8, ptr %666, i64 160, <block/bfq-iosched.c:1213:16> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %992 = getelementptr inbounds nuw i8, ptr %666, i64 272, <block/bfq-iosched.c:1214:10> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %996 = getelementptr inbounds nuw i8, ptr %666, i64 4, <block/bfq-iosched.c:1214:42> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   call void @bfq_bfqq_expire(ptr noundef %26, ptr noundef %666, i1 noundef zeroext false, i32 noundef 1) #280, <block/bfq-iosched.c:6142:4> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %997 = load i32, ptr %996, align 4, <block/bfq-iosched.c:1214:42> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %999 = add i32 %998, %997, <block/bfq-iosched.c:1214:34> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %1000 = sub i32 %986, %999, <block/bfq-iosched.c:1214:34> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %1001 = icmp eq i32 %1000, %995, <block/bfq-iosched.c:4511:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %1001, label %1028, label %1002, <block/bfq-iosched.c:4511:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %993 = load ptr, ptr %992, align 8, <block/bfq-iosched.c:1214:10> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %994 = icmp ne ptr %993, null, <block/bfq-iosched.c:1214:25> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %995 = zext i1 %994 to i32, <block/bfq-iosched.c:1214:25> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %990 = load i8, ptr %989, align 8, <block/bfq-iosched.c:1213:16> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %991 = zext nneg i8 %990 to i32, <block/bfq-iosched.c:1213:16> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %998 = add i32 %988, %991, <block/bfq-iosched.c:1214:34> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %988 = load i32, ptr %987, align 8, <block/bfq-iosched.c:1212:34> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %971 = load i64, ptr %970, align 8, <block/bfq-iosched.c:4477:9> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %972 = sub i64 %969, %971, <block/bfq-iosched.c:4477:9> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %973 = icmp sgt i64 %972, -1, <block/bfq-iosched.c:4477:9> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %1027 = select i1 %1026, i1 true, i1 %973, <block/bfq-iosched.c:6120:65> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %1029 = phi i1 [ %965, %960 ], [ %973, %1023 ], [ %973, %966 ], [ %973, %984 ], [ %973, %1022 ], [ %973, %1017 ] FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %1029, label %1032, label %1033, <block/bfq-iosched.c:6141:7> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %1027, label %1028, label %1033, <block/bfq-iosched.c:6120:65> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %963 = load i64, ptr %962, align 8, <block/bfq-iosched.c:4477:9> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %964 = sub i64 %961, %963, <block/bfq-iosched.c:4477:9> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %965 = icmp sgt i64 %964, -1, <block/bfq-iosched.c:4477:9> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %943, label %944, label %1033, <block/bfq-iosched.c:6099:37> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %931 = load i32, ptr %930, align 8, <block/bfq-iosched.c:6095:21> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store i32 %932, ptr %930, align 8, <block/bfq-iosched.c:6095:21> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %932 = add i32 %931, 1, <block/bfq-iosched.c:6095:21> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %925 = load ptr, ptr %924, align 8, <./include/linux/list.h:183:24> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store ptr %16, ptr %924, align 8, <./include/linux/list.h:153:13> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store ptr %925, ptr %18, align 8, <./include/linux/list.h:155:12> FUNC=bfq_insert_requests L=2
+  [STORE DESTINATION] Marking pointer as tainted:   %18 = getelementptr i8, ptr %16, i64 8, <./include/linux/list.h:155:12> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store volatile ptr %16, ptr %925, align 8, <./include/linux/list.h:156:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store ptr %923, ptr %16, align 8, <./include/linux/list.h:154:12> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %879, label %886, label %880, <block/bfq-iosched.c:6207:17> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store i32 1, ptr %877, align 8, <block/bfq-iosched.c:0> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store i64 %875, ptr %876, align 8, <block/bfq-iosched.c:0> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store i64 %853, ptr %854, align 8, <block/bfq-iosched.c:2630:28> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %847 = load ptr, ptr %846, align 8, <block/bfq-iosched.c:2629:12> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %848 = getelementptr inbounds nuw i8, ptr %847, i64 600, <block/bfq-iosched.c:2629:18> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %860 = getelementptr inbounds nuw i8, ptr %847, i64 64, <block/bfq-iosched.c:2633:15> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %861 = load i32, ptr %860, align 8, <block/bfq-iosched.c:2633:29> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store i32 %862, ptr %860, align 8, <block/bfq-iosched.c:2633:29> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %862 = add i32 %861, -1, <block/bfq-iosched.c:2633:29> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %849 = load i32, ptr %848, align 8, <block/bfq-iosched.c:2629:18> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %850 = zext i32 %849 to i64, <block/bfq-iosched.c:2629:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %851 = icmp eq i64 %823, %850, <block/bfq-iosched.c:2628:28> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %851, label %855, label %852, <block/bfq-iosched.c:2628:28> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %832 = load i64, ptr %831, align 8, <block/bfq-iosched.c:5938:7> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %842 = sub i64 %832, %841, <block/bfq-iosched.c:5938:7> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %875 = phi i64 [ %864, %863 ], [ %832, %865 ] FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %843 = add i64 %842, %840, <block/bfq-iosched.c:5938:7> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %844 = icmp slt i64 %843, 0, <block/bfq-iosched.c:5938:7> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %844, label %845, label %865, <block/bfq-iosched.c:5938:7> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %823 = load i64, ptr %822, align 8, <block/bfq-iosched.c:5936:12> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store i64 0, ptr %822, align 8, <block/bfq-iosched.c:2635:24> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store i64 %873, ptr %822, align 8, <block/bfq-iosched.c:1139:24> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %827 = icmp eq i64 %823, %826, <block/bfq-iosched.c:5936:28> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %819 = load i32, ptr %818, align 8, <block/bfq-iosched.c:5935:12> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store i32 1, ptr %818, align 8, <block/bfq-iosched.c:2634:17> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store i32 %867, ptr %818, align 8, <block/bfq-iosched.c:1138:17> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %820 = icmp ugt i32 %819, 1, <block/bfq-iosched.c:5935:21> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %820, label %821, label %878, <block/bfq-iosched.c:5935:25> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %796 = load i64, ptr %795, align 8, <block/bfq-iosched.c:5933:24> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %797 = icmp eq i64 %796, 0, <block/bfq-iosched.c:2385:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %797, label %815, label %798, <block/bfq-iosched.c:2385:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %793 = load i32, ptr %792, align 8, <block/bfq-iosched.c:5932:21> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store i32 %794, ptr %792, align 8, <block/bfq-iosched.c:5932:21> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %1003 = load i32, ptr %792, align 8, <block/bfq-iosched.c:4514:34> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %1004 = call i32 asm "# ALT: oldinstr\0A771:\0A\09call __sw_hweight32\0A772:\0A# ALT: padding\0A.skip -(((775f-774f)-(772b-771b)) > 0) * ((775f-774f)-(772b-771b)),0x90\0A773:\0A.pushsection .altinstructions,\22a\22\0A .long 771b - .\0A .long 774f - .\0A .4byte ( 4*32+23)\0A .byte 773b-771b\0A .byte 775f-774f\0A.popsection\0A.pushsection .altinstr_replacement, \22ax\22\0A# ALT: replacement\0A774:\0A\09popcntl $1, $0\0A775:\0A.popsection\0A", "={ax},{di},~{dirflag},~{fpsr},~{flags}"(i32 %1003) #281, <./arch/x86/include/asm/arch_hweight.h:19:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %1005 = icmp ugt i32 %1004, 19, <block/bfq-iosched.c:4514:34> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %1005, label %1014, label %1006, <block/bfq-iosched.c:4514:51> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %794 = shl i32 %793, 1, <block/bfq-iosched.c:5932:21> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store i32 %788, ptr %789, align 8, <block/bfq-iosched.c:0> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %778 = load i64, ptr %777, align 8, <block/bfq-iosched.c:6081:7> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store i64 %790, ptr %777, align 8, <block/bfq-iosched.c:2059:26> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %780 = sub i64 %779, %778, <block/bfq-iosched.c:6081:7> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %781 = icmp slt i64 %780, 0, <block/bfq-iosched.c:6081:7> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %782 = and i1 %763, %781, <block/bfq-iosched.c:6082:34> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %782, label %791, label %783, <block/bfq-iosched.c:6082:34> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %773 = load i64, ptr %772, align 8, <block/bfq-iosched.c:6080:29> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store i64 0, ptr %772, align 8, <block/bfq-iosched.c:2000:26> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %774 = icmp eq i64 %773, 0, <block/bfq-iosched.c:6080:47> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %774, label %775, label %791, <block/bfq-iosched.c:6080:52> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %757 = load i64, ptr %756, align 8, <block/bfq-iosched.c:5986:19> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %760 = icmp ugt i64 %757, %759, <block/bfq-iosched.c:5986:30> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %760, label %761, label %762, <block/bfq-iosched.c:5984:50> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %753 = load i64, ptr %752, align 8, <block/bfq-iosched.c:5985:7> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %754 = icmp ugt i64 %753, 80, <block/bfq-iosched.c:5985:7> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %754, label %755, label %762, <block/bfq-iosched.c:5985:51> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %737 = load i64, ptr %736, align 8, <block/bfq-iosched.c:5975:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %741 = add i64 %737, %740, <block/bfq-iosched.c:5975:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %743 = sub i64 %741, %742, <block/bfq-iosched.c:5975:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %744 = icmp sgt i64 %743, -1, <block/bfq-iosched.c:5975:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %744, label %791, label %745, <block/bfq-iosched.c:5975:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %729 = load i16, ptr %728, align 2, <block/bfq-iosched.c:5970:30> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %730 = icmp eq i16 %729, 3, <block/bfq-iosched.c:5970:30> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %730, label %791, label %731, <block/bfq-iosched.c:5970:51> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %724 = load volatile i64, ptr %723, align 8, <./arch/x86/include/asm/bitops.h:206:4> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %764 = load volatile i64, ptr %723, align 8, <./arch/x86/include/asm/bitops.h:206:4> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   call void asm sideeffect " btsq  $1,$0", "*m,Ir,~{memory},~{dirflag},~{fpsr},~{flags}"(ptr nonnull elementtype(i64) %723, i64 5) #278, <./arch/x86/include/asm/bitops.h:68:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   call void asm sideeffect " btrq  $1,$0", "*m,Ir,~{memory},~{dirflag},~{fpsr},~{flags}"(ptr nonnull elementtype(i64) %723, i64 5) #278, <./arch/x86/include/asm/bitops.h:94:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %785 = load volatile i64, ptr %723, align 8, <./arch/x86/include/asm/bitops.h:206:4> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %856 = load volatile i64, ptr %723, align 8, <./arch/x86/include/asm/bitops.h:206:4> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %881 = load volatile i64, ptr %723, align 8, <./arch/x86/include/asm/bitops.h:206:4> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %885 = load volatile i64, ptr %723, align 8, <./arch/x86/include/asm/bitops.h:206:4> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %945 = load volatile i64, ptr %723, align 8, <./arch/x86/include/asm/bitops.h:206:4> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %1007 = load volatile i64, ptr %723, align 8, <./arch/x86/include/asm/bitops.h:206:4> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %1011 = load volatile i64, ptr %723, align 8, <./arch/x86/include/asm/bitops.h:206:4> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   call void asm sideeffect " btrq  $1,$0", "*m,Ir,~{memory},~{dirflag},~{fpsr},~{flags}"(ptr nonnull elementtype(i64) %723, i64 2) #278, <./arch/x86/include/asm/bitops.h:94:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %1012 = and i64 %1011, 32, <block/bfq-iosched.c:4515:27> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %1013 = icmp ne i64 %1012, 0, <block/bfq-iosched.c:4515:27> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %1015 = phi i1 [ false, %1006 ], [ false, %1002 ], [ %1013, %1010 ], <block/bfq-iosched.c:0> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %1021 = select i1 %1020, i1 %1015, i1 false, <block/bfq-iosched.c:4540:54> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %1015, label %1023, label %1028, <block/bfq-iosched.c:4577:27> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %1021, label %1023, label %1028, <block/bfq-iosched.c:4540:54> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %1008 = and i64 %1007, 128, <block/bfq-iosched.c:4515:3> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %1009 = icmp eq i64 %1008, 0, <block/bfq-iosched.c:4515:3> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %1009, label %1014, label %1010, <block/bfq-iosched.c:4515:27> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %946 = and i64 %945, 4, <block/bfq-iosched.c:6099:40> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %947 = icmp eq i64 %946, 0, <block/bfq-iosched.c:6099:40> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %947, label %1033, label %948, <block/bfq-iosched.c:6099:37> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %882 = and i64 %881, 4, <block/bfq-iosched.c:6207:17> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %883 = icmp eq i64 %882, 0, <block/bfq-iosched.c:6207:17> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %883, label %887, label %884, <block/bfq-iosched.c:6209:32> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %857 = and i64 %856, 2, <block/bfq-iosched.c:2632:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %858 = icmp eq i64 %857, 0, <block/bfq-iosched.c:2632:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %858, label %863, label %859, <block/bfq-iosched.c:2632:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %786 = and i64 %785, 32, <block/bfq-iosched.c:2054:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %787 = icmp eq i64 %786, 0, <block/bfq-iosched.c:2054:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %788 = zext i1 %787 to i32, <block/bfq-iosched.c:2054:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %765 = and i64 %764, 32, <block/bfq-iosched.c:5989:34> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %766 = icmp eq i64 %765, 0, <block/bfq-iosched.c:5989:34> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %767 = xor i1 %763, %766, <block/bfq-iosched.c:5989:34> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %767, label %791, label %771, <block/bfq-iosched.c:6080:20> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %725 = and i64 %724, 64, <block/bfq-iosched.c:5970:7> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %726 = icmp eq i64 %725, 0, <block/bfq-iosched.c:5970:7> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %726, label %791, label %727, <block/bfq-iosched.c:5970:27> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store i64 %719, ptr %720, align 8, <block/bfq-iosched.c:5924:20> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %713 = load i64, ptr %712, align 8, <block/bfq-iosched.c:5923:40> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store i64 %717, ptr %712, align 8, <block/bfq-iosched.c:5923:21> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %714 = mul i64 %713, 7, <block/bfq-iosched.c:5923:32> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %716 = add i64 %714, %715, <block/bfq-iosched.c:5923:52> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %717 = lshr i64 %716, 3, <./include/linux/math64.h:29:18> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %718 = add nuw nsw i64 %717, 128, <block/bfq-iosched.c:5924:22> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %719 = udiv i64 %718, %711, <./include/linux/math64.h:69:18> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %708 = load i64, ptr %707, align 8, <block/bfq-iosched.c:5922:35> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store i64 %711, ptr %707, align 8, <block/bfq-iosched.c:5922:23> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %709 = mul i64 %708, 7, <block/bfq-iosched.c:5922:27> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %710 = add i64 %709, 256, <block/bfq-iosched.c:5922:49> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %711 = lshr i64 %710, 3, <block/bfq-iosched.c:5922:56> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %673 = load volatile i64, ptr %672, align 8, <./arch/x86/include/asm/bitops.h:206:4> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %674 = and i64 %673, 2, <block/bfq-iosched.c:5917:26> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %675 = icmp eq i64 %674, 0, <block/bfq-iosched.c:5917:26> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %675, label %676, label %721, <block/bfq-iosched.c:5917:23> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %669 = load i32, ptr %668, align 8, <block/bfq-iosched.c:5917:12> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %670 = icmp eq i32 %669, 0, <block/bfq-iosched.c:5917:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %670, label %671, label %721, <block/bfq-iosched.c:5917:23> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %700 = load i64, ptr %667, align 8, <block/bfq-iosched.c:5919:44> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %701 = sub i64 %699, %700, <block/bfq-iosched.c:5919:30> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %706 = call i64 @llvm.umin.i64(i64 %701, i64 %705), <block/bfq-iosched.c:5920:12> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %715 = shl nuw nsw i64 %706, 8, <block/bfq-iosched.c:5923:57> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %661, label %662, label %657, <block/bfq-iosched.c:6190:4> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %618 = getelementptr inbounds nuw i8, ptr %617, i64 32, <block/bfq-iosched.c:1813:8> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %620 = getelementptr inbounds nuw i8, ptr %617, i64 40, <block/bfq-iosched.c:1813:8> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %621 = load i32, ptr %620, align 8, <block/bfq-iosched.c:1813:8> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %622 = lshr i32 %621, 9, <block/bfq-iosched.c:1813:8> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %623 = zext nneg i32 %622 to i64, <block/bfq-iosched.c:1813:8> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %625 = add i64 %624, %623, <block/bfq-iosched.c:1813:28> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %635 = icmp ult i64 %625, %634, <block/bfq-iosched.c:1816:11> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %640 = icmp ult i64 %625, %639, <block/bfq-iosched.c:1817:11> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   call void (ptr, ...) @__warn_printk(ptr noundef nonnull @.str.26.44780, i64 noundef %625) #279, <block/bfq-iosched.c:1821:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %640, label %647, label %641, <block/bfq-iosched.c:1816:30> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %635, label %641, label %636, <block/bfq-iosched.c:1816:30> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %619 = load i64, ptr %618, align 8, <block/bfq-iosched.c:1813:8> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %624 = add i64 %619, -1, <block/bfq-iosched.c:1813:8> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %651 = getelementptr i8, ptr %612, i64 120, <block/bfq-iosched.c:382:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %652 = getelementptr [8 x ptr], ptr %651, i64 0, i64 %650, <block/bfq-iosched.c:382:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %653 = load ptr, ptr %652, align 8, <block/bfq-iosched.c:0> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %654 = icmp ne ptr %653, %585, <block/bfq-iosched.c:6189:40> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %656 = or i1 %655, %654, <block/bfq-iosched.c:6189:40> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %656, label %662, label %657, <block/bfq-iosched.c:6189:40> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %587 = call fastcc ptr @bfq_setup_cooperator(ptr noundef %26, ptr noundef %585, ptr noundef %17, i1 noundef zeroext true, ptr noundef %586) #280, <block/bfq-iosched.c:6167:15> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %588 = icmp eq ptr %587, null, <block/bfq-iosched.c:6171:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %590 = getelementptr inbounds nuw i8, ptr %587, i64 136, <block/bfq-iosched.c:6149:37> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %610 = load i32, ptr %587, align 8, <block/bfq-iosched.c:6179:16> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store i32 %611, ptr %587, align 8, <block/bfq-iosched.c:6179:16> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %655 = icmp eq ptr %585, %587 FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store ptr %587, ptr %584, align 8, <block/bfq-iosched.c:6200:19> FUNC=bfq_insert_requests L=2
+  [STORE DESTINATION] Marking pointer as tainted:   %584 = getelementptr i8, ptr %16, i64 128, <block/bfq-iosched.c:6200:19> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %611 = add i32 %610, 1, <block/bfq-iosched.c:6179:16> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %592 = phi ptr [ %590, %589 ], [ %597, %591 ] FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %593 = getelementptr inbounds nuw i8, ptr %592, i64 72, <block/bfq-iosched.c:6152:11> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %596 = getelementptr inbounds nuw i8, ptr %592, i64 96, <block/bfq-iosched.c:6151:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %597 = load ptr, ptr %596, align 8, <block/bfq-iosched.c:6151:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %598 = icmp eq ptr %597, null, <block/bfq-iosched.c:6151:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %598, label %599, label %591, <block/bfq-iosched.c:6151:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %594 = load i32, ptr %593, align 8, <block/bfq-iosched.c:6152:20> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store i32 %595, ptr %593, align 8, <block/bfq-iosched.c:6152:20> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %595 = add i32 %594, 1, <block/bfq-iosched.c:6152:20> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %588, label %665, label %589, <block/bfq-iosched.c:6171:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %600 = getelementptr inbounds nuw i8, ptr %585, i64 136, <block/bfq-iosched.c:6157:37> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %664 = getelementptr inbounds nuw i8, ptr %585, i64 304, <block/bfq-iosched.c:150:1> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   call void @bfq_put_queue(ptr noundef %585) #280, <block/bfq-iosched.c:6199:3> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   call void asm sideeffect " btrq  $1,$0", "*m,Ir,~{memory},~{dirflag},~{fpsr},~{flags}"(ptr nonnull elementtype(i64) %664, i64 0) #278, <./arch/x86/include/asm/bitops.h:94:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %602 = phi ptr [ %600, %599 ], [ %607, %601 ] FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %603 = getelementptr inbounds nuw i8, ptr %602, i64 72, <block/bfq-iosched.c:6160:11> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %606 = getelementptr inbounds nuw i8, ptr %602, i64 96, <block/bfq-iosched.c:6159:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %607 = load ptr, ptr %606, align 8, <block/bfq-iosched.c:6159:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %608 = icmp eq ptr %607, null, <block/bfq-iosched.c:6159:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %608, label %609, label %601, <block/bfq-iosched.c:6159:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %604 = load i32, ptr %603, align 8, <block/bfq-iosched.c:6160:20> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store i32 %605, ptr %603, align 8, <block/bfq-iosched.c:6160:20> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %605 = add i32 %604, -1, <block/bfq-iosched.c:6160:20> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %92 = icmp eq ptr %91, null, <block/bfq-iosched.c:6964:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %536 = phi ptr [ null, %83 ], [ %91, %88 ], [ %329, %393 ], [ %329, %402 ], [ %329, %405 ], [ %329, %410 ], [ %329, %414 ], [ %329, %533 ], <block/bfq-iosched.c:0> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %577 = icmp eq ptr %536, null, <block/bfq-iosched.c:6279:14> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %577, label %578, label %582, <block/bfq-iosched.c:6279:13> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %92, label %93, label %535, <block/bfq-iosched.c:6964:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %87 = icmp eq ptr %86, null, <block/bfq-iosched.c:6954:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %94 = load ptr, ptr %86, align 8, <block/bfq-iosched.c:438:18> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %99 = getelementptr inbounds nuw i8, ptr %86, i64 8, <block/bfq-iosched.c:5580:24> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %106 = getelementptr inbounds nuw i8, ptr %86, i64 184, <block/bfq-iosched.c:5586:25> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %111 = getelementptr i8, ptr %86, i64 120, <block/bfq-iosched.c:382:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %113 = getelementptr inbounds nuw i8, ptr %86, i64 56, <block/bfq-iosched.c:382:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %118 = call fastcc ptr @bfq_get_queue(ptr noundef nonnull %98, ptr noundef %36, i1 noundef zeroext false, ptr noundef nonnull %86, i1 noundef zeroext true) #280, <block/bfq-iosched.c:5595:10> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   call void @bic_set_bfqq(ptr noundef nonnull %86, ptr noundef %118, i1 noundef zeroext false, i32 noundef %119) #280, <block/bfq-iosched.c:5596:3> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   call fastcc void @bfq_set_next_ioprio_data(ptr noundef %124, ptr noundef nonnull %86) #280, <block/bfq-iosched.c:5602:3> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   call void @bfq_bic_update_cgroup(ptr noundef nonnull %86, ptr noundef %36) #279, <block/bfq-iosched.c:6969:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %128 = call fastcc ptr @__bfq_get_bfqq_handle_split(ptr noundef %40, ptr noundef nonnull %86, ptr noundef %36, i1 noundef zeroext false, i1 noundef zeroext %47, ptr noundef nonnull %5) #280, <block/bfq-iosched.c:6878:9> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %141 = getelementptr inbounds nuw i8, ptr %86, i64 200, <block/bfq-iosched.c:6885:11> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %259 = getelementptr i8, ptr %86, i64 120, <block/bfq-iosched.c:395:31> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %266 = icmp eq ptr %265, %86, <block/bfq-iosched.c:413:32> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   call fastcc void @bfq_bfqq_resume_state(ptr noundef nonnull %128, ptr noundef %40, ptr noundef nonnull %86, i1 noundef zeroext true) #280, <block/bfq-iosched.c:6896:3> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %312 = call fastcc ptr @__bfq_get_bfqq_handle_split(ptr noundef %40, ptr noundef nonnull %86, ptr noundef %36, i1 noundef zeroext true, i1 noundef zeroext %47, ptr noundef null) #280, <block/bfq-iosched.c:6900:9> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   call fastcc void @bfq_bfqq_resume_state(ptr noundef %312, ptr noundef %40, ptr noundef nonnull %86, i1 noundef zeroext false) #280, <block/bfq-iosched.c:6904:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %342 = getelementptr inbounds nuw i8, ptr %86, i64 1352, <block/bfq-iosched.c:6974:7> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store ptr %86, ptr %89, align 8, <block/bfq-iosched.c:6978:18> FUNC=bfq_insert_requests L=2
+  [STORE DESTINATION] Marking pointer as tainted:   %89 = getelementptr i8, ptr %16, i64 120, <block/bfq-iosched.c:6978:18> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store ptr %86, ptr %392, align 8, <block/bfq-iosched.c:6989:13> FUNC=bfq_insert_requests L=2
+  [STORE DESTINATION] Marking pointer as tainted:   %392 = getelementptr inbounds nuw i8, ptr %329, i64 416, <block/bfq-iosched.c:6989:13> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %343 = load i32, ptr %342, align 8, <block/bfq-iosched.c:6974:15> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store i32 %344, ptr %342, align 8, <block/bfq-iosched.c:6974:15> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %344 = add i32 %343, 1, <block/bfq-iosched.c:6974:15> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %314 = icmp eq ptr %312, %313, <block/bfq-iosched.c:6901:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %316 = getelementptr inbounds nuw i8, ptr %312, i64 512, <block/bfq-iosched.c:6905:8> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %317 = getelementptr inbounds nuw i8, ptr %312, i64 520, <block/bfq-iosched.c:6906:8> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %320 = getelementptr inbounds nuw i8, ptr %312, i64 544, <block/bfq-iosched.c:6915:25> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %327 = getelementptr inbounds nuw i8, ptr %312, i64 552, <./include/linux/list.h:1028:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %329 = phi ptr [ %128, %310 ], [ %128, %127 ], [ %128, %140 ], [ %128, %136 ], [ %128, %131 ], [ %312, %311 ], [ %312, %326 ], [ %312, %315 ], <block/bfq-iosched.c:0> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %330 = getelementptr inbounds nuw i8, ptr %329, i64 136, <block/bfq-iosched.c:6149:37> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %340 = load i32, ptr %329, align 8, <block/bfq-iosched.c:6973:11> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store i32 %341, ptr %329, align 8, <block/bfq-iosched.c:6973:11> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   call fastcc void @bfq_bfqq_name(ptr noundef %329, ptr noundef nonnull %6) #280, <block/bfq-iosched.c:6975:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %360 = call ptr @bfqq_group(ptr noundef %329) #279, <block/bfq-iosched.c:6975:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %364 = load i32, ptr %329, align 8, <block/bfq-iosched.c:6975:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   call void (ptr, ptr, ptr, ...) @__blk_trace_note_message(ptr noundef nonnull %357, ptr noundef %363, ptr noundef nonnull @.str.31.44782, ptr noundef nonnull %6, ptr noundef %17, ptr noundef %329, i32 noundef %364) #279, <block/bfq-iosched.c:6975:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store ptr %329, ptr %90, align 8, <block/bfq-iosched.c:6979:18> FUNC=bfq_insert_requests L=2
+  [STORE DESTINATION] Marking pointer as tainted:   %90 = getelementptr i8, ptr %16, i64 128, <block/bfq-iosched.c:6979:18> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %368 = icmp eq ptr %329, %367, <block/bfq-iosched.c:6987:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %370 = getelementptr inbounds nuw i8, ptr %329, i64 48, <block/bfq-iosched.c:6987:48> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %374 = load i32, ptr %329, align 8, <block/bfq-iosched.c:1212:15> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %375 = getelementptr inbounds nuw i8, ptr %329, i64 208, <block/bfq-iosched.c:1212:34> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %377 = getelementptr inbounds nuw i8, ptr %329, i64 160, <block/bfq-iosched.c:1213:16> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %380 = getelementptr inbounds nuw i8, ptr %329, i64 272, <block/bfq-iosched.c:1214:10> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %384 = getelementptr inbounds nuw i8, ptr %329, i64 4, <block/bfq-iosched.c:1214:42> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %392 = getelementptr inbounds nuw i8, ptr %329, i64 416, <block/bfq-iosched.c:6989:9> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %394 = getelementptr inbounds nuw i8, ptr %329, i64 304, <block/bfq-iosched.c:150:1> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %406 = getelementptr inbounds nuw i8, ptr %329, i64 384, <block/bfq-iosched.c:1400:29> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %407 = getelementptr inbounds nuw i8, ptr %329, i64 392, <./include/linux/list.h:950:13> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %415 = getelementptr inbounds nuw i8, ptr %329, i64 488, <block/bfq-iosched.c:1402:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %431 = getelementptr inbounds nuw i8, ptr %329, i64 232, <block/bfq-iosched.c:1425:19> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %472 = getelementptr inbounds nuw i8, ptr %329, i64 232, <block/bfq-iosched.c:1237:43> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %473 = load ptr, ptr %472, align 8, <block/bfq-iosched.c:1237:43> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store ptr %473, ptr %474, align 8, <block/bfq-iosched.c:1237:28> FUNC=bfq_insert_requests L=2
+  [STORE DESTINATION] Marking pointer as tainted:   %474 = getelementptr inbounds nuw i8, ptr %40, i64 560, <block/bfq-iosched.c:1237:28> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %432 = load ptr, ptr %431, align 8, <block/bfq-iosched.c:1425:19> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %435 = icmp eq ptr %432, %434, <block/bfq-iosched.c:1425:26> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %435, label %475, label %436, <block/bfq-iosched.c:1424:32> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %416 = load i64, ptr %415, align 8, <block/bfq-iosched.c:1402:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %417 = add i64 %416, 10, <block/bfq-iosched.c:1402:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %419 = sub i64 %417, %418, <block/bfq-iosched.c:1402:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %420 = icmp sgt i64 %419, -1, <block/bfq-iosched.c:1402:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %420, label %535, label %421, <block/bfq-iosched.c:1401:36> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %408 = load ptr, ptr %407, align 8, <./include/linux/list.h:950:13> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store volatile ptr %438, ptr %407, align 8, <./include/linux/list.h:1028:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store volatile ptr %527, ptr %407, align 8, <./include/linux/list.h:1028:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %409 = icmp eq ptr %408, null, <./include/linux/list.h:950:9> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %409, label %410, label %535, <block/bfq-iosched.c:1400:46> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store volatile ptr %465, ptr %406, align 8, <./include/linux/list.h:1024:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store volatile ptr %406, ptr %468, align 8, <./include/linux/list.h:1026:3> FUNC=bfq_insert_requests L=2
+  [STORE DESTINATION] Marking pointer as tainted:   %468 = getelementptr inbounds nuw i8, ptr %465, i64 8, <./include/linux/list.h:1026:3> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store volatile ptr %406, ptr %438, align 8, <./include/linux/list.h:1027:2> FUNC=bfq_insert_requests L=2
+  [STORE DESTINATION] Marking pointer as tainted:   %438 = getelementptr inbounds nuw i8, ptr %40, i64 584, <./include/linux/list.h:1027:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store volatile ptr %528, ptr %406, align 8, <./include/linux/list.h:1024:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store volatile ptr %406, ptr %531, align 8, <./include/linux/list.h:1026:3> FUNC=bfq_insert_requests L=2
+  [STORE DESTINATION] Marking pointer as tainted:   %531 = getelementptr inbounds nuw i8, ptr %528, i64 8, <./include/linux/list.h:1026:3> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store volatile ptr %406, ptr %527, align 8, <./include/linux/list.h:1027:2> FUNC=bfq_insert_requests L=2
+  [STORE DESTINATION] Marking pointer as tainted:   %527 = getelementptr inbounds nuw i8, ptr %40, i64 584, <./include/linux/list.h:1027:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %395 = load volatile i64, ptr %394, align 8, <./arch/x86/include/asm/bitops.h:206:4> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %411 = load volatile i64, ptr %394, align 8, <./arch/x86/include/asm/bitops.h:206:4> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   call void asm sideeffect " btsq  $1,$0", "*m,Ir,~{memory},~{dirflag},~{fpsr},~{flags}"(ptr nonnull elementtype(i64) %394, i64 8) #278, <./arch/x86/include/asm/bitops.h:68:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   call void asm sideeffect " btsq  $1,$0", "*m,Ir,~{memory},~{dirflag},~{fpsr},~{flags}"(ptr nonnull elementtype(i64) %394, i64 8) #278, <./arch/x86/include/asm/bitops.h:68:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %412 = and i64 %411, 256, <block/bfq-iosched.c:1401:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %413 = icmp eq i64 %412, 0, <block/bfq-iosched.c:1401:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %413, label %414, label %535, <block/bfq-iosched.c:1401:36> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %396 = and i64 %395, 1, <block/bfq-iosched.c:7011:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %397 = icmp eq i64 %396, 0, <block/bfq-iosched.c:7011:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %397, label %535, label %398, <block/bfq-iosched.c:7011:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %385 = load i32, ptr %384, align 4, <block/bfq-iosched.c:1214:42> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %387 = add i32 %386, %385, <block/bfq-iosched.c:1214:34> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %388 = sub i32 %374, %387, <block/bfq-iosched.c:1214:34> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %389 = add i32 %388, %383, <block/bfq-iosched.c:1214:34> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %390 = icmp eq i32 %389, 1, <block/bfq-iosched.c:6988:30> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %390, label %391, label %393, <block/bfq-iosched.c:6987:57> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %381 = load ptr, ptr %380, align 8, <block/bfq-iosched.c:1214:10> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %382 = icmp ne ptr %381, null, <block/bfq-iosched.c:1214:25> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %383 = sext i1 %382 to i32, <block/bfq-iosched.c:1214:25> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %378 = load i8, ptr %377, align 8, <block/bfq-iosched.c:1213:16> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %379 = zext nneg i8 %378 to i32, <block/bfq-iosched.c:1213:16> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %386 = add i32 %376, %379, <block/bfq-iosched.c:1214:34> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %376 = load i32, ptr %375, align 8, <block/bfq-iosched.c:1212:34> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %371 = load ptr, ptr %370, align 8, <block/bfq-iosched.c:6987:48> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %372 = icmp eq ptr %371, null, <block/bfq-iosched.c:6987:42> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %372, label %373, label %393, <block/bfq-iosched.c:6987:57> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %368, label %393, label %369, <block/bfq-iosched.c:6987:38> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %361 = call ptr @bfqg_to_blkg(ptr noundef %360) #279, <block/bfq-iosched.c:6975:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %362 = getelementptr inbounds nuw i8, ptr %361, i64 40, <block/bfq-iosched.c:6975:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %363 = load ptr, ptr %362, align 8, <block/bfq-iosched.c:6975:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %341 = add i32 %340, 1, <block/bfq-iosched.c:6973:11> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %332 = phi ptr [ %330, %328 ], [ %337, %331 ] FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %333 = getelementptr inbounds nuw i8, ptr %332, i64 72, <block/bfq-iosched.c:6152:11> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %336 = getelementptr inbounds nuw i8, ptr %332, i64 96, <block/bfq-iosched.c:6151:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %337 = load ptr, ptr %336, align 8, <block/bfq-iosched.c:6151:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %338 = icmp eq ptr %337, null, <block/bfq-iosched.c:6151:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %338, label %339, label %331, <block/bfq-iosched.c:6151:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %334 = load i32, ptr %333, align 8, <block/bfq-iosched.c:6152:20> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store i32 %335, ptr %333, align 8, <block/bfq-iosched.c:6152:20> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %335 = add i32 %334, 1, <block/bfq-iosched.c:6152:20> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store volatile ptr %321, ptr %327, align 8, <./include/linux/list.h:1028:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store volatile ptr %322, ptr %320, align 8, <./include/linux/list.h:1024:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store volatile ptr %320, ptr %325, align 8, <./include/linux/list.h:1026:3> FUNC=bfq_insert_requests L=2
+  [STORE DESTINATION] Marking pointer as tainted:   %325 = getelementptr inbounds nuw i8, ptr %322, i64 8, <./include/linux/list.h:1026:3> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store volatile ptr %320, ptr %321, align 8, <./include/linux/list.h:1027:2> FUNC=bfq_insert_requests L=2
+  [STORE DESTINATION] Marking pointer as tainted:   %321 = getelementptr inbounds nuw i8, ptr %195, i64 560, <./include/linux/list.h:1027:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store ptr null, ptr %317, align 8, <block/bfq-iosched.c:6906:29> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store ptr %195, ptr %316, align 8, <block/bfq-iosched.c:6905:19> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %314, label %328, label %315, <block/bfq-iosched.c:6901:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %266, label %267, label %268, <block/bfq-iosched.c:413:15> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %260 = getelementptr i8, ptr %259, i64 %258, <block/bfq-iosched.c:395:31> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %269 = getelementptr [8 x ptr], ptr %259, i64 0, i64 %257, <block/bfq-iosched.c:0> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store ptr null, ptr %269, align 8, <block/bfq-iosched.c:0> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %261 = load ptr, ptr %260, align 8, <block/bfq-iosched.c:395:31> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %262 = icmp eq ptr %261, null, <block/bfq-iosched.c:413:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %264 = getelementptr inbounds nuw i8, ptr %261, i64 416, <block/bfq-iosched.c:413:28> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %265 = load ptr, ptr %264, align 8, <block/bfq-iosched.c:413:28> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store ptr null, ptr %264, align 8, <block/bfq-iosched.c:414:17> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %262, label %268, label %263, <block/bfq-iosched.c:413:15> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %142 = getelementptr [8 x %struct.bfq_iocq_bfqq_data], ptr %141, i64 0, i64 %84, <block/bfq-iosched.c:6885:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %143 = getelementptr inbounds nuw i8, ptr %142, i64 136, <block/bfq-iosched.c:6885:26> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %200 = getelementptr inbounds nuw i8, ptr %142, i64 24, <block/bfq-iosched.c:6892:23> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store i8 1, ptr %200, align 8, <block/bfq-iosched.c:6892:44> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %144 = load i8, ptr %143, align 8, <block/bfq-iosched.c:6885:26> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %145 = trunc nuw i8 %144 to i1, <block/bfq-iosched.c:6885:26> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %145, label %328, label %146, <block/bfq-iosched.c:6884:57> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %132 = getelementptr inbounds nuw i8, ptr %128, i64 304, <block/bfq-iosched.c:159:1> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %147 = getelementptr inbounds nuw i8, ptr %128, i64 512, <block/bfq-iosched.c:6838:39> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %151 = phi ptr [ %153, %155 ], [ %128, %146 ] FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %202 = getelementptr inbounds nuw i8, ptr %128, i64 8, <block/bfq-iosched.c:6736:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   call fastcc void @bfq_bfqq_name(ptr noundef %128, ptr noundef nonnull %4) #280, <block/bfq-iosched.c:6736:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %220 = call ptr @bfqq_group(ptr noundef %128) #279, <block/bfq-iosched.c:6736:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %226 = load i32, ptr %128, align 8, <block/bfq-iosched.c:1212:15> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %227 = getelementptr inbounds nuw i8, ptr %128, i64 208, <block/bfq-iosched.c:1212:34> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %229 = getelementptr inbounds nuw i8, ptr %128, i64 160, <block/bfq-iosched.c:1213:16> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %232 = getelementptr inbounds nuw i8, ptr %128, i64 272, <block/bfq-iosched.c:1214:10> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %236 = getelementptr inbounds nuw i8, ptr %128, i64 4, <block/bfq-iosched.c:1214:42> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %244 = getelementptr inbounds nuw i8, ptr %128, i64 48, <block/bfq-iosched.c:6738:45> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %252 = getelementptr inbounds nuw i8, ptr %128, i64 412, <block/bfq-iosched.c:6739:9> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %253 = icmp eq ptr %128, null, <block/bfq-iosched.c:6895:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %255 = getelementptr inbounds nuw i8, ptr %128, i64 568, <block/bfq-iosched.c:6745:38> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %270 = getelementptr inbounds nuw i8, ptr %128, i64 48, <block/bfq-iosched.c:5442:17> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %284 = getelementptr inbounds nuw i8, ptr %128, i64 88, <block/bfq-iosched.c:3134:29> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %290 = icmp eq ptr %128, %289, <block/bfq-iosched.c:3135:11> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   call void @bfq_del_bfqq_busy(ptr noundef %128, i1 noundef zeroext false) #279, <block/bfq-iosched.c:3136:3> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %293 = getelementptr inbounds nuw i8, ptr %128, i64 232, <block/bfq-iosched.c:3114:23> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %299 = icmp eq ptr %298, %128, <block/bfq-iosched.c:3115:49> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %307 = icmp eq ptr %306, %128, <block/bfq-iosched.c:3117:63> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   call void @bfq_put_queue(ptr noundef %128) #280, <block/bfq-iosched.c:3140:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %307, label %308, label %309, <block/bfq-iosched.c:3117:26> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %299, label %300, label %301, <block/bfq-iosched.c:3114:30> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %294 = load ptr, ptr %293, align 8, <block/bfq-iosched.c:3114:23> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %295 = icmp eq ptr %294, null, <block/bfq-iosched.c:3114:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %297 = getelementptr inbounds nuw i8, ptr %294, i64 128, <block/bfq-iosched.c:3115:31> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %298 = load ptr, ptr %297, align 8, <block/bfq-iosched.c:3115:31> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store ptr null, ptr %297, align 8, <block/bfq-iosched.c:3116:46> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %295, label %301, label %296, <block/bfq-iosched.c:3114:30> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %290, label %292, label %291, <block/bfq-iosched.c:3134:61> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %285 = load volatile ptr, ptr %284, align 8, <block/bfq-iosched.c:3134:29> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %286 = icmp eq ptr %285, null, <block/bfq-iosched.c:3134:29> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %286, label %287, label %292, <block/bfq-iosched.c:3134:61> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %271 = load ptr, ptr %270, align 8, <block/bfq-iosched.c:5442:17> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %274 = phi ptr [ %276, %273 ], [ %271, %268 ] FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %272 = icmp eq ptr %271, null, <block/bfq-iosched.c:5443:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %272, label %278, label %273, <block/bfq-iosched.c:5443:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %275 = getelementptr inbounds nuw i8, ptr %274, i64 48, <block/bfq-iosched.c:5444:18> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   call void @bfq_put_queue(ptr noundef nonnull %274) #280, <block/bfq-iosched.c:5445:3> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %276 = load ptr, ptr %275, align 8, <block/bfq-iosched.c:5444:18> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %277 = icmp eq ptr %276, null, <block/bfq-iosched.c:5443:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %277, label %278, label %273, <block/bfq-iosched.c:5443:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %256 = load i32, ptr %255, align 8, <block/bfq-iosched.c:6745:38> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %257 = zext i32 %256 to i64, <block/bfq-iosched.c:395:31> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %258 = shl nuw nsw i64 %257, 3, <block/bfq-iosched.c:395:31> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %253, label %311, label %310, <block/bfq-iosched.c:6895:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store i32 %251, ptr %252, align 4, <block/bfq-iosched.c:6739:13> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %245 = load ptr, ptr %244, align 8, <block/bfq-iosched.c:6738:45> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %246 = icmp eq ptr %245, null, <block/bfq-iosched.c:6738:39> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %246, label %247, label %254, <block/bfq-iosched.c:6738:35> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %237 = load i32, ptr %236, align 4, <block/bfq-iosched.c:1214:42> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %239 = add i32 %238, %237, <block/bfq-iosched.c:1214:34> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %240 = sub i32 %226, %239, <block/bfq-iosched.c:1214:34> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %241 = add i32 %240, %235, <block/bfq-iosched.c:1214:34> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %242 = icmp eq i32 %241, 1, <block/bfq-iosched.c:6738:30> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %242, label %243, label %254, <block/bfq-iosched.c:6738:35> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %233 = load ptr, ptr %232, align 8, <block/bfq-iosched.c:1214:10> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %234 = icmp ne ptr %233, null, <block/bfq-iosched.c:1214:25> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %235 = sext i1 %234 to i32, <block/bfq-iosched.c:1214:25> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %230 = load i8, ptr %229, align 8, <block/bfq-iosched.c:1213:16> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %231 = zext nneg i8 %230 to i32, <block/bfq-iosched.c:1213:16> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %238 = add i32 %228, %231, <block/bfq-iosched.c:1214:34> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %228 = load i32, ptr %227, align 8, <block/bfq-iosched.c:1212:34> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %221 = call ptr @bfqg_to_blkg(ptr noundef %220) #279, <block/bfq-iosched.c:6736:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %222 = getelementptr inbounds nuw i8, ptr %221, i64 40, <block/bfq-iosched.c:6736:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %223 = load ptr, ptr %222, align 8, <block/bfq-iosched.c:6736:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   call void (ptr, ptr, ptr, ...) @__blk_trace_note_message(ptr noundef nonnull %217, ptr noundef %223, ptr noundef nonnull @.str.35.44781, ptr noundef nonnull %4) #279, <block/bfq-iosched.c:6736:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %203 = load ptr, ptr %202, align 8, <block/bfq-iosched.c:6736:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %214 = load ptr, ptr %202, align 8, <block/bfq-iosched.c:6736:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %279 = load ptr, ptr %202, align 8, <block/bfq-iosched.c:6749:32> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %302 = load ptr, ptr %202, align 8, <block/bfq-iosched.c:3117:21> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %303 = icmp eq ptr %302, null, <block/bfq-iosched.c:3117:11> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %305 = getelementptr inbounds nuw i8, ptr %302, i64 232, <block/bfq-iosched.c:3117:45> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %306 = load ptr, ptr %305, align 8, <block/bfq-iosched.c:3117:45> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store ptr null, ptr %305, align 8, <block/bfq-iosched.c:3118:37> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %303, label %309, label %304, <block/bfq-iosched.c:3117:26> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %288 = getelementptr inbounds nuw i8, ptr %279, i64 192, <block/bfq-iosched.c:3135:20> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %289 = load ptr, ptr %288, align 8, <block/bfq-iosched.c:3135:20> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %215 = load ptr, ptr %214, align 8, <block/bfq-iosched.c:6736:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %216 = getelementptr inbounds nuw i8, ptr %215, i64 656, <block/bfq-iosched.c:6736:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %217 = load volatile ptr, ptr %216, align 8, <block/bfq-iosched.c:6736:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %218 = icmp eq ptr %217, null, <block/bfq-iosched.c:6736:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %218, label %224, label %219, <block/bfq-iosched.c:6736:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %204 = load ptr, ptr %203, align 8, <block/bfq-iosched.c:6736:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %205 = getelementptr inbounds nuw i8, ptr %204, i64 656, <./include/linux/blktrace_api.h:69:7> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %206 = load volatile ptr, ptr %205, align 8, <./include/linux/blktrace_api.h:69:7> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %207 = icmp eq ptr %206, null, <./include/linux/blktrace_api.h:70:8> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %209 = getelementptr inbounds nuw i8, ptr %206, i64 32, <./include/linux/blktrace_api.h:70:19> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %210 = load i16, ptr %209, align 8, <./include/linux/blktrace_api.h:70:19> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %211 = and i16 %210, 1024, <./include/linux/blktrace_api.h:70:28> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %212 = icmp eq i16 %211, 0, <./include/linux/blktrace_api.h:70:11> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %212, label %225, label %213, <block/bfq-iosched.c:6736:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %207, label %224, label %208, <./include/linux/blktrace_api.h:70:11> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %152 = getelementptr inbounds nuw i8, ptr %151, i64 48, <block/bfq-iosched.c:0> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %153 = load ptr, ptr %152, align 8, <block/bfq-iosched.c:0> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %154 = icmp eq ptr %153, null, <block/bfq-iosched.c:6843:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %156 = icmp eq ptr %153, %148, <block/bfq-iosched.c:6844:16> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %156, label %157, label %150, <block/bfq-iosched.c:6844:16> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %154, label %176, label %155, <block/bfq-iosched.c:6843:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %148 = load ptr, ptr %147, align 8, <block/bfq-iosched.c:6838:39> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %149 = icmp eq ptr %148, null, <block/bfq-iosched.c:6840:7> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %158 = load i32, ptr %148, align 8, <block/bfq-iosched.c:1212:15> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %159 = getelementptr inbounds nuw i8, ptr %148, i64 208, <block/bfq-iosched.c:1212:34> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %161 = getelementptr inbounds nuw i8, ptr %148, i64 160, <block/bfq-iosched.c:1213:16> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %164 = getelementptr inbounds nuw i8, ptr %148, i64 272, <block/bfq-iosched.c:1214:10> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %168 = getelementptr inbounds nuw i8, ptr %148, i64 4, <block/bfq-iosched.c:1214:42> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %175 = select i1 %174, ptr null, ptr %148, <block/bfq-iosched.c:0> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %177 = load i32, ptr %148, align 8, <block/bfq-iosched.c:1212:15> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %178 = getelementptr inbounds nuw i8, ptr %148, i64 208, <block/bfq-iosched.c:1212:34> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %180 = getelementptr inbounds nuw i8, ptr %148, i64 160, <block/bfq-iosched.c:1213:16> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %183 = getelementptr inbounds nuw i8, ptr %148, i64 272, <block/bfq-iosched.c:1214:10> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %187 = getelementptr inbounds nuw i8, ptr %148, i64 4, <block/bfq-iosched.c:1214:42> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %193 = select i1 %192, ptr null, ptr %148, <block/bfq-iosched.c:0> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %195 = phi ptr [ null, %146 ], [ %175, %157 ], [ %193, %176 ], <block/bfq-iosched.c:0> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %318 = icmp eq ptr %195, null, <block/bfq-iosched.c:6914:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %321 = getelementptr inbounds nuw i8, ptr %195, i64 560, <block/bfq-iosched.c:6916:30> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %322 = load ptr, ptr %321, align 8, <./include/linux/list.h:1023:32> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %323 = icmp eq ptr %322, null, <./include/linux/list.h:1025:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %325 = getelementptr inbounds nuw i8, ptr %322, i64 8, <./include/linux/list.h:1026:3> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %323, label %326, label %324, <./include/linux/list.h:1025:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %318, label %328, label %319, <block/bfq-iosched.c:6914:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %188 = load i32, ptr %187, align 4, <block/bfq-iosched.c:1214:42> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %190 = add i32 %189, %188, <block/bfq-iosched.c:1214:34> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %191 = sub i32 %177, %190, <block/bfq-iosched.c:1214:34> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %192 = icmp eq i32 %191, %186, <block/bfq-iosched.c:6862:36> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %184 = load ptr, ptr %183, align 8, <block/bfq-iosched.c:1214:10> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %185 = icmp ne ptr %184, null, <block/bfq-iosched.c:1214:25> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %186 = zext i1 %185 to i32, <block/bfq-iosched.c:1214:25> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %181 = load i8, ptr %180, align 8, <block/bfq-iosched.c:1213:16> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %182 = zext nneg i8 %181 to i32, <block/bfq-iosched.c:1213:16> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %189 = add i32 %179, %182, <block/bfq-iosched.c:1214:34> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %179 = load i32, ptr %178, align 8, <block/bfq-iosched.c:1212:34> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %169 = load i32, ptr %168, align 4, <block/bfq-iosched.c:1214:42> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %171 = add i32 %170, %169, <block/bfq-iosched.c:1214:34> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %172 = sub i32 %158, %171, <block/bfq-iosched.c:1214:34> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %173 = add i32 %172, %167, <block/bfq-iosched.c:1214:34> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %174 = icmp eq i32 %173, 1, <block/bfq-iosched.c:6849:38> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %165 = load ptr, ptr %164, align 8, <block/bfq-iosched.c:1214:10> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %166 = icmp ne ptr %165, null, <block/bfq-iosched.c:1214:25> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %167 = sext i1 %166 to i32, <block/bfq-iosched.c:1214:25> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %162 = load i8, ptr %161, align 8, <block/bfq-iosched.c:1213:16> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %163 = zext nneg i8 %162 to i32, <block/bfq-iosched.c:1213:16> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %170 = add i32 %160, %163, <block/bfq-iosched.c:1214:34> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %160 = load i32, ptr %159, align 8, <block/bfq-iosched.c:1212:34> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %149, label %194, label %150, <block/bfq-iosched.c:6840:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %133 = load volatile i64, ptr %132, align 8, <./arch/x86/include/asm/bitops.h:206:4> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %137 = load volatile i64, ptr %132, align 8, <./arch/x86/include/asm/bitops.h:206:4> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %196 = load volatile i64, ptr %132, align 8, <./arch/x86/include/asm/bitops.h:206:4> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   call void asm sideeffect " btrq  $1,$0", "*m,Ir,~{memory},~{dirflag},~{fpsr},~{flags}"(ptr nonnull elementtype(i64) %132, i64 10) #278, <./arch/x86/include/asm/bitops.h:94:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   call void asm sideeffect " btrq  $1,$0", "*m,Ir,~{memory},~{dirflag},~{fpsr},~{flags}"(ptr nonnull elementtype(i64) %132, i64 11) #278, <./arch/x86/include/asm/bitops.h:94:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %280 = load volatile i64, ptr %132, align 8, <./arch/x86/include/asm/bitops.h:206:4> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %281 = and i64 %280, 2, <block/bfq-iosched.c:3134:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %282 = icmp eq i64 %281, 0, <block/bfq-iosched.c:3134:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %282, label %292, label %283, <block/bfq-iosched.c:3134:26> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %197 = and i64 %196, 256, <block/bfq-iosched.c:6891:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %198 = icmp eq i64 %197, 0, <block/bfq-iosched.c:6891:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %198, label %201, label %199, <block/bfq-iosched.c:6891:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %138 = and i64 %137, 2048, <block/bfq-iosched.c:6884:31> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %139 = icmp eq i64 %138, 0, <block/bfq-iosched.c:6884:31> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %139, label %328, label %140, <block/bfq-iosched.c:6884:57> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %134 = and i64 %133, 1024, <block/bfq-iosched.c:6884:7> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %135 = icmp eq i64 %134, 0, <block/bfq-iosched.c:6884:7> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %135, label %328, label %136, <block/bfq-iosched.c:6884:27> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %114 = getelementptr [8 x ptr], ptr %113, i64 0, i64 %112, <block/bfq-iosched.c:382:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %115 = load ptr, ptr %114, align 8, <block/bfq-iosched.c:0> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %116 = icmp eq ptr %115, null, <block/bfq-iosched.c:5592:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   call void @bfq_release_process_ref(ptr noundef nonnull %98, ptr noundef nonnull %115) #280, <block/bfq-iosched.c:5597:3> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %116, label %120, label %117, <block/bfq-iosched.c:5592:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %123 = getelementptr [8 x ptr], ptr %111, i64 0, i64 %122, <block/bfq-iosched.c:382:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %124 = load ptr, ptr %123, align 8, <block/bfq-iosched.c:0> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %125 = icmp eq ptr %124, null, <block/bfq-iosched.c:5601:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %125, label %127, label %126, <block/bfq-iosched.c:5601:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %107 = load i32, ptr %106, align 8, <block/bfq-iosched.c:5586:25> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store i32 %103, ptr %106, align 8, <block/bfq-iosched.c:5589:14> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %108 = icmp eq i32 %107, %103, <block/bfq-iosched.c:5586:25> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %108, label %127, label %109, <block/bfq-iosched.c:5586:22> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %100 = load ptr, ptr %99, align 8, <block/bfq-iosched.c:5580:24> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %101 = getelementptr inbounds nuw i8, ptr %100, i64 12, <block/bfq-iosched.c:5580:29> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %102 = load i16, ptr %101, align 4, <block/bfq-iosched.c:5580:29> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %103 = zext i16 %102 to i32, <block/bfq-iosched.c:5580:15> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %95 = getelementptr inbounds nuw i8, ptr %94, i64 8, <block/bfq-iosched.c:438:21> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %96 = load ptr, ptr %95, align 8, <block/bfq-iosched.c:438:21> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %97 = getelementptr inbounds nuw i8, ptr %96, i64 8, <block/bfq-iosched.c:438:31> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %98 = load ptr, ptr %97, align 8, <block/bfq-iosched.c:438:31> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %104 = icmp eq ptr %98, null, <block/bfq-iosched.c:5586:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %110 = call fastcc i32 @bfq_actuator_index(ptr noundef nonnull %98, ptr noundef %36) #280, <block/bfq-iosched.c:5591:33> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %119 = call fastcc i32 @bfq_actuator_index(ptr noundef nonnull %98, ptr noundef %36) #280, <block/bfq-iosched.c:5596:34> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %121 = call fastcc i32 @bfq_actuator_index(ptr noundef nonnull %98, ptr noundef %36) #280, <block/bfq-iosched.c:5600:32> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %122 = zext i32 %121 to i64, <block/bfq-iosched.c:382:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %112 = zext i32 %110 to i64, <block/bfq-iosched.c:382:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %104, label %127, label %105, <block/bfq-iosched.c:5586:22> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %87, label %535, label %88, <block/bfq-iosched.c:6954:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %43 = and i32 %42, 255, <./include/linux/blk_types.h:457:13> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %45 = and i32 %42, 395264, <./include/linux/blk_types.h:457:43> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %46 = icmp ne i32 %45, 0, <./include/linux/blk_types.h:457:43> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %47 = or i1 %44, %46, <./include/linux/blk_types.h:457:43> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %44 = icmp eq i32 %43, 0, <./include/linux/blk_types.h:457:28> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %52 = getelementptr inbounds nuw i8, ptr %36, i64 32, <block/bfq-iosched.c:1813:8> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %54 = getelementptr inbounds nuw i8, ptr %36, i64 40, <block/bfq-iosched.c:1813:8> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %55 = load i32, ptr %54, align 8, <block/bfq-iosched.c:1813:8> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %56 = lshr i32 %55, 9, <block/bfq-iosched.c:1813:8> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %57 = zext nneg i32 %56 to i64, <block/bfq-iosched.c:1813:8> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %59 = add i64 %58, %57, <block/bfq-iosched.c:1813:28> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %69 = icmp ult i64 %59, %68, <block/bfq-iosched.c:1816:11> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %74 = icmp ult i64 %59, %73, <block/bfq-iosched.c:1817:11> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   call void (ptr, ...) @__warn_printk(ptr noundef nonnull @.str.26.44780, i64 noundef %59) #279, <block/bfq-iosched.c:1821:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %74, label %81, label %75, <block/bfq-iosched.c:1816:30> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %69, label %75, label %70, <block/bfq-iosched.c:1816:30> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %53 = load i64, ptr %52, align 8, <block/bfq-iosched.c:1813:8> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %58 = add i64 %53, -1, <block/bfq-iosched.c:1813:8> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %37 = getelementptr inbounds nuw i8, ptr %34, i64 8, <block/bfq-iosched.c:6948:29> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %38 = load ptr, ptr %37, align 8, <block/bfq-iosched.c:6948:29> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %39 = getelementptr inbounds nuw i8, ptr %38, i64 8, <block/bfq-iosched.c:6948:39> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %40 = load ptr, ptr %39, align 8, <block/bfq-iosched.c:6948:39> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %48 = getelementptr inbounds nuw i8, ptr %40, i64 1252, <block/bfq-iosched.c:1809:12> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %62 = getelementptr inbounds nuw i8, ptr %40, i64 1256 FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %63 = getelementptr inbounds nuw i8, ptr %40, i64 1320 FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %313 = getelementptr inbounds nuw i8, ptr %40, i64 632, <block/bfq-iosched.c:6901:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %345 = load ptr, ptr %40, align 8, <block/bfq-iosched.c:6975:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %355 = load ptr, ptr %40, align 8, <block/bfq-iosched.c:6975:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %367 = getelementptr inbounds nuw i8, ptr %40, i64 632, <block/bfq-iosched.c:6987:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %399 = getelementptr inbounds nuw i8, ptr %40, i64 552, <block/bfq-iosched.c:7011:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %403 = call i32 @bfq_tot_busy_queues(ptr noundef %40) #279, <block/bfq-iosched.c:7011:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %422 = getelementptr inbounds nuw i8, ptr %40, i64 536, <block/bfq-iosched.c:1423:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %424 = getelementptr inbounds nuw i8, ptr %40, i64 544, <block/bfq-iosched.c:1423:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %433 = getelementptr inbounds nuw i8, ptr %40, i64 560, <block/bfq-iosched.c:1425:35> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %437 = getelementptr inbounds nuw i8, ptr %40, i64 576, <block/bfq-iosched.c:1426:9> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %438 = getelementptr inbounds nuw i8, ptr %40, i64 584, <block/bfq-iosched.c:1223:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %462 = call i32 @bfq_tot_busy_queues(ptr noundef %40) #279, <block/bfq-iosched.c:1231:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %474 = getelementptr inbounds nuw i8, ptr %40, i64 560, <block/bfq-iosched.c:1237:8> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %476 = getelementptr inbounds nuw i8, ptr %40, i64 576, <block/bfq-iosched.c:1436:12> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %484 = getelementptr inbounds nuw i8, ptr %40, i64 568, <block/bfq-iosched.c:1246:32> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %488 = getelementptr inbounds nuw i8, ptr %40, i64 584, <block/bfq-iosched.c:1260:3> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %527 = getelementptr inbounds nuw i8, ptr %40, i64 584, <block/bfq-iosched.c:1281:49> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %528 = load ptr, ptr %527, align 8, <./include/linux/list.h:1023:32> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %529 = icmp eq ptr %528, null, <./include/linux/list.h:1025:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %531 = getelementptr inbounds nuw i8, ptr %528, i64 8, <./include/linux/list.h:1026:3> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %529, label %532, label %530, <./include/linux/list.h:1025:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %489 = load ptr, ptr %488, align 8, <block/bfq-iosched.c:1260:3> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %504 = load ptr, ptr %488, align 8, <block/bfq-iosched.c:1272:3> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %505 = icmp eq ptr %504, null, <block/bfq-iosched.c:1272:3> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %506 = getelementptr i8, ptr %504, i64 -384 FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %510 = phi ptr [ %523, %521 ], [ %506, %503 ] FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %507 = icmp eq ptr %506, null, <block/bfq-iosched.c:1272:3> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %508 = or i1 %505, %507, <block/bfq-iosched.c:1272:3> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %508, label %533, label %509, <block/bfq-iosched.c:1272:3> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %511 = getelementptr inbounds nuw i8, ptr %510, i64 384, <block/bfq-iosched.c:1272:3> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %513 = getelementptr inbounds nuw i8, ptr %510, i64 392, <./include/linux/list.h:950:13> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %514 = load ptr, ptr %513, align 8, <./include/linux/list.h:950:13> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %515 = icmp eq ptr %514, null, <./include/linux/list.h:950:9> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store volatile ptr %512, ptr %514, align 8, <./include/linux/list.h:980:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store volatile ptr %514, ptr %519, align 8, <./include/linux/list.h:982:3> FUNC=bfq_insert_requests L=2
+  [STORE DESTINATION] Marking pointer as tainted:   %519 = getelementptr inbounds nuw i8, ptr %512, i64 8, <./include/linux/list.h:982:3> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %515, label %521, label %516, <./include/linux/list.h:1007:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %512 = load ptr, ptr %511, align 8, <block/bfq-iosched.c:1272:3> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   call void @llvm.memset.p0.i64(ptr noundef nonnull align 8 dereferenceable(16) %511, i8 0, i64 16, i1 false), <./include/linux/list.h:937:11> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %517 = icmp eq ptr %512, null, <./include/linux/list.h:981:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %519 = getelementptr inbounds nuw i8, ptr %512, i64 8, <./include/linux/list.h:982:3> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %522 = icmp eq ptr %512, null, <block/bfq-iosched.c:1272:3> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %523 = getelementptr i8, ptr %512, i64 -384, <block/bfq-iosched.c:1272:3> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %524 = icmp eq ptr %523, null, <block/bfq-iosched.c:1272:3> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %525 = or i1 %522, %524, <block/bfq-iosched.c:1272:3> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %525, label %533, label %509, <block/bfq-iosched.c:1272:3> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %517, label %520, label %518, <./include/linux/list.h:981:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %490 = icmp eq ptr %489, null, <block/bfq-iosched.c:1260:3> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %491 = getelementptr i8, ptr %489, i64 -384 FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %495 = phi ptr [ %500, %494 ], [ %491, %487 ] FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %492 = icmp eq ptr %491, null, <block/bfq-iosched.c:1260:3> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %493 = or i1 %490, %492, <block/bfq-iosched.c:1260:3> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %493, label %503, label %494, <block/bfq-iosched.c:1260:3> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %496 = getelementptr inbounds nuw i8, ptr %495, i64 304, <block/bfq-iosched.c:158:1> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %497 = getelementptr inbounds nuw i8, ptr %495, i64 384, <block/bfq-iosched.c:1260:3> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %498 = load ptr, ptr %497, align 8, <block/bfq-iosched.c:1260:3> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %499 = icmp eq ptr %498, null, <block/bfq-iosched.c:1260:3> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %500 = getelementptr i8, ptr %498, i64 -384 FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %501 = icmp eq ptr %500, null, <block/bfq-iosched.c:1260:3> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %502 = or i1 %499, %501, <block/bfq-iosched.c:1260:3> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %502, label %503, label %494, <block/bfq-iosched.c:1260:3> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   call void asm sideeffect " btsq  $1,$0", "*m,Ir,~{memory},~{dirflag},~{fpsr},~{flags}"(ptr nonnull elementtype(i64) %496, i64 8) #278, <./arch/x86/include/asm/bitops.h:68:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %485 = load i64, ptr %484, align 8, <block/bfq-iosched.c:1246:32> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %486 = icmp eq i64 %485, %483, <block/bfq-iosched.c:1246:23> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %486, label %487, label %526, <block/bfq-iosched.c:1246:23> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %477 = load i8, ptr %476, align 8, <block/bfq-iosched.c:1436:12> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store i8 1, ptr %476, align 8, <block/bfq-iosched.c:1254:21> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %478 = trunc nuw i8 %477 to i1, <block/bfq-iosched.c:1436:12> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %478, label %479, label %480, <block/bfq-iosched.c:1436:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %463 = icmp eq i32 %462, 0, <block/bfq-iosched.c:1231:32> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %463, label %464, label %470, <block/bfq-iosched.c:1231:32> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %439 = load ptr, ptr %438, align 8, <block/bfq-iosched.c:1223:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %465 = load ptr, ptr %438, align 8, <./include/linux/list.h:1023:32> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %466 = icmp eq ptr %465, null, <./include/linux/list.h:1025:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %468 = getelementptr inbounds nuw i8, ptr %465, i64 8, <./include/linux/list.h:1026:3> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %466, label %469, label %467, <./include/linux/list.h:1025:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %440 = icmp eq ptr %439, null, <block/bfq-iosched.c:1223:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %441 = getelementptr i8, ptr %439, i64 -384 FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %442 = icmp eq ptr %441, null, <block/bfq-iosched.c:1223:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %445 = phi ptr [ %458, %456 ], [ %441, %436 ] FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %446 = getelementptr inbounds nuw i8, ptr %445, i64 384, <block/bfq-iosched.c:1223:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %448 = getelementptr inbounds nuw i8, ptr %445, i64 392, <./include/linux/list.h:950:13> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %449 = load ptr, ptr %448, align 8, <./include/linux/list.h:950:13> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %450 = icmp eq ptr %449, null, <./include/linux/list.h:950:9> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store volatile ptr %447, ptr %449, align 8, <./include/linux/list.h:980:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store volatile ptr %449, ptr %454, align 8, <./include/linux/list.h:982:3> FUNC=bfq_insert_requests L=2
+  [STORE DESTINATION] Marking pointer as tainted:   %454 = getelementptr inbounds nuw i8, ptr %447, i64 8, <./include/linux/list.h:982:3> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %450, label %456, label %451, <./include/linux/list.h:1007:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %447 = load ptr, ptr %446, align 8, <block/bfq-iosched.c:1223:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   call void @llvm.memset.p0.i64(ptr noundef nonnull align 8 dereferenceable(16) %446, i8 0, i64 16, i1 false), <./include/linux/list.h:937:11> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %452 = icmp eq ptr %447, null, <./include/linux/list.h:981:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %454 = getelementptr inbounds nuw i8, ptr %447, i64 8, <./include/linux/list.h:982:3> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %457 = icmp eq ptr %447, null, <block/bfq-iosched.c:1223:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %458 = getelementptr i8, ptr %447, i64 -384, <block/bfq-iosched.c:1223:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %459 = icmp eq ptr %458, null, <block/bfq-iosched.c:1223:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %460 = or i1 %457, %459, <block/bfq-iosched.c:1223:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %460, label %461, label %444, <block/bfq-iosched.c:1223:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %452, label %455, label %453, <./include/linux/list.h:981:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %443 = or i1 %440, %442, <block/bfq-iosched.c:1223:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %443, label %461, label %444, <block/bfq-iosched.c:1223:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store i8 0, ptr %437, align 8, <block/bfq-iosched.c:1426:21> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %434 = load ptr, ptr %433, align 8, <block/bfq-iosched.c:1425:35> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %425 = load i64, ptr %424, align 8, <block/bfq-iosched.c:1423:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %426 = add i64 %425, %423, <block/bfq-iosched.c:1423:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %428 = sub i64 %426, %427, <block/bfq-iosched.c:1423:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %429 = icmp slt i64 %428, 0, <block/bfq-iosched.c:1423:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %429, label %436, label %430, <block/bfq-iosched.c:1424:32> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %423 = load i64, ptr %422, align 8, <block/bfq-iosched.c:1423:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store i64 %534, ptr %422, align 8, <block/bfq-iosched.c:1456:26> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %404 = icmp eq i32 %403, 0, <block/bfq-iosched.c:7011:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %404, label %405, label %535, <block/bfq-iosched.c:7011:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %400 = load i32, ptr %399, align 8, <block/bfq-iosched.c:7011:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store i32 %471, ptr %399, align 8, <block/bfq-iosched.c:0> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %481 = load i32, ptr %399, align 8, <block/bfq-iosched.c:1244:18> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store i32 %482, ptr %399, align 8, <block/bfq-iosched.c:1244:18> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %482 = add i32 %481, 1, <block/bfq-iosched.c:1244:18> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %483 = sext i32 %482 to i64, <block/bfq-iosched.c:1246:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %401 = icmp sgt i32 %400, 0, <block/bfq-iosched.c:7011:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %401, label %405, label %402, <block/bfq-iosched.c:7011:6> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %356 = getelementptr inbounds nuw i8, ptr %355, i64 656, <block/bfq-iosched.c:6975:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %357 = load volatile ptr, ptr %356, align 8, <block/bfq-iosched.c:6975:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %358 = icmp eq ptr %357, null, <block/bfq-iosched.c:6975:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %358, label %365, label %359, <block/bfq-iosched.c:6975:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %346 = getelementptr inbounds nuw i8, ptr %345, i64 656, <./include/linux/blktrace_api.h:69:7> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %347 = load volatile ptr, ptr %346, align 8, <./include/linux/blktrace_api.h:69:7> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %348 = icmp eq ptr %347, null, <./include/linux/blktrace_api.h:70:8> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %350 = getelementptr inbounds nuw i8, ptr %347, i64 32, <./include/linux/blktrace_api.h:70:19> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %351 = load i16, ptr %350, align 8, <./include/linux/blktrace_api.h:70:19> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %352 = and i16 %351, 1024, <./include/linux/blktrace_api.h:70:28> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %353 = icmp eq i16 %352, 0, <./include/linux/blktrace_api.h:70:11> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %353, label %366, label %354, <block/bfq-iosched.c:6975:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %348, label %365, label %349, <./include/linux/blktrace_api.h:70:11> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %71 = getelementptr [8 x i64], ptr %63, i64 0, i64 %66, <block/bfq-iosched.c:1817:31> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %72 = load i64, ptr %71, align 8, <block/bfq-iosched.c:1817:31> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %73 = add i64 %72, %68, <block/bfq-iosched.c:1817:29> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %67 = getelementptr [8 x i64], ptr %62, i64 0, i64 %66, <block/bfq-iosched.c:1816:14> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %68 = load i64, ptr %67, align 8, <block/bfq-iosched.c:1816:14> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %49 = load i32, ptr %48, align 4, <block/bfq-iosched.c:1809:12> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %50 = icmp eq i32 %49, 1, <block/bfq-iosched.c:1809:26> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %60 = icmp eq i32 %49, 0, <block/bfq-iosched.c:1815:16> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %64 = zext i32 %49 to i64, <block/bfq-iosched.c:1815:16> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %77 = icmp eq i64 %76, %64, <block/bfq-iosched.c:1815:16> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %77, label %78, label %65, <block/bfq-iosched.c:1815:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %60, label %78, label %61, <block/bfq-iosched.c:1815:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %50, label %83, label %51, <block/bfq-iosched.c:1809:26> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %30 = icmp eq ptr %29, null, <block/bfq-iosched.c:6264:47> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   br i1 %30, label %32, label %31, <block/bfq-iosched.c:6264:44> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   %21 = getelementptr inbounds nuw i8, ptr %20, i64 8, <./include/linux/list.h:195:8> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store volatile ptr %20, ptr %19, align 8, <./include/linux/list.h:196:2> FUNC=bfq_insert_requests L=2
+  [STORE DESTINATION] Marking pointer as tainted:   %19 = load ptr, ptr %18, align 8, <./include/linux/list.h:196:2> FUNC=bfq_insert_requests L=2
+  [USE] Taint flows to:   store ptr %19, ptr %21, align 8, <./include/linux/list.h:195:13> FUNC=bfq_insert_requests L=2
+[UPWARD-INTERPROC] No callers found for bfq_finish_request (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for bfq_idle_slice_timer (function taints pointer parameter #0)
+[POINTER PARAMETER] Call to __bfq_put_async_bfqq passes through pointer parameter 0 of bfq_put_async_queues <block/bfq-iosched.c:7119:5> FUNC=bfq_put_async_queues L=3
+[UPWARD-INTERPROC] No callers found for bfq_pd_offline (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for bfq_finish_request (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for bfq_idle_slice_timer (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for bfq_pd_offline (function taints pointer parameter #0)
+
+=== Maximum Level Statistics ===
+Largest L value: 2
+Number of instructions with L=2: 842
+
+Earliest instruction with L=2:
+    %19 = load ptr, ptr %18, align 8, <./include/linux/list.h:218:20> FUNC=bfq_insert_requests L=2
+
+Latest instruction with L=2:
+    br i1 %1046, label %1047, label %1052, <block/bfq-iosched.c:6290:7> FUNC=bfq_insert_requests L=2
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/block/bfq-iosched.ll
+../linux-wllvm-defconfig/block/bfq-iosched.c

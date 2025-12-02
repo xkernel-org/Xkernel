@@ -1,0 +1,32 @@
+=== Taint Tracker Configuration ===
+Function: bh_worker
+Opcode: add
+Constant: -2
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant -2)
+
+[SOURCE] Tainting:   %121 = add i64 %120, -2, <kernel/workqueue.c:3581:21> FUNC=bh_worker L=0
+[USE] Source instruction in data flow <kernel/workqueue.c:3581:21> FUNC=bh_worker L=0
+[USE] Processing uses of:   %121 = add i64 %120, -2,
+  [USE] Taint flows to:   %122 = icmp slt i64 %121, 0, <kernel/workqueue.c:3581:21> FUNC=bh_worker L=0
+[USE] Processing uses of:   %122 = icmp slt i64 %121, 0,
+  [USE] Taint flows to:   br i1 %122, label %49, label %123, <kernel/workqueue.c:3580:2> FUNC=bh_worker L=0
+[NO USE] No uses of:   br i1 %122, label %49, label %123,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 3
+
+Earliest instruction with L=0:
+    %121 = add i64 %120, -2, <kernel/workqueue.c:3581:21> FUNC=bh_worker L=0
+
+Latest instruction with L=0:
+    br i1 %122, label %49, label %123, <kernel/workqueue.c:3580:2> FUNC=bh_worker L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/kernel/workqueue.ll
+../linux-wllvm-defconfig/kernel/workqueue.c

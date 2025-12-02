@@ -1,0 +1,32 @@
+=== Taint Tracker Configuration ===
+Function: sched_balance_rq
+Opcode: mul
+Constant: 1078
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 2 (of constant 1078)
+
+[SOURCE] Tainting:   %591 = mul i64 %590, 1078, <kernel/sched/fair.c:10561:7> FUNC=sched_balance_rq L=0
+[USE] Source instruction in data flow <kernel/sched/fair.c:10561:7> FUNC=sched_balance_rq L=0
+[USE] Processing uses of:   %591 = mul i64 %590, 1078,
+  [USE] Taint flows to:   %592 = icmp ugt i64 %582, %591, <kernel/sched/fair.c:10561:7> FUNC=sched_balance_rq L=0
+[USE] Processing uses of:   %592 = icmp ugt i64 %582, %591,
+  [USE] Taint flows to:   br i1 %592, label %599, label %598, <kernel/sched/fair.c:10560:44> FUNC=sched_balance_rq L=0
+[NO USE] No uses of:   br i1 %592, label %599, label %598,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 3
+
+Earliest instruction with L=0:
+    %591 = mul i64 %590, 1078, <kernel/sched/fair.c:10561:7> FUNC=sched_balance_rq L=0
+
+Latest instruction with L=0:
+    br i1 %592, label %599, label %598, <kernel/sched/fair.c:10560:44> FUNC=sched_balance_rq L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/kernel/sched/fair.ll
+../linux-wllvm-defconfig/kernel/sched/fair.c

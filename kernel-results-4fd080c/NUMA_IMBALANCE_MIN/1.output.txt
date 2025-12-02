@@ -1,0 +1,40 @@
+=== Taint Tracker Configuration ===
+Function: sched_balance_find_dst_cpu
+Opcode: icmp
+Constant: 3
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 3)
+
+[SOURCE] Tainting:   %556 = icmp slt i32 %551, 3, <kernel/sched/fair.c:1420:18> FUNC=sched_balance_find_dst_cpu L=0
+[USE] Source instruction in data flow <kernel/sched/fair.c:1420:18> FUNC=sched_balance_find_dst_cpu L=0
+[USE] Processing uses of:   %556 = icmp slt i32 %551, 3,
+  [USE] Taint flows to:   %557 = select i1 %556, i32 0, i32 %551, <kernel/sched/fair.c:1420:18> FUNC=sched_balance_find_dst_cpu L=0
+[USE] Processing uses of:   %557 = select i1 %556, i32 0, i32 %551,
+  [USE] Taint flows to:   %558 = zext nneg i32 %557 to i64, <kernel/sched/fair.c:1420:18> FUNC=sched_balance_find_dst_cpu L=0
+[USE] Processing uses of:   %558 = zext nneg i32 %557 to i64,
+  [USE] Taint flows to:   %559 = select i1 %554, i64 %555, i64 %558, <kernel/sched/fair.c:1420:18> FUNC=sched_balance_find_dst_cpu L=0
+[USE] Processing uses of:   %559 = select i1 %554, i64 %555, i64 %558,
+  [USE] Taint flows to:   %560 = icmp ne i64 %559, 0, <kernel/sched/fair.c:10907:9> FUNC=sched_balance_find_dst_cpu L=0
+[USE] Processing uses of:   %560 = icmp ne i64 %559, 0,
+  [USE] Taint flows to:   %562 = select i1 %560, i1 %561, i1 false FUNC=sched_balance_find_dst_cpu L=0
+[USE] Processing uses of:   %562 = select i1 %560, i1 %561, i1 false
+  [USE] Taint flows to:   br i1 %562, label %567, label %566 FUNC=sched_balance_find_dst_cpu L=0
+[NO USE] No uses of:   br i1 %562, label %567, label %566
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 7
+
+Earliest instruction with L=0:
+    %556 = icmp slt i32 %551, 3, <kernel/sched/fair.c:1420:18> FUNC=sched_balance_find_dst_cpu L=0
+
+Latest instruction with L=0:
+    br i1 %562, label %567, label %566 FUNC=sched_balance_find_dst_cpu L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/kernel/sched/fair.ll
+../linux-wllvm-defconfig/kernel/sched/fair.c

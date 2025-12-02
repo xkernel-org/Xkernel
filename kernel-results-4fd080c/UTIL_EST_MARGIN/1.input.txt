@@ -1,0 +1,5 @@
+SOURCE_FILE=kernel/sched/fair.c
+FUNCTION_NAME=dequeue_task_fair
+SOURCE_OP="icmp"
+CONSTANT_VALUE=10
+OCCURENCE=1

@@ -1,0 +1,101 @@
+=== Taint Tracker Configuration ===
+Function: blk_start_plug_nr_ios
+Opcode: call
+Constant: 32
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 32)
+
+[SOURCE] Tainting:   %9 = tail call i16 @llvm.umin.i16(i16 %1, i16 32), <block/blk-core.c:1125:17> FUNC=blk_start_plug_nr_ios L=0
+[USE] Source instruction in data flow <block/blk-core.c:1125:17> FUNC=blk_start_plug_nr_ios L=0
+[CHILD FUNCTION] Constant used in call to llvm.umin.i16 at argument 1 <block/blk-core.c:1125:17> FUNC=blk_start_plug_nr_ios L=0
+[USE] Processing uses of:   %9 = tail call i16 @llvm.umin.i16(i16 %1, i16 32),
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #0 (ptr %0) <block/blk-core.c:1125:15>
+[POINTER PARAMETER] Call to blk_start_plug_nr_ios passes through pointer parameter 0 of io_submit_sqes <io_uring/io_uring.c:2099:4> FUNC=io_submit_sqes L=1
+[UPWARD-INTERPROC] Call to io_submit_sqes taints argument 0 (local variable) <io_uring/sqpoll.c:189:10> FUNC=io_sq_thread L=2
+  [STORE DESTINATION] Marking pointer as tainted via call:   %146 = phi ptr [ %218, %216 ], [ %143, %141 ] FUNC=io_sq_thread L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %150 = load ptr, ptr %149, align 16, (base:   %146 = phi ptr [ %218, %216 ], [ %143, %141 ])  <io_uring/io_uring.h:323:32> FUNC=io_sq_thread L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %154 = load i32, ptr %153, align 16, (base:   %146 = phi ptr [ %218, %216 ], [ %143, %141 ])  <io_uring/io_uring.h:327:53> FUNC=io_sq_thread L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %157 = load i32, ptr %156, align 4, (base:   %146 = phi ptr [ %218, %216 ], [ %143, %141 ])  <io_uring/io_uring.h:328:9> FUNC=io_sq_thread L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %164 = load volatile ptr, ptr %163, align 64, (base:   %146 = phi ptr [ %218, %216 ], [ %143, %141 ])  <io_uring/sqpoll.c:173:20> FUNC=io_sq_thread L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %168 = load ptr, ptr %167, align 16, (base:   %146 = phi ptr [ %218, %216 ], [ %143, %141 ])  <io_uring/sqpoll.c:176:12> FUNC=io_sq_thread L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %176 = load volatile ptr, ptr %175, align 64, (base:   %146 = phi ptr [ %218, %216 ], [ %143, %141 ])  <io_uring/sqpoll.c:180:8> FUNC=io_sq_thread L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %183 = load i64, ptr %182, align 8, (base:   %146 = phi ptr [ %218, %216 ], [ %143, %141 ])  <./include/linux/percpu-refcount.h:365:14> FUNC=io_sq_thread L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %187 = load i32, ptr %148, align 64, (base:   %146 = phi ptr [ %218, %216 ], [ %143, %141 ])  <io_uring/sqpoll.c:188:14> FUNC=io_sq_thread L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %196 = load volatile ptr, ptr %195, align 8, (base:   %146 = phi ptr [ %218, %216 ], [ %143, %141 ])  <./include/linux/list.h:373:9> FUNC=io_sq_thread L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %213 = load volatile ptr, ptr %212, align 64, (base:   %146 = phi ptr [ %218, %216 ], [ %143, %141 ])  <io_uring/sqpoll.c:314:34> FUNC=io_sq_thread L=2
+[LOAD] Tainted load from tracked pointer:   %218 = load ptr, ptr %146, align 8, (  %146 = phi ptr [ %218, %216 ], [ %143, %141 ])  <io_uring/sqpoll.c:311:3> FUNC=io_sq_thread L=2
+  [USE] Taint flows to:   %146 = phi ptr [ %218, %216 ], [ %143, %141 ] FUNC=io_sq_thread L=2
+  [USE] Taint flows to:   %219 = icmp eq ptr %218, %64, <./include/linux/list.h:364:14> FUNC=io_sq_thread L=2
+  [USE] Taint flows to:   br i1 %219, label %220, label %145, <io_uring/sqpoll.c:311:3> FUNC=io_sq_thread L=2
+  [USE] Taint flows to:   %148 = getelementptr i8, ptr %146, i64 -760, <io_uring/sqpoll.c:311:3> FUNC=io_sq_thread L=2
+  [USE] Taint flows to:   %149 = getelementptr i8, ptr %146, i64 -744, <io_uring/io_uring.h:323:32> FUNC=io_sq_thread L=2
+  [USE] Taint flows to:   %153 = getelementptr i8, ptr %146, i64 -648, <io_uring/io_uring.h:327:53> FUNC=io_sq_thread L=2
+  [USE] Taint flows to:   %156 = getelementptr i8, ptr %146, i64 -644, <io_uring/io_uring.h:328:9> FUNC=io_sq_thread L=2
+  [USE] Taint flows to:   %163 = getelementptr i8, ptr %146, i64 -632, <io_uring/sqpoll.c:173:20> FUNC=io_sq_thread L=2
+  [USE] Taint flows to:   %167 = getelementptr i8, ptr %146, i64 -40, <io_uring/sqpoll.c:176:12> FUNC=io_sq_thread L=2
+  [USE] Taint flows to:   %174 = getelementptr i8, ptr %146, i64 -696, <io_uring/sqpoll.c:179:20> FUNC=io_sq_thread L=2
+  [USE] Taint flows to:   %175 = getelementptr i8, ptr %146, i64 -632, <io_uring/sqpoll.c:180:8> FUNC=io_sq_thread L=2
+  [USE] Taint flows to:   %182 = getelementptr i8, ptr %146, i64 -736, <io_uring/sqpoll.c:187:20> FUNC=io_sq_thread L=2
+  [USE] Taint flows to:   %195 = getelementptr i8, ptr %146, i64 -16, <./include/linux/wait.h:127:31> FUNC=io_sq_thread L=2
+  [USE] Taint flows to:   %199 = getelementptr i8, ptr %146, i64 -24, <io_uring/sqpoll.c:192:41> FUNC=io_sq_thread L=2
+  [USE] Taint flows to:   %212 = getelementptr i8, ptr %146, i64 -632, <io_uring/sqpoll.c:314:34> FUNC=io_sq_thread L=2
+  [USE] Taint flows to:   %200 = call i32 @__wake_up(ptr noundef nonnull %199, i32 noundef 3, i32 noundef 1, ptr noundef null) #280, <io_uring/sqpoll.c:193:4> FUNC=io_sq_thread L=2
+  [USE] Taint flows to:   %197 = icmp eq ptr %196, %195, <./include/linux/list.h:373:31> FUNC=io_sq_thread L=2
+  [USE] Taint flows to:   br i1 %197, label %201, label %198, <io_uring/sqpoll.c:192:17> FUNC=io_sq_thread L=2
+  [USE] Taint flows to:   call void @mutex_lock(ptr noundef nonnull %174) #280, <io_uring/sqpoll.c:179:3> FUNC=io_sq_thread L=2
+  [USE] Taint flows to:   call void @mutex_unlock(ptr noundef nonnull %174) #280, <io_uring/sqpoll.c:190:3> FUNC=io_sq_thread L=2
+  [USE] Taint flows to:   call void @mutex_unlock(ptr noundef nonnull %174) #280, <io_uring/sqpoll.c:190:3> FUNC=io_sq_thread L=2
+  [USE] Taint flows to:   %179 = call i32 @io_do_iopoll(ptr noundef %148, i1 noundef zeroext true) #280, <io_uring/sqpoll.c:181:4> FUNC=io_sq_thread L=2
+  [USE] Taint flows to:   %191 = call i32 @io_submit_sqes(ptr noundef %148, i32 noundef %160) #280, <io_uring/sqpoll.c:189:10> FUNC=io_sq_thread L=2
+  [USE] Taint flows to:   %194 = phi i32 [ 0, %181 ], [ %191, %190 ], [ 0, %186 ] FUNC=io_sq_thread L=2
+  [USE] Taint flows to:   %202 = phi i32 [ %194, %198 ], [ %194, %193 ], [ 0, %192 ] FUNC=io_sq_thread L=2
+  [USE] Taint flows to:   %210 = icmp sgt i32 %202, 0, <io_uring/sqpoll.c:314:26> FUNC=io_sq_thread L=2
+  [USE] Taint flows to:   br i1 %210, label %215, label %211, <io_uring/sqpoll.c:314:30> FUNC=io_sq_thread L=2
+  [USE] Taint flows to:   %214 = icmp eq ptr %213, null, <io_uring/sqpoll.c:314:34> FUNC=io_sq_thread L=2
+  [USE] Taint flows to:   br i1 %214, label %216, label %215, <io_uring/sqpoll.c:314:18> FUNC=io_sq_thread L=2
+  [USE] Taint flows to:   %188 = and i32 %187, 64, <io_uring/sqpoll.c:188:20> FUNC=io_sq_thread L=2
+  [USE] Taint flows to:   %189 = icmp eq i32 %188, 0, <io_uring/sqpoll.c:188:20> FUNC=io_sq_thread L=2
+  [USE] Taint flows to:   br i1 %189, label %190, label %193, <io_uring/sqpoll.c:187:61> FUNC=io_sq_thread L=2
+  [USE] Taint flows to:   %184 = and i64 %183, 2, <./include/linux/percpu-refcount.h:365:31> FUNC=io_sq_thread L=2
+  [USE] Taint flows to:   %185 = icmp eq i64 %184, 0, <./include/linux/percpu-refcount.h:365:9> FUNC=io_sq_thread L=2
+  [USE] Taint flows to:   br i1 %185, label %186, label %193, <io_uring/sqpoll.c:187:61> FUNC=io_sq_thread L=2
+  [USE] Taint flows to:   %177 = icmp eq ptr %176, null, <io_uring/sqpoll.c:180:8> FUNC=io_sq_thread L=2
+  [USE] Taint flows to:   br i1 %177, label %180, label %178, <io_uring/sqpoll.c:180:7> FUNC=io_sq_thread L=2
+  [USE] Taint flows to:   %170 = icmp eq ptr %168, %169, <io_uring/sqpoll.c:176:21> FUNC=io_sq_thread L=2
+  [USE] Taint flows to:   store volatile ptr %168, ptr %66, align 8, <./include/linux/cred.h:175:9> FUNC=io_sq_thread L=2
+  [STORE DESTINATION] Marking pointer as tainted:   %66 = getelementptr inbounds nuw i8, ptr %13, i64 1896 <./include/linux/cred.h:175:9> FUNC=io_sq_thread L=2
+  [USE] Taint flows to:   br i1 %170, label %172, label %171, <io_uring/sqpoll.c:176:21> FUNC=io_sq_thread L=2
+  [USE] Taint flows to:   %165 = icmp eq ptr %164, null, <io_uring/sqpoll.c:173:20> FUNC=io_sq_thread L=2
+  [USE] Taint flows to:   br i1 %165, label %207, label %166, <io_uring/sqpoll.c:173:16> FUNC=io_sq_thread L=2
+  [USE] Taint flows to:   %158 = call i32 @llvm.umin.i32(i32 %155, i32 %157), <io_uring/io_uring.h:328:9> FUNC=io_sq_thread L=2
+  [USE] Taint flows to:   %160 = select i1 %142, i32 %159, i32 %158, <io_uring/sqpoll.c:170:18> FUNC=io_sq_thread L=2
+  [USE] Taint flows to:   %159 = call i32 @llvm.umin.i32(i32 %158, i32 8), <io_uring/sqpoll.c:170:18> FUNC=io_sq_thread L=2
+  [USE] Taint flows to:   %161 = icmp eq i32 %160, 0, <io_uring/sqpoll.c:173:6> FUNC=io_sq_thread L=2
+  [USE] Taint flows to:   br i1 %161, label %162, label %166, <io_uring/sqpoll.c:173:16> FUNC=io_sq_thread L=2
+  [USE] Taint flows to:   br i1 %161, label %192, label %181, <io_uring/sqpoll.c:187:17> FUNC=io_sq_thread L=2
+  [USE] Taint flows to:   %155 = sub i32 %152, %154, <io_uring/io_uring.h:327:46> FUNC=io_sq_thread L=2
+  [USE] Taint flows to:   %151 = getelementptr inbounds nuw i8, ptr %150, i64 4, <io_uring/io_uring.h:327:12> FUNC=io_sq_thread L=2
+  [USE] Taint flows to:   %152 = load volatile i32, ptr %151, align 4, <io_uring/io_uring.h:327:12> FUNC=io_sq_thread L=2
+[LOAD] Tainted load from tracked pointer:   %169 = load ptr, ptr %66, align 8, (  %66 = getelementptr inbounds nuw i8, ptr %13, i64 1896)  <io_uring/sqpoll.c:176:24> FUNC=io_sq_thread L=2
+  [USE] Taint flows to:   %173 = phi ptr [ %169, %171 ], [ null, %166 ], <io_uring/sqpoll.c:0> FUNC=io_sq_thread L=2
+  [USE] Taint flows to:   %203 = icmp eq ptr %173, null, <io_uring/sqpoll.c:194:7> FUNC=io_sq_thread L=2
+  [USE] Taint flows to:   store volatile ptr %173, ptr %66, align 8, <./include/linux/cred.h:180:9> FUNC=io_sq_thread L=2
+  [USE] Taint flows to:   br i1 %203, label %205, label %204, <io_uring/sqpoll.c:194:7> FUNC=io_sq_thread L=2
+
+=== Maximum Level Statistics ===
+Largest L value: 2
+Number of instructions with L=2: 67
+
+Earliest instruction with L=2:
+    %146 = phi ptr [ %218, %216 ], [ %143, %141 ] FUNC=io_sq_thread L=2
+
+Latest instruction with L=2:
+    br i1 %219, label %220, label %145, <io_uring/sqpoll.c:311:3> FUNC=io_sq_thread L=2
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/block/blk-core.ll
+../linux-wllvm-defconfig/block/blk-core.c

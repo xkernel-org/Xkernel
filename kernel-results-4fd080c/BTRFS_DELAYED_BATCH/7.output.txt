@@ -1,0 +1,46 @@
+=== Taint Tracker Configuration ===
+Function: btrfs_balance_delayed_items
+Opcode: add
+Constant: 16
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 16)
+
+[SOURCE] Tainting:   %28 = add i32 %17, 16 FUNC=btrfs_balance_delayed_items L=0
+[USE] Source instruction in data flow FUNC=btrfs_balance_delayed_items L=0
+[USE] Processing uses of:   %28 = add i32 %17, 16
+  [USE] Taint flows to:   %29 = icmp slt i32 %26, %28 FUNC=btrfs_balance_delayed_items L=0
+  [USE] Taint flows to:   %39 = icmp slt i32 %37, %28 FUNC=btrfs_balance_delayed_items L=0
+  [USE] Taint flows to:   %51 = icmp slt i32 %49, %28 FUNC=btrfs_balance_delayed_items L=0
+[USE] Processing uses of:   %51 = icmp slt i32 %49, %28
+  [USE] Taint flows to:   %52 = and i1 %50, %51, <fs/btrfs/delayed-inode.c:1405:16> FUNC=btrfs_balance_delayed_items L=0
+[USE] Processing uses of:   %52 = and i1 %50, %51,
+  [USE] Taint flows to:   br i1 %52, label %41, label %53, <fs/btrfs/delayed-inode.c:1405:16> FUNC=btrfs_balance_delayed_items L=0
+[NO USE] No uses of:   br i1 %52, label %41, label %53,
+[USE] Processing uses of:   %39 = icmp slt i32 %37, %28
+  [USE] Taint flows to:   %40 = and i1 %38, %39, <fs/btrfs/delayed-inode.c:1405:16> FUNC=btrfs_balance_delayed_items L=0
+[USE] Processing uses of:   %40 = and i1 %38, %39,
+  [USE] Taint flows to:   br i1 %40, label %41, label %53, <fs/btrfs/delayed-inode.c:1405:16> FUNC=btrfs_balance_delayed_items L=0
+[NO USE] No uses of:   br i1 %40, label %41, label %53,
+[USE] Processing uses of:   %29 = icmp slt i32 %26, %28
+  [USE] Taint flows to:   %30 = and i1 %27, %29, <fs/btrfs/delayed-inode.c:1405:16> FUNC=btrfs_balance_delayed_items L=0
+[USE] Processing uses of:   %30 = and i1 %27, %29,
+  [USE] Taint flows to:   br i1 %30, label %31, label %63, <fs/btrfs/delayed-inode.c:1405:16> FUNC=btrfs_balance_delayed_items L=0
+[NO USE] No uses of:   br i1 %30, label %31, label %63,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 10
+
+Earliest instruction with L=0:
+    %28 = add i32 %17, 16 FUNC=btrfs_balance_delayed_items L=0
+
+Latest instruction with L=0:
+    br i1 %52, label %41, label %53, <fs/btrfs/delayed-inode.c:1405:16> FUNC=btrfs_balance_delayed_items L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/btrfs/delayed-inode.ll
+../linux-wllvm-defconfig/fs/btrfs/delayed-inode.c

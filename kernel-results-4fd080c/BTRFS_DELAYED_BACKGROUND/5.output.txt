@@ -1,0 +1,30 @@
+=== Taint Tracker Configuration ===
+Function: btrfs_balance_delayed_items
+Opcode: icmp
+Constant: 127
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 127)
+
+[SOURCE] Tainting:   %33 = icmp sgt i32 %32, 127, <fs/btrfs/delayed-inode.c:1408:40> FUNC=btrfs_balance_delayed_items L=0
+[USE] Source instruction in data flow <fs/btrfs/delayed-inode.c:1408:40> FUNC=btrfs_balance_delayed_items L=0
+[USE] Processing uses of:   %33 = icmp sgt i32 %32, 127,
+  [USE] Taint flows to:   br i1 %33, label %34, label %63, <fs/btrfs/delayed-inode.c:1432:3> FUNC=btrfs_balance_delayed_items L=0
+[NO USE] No uses of:   br i1 %33, label %34, label %63,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 2
+
+Earliest instruction with L=0:
+    %33 = icmp sgt i32 %32, 127, <fs/btrfs/delayed-inode.c:1408:40> FUNC=btrfs_balance_delayed_items L=0
+
+Latest instruction with L=0:
+    br i1 %33, label %34, label %63, <fs/btrfs/delayed-inode.c:1432:3> FUNC=btrfs_balance_delayed_items L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/btrfs/delayed-inode.ll
+../linux-wllvm-defconfig/fs/btrfs/delayed-inode.c

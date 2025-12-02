@@ -1,0 +1,38 @@
+=== Taint Tracker Configuration ===
+Function: kvfree_call_rcu
+Opcode: select
+Constant: 1
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 1)
+
+[SOURCE] Tainting:   %111 = select i1 %110, i64 1, i64 5000, <mm/slab_common.c:1633:10> FUNC=kvfree_call_rcu L=0
+[USE] Source instruction in data flow <mm/slab_common.c:1633:10> FUNC=kvfree_call_rcu L=0
+[USE] Processing uses of:   %111 = select i1 %110, i64 1, i64 5000,
+  [USE] Taint flows to:   %121 = icmp slt i64 %111, %120, <mm/slab_common.c:1636:13> FUNC=kvfree_call_rcu L=0
+  [CHILD FUNCTION] Tainted value used in call to mod_delayed_work_on at argument 3:   %124 = call zeroext i1 @mod_delayed_work_on(i32 noundef 64, ptr noundef %123, ptr noundef nonnull %112, i64 noundef range(i64 1, 5001) %111) #278, <./include/linux/workqueue.h:692:9> FUNC=kvfree_call_rcu L=0
+  [USE] Taint flows to:   %124 = call zeroext i1 @mod_delayed_work_on(i32 noundef 64, ptr noundef %123, ptr noundef nonnull %112, i64 noundef range(i64 1, 5001) %111) #278, <./include/linux/workqueue.h:692:9> FUNC=kvfree_call_rcu L=0
+  [CHILD FUNCTION] Tainted value used in call to queue_delayed_work_on at argument 3:   %127 = call zeroext i1 @queue_delayed_work_on(i32 noundef 64, ptr noundef %126, ptr noundef nonnull %112, i64 noundef %111) #278, <./include/linux/workqueue.h:677:9> FUNC=kvfree_call_rcu L=0
+  [USE] Taint flows to:   %127 = call zeroext i1 @queue_delayed_work_on(i32 noundef 64, ptr noundef %126, ptr noundef nonnull %112, i64 noundef %111) #278, <./include/linux/workqueue.h:677:9> FUNC=kvfree_call_rcu L=0
+[NO USE] No uses of:   %127 = call zeroext i1 @queue_delayed_work_on(i32 noundef 64, ptr noundef %126, ptr noundef nonnull %112, i64 noundef %111) #278,
+[NO USE] No uses of:   %124 = call zeroext i1 @mod_delayed_work_on(i32 noundef 64, ptr noundef %123, ptr noundef nonnull %112, i64 noundef range(i64 1, 5001) %111) #278,
+[USE] Processing uses of:   %121 = icmp slt i64 %111, %120,
+  [USE] Taint flows to:   br i1 %121, label %122, label %128, <mm/slab_common.c:1636:13> FUNC=kvfree_call_rcu L=0
+[NO USE] No uses of:   br i1 %121, label %122, label %128,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 5
+
+Earliest instruction with L=0:
+    %111 = select i1 %110, i64 1, i64 5000, <mm/slab_common.c:1633:10> FUNC=kvfree_call_rcu L=0
+
+Latest instruction with L=0:
+    %127 = call zeroext i1 @queue_delayed_work_on(i32 noundef 64, ptr noundef %126, ptr noundef nonnull %112, i64 noundef %111) #278, <./include/linux/workqueue.h:677:9> FUNC=kvfree_call_rcu L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/mm/slab_common.ll
+../linux-wllvm-defconfig/mm/slab_common.c

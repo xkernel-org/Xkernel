@@ -1,0 +1,5 @@
+SOURCE_FILE=block/blk-mq.c
+FUNCTION_NAME=blk_mq_request_issue_directly
+SOURCE_OP="mul"
+CONSTANT_VALUE=7
+OCCURENCE=2

@@ -1,0 +1,5 @@
+SOURCE_FILE=kernel/workqueue.c
+FUNCTION_NAME=bh_worker
+SOURCE_OP="add"
+CONSTANT_VALUE=-2
+OCCURENCE=1

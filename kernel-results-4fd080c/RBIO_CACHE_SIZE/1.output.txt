@@ -1,0 +1,30 @@
+=== Taint Tracker Configuration ===
+Function: unlock_stripe
+Opcode: icmp
+Constant: 1024
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 1024)
+
+[SOURCE] Tainting:   %58 = icmp sgt i32 %57, 1024, <fs/btrfs/raid56.c:567:24> FUNC=unlock_stripe L=0
+[USE] Source instruction in data flow <fs/btrfs/raid56.c:567:24> FUNC=unlock_stripe L=0
+[USE] Processing uses of:   %58 = icmp sgt i32 %57, 1024,
+  [USE] Taint flows to:   br i1 %58, label %59, label %65, <fs/btrfs/raid56.c:567:24> FUNC=unlock_stripe L=0
+[NO USE] No uses of:   br i1 %58, label %59, label %65,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 2
+
+Earliest instruction with L=0:
+    %58 = icmp sgt i32 %57, 1024, <fs/btrfs/raid56.c:567:24> FUNC=unlock_stripe L=0
+
+Latest instruction with L=0:
+    br i1 %58, label %59, label %65, <fs/btrfs/raid56.c:567:24> FUNC=unlock_stripe L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/btrfs/raid56.ll
+../linux-wllvm-defconfig/fs/btrfs/raid56.c

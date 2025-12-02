@@ -1,0 +1,5 @@
+SOURCE_FILE=lib/sbitmap.c
+FUNCTION_NAME=sbitmap_queue_resize
+SOURCE_OP="icmp"
+CONSTANT_VALUE=63
+OCCURENCE=1
