@@ -1,0 +1,5 @@
+SOURCE_FILE=block/blk-core.c
+FUNCTION_NAME=blk_alloc_queue
+SOURCE_OP="store"
+CONSTANT_VALUE=128
+OCCURENCE=1

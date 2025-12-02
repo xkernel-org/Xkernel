@@ -1,0 +1,29 @@
+=== Taint Tracker Configuration ===
+Function: shrink_slab
+Opcode: select
+Constant: 128
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 128)
+
+[SOURCE] Tainting:   %43 = select i1 %42, i64 128, i64 %41, <mm/shrinker.c:380:20> FUNC=shrink_slab L=0
+[USE] Source instruction in data flow <mm/shrinker.c:380:20> FUNC=shrink_slab L=0
+[USE] Processing uses of:   %43 = select i1 %42, i64 128, i64 %41,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %104 = call i64 @llvm.smin.i64(i64 %43, i64 %45), !dbg !17867922 <mm/shrinker.c:430:2>
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %112 = call i64 @llvm.smin.i64(i64 %43, i64 %110), !dbg !17867926 <mm/shrinker.c:433:30>
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 1
+
+Earliest instruction with L=0:
+    %43 = select i1 %42, i64 128, i64 %41, <mm/shrinker.c:380:20> FUNC=shrink_slab L=0
+
+(Earliest and latest are the same instruction)
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/mm/shrinker.ll
+../linux-wllvm-defconfig/mm/shrinker.c

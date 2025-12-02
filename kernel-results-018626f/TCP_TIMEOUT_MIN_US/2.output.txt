@@ -1,0 +1,28 @@
+=== Taint Tracker Configuration ===
+Function: tcp_rack_mark_lost
+Opcode: add
+Constant: 2000
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 2000)
+
+[SOURCE] Tainting:   %12 = add i32 %9, 2000, <net/ipv4/tcp_recovery.c:107:38> FUNC=tcp_rack_mark_lost L=0
+[USE] Source instruction in data flow <net/ipv4/tcp_recovery.c:107:38> FUNC=tcp_rack_mark_lost L=0
+[USE] Processing uses of:   %12 = add i32 %9, 2000,
+  [CHILD FUNCTION] Tainted value used in call to __usecs_to_jiffies at argument 0:   %13 = tail call i64 @__usecs_to_jiffies(i32 noundef range(i32 2001, 2000) %12) #271, <./include/linux/jiffies.h:587:10> FUNC=tcp_rack_mark_lost L=0
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 1
+
+Earliest instruction with L=0:
+    %12 = add i32 %9, 2000, <net/ipv4/tcp_recovery.c:107:38> FUNC=tcp_rack_mark_lost L=0
+
+(Earliest and latest are the same instruction)
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/ipv4/tcp_recovery.ll
+../linux-wllvm-defconfig/net/ipv4/tcp_recovery.c

@@ -1,0 +1,30 @@
+=== Taint Tracker Configuration ===
+Function: tcp_event_data_recv
+Opcode: icmp
+Constant: 21
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 21)
+
+[SOURCE] Tainting:   %181 = icmp ult i32 %180, 21, <net/ipv4/tcp_input.c:843:9> FUNC=tcp_event_data_recv L=0
+[USE] Source instruction in data flow <net/ipv4/tcp_input.c:843:9> FUNC=tcp_event_data_recv L=0
+[USE] Processing uses of:   %181 = icmp ult i32 %180, 21,
+  [USE] Taint flows to:   br i1 %181, label %182, label %187, <net/ipv4/tcp_input.c:843:9> FUNC=tcp_event_data_recv L=0
+[NO USE] No uses of:   br i1 %181, label %182, label %187,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 2
+
+Earliest instruction with L=0:
+    %181 = icmp ult i32 %180, 21, <net/ipv4/tcp_input.c:843:9> FUNC=tcp_event_data_recv L=0
+
+Latest instruction with L=0:
+    br i1 %181, label %182, label %187, <net/ipv4/tcp_input.c:843:9> FUNC=tcp_event_data_recv L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/ipv4/tcp_input.ll
+../linux-wllvm-defconfig/net/ipv4/tcp_input.c

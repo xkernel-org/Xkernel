@@ -1,0 +1,37 @@
+=== Taint Tracker Configuration ===
+Function: sbitmap_queue_min_shallow_depth
+Opcode: select
+Constant: 8
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 8)
+
+[SOURCE] Tainting:   %18 = select i1 %15, i32 8, i32 %17, <lib/sbitmap.c:426:15> FUNC=sbitmap_queue_min_shallow_depth L=0
+[USE] Source instruction in data flow <lib/sbitmap.c:426:15> FUNC=sbitmap_queue_min_shallow_depth L=0
+[USE] Processing uses of:   %18 = select i1 %15, i32 8, i32 %17,
+  [USE] Taint flows to:   %21 = icmp eq i32 %20, %18, <lib/sbitmap.c:469:22> FUNC=sbitmap_queue_min_shallow_depth L=0
+  [POINTER PARAMETER] Tainted value stored through pointer parameter <lib/sbitmap.c:470:3>
+[USE] Processing uses of:   %21 = icmp eq i32 %20, %18,
+  [USE] Taint flows to:   br i1 %21, label %23, label %22, <lib/sbitmap.c:469:22> FUNC=sbitmap_queue_min_shallow_depth L=0
+[NO USE] No uses of:   br i1 %21, label %23, label %22,
+[POINTER PARAMETER] Call to sbitmap_queue_min_shallow_depth passes through pointer parameter 0 of dd_init_hctx <block/mq-deadline.c:532:2> FUNC=dd_init_hctx L=1
+[POINTER PARAMETER] Call to sbitmap_queue_min_shallow_depth passes through pointer parameter 0 of dd_depth_updated <block/mq-deadline.c:532:2> FUNC=dd_depth_updated L=1
+[POINTER PARAMETER] Call to sbitmap_queue_min_shallow_depth passes through pointer parameter 0 of kyber_init_hctx <block/kyber-iosched.c:461:2> FUNC=kyber_init_hctx L=1
+[POINTER PARAMETER] Call to sbitmap_queue_min_shallow_depth passes through pointer parameter 0 of kyber_depth_updated <block/kyber-iosched.c:461:2> FUNC=kyber_depth_updated L=1
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 3
+
+Earliest instruction with L=0:
+    %18 = select i1 %15, i32 8, i32 %17, <lib/sbitmap.c:426:15> FUNC=sbitmap_queue_min_shallow_depth L=0
+
+Latest instruction with L=0:
+    br i1 %21, label %23, label %22, <lib/sbitmap.c:469:22> FUNC=sbitmap_queue_min_shallow_depth L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/lib/sbitmap.ll
+../linux-wllvm-defconfig/lib/sbitmap.c

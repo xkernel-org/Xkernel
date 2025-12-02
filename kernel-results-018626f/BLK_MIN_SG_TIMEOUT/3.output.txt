@@ -1,0 +1,35 @@
+=== Taint Tracker Configuration ===
+Function: sg_io
+Opcode: phi
+Constant: 60000
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 60000)
+
+[SOURCE] Tainting:   %65 = phi i32 [ 60000, %57 ], [ 7000, %61 ] FUNC=sg_io L=0
+[USE] Source instruction in data flow FUNC=sg_io L=0
+[USE] Processing uses of:   %65 = phi i32 [ 60000, %57 ], [ 7000, %61 ]
+  [STORE DESTINATION] Marking pointer as tainted:   %55 = getelementptr inbounds nuw i8, ptr %27, i64 40, <drivers/scsi/scsi_ioctl.c:0>
+  [USE] Taint flows to:   store i32 %65, ptr %55, align 8, <drivers/scsi/scsi_ioctl.c:0> FUNC=sg_io L=0
+[NO USE] No uses of:   store i32 %65, ptr %55, align 8,
+[KILL] Store overwrites tainted pointer with non-tainted value:   store i32 %54, ptr %55, align 8,
+[KILL] Store overwrites tainted pointer with non-tainted value:   store i32 %59, ptr %55, align 8,
+[KILL] Store overwrites tainted pointer with non-tainted value:   store i32 %54, ptr %55, align 8,
+[KILL] Store overwrites tainted pointer with non-tainted value:   store i32 %59, ptr %55, align 8,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 2
+
+Earliest instruction with L=0:
+    %65 = phi i32 [ 60000, %57 ], [ 7000, %61 ] FUNC=sg_io L=0
+
+Latest instruction with L=0:
+    store i32 %65, ptr %55, align 8, <drivers/scsi/scsi_ioctl.c:0> FUNC=sg_io L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/drivers/scsi/scsi_ioctl.ll
+../linux-wllvm-defconfig/drivers/scsi/scsi_ioctl.c

@@ -1,0 +1,30 @@
+=== Taint Tracker Configuration ===
+Function: mb_cache_shrink_worker
+Opcode: lshr
+Constant: 4
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 4)
+
+[SOURCE] Tainting:   %5 = lshr i64 %4, 4, <fs/mbcache.c:346:46> FUNC=mb_cache_shrink_worker L=0
+[USE] Source instruction in data flow <fs/mbcache.c:346:46> FUNC=mb_cache_shrink_worker L=0
+[USE] Processing uses of:   %5 = lshr i64 %4, 4,
+  [CHILD FUNCTION] Tainted value used in call to mb_cache_shrink at argument 1:   %6 = tail call fastcc i64 @mb_cache_shrink(ptr noundef %2, i64 noundef %5) #269, <fs/mbcache.c:346:2> FUNC=mb_cache_shrink_worker L=0
+  [POINTER PARAMETER INTRAPROC] Conservatively marking pointer argument 0 as tainted: ptr %0 <fs/mbcache.c:346:2> FUNC=mb_cache_shrink_worker L=0
+[SKIP] Load before taint origin, not tainting:   %4 = load i64, ptr %3, align 8, <fs/mbcache.c:346:32> FUNC=mb_cache_shrink_worker L=0
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 1
+
+Earliest instruction with L=0:
+    %5 = lshr i64 %4, 4, <fs/mbcache.c:346:46> FUNC=mb_cache_shrink_worker L=0
+
+(Earliest and latest are the same instruction)
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/mbcache.ll
+../linux-wllvm-defconfig/fs/mbcache.c

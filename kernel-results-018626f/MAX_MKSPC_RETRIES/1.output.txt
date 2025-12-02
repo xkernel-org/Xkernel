@@ -1,0 +1,15 @@
+=== Taint Tracker Configuration ===
+Function: make_free_space
+Opcode: icmp
+Constant: 4
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 4)
+
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/ubifs/budget.ll
+../linux-wllvm-defconfig/fs/ubifs/budget.c

@@ -1,0 +1,75 @@
+=== Taint Tracker Configuration ===
+Function: amt_dev_open
+Opcode: phi
+Constant: 0
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 0)
+
+[SOURCE] Tainting:   %46 = phi i64 [ 0, %40 ], [ 60000, %32 ] FUNC=amt_dev_open L=0
+[USE] Source instruction in data flow FUNC=amt_dev_open L=0
+[USE] Processing uses of:   %46 = phi i64 [ 0, %40 ], [ 60000, %32 ]
+  [CHILD FUNCTION] Tainted value used in call to mod_delayed_work_on at argument 3:   %49 = call zeroext i1 @mod_delayed_work_on(i32 noundef 64, ptr noundef %47, ptr noundef nonnull %48, i64 noundef %46) #270, <./include/linux/workqueue.h:692:9> FUNC=amt_dev_open L=0
+  [POINTER PARAMETER INTRAPROC] Conservatively marking pointer argument 2 as tainted: ptr %0 <./include/linux/workqueue.h:692:9> FUNC=amt_dev_open L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %10 = load ptr, ptr %9, align 8, (base: ptr %0)  <drivers/net/amt.c:2966:30> FUNC=amt_dev_open L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %12 = load i16, ptr %11, align 4, (base: ptr %0)  <drivers/net/amt.c:2966:40> FUNC=amt_dev_open L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %26 = load ptr, ptr %9, align 8, (base: ptr %0)  <drivers/net/amt.c:2977:29> FUNC=amt_dev_open L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %39 = load i32, ptr %38, align 8, (base: ptr %0)  <drivers/net/amt.c:3003:11> FUNC=amt_dev_open L=0
+[USE] Processing uses of:   %39 = load i32, ptr %38, align 8,
+  [USE] Taint flows to:   switch i32 %39, label %50 [
+    i32 0, label %40
+    i32 1, label %44
+  ], <drivers/net/amt.c:3003:16> FUNC=amt_dev_open L=0
+[NO USE] No uses of:   switch i32 %39, label %50 [
+    i32 0, label %40
+    i32 1, label %44
+  ],
+[USE] Processing uses of:   %26 = load ptr, ptr %9, align 8,
+  [CHILD FUNCTION] Tainted value used in call to setup_udp_tunnel_sock at argument 0:   call void @setup_udp_tunnel_sock(ptr noundef %26, ptr noundef %19, ptr noundef nonnull %4) #270, <drivers/net/amt.c:2977:2> FUNC=amt_dev_open L=0
+  [POINTER PARAMETER INTRAPROC] Conservatively marking pointer argument 2 as tainted:   %4 = alloca %struct.udp_tunnel_sock_cfg, align 8, !DIAssignID !17867570 <drivers/net/amt.c:2977:2> FUNC=amt_dev_open L=0
+[USE] Processing uses of:   %12 = load i16, ptr %11, align 4,
+  [STORE DESTINATION] Marking pointer as tainted:   %13 = getelementptr inbounds nuw i8, ptr %2, i64 36, <drivers/net/amt.c:2952:26>
+  [USE] Taint flows to:   store i16 %12, ptr %13, align 4, <drivers/net/amt.c:2952:26> FUNC=amt_dev_open L=0
+[NO USE] No uses of:   store i16 %12, ptr %13, align 4,
+[USE] Processing uses of:   %10 = load ptr, ptr %9, align 8,
+  [CHILD FUNCTION] Tainted value used in call to udp_sock_create4 at argument 0:   %14 = call i32 @udp_sock_create4(ptr noundef %10, ptr noundef nonnull %2, ptr noundef nonnull %3) #270, <./include/net/udp_tunnel.h:59:10> FUNC=amt_dev_open L=0
+  [POINTER PARAMETER INTRAPROC] Conservatively marking pointer argument 1 as tainted:   %2 = alloca %struct.udp_port_cfg, align 4, !DIAssignID !17867502 <./include/net/udp_tunnel.h:59:10> FUNC=amt_dev_open L=0
+  [POINTER PARAMETER INTRAPROC] Conservatively marking pointer argument 2 as tainted:   %3 = alloca ptr, align 8, !DIAssignID !17867569 <./include/net/udp_tunnel.h:59:10> FUNC=amt_dev_open L=0
+[LOAD] Tainted load from tracked pointer:   %18 = load ptr, ptr %3, align 8, (  %3 = alloca ptr, align 8, !DIAssignID !17867569)  <drivers/net/amt.c:2955:10> FUNC=amt_dev_open L=0
+[USE] Processing uses of:   %18 = load ptr, ptr %3, align 8,
+  [USE] Taint flows to:   %19 = select i1 %15, ptr %17, ptr %18, <drivers/net/amt.c:2955:10> FUNC=amt_dev_open L=0
+[USE] Processing uses of:   %19 = select i1 %15, ptr %17, ptr %18,
+  [USE] Taint flows to:   %20 = icmp ugt ptr %19, inttoptr (i64 -4096 to ptr), <./include/linux/err.h:67:9> FUNC=amt_dev_open L=0
+  [CHILD FUNCTION] Tainted value used in call to setup_udp_tunnel_sock at argument 1:   call void @setup_udp_tunnel_sock(ptr noundef %26, ptr noundef %19, ptr noundef nonnull %4) #270, <drivers/net/amt.c:2977:2> FUNC=amt_dev_open L=0
+  [POINTER PARAMETER] Tainted value stored through pointer parameter <drivers/net/amt.c:2979:2>
+  [USE] Taint flows to:   %29 = ptrtoint ptr %19 to i64, <./include/linux/err.h:54:9> FUNC=amt_dev_open L=0
+[USE] Processing uses of:   %29 = ptrtoint ptr %19 to i64,
+  [USE] Taint flows to:   %30 = trunc i64 %29 to i32, <drivers/net/amt.c:2968:10> FUNC=amt_dev_open L=0
+[USE] Processing uses of:   %30 = trunc i64 %29 to i32,
+  [USE] Taint flows to:   %31 = icmp eq i32 %30, 0, <drivers/net/amt.c:2994:6> FUNC=amt_dev_open L=0
+  [USE] Taint flows to:   %51 = phi i32 [ 0, %32 ], [ %30, %28 ], [ 0, %44 ] FUNC=amt_dev_open L=0
+[USE] Processing uses of:   %51 = phi i32 [ 0, %32 ], [ %30, %28 ], [ 0, %44 ]
+  [RETURN] Stop: Tainted value is returned:   ret i32 %51, <drivers/net/amt.c:3011:1>
+[USE] Processing uses of:   %31 = icmp eq i32 %30, 0,
+  [USE] Taint flows to:   br i1 %31, label %32, label %50, <drivers/net/amt.c:2994:6> FUNC=amt_dev_open L=0
+[NO USE] No uses of:   br i1 %31, label %32, label %50,
+[USE] Processing uses of:   %20 = icmp ugt ptr %19, inttoptr (i64 -4096 to ptr),
+  [USE] Taint flows to:   br i1 %20, label %28, label %21, <drivers/net/amt.c:2967:6> FUNC=amt_dev_open L=0
+[NO USE] No uses of:   br i1 %20, label %28, label %21,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 16
+
+Earliest instruction with L=0:
+    %10 = load ptr, ptr %9, align 8, <drivers/net/amt.c:2966:30> FUNC=amt_dev_open L=0
+
+Latest instruction with L=0:
+    %51 = phi i32 [ 0, %32 ], [ %30, %28 ], [ 0, %44 ] FUNC=amt_dev_open L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/drivers/net/amt.ll
+../linux-wllvm-defconfig/drivers/net/amt.c

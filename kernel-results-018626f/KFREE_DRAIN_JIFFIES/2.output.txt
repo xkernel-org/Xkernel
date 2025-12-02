@@ -1,0 +1,28 @@
+=== Taint Tracker Configuration ===
+Function: kvfree_call_rcu
+Opcode: call
+Constant: 64
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 2 (of constant 64)
+
+[SOURCE] Tainting:   %124 = call zeroext i1 @mod_delayed_work_on(i32 noundef 64, ptr noundef %123, ptr noundef nonnull %112, i64 noundef range(i64 1, 5001) %111) #269, <./include/linux/workqueue.h:692:9> FUNC=kvfree_call_rcu L=0
+[USE] Source instruction in data flow <./include/linux/workqueue.h:692:9> FUNC=kvfree_call_rcu L=0
+[CHILD FUNCTION] Constant used in call to mod_delayed_work_on at argument 0 <./include/linux/workqueue.h:692:9> FUNC=kvfree_call_rcu L=0
+[NO USE] No uses of:   %124 = call zeroext i1 @mod_delayed_work_on(i32 noundef 64, ptr noundef %123, ptr noundef nonnull %112, i64 noundef range(i64 1, 5001) %111) #269,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 1
+
+Earliest instruction with L=0:
+    %124 = call zeroext i1 @mod_delayed_work_on(i32 noundef 64, ptr noundef %123, ptr noundef nonnull %112, i64 noundef range(i64 1, 5001) %111) #269, <./include/linux/workqueue.h:692:9> FUNC=kvfree_call_rcu L=0
+
+(Earliest and latest are the same instruction)
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/mm/slab_common.ll
+../linux-wllvm-defconfig/mm/slab_common.c

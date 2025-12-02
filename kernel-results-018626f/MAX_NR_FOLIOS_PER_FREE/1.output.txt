@@ -1,0 +1,120 @@
+=== Taint Tracker Configuration ===
+Function: tlb_flush_mmu
+Opcode: call
+Constant: 512
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 512)
+
+[SOURCE] Tainting:   %76 = tail call i32 @llvm.umin.i32(i32 %75, i32 512), <mm/mmu_gather.c:108:9> FUNC=tlb_flush_mmu L=0
+[USE] Source instruction in data flow <mm/mmu_gather.c:108:9> FUNC=tlb_flush_mmu L=0
+[CHILD FUNCTION] Constant used in call to llvm.umin.i32 at argument 1 <mm/mmu_gather.c:108:9> FUNC=tlb_flush_mmu L=0
+[USE] Processing uses of:   %76 = tail call i32 @llvm.umin.i32(i32 %75, i32 512),
+  [USE] Taint flows to:   %77 = add nsw i32 %76, -1, <mm/mmu_gather.c:114:8> FUNC=tlb_flush_mmu L=0
+  [USE] Taint flows to:   %85 = add nuw nsw i32 %76, 1, <mm/mmu_gather.c:116:7> FUNC=tlb_flush_mmu L=0
+  [USE] Taint flows to:   %112 = phi i32 [ %85, %84 ], [ %76, %74 ], [ 0, %71 ], [ %107, %103 ], <mm/mmu_gather.c:0> FUNC=tlb_flush_mmu L=0
+[USE] Processing uses of:   %112 = phi i32 [ %85, %84 ], [ %76, %74 ], [ 0, %71 ], [ %107, %103 ],
+  [CHILD FUNCTION] Tainted value used in call to free_pages_and_swap_cache at argument 1:   tail call void @free_pages_and_swap_cache(ptr noundef %70, i32 noundef %112) #269, <mm/mmu_gather.c:136:3> FUNC=tlb_flush_mmu L=0
+  [USE] Taint flows to:   %113 = zext i32 %112 to i64, <mm/mmu_gather.c:137:9> FUNC=tlb_flush_mmu L=0
+  [USE] Taint flows to:   %116 = sub i32 %115, %112, <mm/mmu_gather.c:138:13> FUNC=tlb_flush_mmu L=0
+[USE] Processing uses of:   %116 = sub i32 %115, %112,
+  [STORE DESTINATION] Marking pointer as tainted:   %64 = getelementptr inbounds nuw i8, ptr %63, i64 8, <mm/mmu_gather.c:138:13>
+  [USE] Taint flows to:   store i32 %116, ptr %64, align 8, <mm/mmu_gather.c:138:13> FUNC=tlb_flush_mmu L=0
+[NO USE] No uses of:   store i32 %116, ptr %64, align 8,
+[USE] Processing uses of:   %113 = zext i32 %112 to i64,
+  [USE] Taint flows to:   %114 = getelementptr ptr, ptr %70, i64 %113, <mm/mmu_gather.c:137:9> FUNC=tlb_flush_mmu L=0
+[USE] Processing uses of:   %114 = getelementptr ptr, ptr %70, i64 %113,
+  [USE] Taint flows to:   %70 = phi ptr [ %114, %111 ], [ %68, %67 ] FUNC=tlb_flush_mmu L=0
+[USE] Processing uses of:   %70 = phi ptr [ %114, %111 ], [ %68, %67 ]
+  [USE] Taint flows to:   %79 = getelementptr ptr, ptr %70, i64 %78, <mm/mmu_gather.c:114:8> FUNC=tlb_flush_mmu L=0
+  [USE] Taint flows to:   %90 = getelementptr ptr, ptr %70, i64 %89, <mm/mmu_gather.c:128:9> FUNC=tlb_flush_mmu L=0
+  [USE] Taint flows to:   %98 = getelementptr ptr, ptr %70, i64 %97, <mm/mmu_gather.c:130:35> FUNC=tlb_flush_mmu L=0
+  [CHILD FUNCTION] Tainted value used in call to free_pages_and_swap_cache at argument 0:   tail call void @free_pages_and_swap_cache(ptr noundef %70, i32 noundef %112) #269, <mm/mmu_gather.c:136:3> FUNC=tlb_flush_mmu L=0
+[USE] Processing uses of:   %98 = getelementptr ptr, ptr %70, i64 %97,
+  [USE] Taint flows to:   %99 = load ptr, ptr %98, align 8, <mm/mmu_gather.c:130:35> FUNC=tlb_flush_mmu L=0
+[USE] Processing uses of:   %99 = load ptr, ptr %98, align 8,
+  [USE] Taint flows to:   %100 = ptrtoint ptr %99 to i64, <./include/linux/mm_types.h:275:10> FUNC=tlb_flush_mmu L=0
+[USE] Processing uses of:   %100 = ptrtoint ptr %99 to i64,
+  [USE] Taint flows to:   %101 = lshr i64 %100, 2, <./include/linux/mm_types.h:275:31> FUNC=tlb_flush_mmu L=0
+[USE] Processing uses of:   %101 = lshr i64 %100, 2,
+  [USE] Taint flows to:   %102 = trunc i64 %101 to i32, <mm/mmu_gather.c:130:15> FUNC=tlb_flush_mmu L=0
+[USE] Processing uses of:   %102 = trunc i64 %101 to i32,
+  [USE] Taint flows to:   %104 = phi i32 [ %102, %95 ], [ 1, %86 ] FUNC=tlb_flush_mmu L=0
+[USE] Processing uses of:   %104 = phi i32 [ %102, %95 ], [ 1, %86 ]
+  [USE] Taint flows to:   %106 = add i32 %104, %88, <mm/mmu_gather.c:0> FUNC=tlb_flush_mmu L=0
+[USE] Processing uses of:   %106 = add i32 %104, %88,
+  [USE] Taint flows to:   %88 = phi i32 [ %106, %103 ], [ 0, %71 ] FUNC=tlb_flush_mmu L=0
+  [USE] Taint flows to:   %109 = icmp ult i32 %106, 512, <mm/mmu_gather.c:126:24> FUNC=tlb_flush_mmu L=0
+[USE] Processing uses of:   %109 = icmp ult i32 %106, 512,
+  [USE] Taint flows to:   %110 = select i1 %108, i1 %109, i1 false, <mm/mmu_gather.c:126:24> FUNC=tlb_flush_mmu L=0
+[USE] Processing uses of:   %110 = select i1 %108, i1 %109, i1 false,
+  [USE] Taint flows to:   br i1 %110, label %86, label %111, <mm/mmu_gather.c:125:4> FUNC=tlb_flush_mmu L=0
+[NO USE] No uses of:   br i1 %110, label %86, label %111,
+[USE] Processing uses of:   %88 = phi i32 [ %106, %103 ], [ 0, %71 ]
+[USE] Processing uses of:   %90 = getelementptr ptr, ptr %70, i64 %89,
+  [USE] Taint flows to:   %91 = load ptr, ptr %90, align 8, <mm/mmu_gather.c:128:9> FUNC=tlb_flush_mmu L=0
+[USE] Processing uses of:   %91 = load ptr, ptr %90, align 8,
+  [USE] Taint flows to:   %92 = ptrtoint ptr %91 to i64, <./include/linux/mm_types.h:259:29> FUNC=tlb_flush_mmu L=0
+[USE] Processing uses of:   %92 = ptrtoint ptr %91 to i64,
+  [USE] Taint flows to:   %93 = and i64 %92, 2, <./include/linux/mm_types.h:259:27> FUNC=tlb_flush_mmu L=0
+[USE] Processing uses of:   %93 = and i64 %92, 2,
+  [USE] Taint flows to:   %94 = icmp eq i64 %93, 0, <mm/mmu_gather.c:128:9> FUNC=tlb_flush_mmu L=0
+[USE] Processing uses of:   %94 = icmp eq i64 %93, 0,
+  [USE] Taint flows to:   br i1 %94, label %103, label %95, <mm/mmu_gather.c:128:9> FUNC=tlb_flush_mmu L=0
+[NO USE] No uses of:   br i1 %94, label %103, label %95,
+[USE] Processing uses of:   %79 = getelementptr ptr, ptr %70, i64 %78,
+  [USE] Taint flows to:   %80 = load ptr, ptr %79, align 8, <mm/mmu_gather.c:114:8> FUNC=tlb_flush_mmu L=0
+[USE] Processing uses of:   %80 = load ptr, ptr %79, align 8,
+  [USE] Taint flows to:   %81 = ptrtoint ptr %80 to i64, <./include/linux/mm_types.h:259:29> FUNC=tlb_flush_mmu L=0
+[USE] Processing uses of:   %81 = ptrtoint ptr %80 to i64,
+  [USE] Taint flows to:   %82 = and i64 %81, 2, <./include/linux/mm_types.h:259:27> FUNC=tlb_flush_mmu L=0
+[USE] Processing uses of:   %82 = and i64 %81, 2,
+  [USE] Taint flows to:   %83 = icmp eq i64 %82, 0, <mm/mmu_gather.c:114:8> FUNC=tlb_flush_mmu L=0
+[USE] Processing uses of:   %83 = icmp eq i64 %82, 0,
+  [USE] Taint flows to:   br i1 %83, label %111, label %84, <mm/mmu_gather.c:114:8> FUNC=tlb_flush_mmu L=0
+[NO USE] No uses of:   br i1 %83, label %111, label %84,
+[USE] Processing uses of:   %85 = add nuw nsw i32 %76, 1,
+[USE] Processing uses of:   %77 = add nsw i32 %76, -1,
+  [USE] Taint flows to:   %78 = zext i32 %77 to i64, <mm/mmu_gather.c:114:8> FUNC=tlb_flush_mmu L=0
+[USE] Processing uses of:   %78 = zext i32 %77 to i64,
+[LOAD] Tainted load from tracked pointer:   %65 = load i32, ptr %64, align 8, (  %64 = getelementptr inbounds nuw i8, ptr %63, i64 8, !dbg !17867665)  <mm/mmu_gather.c:148:44> FUNC=tlb_flush_mmu L=0
+[LOAD] Tainted load from tracked pointer:   %72 = load i32, ptr %64, align 8 (  %64 = getelementptr inbounds nuw i8, ptr %63, i64 8, !dbg !17867665)  FUNC=tlb_flush_mmu L=0
+[LOAD] Tainted load from tracked pointer:   %75 = load i32, ptr %64, align 8, (  %64 = getelementptr inbounds nuw i8, ptr %63, i64 8, !dbg !17867665)  <mm/mmu_gather.c:108:9> FUNC=tlb_flush_mmu L=0
+[SKIP] Load before taint origin, not tainting:   %115 = load i32, ptr %64, align 8, <mm/mmu_gather.c:138:13> FUNC=tlb_flush_mmu L=0
+[LOAD] Tainted load from tracked pointer:   %118 = load i32, ptr %64, align 8, (  %64 = getelementptr inbounds nuw i8, ptr %63, i64 8, !dbg !17867665)  <mm/mmu_gather.c:106:16> FUNC=tlb_flush_mmu L=0
+[USE] Processing uses of:   %118 = load i32, ptr %64, align 8,
+  [USE] Taint flows to:   %119 = icmp eq i32 %118, 0, <mm/mmu_gather.c:106:2> FUNC=tlb_flush_mmu L=0
+[USE] Processing uses of:   %119 = icmp eq i32 %118, 0,
+  [USE] Taint flows to:   br i1 %119, label %120, label %69, <mm/mmu_gather.c:106:2> FUNC=tlb_flush_mmu L=0
+[NO USE] No uses of:   br i1 %119, label %120, label %69,
+[USE] Processing uses of:   %75 = load i32, ptr %64, align 8,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %76 = tail call i32 @llvm.umin.i32(i32 %75, i32 512), !dbg !17867723 <mm/mmu_gather.c:108:9>
+[USE] Processing uses of:   %72 = load i32, ptr %64, align 8
+  [USE] Taint flows to:   %73 = icmp eq i32 %72, 0, <mm/mmu_gather.c:126:12> FUNC=tlb_flush_mmu L=0
+  [USE] Taint flows to:   %108 = icmp ult i32 %107, %72, <mm/mmu_gather.c:126:12> FUNC=tlb_flush_mmu L=0
+[USE] Processing uses of:   %108 = icmp ult i32 %107, %72,
+[USE] Processing uses of:   %73 = icmp eq i32 %72, 0,
+  [USE] Taint flows to:   br i1 %73, label %111, label %86, <mm/mmu_gather.c:125:4> FUNC=tlb_flush_mmu L=0
+[NO USE] No uses of:   br i1 %73, label %111, label %86,
+[USE] Processing uses of:   %65 = load i32, ptr %64, align 8,
+  [USE] Taint flows to:   %66 = icmp eq i32 %65, 0, <mm/mmu_gather.c:148:34> FUNC=tlb_flush_mmu L=0
+[USE] Processing uses of:   %66 = icmp eq i32 %65, 0,
+  [USE] Taint flows to:   br i1 %66, label %123, label %67, <mm/mmu_gather.c:148:2> FUNC=tlb_flush_mmu L=0
+[NO USE] No uses of:   br i1 %66, label %123, label %67,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 44
+
+Earliest instruction with L=0:
+    %65 = load i32, ptr %64, align 8, <mm/mmu_gather.c:148:44> FUNC=tlb_flush_mmu L=0
+
+Latest instruction with L=0:
+    br i1 %119, label %120, label %69, <mm/mmu_gather.c:106:2> FUNC=tlb_flush_mmu L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/mm/mmu_gather.ll
+../linux-wllvm-defconfig/mm/mmu_gather.c

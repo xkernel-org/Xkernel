@@ -1,0 +1,34 @@
+=== Taint Tracker Configuration ===
+Function: do_sys_poll
+Opcode: udiv
+Constant: 100000000
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 100000000)
+
+[SOURCE] Tainting:   %90 = udiv i32 100000000, %89, <fs/select.c:64:29> FUNC=do_sys_poll L=0
+[USE] Source instruction in data flow <fs/select.c:64:29> FUNC=do_sys_poll L=0
+[USE] Processing uses of:   %90 = udiv i32 100000000, %89,
+  [USE] Taint flows to:   %91 = zext nneg i32 %90 to i64, <fs/select.c:64:29> FUNC=do_sys_poll L=0
+[USE] Processing uses of:   %91 = zext nneg i32 %90 to i64,
+  [USE] Taint flows to:   %92 = icmp samesign ugt i64 %78, %91, <fs/select.c:64:17> FUNC=do_sys_poll L=0
+[USE] Processing uses of:   %92 = icmp samesign ugt i64 %78, %91,
+  [USE] Taint flows to:   br i1 %92, label %99, label %93, <fs/select.c:64:17> FUNC=do_sys_poll L=0
+[NO USE] No uses of:   br i1 %92, label %99, label %93,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 4
+
+Earliest instruction with L=0:
+    %90 = udiv i32 100000000, %89, <fs/select.c:64:29> FUNC=do_sys_poll L=0
+
+Latest instruction with L=0:
+    br i1 %92, label %99, label %93, <fs/select.c:64:17> FUNC=do_sys_poll L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/select.ll
+../linux-wllvm-defconfig/fs/select.c

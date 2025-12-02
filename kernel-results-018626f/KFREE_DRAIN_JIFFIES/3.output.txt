@@ -1,0 +1,59 @@
+=== Taint Tracker Configuration ===
+Function: schedule_delayed_monitor_work
+Opcode: select
+Constant: 1
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 1)
+
+[SOURCE] Tainting:   %13 = select i1 %12, i64 1, i64 5000, <mm/slab_common.c:1633:10> FUNC=schedule_delayed_monitor_work L=0
+[USE] Source instruction in data flow <mm/slab_common.c:1633:10> FUNC=schedule_delayed_monitor_work L=0
+[USE] Processing uses of:   %13 = select i1 %12, i64 1, i64 5000,
+  [USE] Taint flows to:   %23 = icmp slt i64 %13, %22, <mm/slab_common.c:1636:13> FUNC=schedule_delayed_monitor_work L=0
+  [CHILD FUNCTION] Tainted value used in call to mod_delayed_work_on at argument 3:   %26 = tail call zeroext i1 @mod_delayed_work_on(i32 noundef 64, ptr noundef %25, ptr noundef nonnull %14, i64 noundef range(i64 1, 5001) %13) #269, <./include/linux/workqueue.h:692:9> FUNC=schedule_delayed_monitor_work L=0
+  [POINTER PARAMETER INTRAPROC] Conservatively marking pointer argument 2 as tainted: ptr %0 <./include/linux/workqueue.h:692:9> FUNC=schedule_delayed_monitor_work L=0
+  [CHILD FUNCTION] Tainted value used in call to queue_delayed_work_on at argument 3:   %29 = tail call zeroext i1 @queue_delayed_work_on(i32 noundef 64, ptr noundef %28, ptr noundef nonnull %14, i64 noundef %13) #269, <./include/linux/workqueue.h:677:9> FUNC=schedule_delayed_monitor_work L=0
+[USE] Processing uses of:   %23 = icmp slt i64 %13, %22,
+  [USE] Taint flows to:   br i1 %23, label %24, label %30, <mm/slab_common.c:1636:13> FUNC=schedule_delayed_monitor_work L=0
+[NO USE] No uses of:   br i1 %23, label %24, label %30,
+[LOAD] Tainted load from tracked pointer (struct field):   %5 = load volatile i32, ptr %4, align 4, (base: ptr %0)  <./arch/x86/include/asm/atomic.h:23:9> FUNC=schedule_delayed_monitor_work L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %7 = load volatile i32, ptr %6, align 4, (base: ptr %0)  <./arch/x86/include/asm/atomic.h:23:9> FUNC=schedule_delayed_monitor_work L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %10 = load volatile i32, ptr %9, align 4, (base: ptr %0)  <./arch/x86/include/asm/atomic.h:23:9> FUNC=schedule_delayed_monitor_work L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %15 = load volatile i64, ptr %14, align 8, (base: ptr %0)  <./arch/x86/include/asm/bitops.h:206:4> FUNC=schedule_delayed_monitor_work L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %20 = load i64, ptr %19, align 8, (base: ptr %0)  <mm/slab_common.c:1635:41> FUNC=schedule_delayed_monitor_work L=0
+[USE] Processing uses of:   %20 = load i64, ptr %19, align 8,
+  [USE] Taint flows to:   %22 = sub i64 %20, %21, <mm/slab_common.c:1635:49> FUNC=schedule_delayed_monitor_work L=0
+[USE] Processing uses of:   %22 = sub i64 %20, %21,
+[USE] Processing uses of:   %15 = load volatile i64, ptr %14, align 8,
+  [USE] Taint flows to:   %16 = and i64 %15, 1, <./arch/x86/include/asm/bitops.h:205:44> FUNC=schedule_delayed_monitor_work L=0
+[USE] Processing uses of:   %16 = and i64 %15, 1,
+  [USE] Taint flows to:   %17 = icmp eq i64 %16, 0, <./arch/x86/include/asm/bitops.h:206:37> FUNC=schedule_delayed_monitor_work L=0
+[USE] Processing uses of:   %17 = icmp eq i64 %16, 0,
+  [USE] Taint flows to:   br i1 %17, label %27, label %18, <mm/slab_common.c:1634:6> FUNC=schedule_delayed_monitor_work L=0
+[NO USE] No uses of:   br i1 %17, label %27, label %18,
+[USE] Processing uses of:   %10 = load volatile i32, ptr %9, align 4,
+  [USE] Taint flows to:   %11 = add i32 %8, %10, <mm/slab_common.c:1623:7> FUNC=schedule_delayed_monitor_work L=0
+[USE] Processing uses of:   %11 = add i32 %8, %10,
+  [USE] Taint flows to:   %12 = icmp ugt i32 %11, 506, <mm/slab_common.c:1633:26> FUNC=schedule_delayed_monitor_work L=0
+[USE] Processing uses of:   %12 = icmp ugt i32 %11, 506,
+[USE] Processing uses of:   %7 = load volatile i32, ptr %6, align 4,
+  [USE] Taint flows to:   %8 = add i32 %7, %5, <mm/slab_common.c:1623:7> FUNC=schedule_delayed_monitor_work L=0
+[USE] Processing uses of:   %8 = add i32 %7, %5,
+[USE] Processing uses of:   %5 = load volatile i32, ptr %4, align 4,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 15
+
+Earliest instruction with L=0:
+    %5 = load volatile i32, ptr %4, align 4, <./arch/x86/include/asm/atomic.h:23:9> FUNC=schedule_delayed_monitor_work L=0
+
+Latest instruction with L=0:
+    br i1 %23, label %24, label %30, <mm/slab_common.c:1636:13> FUNC=schedule_delayed_monitor_work L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/mm/slab_common.ll
+../linux-wllvm-defconfig/mm/slab_common.c

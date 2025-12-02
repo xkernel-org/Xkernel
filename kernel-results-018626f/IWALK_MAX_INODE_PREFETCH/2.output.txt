@@ -1,0 +1,31 @@
+=== Taint Tracker Configuration ===
+Function: xfs_iwalk
+Opcode: select
+Constant: 40
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 40)
+
+[SOURCE] Tainting:   %24 = select i1 %16, i32 40, i32 %23, <fs/xfs/xfs_iwalk.c:507:13> FUNC=xfs_iwalk L=0
+[USE] Source instruction in data flow <fs/xfs/xfs_iwalk.c:507:13> FUNC=xfs_iwalk L=0
+[USE] Processing uses of:   %24 = select i1 %16, i32 40, i32 %23,
+  [STORE DESTINATION] Marking pointer as tainted:   %15 = getelementptr inbounds nuw i8, ptr %8, i64 88, <fs/xfs/xfs_iwalk.c:584:29>
+  [USE] Taint flows to:   store i32 %24, ptr %15, align 8, <fs/xfs/xfs_iwalk.c:584:29> FUNC=xfs_iwalk L=0
+[NO USE] No uses of:   store i32 %24, ptr %15, align 8,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 2
+
+Earliest instruction with L=0:
+    %24 = select i1 %16, i32 40, i32 %23, <fs/xfs/xfs_iwalk.c:507:13> FUNC=xfs_iwalk L=0
+
+Latest instruction with L=0:
+    store i32 %24, ptr %15, align 8, <fs/xfs/xfs_iwalk.c:584:29> FUNC=xfs_iwalk L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/xfs/xfs_iwalk.ll
+../linux-wllvm-defconfig/fs/xfs/xfs_iwalk.c

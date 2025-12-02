@@ -1,0 +1,30 @@
+=== Taint Tracker Configuration ===
+Function: tcp_sendmsg_locked
+Opcode: icmp
+Constant: 15
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 15)
+
+[SOURCE] Tainting:   %278 = icmp sgt i32 %262, 15, <net/ipv4/tcp.c:1162:8> FUNC=tcp_sendmsg_locked L=0
+[USE] Source instruction in data flow <net/ipv4/tcp.c:1162:8> FUNC=tcp_sendmsg_locked L=0
+[USE] Processing uses of:   %278 = icmp sgt i32 %262, 15,
+  [USE] Taint flows to:   br i1 %278, label %279, label %282, <net/ipv4/tcp.c:1162:8> FUNC=tcp_sendmsg_locked L=0
+[NO USE] No uses of:   br i1 %278, label %279, label %282,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 2
+
+Earliest instruction with L=0:
+    %278 = icmp sgt i32 %262, 15, <net/ipv4/tcp.c:1162:8> FUNC=tcp_sendmsg_locked L=0
+
+Latest instruction with L=0:
+    br i1 %278, label %279, label %282, <net/ipv4/tcp.c:1162:8> FUNC=tcp_sendmsg_locked L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/ipv4/tcp.ll
+../linux-wllvm-defconfig/net/ipv4/tcp.c

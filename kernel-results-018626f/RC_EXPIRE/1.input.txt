@@ -1,0 +1,5 @@
+SOURCE_FILE=fs/nfsd/nfscache.c
+FUNCTION_NAME=nfsd_prune_bucket_locked
+SOURCE_OP="add"
+CONSTANT_VALUE=-120000
+OCCURENCE=1

@@ -1,0 +1,5 @@
+SOURCE_FILE=drivers/net/amt.c
+FUNCTION_NAME=amt_dev_open
+SOURCE_OP="phi"
+CONSTANT_VALUE=0
+OCCURENCE=1

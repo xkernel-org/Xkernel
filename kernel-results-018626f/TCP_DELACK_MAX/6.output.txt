@@ -1,0 +1,1048 @@
+=== Taint Tracker Configuration ===
+Function: tcp_rcv_state_process
+Opcode: add
+Constant: 200
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 200)
+
+[SOURCE] Tainting:   %264 = add i64 %263, 200, <./include/net/inet_connection_sock.h:0> FUNC=tcp_rcv_state_process L=0
+[USE] Source instruction in data flow <./include/net/inet_connection_sock.h:0> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %264 = add i64 %263, 200,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter <./include/net/inet_connection_sock.h:0>
+  [CHILD FUNCTION] Tainted value used in call to sk_reset_timer at argument 2:   call void @sk_reset_timer(ptr noundef %0, ptr noundef nonnull %266, i64 noundef %264) #269, <./include/net/inet_connection_sock.h:0> FUNC=tcp_rcv_state_process L=0
+  [POINTER PARAMETER INTRAPROC] Conservatively marking pointer argument 1 as tainted: ptr %0 <./include/net/inet_connection_sock.h:0> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %12 = load volatile i8, ptr %11, align 2, (base: ptr %0)  <net/ipv4/tcp_input.c:6758:14> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %27 = load ptr, ptr %26, align 8, (base: ptr %0)  <net/ipv4/tcp_input.c:6781:10> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %33 = load i16, ptr %32, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6792:25> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %37 = load i16, ptr %36, align 2, (base: ptr %0)  <net/ipv4/tcp_input.c:6458:31> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %39 = load ptr, ptr %38, align 8, (base: ptr %0)  <./include/net/net_namespace.h:406:9> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %40 = load i16, ptr %32, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6463:17> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %45 = load i32, ptr %44, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6463:42> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %49 = load i32, ptr %48, align 8, (base: ptr %0)  <net/ipv4/tcp_input.c:6464:31> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %58 = load i32, ptr %57, align 8, (base: ptr %0)  <net/ipv4/tcp_input.c:6475:8> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %66 = load i32, ptr %65, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6476:7> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %71 = load i8, ptr %70, align 1, (base: ptr %0)  <net/ipv4/tcp_input.c:6478:14> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %82 = load i32, ptr %81, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6486:43> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %86 = load i32, ptr %85, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6487:42> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %88 = load i8, ptr %87, align 1, (base: ptr %0)  <./include/net/tcp.h:892:10> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %92 = load i64, ptr %91, align 8, (base: ptr %0)  <./include/net/tcp.h:0> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %100 = load ptr, ptr %38, align 8, (base: ptr %0)  <./include/net/net_namespace.h:406:9> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %114 = load i8, ptr %113, align 8, (base: ptr %0)  <net/ipv4/tcp_input.c:405:11> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %126 = load i32, ptr %125, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6446:18> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %128 = load i32, ptr %127, align 8, (base: ptr %0)  <net/ipv4/tcp_input.c:6447:10> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %135 = load i32, ptr %134, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6448:30> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %151 = load i16, ptr %32, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6545:19> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %157 = load i32, ptr %156, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6547:4> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %167 = load i16, ptr %166, align 16, (base: ptr %0)  <net/ipv4/tcp_input.c:6555:19> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %170 = load i32, ptr %169, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:3813:36> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %178 = load i32, ptr %177, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6561:26> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %181 = load i16, ptr %180, align 16, (base: ptr %0)  <net/ipv4/tcp_input.c:631:22> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %184 = load i32, ptr %183, align 32, (base: ptr %0)  <net/ipv4/tcp_input.c:631:22> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %187 = load i32, ptr %186, align 8, (base: ptr %0)  <net/ipv4/tcp_input.c:633:9> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %194 = load i32, ptr %142, align 16, (base: ptr %0)  <net/ipv4/tcp_input.c:6567:3> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %198 = load i8, ptr %197, align 32, (base: ptr %0)  <net/ipv4/tcp_input.c:6431:11> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %201 = load i16, ptr %32, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6431:34> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %207 = load i8, ptr %206, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6575:24> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %215 = load volatile i64, ptr %214, align 8, (base: ptr %0)  <./arch/x86/include/asm/bitops.h:206:4> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %220 = load ptr, ptr %219, align 8, (base: ptr %0)  <net/ipv4/tcp_input.c:6579:8> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %224 = load i32, ptr %223, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6584:11> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %228 = load volatile i8, ptr %227, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6585:7> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %232 = load i8, ptr %231, align 2, (base: ptr %0)  <./include/net/inet_connection_sock.h:342:32> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %233 = load ptr, ptr %38, align 8, (base: ptr %0)  <./include/net/net_namespace.h:406:9> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %239 = load i8, ptr %238, align 8, (base: ptr %0)  <./include/net/inet_connection_sock.h:179:33> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %241 = load i32, ptr %186, align 8, (base: ptr %0)  <net/ipv4/tcp_input.c:309:39> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %242 = load i16, ptr %193, align 2, (base: ptr %0)  <net/ipv4/tcp_input.c:309:69> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %250 = load i8, ptr %249, align 1, (base: ptr %0)  <net/ipv4/tcp_input.c:314:33> FUNC=tcp_rcv_state_process L=0
+[SKIP] Load before taint origin, not tainting:   %258 = load i32, ptr %257, align 4, <net/ipv4/tcp_input.c:324:21> FUNC=tcp_rcv_state_process L=0
+[SKIP] Load before taint origin, not tainting:   %261 = load i8, ptr %238, align 8, <./include/net/inet_connection_sock.h:236:3> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %272 = load i32, ptr %35, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6617:17> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %277 = load i32, ptr %276, align 4, (base: ptr %0)  <./include/net/tcp.h:1706:20> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %279 = load i32, ptr %278, align 4, (base: ptr %0)  <./include/net/tcp.h:1706:40> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %285 = load i32, ptr %35, align 4, (base: ptr %0)  <./include/net/tcp.h:1708:6> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %290 = load i32, ptr %276, align 4, (base: ptr %0)  <./include/net/tcp.h:1716:15> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %297 = load i16, ptr %32, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6639:18> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %303 = load i32, ptr %302, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:3813:36> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %327 = load i8, ptr %326, align 8, (base: ptr %0)  <net/ipv4/tcp_input.c:411:11> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %337 = load i32, ptr %336, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6662:26> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %340 = load i16, ptr %339, align 16, (base: ptr %0)  <net/ipv4/tcp_input.c:631:22> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %343 = load i32, ptr %342, align 32, (base: ptr %0)  <net/ipv4/tcp_input.c:631:22> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %346 = load i32, ptr %345, align 8, (base: ptr %0)  <net/ipv4/tcp_input.c:633:9> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %356 = load i16, ptr %32, align 4, (base: ptr %0)  <./include/linux/tcp.h:134:38> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %360 = load i16, ptr %32, align 4, (base: ptr %0)  <./include/linux/tcp.h:134:38> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %366 = load ptr, ptr %365, align 8, (base: ptr %0)  <./include/linux/skbuff.h:2144:31> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %373 = load i8, ptr %372, align 4, (base: ptr %0)  <./include/net/tcp.h:2124:58> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %379 = load i16, ptr %378, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6806:24> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %382 = load ptr, ptr %381, align 8, (base: ptr %0)  <net/ipv4/tcp_input.c:6807:8> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %385 = load volatile i8, ptr %11, align 2, (base: ptr %0)  <net/ipv4/tcp_input.c:6812:3> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %388 = load volatile i8, ptr %11, align 2, (base: ptr %0)  <net/ipv4/tcp_input.c:6812:3> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %405 = load volatile i8, ptr %11, align 2, (base: ptr %0)  <net/ipv4/tcp_input.c:6834:11> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %416 = load volatile i8, ptr %11, align 2, (base: ptr %0)  <net/ipv4/tcp_input.c:6848:14> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %419 = load i32, ptr %418, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6850:16> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %422 = load i32, ptr %421, align 64, (base: ptr %0)  <net/ipv4/tcp_input.c:6851:12> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %429 = load i32, ptr %428, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6446:18> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %431 = load i32, ptr %430, align 8, (base: ptr %0)  <net/ipv4/tcp_input.c:6447:10> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %436 = load i16, ptr %378, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6447:49> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %441 = load i32, ptr %440, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6448:30> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %446 = load i32, ptr %445, align 16, (base: ptr %0)  <net/ipv4/tcp_input.c:6861:4> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %450 = load ptr, ptr %449, align 8, (base: ptr %0)  <net/ipv4/tcp_input.c:6866:7> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %452 = load ptr, ptr %451, align 8, (base: ptr %0)  <net/ipv4/tcp_input.c:6872:11> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %464 = load i16, ptr %378, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6876:49> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %476 = load i16, ptr %475, align 16, (base: ptr %0)  <net/ipv4/tcp_input.c:6880:15> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %480 = load ptr, ptr %479, align 8, (base: ptr %0)  <net/ipv4/tcp_input.c:6882:22> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %485 = load i32, ptr %469, align 4, (base: ptr %0)  <./include/net/tcp.h:783:29> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %486 = load i16, ptr %378, align 4, (base: ptr %0)  <./include/net/tcp.h:783:51> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %497 = load i16, ptr %496, align 16, (base: ptr %0)  <net/ipv4/tcp_input.c:631:22> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %500 = load i32, ptr %499, align 32, (base: ptr %0)  <net/ipv4/tcp_input.c:631:22> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %503 = load i32, ptr %502, align 8, (base: ptr %0)  <net/ipv4/tcp_input.c:633:9> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %512 = load i16, ptr %511, align 4, (base: ptr %0)  <./include/net/tcp.h:776:19> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %520 = load i8, ptr %519, align 1, (base: ptr %0)  <net/ipv4/tcp_input.c:6890:11> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %528 = load i32, ptr %527, align 8, (base: ptr %0)  <net/ipv4/tcp_input.c:6900:11> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %530 = load i32, ptr %529, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6900:26> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %534 = load i8, ptr %533, align 1, (base: ptr %0)  <net/ipv4/tcp_input.c:6904:3> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %537 = load volatile i32, ptr %536, align 8, (base: ptr %0)  <./include/net/sock.h:2155:7> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %542 = load volatile i64, ptr %541, align 8, (base: ptr %0)  <./arch/x86/include/asm/bitops.h:206:4> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %547 = load ptr, ptr %546, align 8, (base: ptr %0)  <net/ipv4/tcp_input.c:6910:8> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %550 = load volatile i32, ptr %549, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6914:7> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %554 = load ptr, ptr %553, align 8, (base: ptr %0)  <./include/net/net_namespace.h:406:9> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %566 = load i32, ptr %565, align 16, (base: ptr %0)  <net/ipv4/tcp_input.c:6920:7> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %576 = load i8, ptr %575, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6922:12> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %585 = load ptr, ptr %584, align 8, (base: ptr %0)  <./include/net/net_namespace.h:406:9> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %593 = load ptr, ptr %592, align 8, (base: ptr %0)  <./include/net/net_namespace.h:406:9> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %599 = load i32, ptr %598, align 8, (base: ptr %0)  <./include/net/tcp.h:1695:32> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %614 = load i32, ptr %613, align 4, (base: ptr %0)  <./include/net/sock.h:1725:21> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %621 = load i32, ptr %620, align 8, (base: ptr %0)  <net/ipv4/tcp_input.c:6948:11> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %623 = load i32, ptr %622, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6948:26> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %628 = load i32, ptr %627, align 8, (base: ptr %0)  <net/ipv4/tcp_input.c:6955:11> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %630 = load i32, ptr %629, align 4, (base: ptr %0)  <net/ipv4/tcp_input.c:6955:26> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %634 = load volatile i8, ptr %11, align 2, (base: ptr %0)  <net/ipv4/tcp_input.c:6967:14> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %639 = load i32, ptr %638, align 16, (base: ptr %0)  <net/ipv4/tcp_input.c:6971:41> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %644 = load i8, ptr %643, align 1, (base: ptr %0)  <net/ipv4/tcp_input.c:6986:11> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %655 = load i32, ptr %654, align 16, (base: ptr %0)  <net/ipv4/tcp_input.c:6988:8> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %665 = load ptr, ptr %664, align 8, (base: ptr %0)  <./include/net/net_namespace.h:406:9> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %672 = load volatile i8, ptr %11, align 2, (base: ptr %0)  <net/ipv4/tcp_input.c:7002:10> FUNC=tcp_rcv_state_process L=0
+[LOAD] Tainted load from tracked pointer (struct field):   %676 = load i8, ptr %675, align 8, (base: ptr %0)  <./include/net/inet_connection_sock.h:184:32> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %676 = load i8, ptr %675, align 8,
+  [USE] Taint flows to:   %677 = and i8 %676, 1, <./include/net/inet_connection_sock.h:184:40> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %677 = and i8 %676, 1,
+  [USE] Taint flows to:   %678 = icmp eq i8 %677, 0, <net/ipv4/tcp_input.c:5829:7> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %678 = icmp eq i8 %677, 0,
+  [USE] Taint flows to:   br i1 %678, label %680, label %679, <net/ipv4/tcp_input.c:5829:6> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   br i1 %678, label %680, label %679,
+[USE] Processing uses of:   %672 = load volatile i8, ptr %11, align 2,
+  [USE] Taint flows to:   %673 = icmp eq i8 %672, 7, <net/ipv4/tcp_input.c:7002:19> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %673 = icmp eq i8 %672, 7,
+  [USE] Taint flows to:   br i1 %673, label %680, label %674, <net/ipv4/tcp_input.c:7002:19> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   br i1 %673, label %680, label %674,
+[USE] Processing uses of:   %665 = load ptr, ptr %664, align 8,
+  [USE] Taint flows to:   %666 = getelementptr inbounds nuw i8, ptr %665, i64 440, <net/ipv4/tcp_input.c:6989:5> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %666 = getelementptr inbounds nuw i8, ptr %665, i64 440,
+  [USE] Taint flows to:   %667 = load ptr, ptr %666, align 8, <net/ipv4/tcp_input.c:6989:5> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %667 = load ptr, ptr %666, align 8,
+  [USE] Taint flows to:   %668 = getelementptr i8, ptr %667, i64 408, <net/ipv4/tcp_input.c:6989:5> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %668 = getelementptr i8, ptr %667, i64 408,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   call void asm sideeffect "incq %gs:$0", "=*m,*m,~{dirflag},~{fpsr},~{flags}"(ptr elementtype(i64) %668, ptr elementtype(i64) %668) #271, !dbg !17868653, !srcloc !17868654 <net/ipv4/tcp_input.c:6989:5>
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   call void asm sideeffect "incq %gs:$0", "=*m,*m,~{dirflag},~{fpsr},~{flags}"(ptr elementtype(i64) %668, ptr elementtype(i64) %668) #271, !dbg !17868653, !srcloc !17868654 <net/ipv4/tcp_input.c:6989:5>
+[USE] Processing uses of:   %655 = load i32, ptr %654, align 16,
+  [USE] Taint flows to:   %660 = sub i32 %655, %650, <net/ipv4/tcp_input.c:6988:8> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %660 = sub i32 %655, %650,
+  [USE] Taint flows to:   %661 = add i32 %660, %659, <./include/net/tcp.h:290:28> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %661 = add i32 %660, %659,
+  [USE] Taint flows to:   %662 = icmp slt i32 %661, 0, <./include/net/tcp.h:290:35> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %662 = icmp slt i32 %661, 0,
+  [USE] Taint flows to:   br i1 %662, label %663, label %669, <net/ipv4/tcp_input.c:6987:57> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   br i1 %662, label %663, label %669,
+[USE] Processing uses of:   %644 = load i8, ptr %643, align 1,
+  [USE] Taint flows to:   %645 = and i8 %644, 1, <net/ipv4/tcp_input.c:6986:23> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %645 = and i8 %644, 1,
+  [USE] Taint flows to:   %646 = icmp eq i8 %645, 0, <net/ipv4/tcp_input.c:6986:23> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %646 = icmp eq i8 %645, 0,
+  [USE] Taint flows to:   br i1 %646, label %669, label %647, <net/ipv4/tcp_input.c:6986:23> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   br i1 %646, label %669, label %647,
+[USE] Processing uses of:   %639 = load i32, ptr %638, align 16,
+  [USE] Taint flows to:   %640 = sub i32 %637, %639, <./include/net/tcp.h:290:28> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %640 = sub i32 %637, %639,
+  [USE] Taint flows to:   %641 = icmp slt i32 %640, 0, <./include/net/tcp.h:290:35> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %641 = icmp slt i32 %640, 0,
+  [USE] Taint flows to:   br i1 %641, label %642, label %670, <net/ipv4/tcp_input.c:6971:7> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   br i1 %641, label %642, label %670,
+[USE] Processing uses of:   %634 = load volatile i8, ptr %11, align 2,
+  [USE] Taint flows to:   switch i8 %634, label %670 [
+    i8 8, label %635
+    i8 11, label %635
+    i8 9, label %635
+    i8 4, label %642
+    i8 5, label %642
+    i8 1, label %669
+  ], <net/ipv4/tcp_input.c:6967:2> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   switch i8 %634, label %670 [
+    i8 8, label %635
+    i8 11, label %635
+    i8 9, label %635
+    i8 4, label %642
+    i8 5, label %642
+    i8 1, label %669
+  ],
+[USE] Processing uses of:   %630 = load i32, ptr %629, align 4,
+  [USE] Taint flows to:   %631 = icmp eq i32 %628, %630, <net/ipv4/tcp_input.c:6955:19> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %631 = icmp eq i32 %628, %630,
+  [USE] Taint flows to:   br i1 %631, label %632, label %633, <net/ipv4/tcp_input.c:6955:19> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   br i1 %631, label %632, label %633,
+[USE] Processing uses of:   %628 = load i32, ptr %627, align 8,
+[USE] Processing uses of:   %623 = load i32, ptr %622, align 4,
+  [USE] Taint flows to:   %624 = icmp eq i32 %621, %623, <net/ipv4/tcp_input.c:6948:19> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %624 = icmp eq i32 %621, %623,
+  [USE] Taint flows to:   br i1 %624, label %625, label %633, <net/ipv4/tcp_input.c:6948:19> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   br i1 %624, label %625, label %633,
+[USE] Processing uses of:   %621 = load i32, ptr %620, align 8,
+[USE] Processing uses of:   %614 = load i32, ptr %613, align 4,
+  [USE] Taint flows to:   %615 = icmp eq i32 %614, 0, <./include/net/sock.h:1725:9> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %615 = icmp eq i32 %614, 0,
+  [USE] Taint flows to:   br i1 %615, label %618, label %616, <net/ipv4/tcp_input.c:6932:22> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   br i1 %615, label %618, label %616,
+[USE] Processing uses of:   %599 = load i32, ptr %598, align 8,
+  [USE] Taint flows to:   %600 = shl i32 %599, 2, <./include/net/tcp.h:1697:25> FUNC=tcp_rcv_state_process L=0
+  [USE] Taint flows to:   %601 = ashr i32 %599, 1, <./include/net/tcp.h:1697:38> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %601 = ashr i32 %599, 1,
+  [USE] Taint flows to:   %602 = sub i32 %600, %601, <./include/net/tcp.h:1697:31> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %602 = sub i32 %600, %601,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %603 = call i32 @llvm.smax.i32(i32 %597, i32 %602), !dbg !17868581 <./include/net/tcp.h:1697:18>
+[USE] Processing uses of:   %600 = shl i32 %599, 2,
+[USE] Processing uses of:   %593 = load ptr, ptr %592, align 8,
+  [USE] Taint flows to:   %594 = getelementptr inbounds nuw i8, ptr %593, i64 1180, <./include/net/tcp.h:1694:3> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %594 = getelementptr inbounds nuw i8, ptr %593, i64 1180,
+  [USE] Taint flows to:   %595 = load volatile i32, ptr %594, align 4, <./include/net/tcp.h:1694:3> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %595 = load volatile i32, ptr %594, align 4,
+  [USE] Taint flows to:   %597 = phi i32 [ %595, %591 ], [ %550, %589 ], <./include/net/tcp.h:1693:20> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %597 = phi i32 [ %595, %591 ], [ %550, %589 ],
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %603 = call i32 @llvm.smax.i32(i32 %597, i32 %602), !dbg !17868581 <./include/net/tcp.h:1697:18>
+[USE] Processing uses of:   %585 = load ptr, ptr %584, align 8,
+  [USE] Taint flows to:   %586 = getelementptr inbounds nuw i8, ptr %585, i64 440, <net/ipv4/tcp_input.c:6925:4> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %586 = getelementptr inbounds nuw i8, ptr %585, i64 440,
+  [USE] Taint flows to:   %587 = load ptr, ptr %586, align 8, <net/ipv4/tcp_input.c:6925:4> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %587 = load ptr, ptr %586, align 8,
+  [USE] Taint flows to:   %588 = getelementptr i8, ptr %587, i64 408, <net/ipv4/tcp_input.c:6925:4> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %588 = getelementptr i8, ptr %587, i64 408,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   call void asm sideeffect "incq %gs:$0", "=*m,*m,~{dirflag},~{fpsr},~{flags}"(ptr elementtype(i64) %588, ptr elementtype(i64) %588) #271, !dbg !17868551, !srcloc !17868552 <net/ipv4/tcp_input.c:6925:4>
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   call void asm sideeffect "incq %gs:$0", "=*m,*m,~{dirflag},~{fpsr},~{flags}"(ptr elementtype(i64) %588, ptr elementtype(i64) %588) #271, !dbg !17868551, !srcloc !17868552 <net/ipv4/tcp_input.c:6925:4>
+[USE] Processing uses of:   %576 = load i8, ptr %575, align 4,
+  [USE] Taint flows to:   %577 = and i8 %576, 8, <net/ipv4/tcp_input.c:6922:8> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %577 = and i8 %576, 8,
+  [USE] Taint flows to:   %578 = icmp eq i8 %577, 0, <net/ipv4/tcp_input.c:6922:8> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %578 = icmp eq i8 %577, 0,
+  [USE] Taint flows to:   %581 = or i1 %580, %578, <net/ipv4/tcp_input.c:6922:25> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %581 = or i1 %580, %578,
+  [USE] Taint flows to:   br i1 %581, label %583, label %582, <net/ipv4/tcp_input.c:6922:25> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   br i1 %581, label %583, label %582,
+[USE] Processing uses of:   %566 = load i32, ptr %565, align 16,
+  [USE] Taint flows to:   %571 = sub i32 %566, %561, <net/ipv4/tcp_input.c:6920:7> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %571 = sub i32 %566, %561,
+  [USE] Taint flows to:   %572 = add i32 %571, %570, <./include/net/tcp.h:290:28> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %572 = add i32 %571, %570,
+  [USE] Taint flows to:   %573 = icmp slt i32 %572, 0, <./include/net/tcp.h:290:35> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %573 = icmp slt i32 %572, 0,
+  [USE] Taint flows to:   br i1 %573, label %574, label %589, <net/ipv4/tcp_input.c:6919:56> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   br i1 %573, label %574, label %589,
+[USE] Processing uses of:   %554 = load ptr, ptr %553, align 8,
+  [USE] Taint flows to:   %555 = getelementptr inbounds nuw i8, ptr %554, i64 440, <net/ipv4/tcp_input.c:6916:4> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %555 = getelementptr inbounds nuw i8, ptr %554, i64 440,
+  [USE] Taint flows to:   %556 = load ptr, ptr %555, align 8, <net/ipv4/tcp_input.c:6916:4> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %556 = load ptr, ptr %555, align 8,
+  [USE] Taint flows to:   %557 = getelementptr i8, ptr %556, i64 408, <net/ipv4/tcp_input.c:6916:4> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %557 = getelementptr i8, ptr %556, i64 408,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   call void asm sideeffect "incq %gs:$0", "=*m,*m,~{dirflag},~{fpsr},~{flags}"(ptr elementtype(i64) %557, ptr elementtype(i64) %557) #271, !dbg !17868523, !srcloc !17868524 <net/ipv4/tcp_input.c:6916:4>
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   call void asm sideeffect "incq %gs:$0", "=*m,*m,~{dirflag},~{fpsr},~{flags}"(ptr elementtype(i64) %557, ptr elementtype(i64) %557) #271, !dbg !17868523, !srcloc !17868524 <net/ipv4/tcp_input.c:6916:4>
+[USE] Processing uses of:   %550 = load volatile i32, ptr %549, align 4,
+  [USE] Taint flows to:   %551 = icmp slt i32 %550, 0, <net/ipv4/tcp_input.c:6914:30> FUNC=tcp_rcv_state_process L=0
+  [USE] Taint flows to:   %590 = icmp eq i32 %550, 0, <./include/net/tcp.h:1693:20> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %590 = icmp eq i32 %550, 0,
+  [USE] Taint flows to:   br i1 %590, label %591, label %596, <./include/net/tcp.h:1693:20> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   br i1 %590, label %591, label %596,
+[USE] Processing uses of:   %551 = icmp slt i32 %550, 0,
+  [USE] Taint flows to:   br i1 %551, label %552, label %558, <net/ipv4/tcp_input.c:6914:30> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   br i1 %551, label %552, label %558,
+[USE] Processing uses of:   %547 = load ptr, ptr %546, align 8,
+  [USE] Taint flows to:   call void %547(ptr noundef %0) #269, <net/ipv4/tcp_input.c:6910:4> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   call void %547(ptr noundef %0) #269,
+[USE] Processing uses of:   %542 = load volatile i64, ptr %541, align 8,
+  [USE] Taint flows to:   %543 = and i64 %542, 1, <./arch/x86/include/asm/bitops.h:205:44> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %543 = and i64 %542, 1,
+  [USE] Taint flows to:   %544 = icmp eq i64 %543, 0, <./arch/x86/include/asm/bitops.h:206:37> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %544 = icmp eq i64 %543, 0,
+  [USE] Taint flows to:   br i1 %544, label %545, label %548, <net/ipv4/tcp_input.c:6908:7> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   br i1 %544, label %545, label %548,
+[USE] Processing uses of:   %537 = load volatile i32, ptr %536, align 8,
+  [USE] Taint flows to:   %538 = icmp eq i32 %537, 0, <./include/net/sock.h:2155:7> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %538 = icmp eq i32 %537, 0,
+  [USE] Taint flows to:   br i1 %538, label %539, label %540, <./include/net/sock.h:2155:6> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   br i1 %538, label %539, label %540,
+[USE] Processing uses of:   %534 = load i8, ptr %533, align 1,
+  [USE] Taint flows to:   %535 = or i8 %534, 2, <net/ipv4/tcp_input.c:6904:3> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %535 = or i8 %534, 2,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter <net/ipv4/tcp_input.c:6904:3>
+[USE] Processing uses of:   %530 = load i32, ptr %529, align 4,
+  [USE] Taint flows to:   %531 = icmp eq i32 %528, %530, <net/ipv4/tcp_input.c:6900:19> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %531 = icmp eq i32 %528, %530,
+  [USE] Taint flows to:   br i1 %531, label %532, label %633, <net/ipv4/tcp_input.c:6900:19> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   br i1 %531, label %532, label %633,
+[USE] Processing uses of:   %528 = load i32, ptr %527, align 8,
+[USE] Processing uses of:   %520 = load i8, ptr %519, align 1,
+  [USE] Taint flows to:   %521 = and i8 %520, 2, <net/ipv4/tcp_input.c:6890:23> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %521 = and i8 %520, 2,
+  [USE] Taint flows to:   %522 = icmp eq i8 %521, 0, <net/ipv4/tcp_input.c:6890:23> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %522 = icmp eq i8 %521, 0,
+  [USE] Taint flows to:   br i1 %522, label %633, label %523, <net/ipv4/tcp_input.c:6890:23> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   br i1 %522, label %633, label %523,
+[USE] Processing uses of:   %512 = load i16, ptr %511, align 4,
+  [USE] Taint flows to:   %513 = zext i16 %512 to i32, <./include/net/tcp.h:776:19> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %513 = zext i16 %512 to i32,
+  [USE] Taint flows to:   %514 = shl i32 %513, 26, <./include/net/tcp.h:776:19> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %514 = shl i32 %513, 26,
+  [USE] Taint flows to:   %515 = or i32 %514, %510, <./include/net/tcp.h:776:19> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %515 = or i32 %514, %510,
+  [USE] Taint flows to:   %516 = or i32 %515, 1048576, <./include/net/tcp.h:776:19> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %516 = or i32 %515, 1048576,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %517 = call i32 @llvm.bswap.i32(i32 %516), !dbg !17868459 <./include/net/tcp.h:776:19>
+[USE] Processing uses of:   %503 = load i32, ptr %502, align 8,
+  [USE] Taint flows to:   %504 = lshr i32 %503, 1, <net/ipv4/tcp_input.c:633:9> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %504 = lshr i32 %503, 1,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %505 = call i32 @llvm.umin.i32(i32 %501, i32 %504), !dbg !17868443 <net/ipv4/tcp_input.c:633:9>
+[USE] Processing uses of:   %500 = load i32, ptr %499, align 32,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %501 = call i32 @llvm.umin.i32(i32 %500, i32 %498), !dbg !17868440 <net/ipv4/tcp_input.c:631:22>
+[USE] Processing uses of:   %497 = load i16, ptr %496, align 16,
+  [USE] Taint flows to:   %498 = zext i16 %497 to i32, <net/ipv4/tcp_input.c:631:22> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %498 = zext i16 %497 to i32,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %501 = call i32 @llvm.umin.i32(i32 %500, i32 %498), !dbg !17868440 <net/ipv4/tcp_input.c:631:22>
+[USE] Processing uses of:   %486 = load i16, ptr %378, align 4,
+  [USE] Taint flows to:   %487 = lshr i16 %486, 8, <./include/net/tcp.h:783:51> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %487 = lshr i16 %486, 8,
+  [USE] Taint flows to:   %488 = and i16 %487, 15, <./include/net/tcp.h:783:51> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %488 = and i16 %487, 15,
+  [USE] Taint flows to:   %489 = zext nneg i16 %488 to i32, <./include/net/tcp.h:783:40> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %489 = zext nneg i16 %488 to i32,
+  [USE] Taint flows to:   %491 = phi i32 [ %489, %484 ], [ %467, %478 ], <./include/net/tcp.h:783:40> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %491 = phi i32 [ %489, %484 ], [ %467, %478 ],
+  [USE] Taint flows to:   %510 = lshr i32 %492, %491, <./include/net/tcp.h:783:37> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %510 = lshr i32 %492, %491,
+[USE] Processing uses of:   %485 = load i32, ptr %469, align 4,
+  [USE] Taint flows to:   %492 = phi i32 [ %485, %484 ], [ %468, %478 ], <./include/net/tcp.h:783:29> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %492 = phi i32 [ %485, %484 ], [ %468, %478 ],
+[USE] Processing uses of:   %480 = load ptr, ptr %479, align 8,
+  [USE] Taint flows to:   %481 = getelementptr inbounds nuw i8, ptr %480, i64 56, <net/ipv4/tcp_input.c:6882:35> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %481 = getelementptr inbounds nuw i8, ptr %480, i64 56,
+  [USE] Taint flows to:   %482 = load ptr, ptr %481, align 8, <net/ipv4/tcp_input.c:6882:35> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %482 = load ptr, ptr %481, align 8,
+  [USE] Taint flows to:   %483 = icmp eq ptr %482, null, <net/ipv4/tcp_input.c:6882:8> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %483 = icmp eq ptr %482, null,
+  [USE] Taint flows to:   br i1 %483, label %484, label %490, <net/ipv4/tcp_input.c:6882:7> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   br i1 %483, label %484, label %490,
+[USE] Processing uses of:   %476 = load i16, ptr %475, align 16,
+  [USE] Taint flows to:   %477 = add i16 %476, -12, <net/ipv4/tcp_input.c:6880:15> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %477 = add i16 %476, -12,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter <net/ipv4/tcp_input.c:6880:15>
+[USE] Processing uses of:   %464 = load i16, ptr %378, align 4,
+  [USE] Taint flows to:   %465 = lshr i16 %464, 8, <net/ipv4/tcp_input.c:6876:49> FUNC=tcp_rcv_state_process L=0
+  [USE] Taint flows to:   %472 = and i16 %464, 2, <net/ipv4/tcp_input.c:6879:7> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %472 = and i16 %464, 2,
+  [USE] Taint flows to:   %473 = icmp eq i16 %472, 0, <net/ipv4/tcp_input.c:6879:7> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %473 = icmp eq i16 %472, 0,
+  [USE] Taint flows to:   br i1 %473, label %478, label %474, <net/ipv4/tcp_input.c:6879:7> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   br i1 %473, label %478, label %474,
+[USE] Processing uses of:   %465 = lshr i16 %464, 8,
+  [USE] Taint flows to:   %466 = and i16 %465, 15, <net/ipv4/tcp_input.c:6876:49> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %466 = and i16 %465, 15,
+  [USE] Taint flows to:   %467 = zext nneg i16 %466 to i32, <net/ipv4/tcp_input.c:6876:38> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %467 = zext nneg i16 %466 to i32,
+  [USE] Taint flows to:   %468 = shl nuw nsw i32 %463, %467, <net/ipv4/tcp_input.c:6876:35> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %468 = shl nuw nsw i32 %463, %467,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter <net/ipv4/tcp_input.c:6876:15>
+[USE] Processing uses of:   %452 = load ptr, ptr %451, align 8,
+  [USE] Taint flows to:   %453 = icmp eq ptr %452, null, <net/ipv4/tcp_input.c:6872:7> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %453 = icmp eq ptr %452, null,
+  [USE] Taint flows to:   br i1 %453, label %455, label %454, <net/ipv4/tcp_input.c:6872:7> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   br i1 %453, label %455, label %454,
+[USE] Processing uses of:   %450 = load ptr, ptr %449, align 8,
+  [USE] Taint flows to:   call void %450(ptr noundef %0) #269, <net/ipv4/tcp_input.c:6866:3> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   call void %450(ptr noundef %0) #269,
+[USE] Processing uses of:   %446 = load i32, ptr %445, align 16,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter <net/ipv4/tcp_input.c:6861:4>
+[USE] Processing uses of:   %441 = load i32, ptr %440, align 4,
+  [USE] Taint flows to:   %442 = icmp eq i32 %429, %441, <net/ipv4/tcp_input.c:6448:16> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %442 = icmp eq i32 %429, %441,
+  [USE] Taint flows to:   br i1 %442, label %443, label %444, <net/ipv4/tcp_input.c:6447:60> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   br i1 %442, label %443, label %444,
+[USE] Processing uses of:   %436 = load i16, ptr %378, align 4,
+  [USE] Taint flows to:   %437 = and i16 %436, 1, <net/ipv4/tcp_input.c:6447:49> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %437 = and i16 %436, 1,
+  [USE] Taint flows to:   %438 = icmp eq i16 %437, 0, <net/ipv4/tcp_input.c:6447:38> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %438 = icmp eq i16 %437, 0,
+  [USE] Taint flows to:   br i1 %438, label %444, label %439, <net/ipv4/tcp_input.c:6447:60> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   br i1 %438, label %444, label %439,
+[USE] Processing uses of:   %431 = load i32, ptr %430, align 8,
+  [USE] Taint flows to:   %432 = icmp ne i32 %431, 0, <net/ipv4/tcp_input.c:6447:6> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %432 = icmp ne i32 %431, 0,
+  [USE] Taint flows to:   %434 = select i1 %432, i1 %433, i1 false, <net/ipv4/tcp_input.c:6447:22> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %434 = select i1 %432, i1 %433, i1 false,
+  [USE] Taint flows to:   br i1 %434, label %435, label %444, <net/ipv4/tcp_input.c:6447:22> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   br i1 %434, label %435, label %444,
+[USE] Processing uses of:   %429 = load i32, ptr %428, align 4,
+  [USE] Taint flows to:   %433 = icmp ne i32 %429, 0 FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %433 = icmp ne i32 %429, 0
+[USE] Processing uses of:   %422 = load i32, ptr %421, align 64,
+  [USE] Taint flows to:   %423 = icmp eq i32 %422, 0, <net/ipv4/tcp_input.c:6851:8> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %423 = icmp eq i32 %422, 0,
+  [USE] Taint flows to:   br i1 %423, label %424, label %425, <net/ipv4/tcp_input.c:6851:7> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   br i1 %423, label %424, label %425,
+[USE] Processing uses of:   %419 = load i32, ptr %418, align 4,
+  [USE] Taint flows to:   %420 = add i32 %419, 1, <net/ipv4/tcp_input.c:6850:16> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %420 = add i32 %419, 1,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter <net/ipv4/tcp_input.c:6850:16>
+[USE] Processing uses of:   %416 = load volatile i8, ptr %11, align 2,
+  [USE] Taint flows to:   switch i8 %416, label %633 [
+    i8 3, label %417
+    i8 4, label %524
+    i8 11, label %619
+    i8 9, label %626
+  ], <net/ipv4/tcp_input.c:6848:2> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   switch i8 %416, label %633 [
+    i8 3, label %417
+    i8 4, label %524
+    i8 11, label %619
+    i8 9, label %626
+  ],
+[USE] Processing uses of:   %405 = load volatile i8, ptr %11, align 2,
+  [USE] Taint flows to:   %406 = icmp eq i8 %405, 3, <net/ipv4/tcp_input.c:6834:20> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %406 = icmp eq i8 %405, 3,
+  [USE] Taint flows to:   br i1 %406, label %407, label %411, <net/ipv4/tcp_input.c:6834:20> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   br i1 %406, label %407, label %411,
+[USE] Processing uses of:   %388 = load volatile i8, ptr %11, align 2,
+  [USE] Taint flows to:   %389 = icmp eq i8 %388, 4, <net/ipv4/tcp_input.c:6812:3> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %389 = icmp eq i8 %388, 4,
+  [USE] Taint flows to:   br i1 %389, label %391, label %390, <net/ipv4/tcp_input.c:6812:3> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   br i1 %389, label %391, label %390,
+[USE] Processing uses of:   %385 = load volatile i8, ptr %11, align 2,
+  [USE] Taint flows to:   %386 = icmp eq i8 %385, 3, <net/ipv4/tcp_input.c:6812:3> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %386 = icmp eq i8 %385, 3,
+  [USE] Taint flows to:   br i1 %386, label %391, label %387, <net/ipv4/tcp_input.c:6812:3> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   br i1 %386, label %391, label %387,
+[USE] Processing uses of:   %382 = load ptr, ptr %381, align 8,
+  [USE] Taint flows to:   %383 = icmp eq ptr %382, null, <net/ipv4/tcp_input.c:6809:6> FUNC=tcp_rcv_state_process L=0
+  [CHILD FUNCTION] Tainted value used in call to tcp_check_req at argument 2:   %392 = call ptr @tcp_check_req(ptr noundef %0, ptr noundef %1, ptr noundef nonnull %382, i1 noundef zeroext true, ptr noundef nonnull %4) #269, <net/ipv4/tcp_input.c:6815:8> FUNC=tcp_rcv_state_process L=0
+  [POINTER PARAMETER INTRAPROC] Conservatively marking pointer argument 4 as tainted:   %4 = alloca i8, align 1, !DIAssignID !17867556 <net/ipv4/tcp_input.c:6815:8> FUNC=tcp_rcv_state_process L=0
+  [CHILD FUNCTION] Tainted value used in call to tcp_synack_rtt_meas at argument 1:   call void @tcp_synack_rtt_meas(ptr noundef %0, ptr noundef %382) #272, <net/ipv4/tcp_input.c:6852:4> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %383 = icmp eq ptr %382, null,
+  [USE] Taint flows to:   br i1 %383, label %394, label %384, <net/ipv4/tcp_input.c:6809:6> FUNC=tcp_rcv_state_process L=0
+  [USE] Taint flows to:   br i1 %383, label %427, label %426, <net/ipv4/tcp_input.c:6854:7> FUNC=tcp_rcv_state_process L=0
+  [USE] Taint flows to:   br i1 %383, label %526, label %525, <net/ipv4/tcp_input.c:6897:7> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   br i1 %383, label %526, label %525,
+[NO USE] No uses of:   br i1 %383, label %427, label %426,
+[NO USE] No uses of:   br i1 %383, label %394, label %384,
+[USE] Processing uses of:   %379 = load i16, ptr %378, align 4,
+  [USE] Taint flows to:   %380 = and i16 %379, -2, <net/ipv4/tcp_input.c:6806:24> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %380 = and i16 %379, -2,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter <net/ipv4/tcp_input.c:6806:24>
+[USE] Processing uses of:   %373 = load i8, ptr %372, align 4,
+  [USE] Taint flows to:   %374 = and i8 %373, 15, <./include/net/tcp.h:2124:58> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %374 = and i8 %373, 15,
+  [USE] Taint flows to:   %375 = zext nneg i8 %374 to i32, <./include/net/tcp.h:2124:54> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %375 = zext nneg i8 %374 to i32,
+  [CHILD FUNCTION] Tainted value used in call to __tcp_push_pending_frames at argument 2:   call void @__tcp_push_pending_frames(ptr noundef %0, i32 noundef %371, i32 noundef %375) #269, <./include/net/tcp.h:2124:3> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %366 = load ptr, ptr %365, align 8,
+  [USE] Taint flows to:   %367 = icmp eq ptr %366, %365, <./include/linux/skbuff.h:2146:10> FUNC=tcp_rcv_state_process L=0
+  [USE] Taint flows to:   %368 = icmp eq ptr %366, null, <./include/net/tcp.h:2121:6> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %368 = icmp eq ptr %366, null,
+  [USE] Taint flows to:   %369 = or i1 %367, %368, <./include/net/tcp.h:2121:6> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %369 = or i1 %367, %368,
+  [USE] Taint flows to:   br i1 %369, label %376, label %370, <./include/net/tcp.h:2121:6> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   br i1 %369, label %376, label %370,
+[USE] Processing uses of:   %367 = icmp eq ptr %366, %365,
+[USE] Processing uses of:   %360 = load i16, ptr %32, align 4,
+  [USE] Taint flows to:   %361 = and i16 %360, -4091, <./include/linux/tcp.h:137:17> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %361 = and i16 %360, -4091,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter <./include/linux/tcp.h:137:17>
+[USE] Processing uses of:   %356 = load i16, ptr %32, align 4,
+  [USE] Taint flows to:   %357 = and i16 %356, -4091, <./include/linux/tcp.h:137:17> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %357 = and i16 %356, -4091,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter <./include/linux/tcp.h:137:17>
+[USE] Processing uses of:   %346 = load i32, ptr %345, align 8,
+  [USE] Taint flows to:   %347 = lshr i32 %346, 1, <net/ipv4/tcp_input.c:633:9> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %347 = lshr i32 %346, 1,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %348 = call i32 @llvm.umin.i32(i32 %344, i32 %347), !dbg !17868228 <net/ipv4/tcp_input.c:633:9>
+[USE] Processing uses of:   %343 = load i32, ptr %342, align 32,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %344 = call i32 @llvm.umin.i32(i32 %343, i32 %341), !dbg !17868225 <net/ipv4/tcp_input.c:631:22>
+[USE] Processing uses of:   %340 = load i16, ptr %339, align 16,
+  [USE] Taint flows to:   %341 = zext i16 %340 to i32, <net/ipv4/tcp_input.c:631:22> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %341 = zext i16 %340 to i32,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %344 = call i32 @llvm.umin.i32(i32 %343, i32 %341), !dbg !17868225 <net/ipv4/tcp_input.c:631:22>
+[USE] Processing uses of:   %337 = load i32, ptr %336, align 4,
+  [CHILD FUNCTION] Tainted value used in call to tcp_sync_mss at argument 1:   %338 = call i32 @tcp_sync_mss(ptr noundef %0, i32 noundef %337) #269, <net/ipv4/tcp_input.c:6662:3> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %327 = load i8, ptr %326, align 8,
+  [USE] Taint flows to:   %328 = and i8 %327, 1, <net/ipv4/tcp_input.c:411:21> FUNC=tcp_rcv_state_process L=0
+  [USE] Taint flows to:   %334 = and i8 %327, -2, <net/ipv4/tcp_input.c:412:17> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %334 = and i8 %327, -2,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter <net/ipv4/tcp_input.c:412:17>
+[USE] Processing uses of:   %328 = and i8 %327, 1,
+  [USE] Taint flows to:   %329 = icmp eq i8 %328, 0, <net/ipv4/tcp_input.c:411:21> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %329 = icmp eq i8 %328, 0,
+  [USE] Taint flows to:   br i1 %329, label %335, label %330, <net/ipv4/tcp_input.c:411:35> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   br i1 %329, label %335, label %330,
+[USE] Processing uses of:   %303 = load i32, ptr %302, align 4,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter <net/ipv4/tcp_input.c:3813:23>
+[USE] Processing uses of:   %297 = load i16, ptr %32, align 4,
+  [USE] Taint flows to:   %298 = and i16 %297, 1, <net/ipv4/tcp_input.c:6639:18> FUNC=tcp_rcv_state_process L=0
+  [USE] Taint flows to:   %301 = or i16 %297, 2, <net/ipv4/tcp_input.c:6640:25> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %301 = or i16 %297, 2,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter <net/ipv4/tcp_input.c:6640:25>
+[USE] Processing uses of:   %298 = and i16 %297, 1,
+  [USE] Taint flows to:   %299 = icmp eq i16 %298, 0, <net/ipv4/tcp_input.c:6639:7> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %299 = icmp eq i16 %298, 0,
+  [USE] Taint flows to:   br i1 %299, label %307, label %300, <net/ipv4/tcp_input.c:6639:7> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   br i1 %299, label %307, label %300,
+[USE] Processing uses of:   %290 = load i32, ptr %276, align 4,
+  [USE] Taint flows to:   %291 = icmp eq i32 %290, 0, <./include/net/tcp.h:1716:7> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %291 = icmp eq i32 %290, 0,
+  [USE] Taint flows to:   br i1 %291, label %292, label %354, <net/ipv4/tcp_input.c:6617:58> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   br i1 %291, label %292, label %354,
+[USE] Processing uses of:   %285 = load i32, ptr %35, align 4,
+  [USE] Taint flows to:   %286 = sub i32 %284, %285, <./include/net/tcp.h:1708:6> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %286 = sub i32 %284, %285,
+  [USE] Taint flows to:   %287 = add i32 %286, -2147, <./include/net/tcp.h:1708:6> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %287 = add i32 %286, -2147,
+  [USE] Taint flows to:   %288 = icmp sgt i32 %287, -1, <./include/net/tcp.h:1708:6> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %288 = icmp sgt i32 %287, -1,
+  [USE] Taint flows to:   br i1 %288, label %292, label %289, <./include/net/tcp.h:1708:6> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   br i1 %288, label %292, label %289,
+[USE] Processing uses of:   %279 = load i32, ptr %278, align 4,
+  [USE] Taint flows to:   %280 = sub i32 %277, %279, <./include/net/tcp.h:1706:30> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %280 = sub i32 %277, %279,
+  [USE] Taint flows to:   %281 = icmp sgt i32 %280, 0, <./include/net/tcp.h:1706:51> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %281 = icmp sgt i32 %280, 0,
+  [USE] Taint flows to:   br i1 %281, label %282, label %292, <./include/net/tcp.h:1706:51> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   br i1 %281, label %282, label %292,
+[USE] Processing uses of:   %277 = load i32, ptr %276, align 4,
+[USE] Processing uses of:   %272 = load i32, ptr %35, align 4,
+  [USE] Taint flows to:   %273 = icmp eq i32 %272, 0, <net/ipv4/tcp_input.c:6617:6> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %273 = icmp eq i32 %272, 0,
+  [USE] Taint flows to:   %274 = or i1 %42, %273, <net/ipv4/tcp_input.c:6617:33> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %274 = or i1 %42, %273,
+  [USE] Taint flows to:   br i1 %274, label %292, label %275, <net/ipv4/tcp_input.c:6617:33> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   br i1 %274, label %292, label %275,
+[USE] Processing uses of:   %250 = load i8, ptr %249, align 1,
+  [USE] Taint flows to:   %251 = zext i8 %250 to i32, <net/ipv4/tcp_input.c:314:18> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %251 = zext i8 %250 to i32,
+  [USE] Taint flows to:   %252 = icmp samesign ugt i32 %248, %251, <net/ipv4/tcp_input.c:314:16> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %252 = icmp samesign ugt i32 %248, %251,
+  [USE] Taint flows to:   br i1 %252, label %253, label %255, <net/ipv4/tcp_input.c:314:16> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   br i1 %252, label %253, label %255,
+[USE] Processing uses of:   %242 = load i16, ptr %193, align 2,
+  [USE] Taint flows to:   %243 = zext i16 %242 to i32, <net/ipv4/tcp_input.c:309:54> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %243 = zext i16 %242 to i32,
+  [USE] Taint flows to:   %244 = shl nuw nsw i32 %243, 1, <net/ipv4/tcp_input.c:309:52> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %244 = shl nuw nsw i32 %243, 1,
+  [USE] Taint flows to:   %245 = udiv i32 %241, %244, <net/ipv4/tcp_input.c:309:47> FUNC=tcp_rcv_state_process L=0
+  [USE] Taint flows to:   %246 = icmp ugt i32 %244, %241, <net/ipv4/tcp_input.c:311:16> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %246 = icmp ugt i32 %244, %241,
+  [USE] Taint flows to:   %248 = select i1 %246, i32 2, i32 %247, <net/ipv4/tcp_input.c:311:16> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %248 = select i1 %246, i32 2, i32 %247,
+  [USE] Taint flows to:   %254 = trunc nuw nsw i32 %248 to i8, <net/ipv4/tcp_input.c:315:26> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %254 = trunc nuw nsw i32 %248 to i8,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter <net/ipv4/tcp_input.c:315:24>
+[USE] Processing uses of:   %245 = udiv i32 %241, %244,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %247 = call i32 @llvm.umin.i32(i32 %245, i32 range(i32 2, 17) 16), !dbg !17868100 <net/ipv4/tcp_input.c:313:14>
+[USE] Processing uses of:   %241 = load i32, ptr %186, align 8,
+[USE] Processing uses of:   %239 = load i8, ptr %238, align 8,
+  [USE] Taint flows to:   %240 = or i8 %239, 1, <./include/net/inet_connection_sock.h:179:33> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %240 = or i8 %239, 1,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter <./include/net/inet_connection_sock.h:179:33>
+[USE] Processing uses of:   %233 = load ptr, ptr %38, align 8,
+  [USE] Taint flows to:   %234 = getelementptr inbounds nuw i8, ptr %233, i64 1171, <./include/net/inet_connection_sock.h:343:9> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %234 = getelementptr inbounds nuw i8, ptr %233, i64 1171,
+  [USE] Taint flows to:   %235 = load volatile i8, ptr %234, align 1, <./include/net/inet_connection_sock.h:343:9> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %235 = load volatile i8, ptr %234, align 1,
+  [USE] Taint flows to:   %236 = icmp ult i8 %232, %235, <./include/net/inet_connection_sock.h:342:41> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %236 = icmp ult i8 %232, %235,
+  [USE] Taint flows to:   br i1 %236, label %267, label %237, <net/ipv4/tcp_input.c:6585:60> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   br i1 %236, label %267, label %237,
+[USE] Processing uses of:   %232 = load i8, ptr %231, align 2,
+[USE] Processing uses of:   %228 = load volatile i8, ptr %227, align 4,
+  [USE] Taint flows to:   %229 = icmp eq i8 %228, 0, <net/ipv4/tcp_input.c:6585:7> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %229 = icmp eq i8 %228, 0,
+  [USE] Taint flows to:   br i1 %229, label %230, label %237, <net/ipv4/tcp_input.c:6585:60> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   br i1 %229, label %230, label %237,
+[USE] Processing uses of:   %224 = load i32, ptr %223, align 4,
+  [USE] Taint flows to:   %225 = icmp eq i32 %224, 0, <net/ipv4/tcp_input.c:6584:7> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %225 = icmp eq i32 %224, 0,
+  [USE] Taint flows to:   br i1 %225, label %226, label %237, <net/ipv4/tcp_input.c:6584:28> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   br i1 %225, label %226, label %237,
+[USE] Processing uses of:   %220 = load ptr, ptr %219, align 8,
+  [USE] Taint flows to:   call void %220(ptr noundef %0) #269, <net/ipv4/tcp_input.c:6579:4> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   call void %220(ptr noundef %0) #269,
+[USE] Processing uses of:   %215 = load volatile i64, ptr %214, align 8,
+  [USE] Taint flows to:   %216 = and i64 %215, 1, <./arch/x86/include/asm/bitops.h:205:44> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %216 = and i64 %215, 1,
+  [USE] Taint flows to:   %217 = icmp eq i64 %216, 0, <./arch/x86/include/asm/bitops.h:206:37> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %217 = icmp eq i64 %216, 0,
+  [USE] Taint flows to:   br i1 %217, label %218, label %221, <net/ipv4/tcp_input.c:6578:7> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   br i1 %217, label %218, label %221,
+[USE] Processing uses of:   %207 = load i8, ptr %206, align 4,
+  [USE] Taint flows to:   %208 = and i8 %207, 12, <net/ipv4/tcp_input.c:6575:37> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %208 = and i8 %207, 12,
+  [USE] Taint flows to:   %209 = icmp eq i8 %208, 0, <net/ipv4/tcp_input.c:6575:37> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %209 = icmp eq i8 %208, 0,
+  [USE] Taint flows to:   br i1 %209, label %212, label %210, <net/ipv4/tcp_input.c:6575:37> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   br i1 %209, label %212, label %210,
+[USE] Processing uses of:   %201 = load i16, ptr %32, align 4,
+  [USE] Taint flows to:   %202 = and i16 %201, 128, <net/ipv4/tcp_input.c:6431:23> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %202 = and i16 %201, 128,
+  [USE] Taint flows to:   %203 = icmp eq i16 %202, 0, <net/ipv4/tcp_input.c:6431:23> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %203 = icmp eq i16 %202, 0,
+  [USE] Taint flows to:   br i1 %203, label %204, label %205, <net/ipv4/tcp_input.c:6431:19> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   br i1 %203, label %204, label %205,
+[USE] Processing uses of:   %198 = load i8, ptr %197, align 32,
+  [USE] Taint flows to:   %199 = trunc nuw i8 %198 to i1, <net/ipv4/tcp_input.c:6431:11> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %199 = trunc nuw i8 %198 to i1,
+  [USE] Taint flows to:   br i1 %199, label %200, label %205, <net/ipv4/tcp_input.c:6431:19> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   br i1 %199, label %200, label %205,
+[USE] Processing uses of:   %194 = load i32, ptr %142, align 16,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter <net/ipv4/tcp_input.c:6567:3>
+[USE] Processing uses of:   %187 = load i32, ptr %186, align 8,
+  [USE] Taint flows to:   %188 = lshr i32 %187, 1, <net/ipv4/tcp_input.c:633:9> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %188 = lshr i32 %187, 1,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %189 = call i32 @llvm.umin.i32(i32 %185, i32 %188), !dbg !17867924 <net/ipv4/tcp_input.c:633:9>
+[USE] Processing uses of:   %184 = load i32, ptr %183, align 32,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %185 = call i32 @llvm.umin.i32(i32 %184, i32 %182), !dbg !17867921 <net/ipv4/tcp_input.c:631:22>
+[USE] Processing uses of:   %181 = load i16, ptr %180, align 16,
+  [USE] Taint flows to:   %182 = zext i16 %181 to i32, <net/ipv4/tcp_input.c:631:22> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %182 = zext i16 %181 to i32,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %185 = call i32 @llvm.umin.i32(i32 %184, i32 %182), !dbg !17867921 <net/ipv4/tcp_input.c:631:22>
+[USE] Processing uses of:   %178 = load i32, ptr %177, align 4,
+  [CHILD FUNCTION] Tainted value used in call to tcp_sync_mss at argument 1:   %179 = call i32 @tcp_sync_mss(ptr noundef %0, i32 noundef %178) #269, <net/ipv4/tcp_input.c:6561:3> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %170 = load i32, ptr %169, align 4,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter <net/ipv4/tcp_input.c:3813:23>
+[USE] Processing uses of:   %167 = load i16, ptr %166, align 16,
+  [USE] Taint flows to:   %168 = add i16 %167, -12, <net/ipv4/tcp_input.c:6555:19> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %168 = add i16 %167, -12,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter <net/ipv4/tcp_input.c:6555:19>
+[USE] Processing uses of:   %157 = load i32, ptr %156, align 4,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %158 = call i32 @llvm.umin.i32(i32 %157, i32 65535), !dbg !17867867 <net/ipv4/tcp_input.c:6547:4>
+[USE] Processing uses of:   %151 = load i16, ptr %32, align 4,
+  [USE] Taint flows to:   %160 = phi i16 [ %155, %154 ], [ %151, %138 ], <net/ipv4/tcp_input.c:6551:18> FUNC=tcp_rcv_state_process L=0
+  [USE] Taint flows to:   %152 = and i16 %151, 8, <net/ipv4/tcp_input.c:6545:8> FUNC=tcp_rcv_state_process L=0
+  [USE] Taint flows to:   %155 = and i16 %151, 247, <net/ipv4/tcp_input.c:6546:26> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %155 = and i16 %151, 247,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter <net/ipv4/tcp_input.c:6546:26>
+[USE] Processing uses of:   %152 = and i16 %151, 8,
+  [USE] Taint flows to:   %153 = icmp eq i16 %152, 0, <net/ipv4/tcp_input.c:6545:8> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %153 = icmp eq i16 %152, 0,
+  [USE] Taint flows to:   br i1 %153, label %154, label %159, <net/ipv4/tcp_input.c:6545:7> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   br i1 %153, label %154, label %159,
+[USE] Processing uses of:   %160 = phi i16 [ %155, %154 ], [ %151, %138 ],
+  [USE] Taint flows to:   %161 = and i16 %160, 1, <net/ipv4/tcp_input.c:6551:18> FUNC=tcp_rcv_state_process L=0
+  [USE] Taint flows to:   %164 = or i16 %160, 2, <net/ipv4/tcp_input.c:6552:28> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %164 = or i16 %160, 2,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter <net/ipv4/tcp_input.c:6552:28>
+[USE] Processing uses of:   %161 = and i16 %160, 1,
+  [USE] Taint flows to:   %162 = icmp eq i16 %161, 0, <net/ipv4/tcp_input.c:6551:7> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %162 = icmp eq i16 %161, 0,
+  [USE] Taint flows to:   br i1 %162, label %174, label %163, <net/ipv4/tcp_input.c:6551:7> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   br i1 %162, label %174, label %163,
+[USE] Processing uses of:   %135 = load i32, ptr %134, align 4,
+  [USE] Taint flows to:   %136 = icmp eq i32 %126, %135, <net/ipv4/tcp_input.c:6448:16> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %136 = icmp eq i32 %126, %135,
+  [USE] Taint flows to:   br i1 %136, label %137, label %138, <net/ipv4/tcp_input.c:6447:60> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   br i1 %136, label %137, label %138,
+[USE] Processing uses of:   %128 = load i32, ptr %127, align 8,
+  [USE] Taint flows to:   %129 = icmp eq i32 %128, 0, <net/ipv4/tcp_input.c:6447:6> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %129 = icmp eq i32 %128, 0,
+  [USE] Taint flows to:   %131 = select i1 %129, i1 true, i1 %130, <net/ipv4/tcp_input.c:6447:22> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %131 = select i1 %129, i1 true, i1 %130,
+  [USE] Taint flows to:   %132 = or i1 %42, %131, <net/ipv4/tcp_input.c:6447:22> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %132 = or i1 %42, %131,
+  [USE] Taint flows to:   br i1 %132, label %138, label %133, <net/ipv4/tcp_input.c:6447:22> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   br i1 %132, label %138, label %133,
+[USE] Processing uses of:   %126 = load i32, ptr %125, align 4,
+  [USE] Taint flows to:   %130 = icmp eq i32 %126, 0 FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %130 = icmp eq i32 %126, 0
+[USE] Processing uses of:   %114 = load i8, ptr %113, align 8,
+  [USE] Taint flows to:   %115 = and i8 %114, 1, <net/ipv4/tcp_input.c:405:21> FUNC=tcp_rcv_state_process L=0
+  [USE] Taint flows to:   %121 = and i8 %114, -2, <net/ipv4/tcp_input.c:406:17> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %121 = and i8 %114, -2,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter <net/ipv4/tcp_input.c:406:17>
+[USE] Processing uses of:   %115 = and i8 %114, 1,
+  [USE] Taint flows to:   %116 = icmp eq i8 %115, 0, <net/ipv4/tcp_input.c:405:21> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %116 = icmp eq i8 %115, 0,
+  [USE] Taint flows to:   %119 = or i1 %118, %116, <net/ipv4/tcp_input.c:405:35> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %119 = or i1 %118, %116,
+  [USE] Taint flows to:   br i1 %119, label %122, label %120, <net/ipv4/tcp_input.c:405:35> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   br i1 %119, label %122, label %120,
+[USE] Processing uses of:   %100 = load ptr, ptr %38, align 8,
+  [USE] Taint flows to:   %101 = getelementptr inbounds nuw i8, ptr %100, i64 440, <net/ipv4/tcp_input.c:6489:4> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %101 = getelementptr inbounds nuw i8, ptr %100, i64 440,
+  [USE] Taint flows to:   %102 = load ptr, ptr %101, align 8, <net/ipv4/tcp_input.c:6489:4> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %102 = load ptr, ptr %101, align 8,
+  [USE] Taint flows to:   %103 = getelementptr i8, ptr %102, i64 112, <net/ipv4/tcp_input.c:6489:4> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %103 = getelementptr i8, ptr %102, i64 112,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   call void asm sideeffect "incq %gs:$0", "=*m,*m,~{dirflag},~{fpsr},~{flags}"(ptr elementtype(i64) %103, ptr elementtype(i64) %103) #271, !dbg !17867797, !srcloc !17867798 <net/ipv4/tcp_input.c:6489:4>
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   call void asm sideeffect "incq %gs:$0", "=*m,*m,~{dirflag},~{fpsr},~{flags}"(ptr elementtype(i64) %103, ptr elementtype(i64) %103) #271, !dbg !17867797, !srcloc !17867798 <net/ipv4/tcp_input.c:6489:4>
+[USE] Processing uses of:   %92 = load i64, ptr %91, align 8,
+  [USE] Taint flows to:   %93 = udiv i64 %92, 1000, <./include/net/tcp.h:892:6> FUNC=tcp_rcv_state_process L=0
+  [USE] Taint flows to:   %94 = select i1 %90, i64 %93, i64 %92, <./include/net/tcp.h:892:6> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %94 = select i1 %90, i64 %93, i64 %92,
+  [USE] Taint flows to:   %95 = trunc i64 %94 to i32, <./include/net/tcp.h:0> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %95 = trunc i64 %94 to i32,
+  [USE] Taint flows to:   %96 = sub i32 %95, %86, <./include/net/tcp.h:297:14> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %96 = sub i32 %95, %86,
+  [USE] Taint flows to:   %98 = icmp ult i32 %96, %97, <./include/net/tcp.h:297:21> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %98 = icmp ult i32 %96, %97,
+  [USE] Taint flows to:   br i1 %98, label %99, label %104, <net/ipv4/tcp_input.c:6486:53> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   br i1 %98, label %99, label %104,
+[USE] Processing uses of:   %93 = udiv i64 %92, 1000,
+[USE] Processing uses of:   %88 = load i8, ptr %87, align 1,
+  [USE] Taint flows to:   %89 = and i8 %88, 8, <./include/net/tcp.h:892:6> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %89 = and i8 %88, 8,
+  [USE] Taint flows to:   %90 = icmp eq i8 %89, 0, <./include/net/tcp.h:892:6> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %90 = icmp eq i8 %89, 0,
+[USE] Processing uses of:   %86 = load i32, ptr %85, align 4,
+  [USE] Taint flows to:   %97 = sub i32 %82, %86, <./include/net/tcp.h:297:29> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %97 = sub i32 %82, %86,
+[USE] Processing uses of:   %82 = load i32, ptr %81, align 4,
+  [USE] Taint flows to:   %83 = icmp eq i32 %82, 0, <net/ipv4/tcp_input.c:6486:32> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %83 = icmp eq i32 %82, 0,
+  [USE] Taint flows to:   br i1 %83, label %104, label %84, <net/ipv4/tcp_input.c:6486:53> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   br i1 %83, label %104, label %84,
+[USE] Processing uses of:   %71 = load i8, ptr %70, align 1,
+  [USE] Taint flows to:   %72 = icmp eq i8 %71, 0, <net/ipv4/tcp_input.c:6478:31> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %72 = icmp eq i8 %71, 0,
+  [USE] Taint flows to:   br i1 %72, label %73, label %358, <net/ipv4/tcp_input.c:6478:31> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   br i1 %72, label %73, label %358,
+[USE] Processing uses of:   %66 = load i32, ptr %65, align 4,
+  [USE] Taint flows to:   %67 = sub i32 %66, %61, <./include/net/tcp.h:290:28> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %67 = sub i32 %66, %61,
+  [USE] Taint flows to:   %68 = icmp slt i32 %67, 0, <./include/net/tcp.h:290:35> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %68 = icmp slt i32 %67, 0,
+  [USE] Taint flows to:   br i1 %68, label %69, label %79, <net/ipv4/tcp_input.c:6475:53> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   br i1 %68, label %69, label %79,
+[USE] Processing uses of:   %58 = load i32, ptr %57, align 8,
+  [USE] Taint flows to:   %62 = sub i32 %58, %61, <./include/net/tcp.h:290:28> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %62 = sub i32 %58, %61,
+  [USE] Taint flows to:   %63 = icmp slt i32 %62, 0, <./include/net/tcp.h:290:35> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %63 = icmp slt i32 %62, 0,
+  [USE] Taint flows to:   br i1 %63, label %64, label %69, <net/ipv4/tcp_input.c:6475:53> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   br i1 %63, label %64, label %69,
+[USE] Processing uses of:   %49 = load i32, ptr %48, align 8,
+  [USE] Taint flows to:   %50 = sub i32 %45, %49, <net/ipv4/tcp_input.c:6464:24> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %50 = sub i32 %45, %49,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter <net/ipv4/tcp_input.c:6464:24>
+[USE] Processing uses of:   %45 = load i32, ptr %44, align 4,
+  [USE] Taint flows to:   %46 = icmp eq i32 %45, 0, <net/ipv4/tcp_input.c:6463:31> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %46 = icmp eq i32 %45, 0,
+  [USE] Taint flows to:   br i1 %46, label %51, label %47, <net/ipv4/tcp_input.c:6463:28> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   br i1 %46, label %51, label %47,
+[USE] Processing uses of:   %40 = load i16, ptr %32, align 4,
+  [USE] Taint flows to:   %41 = and i16 %40, 1, <net/ipv4/tcp_input.c:6463:17> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %41 = and i16 %40, 1,
+  [USE] Taint flows to:   %42 = icmp eq i16 %41, 0, <net/ipv4/tcp_input.c:6463:6> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %42 = icmp eq i16 %41, 0,
+  [USE] Taint flows to:   br i1 %42, label %51, label %43, <net/ipv4/tcp_input.c:6463:28> FUNC=tcp_rcv_state_process L=0
+  [USE] Taint flows to:   br i1 %42, label %104, label %80, <net/ipv4/tcp_input.c:6486:29> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   br i1 %42, label %104, label %80,
+[NO USE] No uses of:   br i1 %42, label %51, label %43,
+[USE] Processing uses of:   %39 = load ptr, ptr %38, align 8,
+  [CHILD FUNCTION] Tainted value used in call to tcp_parse_options at argument 0:   call void @tcp_parse_options(ptr noundef %39, ptr noundef %1, ptr noundef nonnull %35, i32 noundef 0, ptr noundef nonnull %3) #272, <net/ipv4/tcp_input.c:6462:2> FUNC=tcp_rcv_state_process L=0
+  [POINTER PARAMETER INTRAPROC] Conservatively marking pointer argument 4 as tainted:   %3 = alloca %struct.tcp_fastopen_cookie, align 8, !DIAssignID !17867555 <net/ipv4/tcp_input.c:6462:2> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %37 = load i16, ptr %36, align 2,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter <net/ipv4/tcp_input.c:6689:23>
+  [POINTER PARAMETER] Tainted value stored through pointer parameter <net/ipv4/tcp_input.c:6695:23>
+[USE] Processing uses of:   %33 = load i16, ptr %32, align 4,
+  [USE] Taint flows to:   %34 = and i16 %33, -2, <net/ipv4/tcp_input.c:6792:25> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %34 = and i16 %33, -2,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter <net/ipv4/tcp_input.c:6792:25>
+[USE] Processing uses of:   %27 = load ptr, ptr %26, align 8,
+  [USE] Taint flows to:   %28 = getelementptr inbounds nuw i8, ptr %27, i64 32, <net/ipv4/tcp_input.c:6781:23> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %28 = getelementptr inbounds nuw i8, ptr %27, i64 32,
+  [USE] Taint flows to:   %29 = load ptr, ptr %28, align 8, <net/ipv4/tcp_input.c:6781:23> FUNC=tcp_rcv_state_process L=0
+[USE] Processing uses of:   %29 = load ptr, ptr %28, align 8,
+  [USE] Taint flows to:   %30 = tail call i32 %29(ptr noundef %0, ptr noundef %1) #269, <net/ipv4/tcp_input.c:6781:4> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   %30 = tail call i32 %29(ptr noundef %0, ptr noundef %1) #269,
+[USE] Processing uses of:   %12 = load volatile i8, ptr %11, align 2,
+  [USE] Taint flows to:   switch i8 %12, label %377 [
+    i8 7, label %681
+    i8 10, label %13
+    i8 2, label %31
+  ], <net/ipv4/tcp_input.c:6758:2> FUNC=tcp_rcv_state_process L=0
+[NO USE] No uses of:   switch i8 %12, label %377 [
+    i8 7, label %681
+    i8 10, label %13
+    i8 2, label %31
+  ],
+[KILL] Store overwrites tainted pointer with non-tainted value:   store i8 0, ptr %4, align 1,
+[KILL] Store overwrites tainted pointer with non-tainted value:   store i8 0, ptr %4, align 1,
+[POINTER PARAMETER] Call to tcp_rcv_state_process passes through pointer parameter 0 of tcp_v4_do_rcv <net/ipv4/tcp_ipv4.c:1941:11> FUNC=tcp_v4_do_rcv L=1
+[POINTER PARAMETER] Call to tcp_rcv_state_process passes through pointer parameter 1 of tcp_child_process <net/ipv4/tcp_minisocks.c:937:12> FUNC=tcp_child_process L=1
+[POINTER PARAMETER] Call to tcp_rcv_state_process passes through pointer parameter 0 of tcp_v6_do_rcv <net/ipv6/tcp_ipv6.c:1667:11> FUNC=tcp_v6_do_rcv L=1
+[SKIP] Load before taint origin, not tainting:   %258 = load i32, ptr %257, align 4, <net/ipv4/tcp_input.c:324:21> FUNC=tcp_rcv_state_process L=0
+[SKIP] Load before taint origin, not tainting:   %261 = load i8, ptr %238, align 8, <./include/net/inet_connection_sock.h:236:3> FUNC=tcp_rcv_state_process L=0
+[POINTER PARAMETER] Call to tcp_v4_do_rcv passes through pointer parameter 0 of sk_backlog_rcv <net/core/sock.c:334:8> FUNC=sk_backlog_rcv L=2
+[POINTER PARAMETER] Call to tcp_v4_do_rcv passes through pointer parameter 0 of __sk_backlog_rcv <net/core/sock.c:334:8> FUNC=__sk_backlog_rcv L=2
+[POINTER PARAMETER] Call to sk_backlog_rcv passes through pointer parameter 0 of release_sock <net/core/sock.c:3123:4> FUNC=release_sock L=3
+[POINTER PARAMETER] Call to sk_backlog_rcv passes through pointer parameter 0 of __sk_receive_skb <net/core/sock.c:575:8> FUNC=__sk_receive_skb L=3
+[POINTER PARAMETER] Call to sk_backlog_rcv passes through pointer parameter 0 of __sk_flush_backlog <net/core/sock.c:3123:4> FUNC=__sk_flush_backlog L=3
+[POINTER PARAMETER] Call to sk_backlog_rcv passes through pointer parameter 0 of __release_sock <net/core/sock.c:3123:4> FUNC=__release_sock L=3
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of selinux_netlbl_socket_setsockopt <security/selinux/netlabel.c:527:3> FUNC=selinux_netlbl_socket_setsockopt L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of selinux_netlbl_socket_connect <security/selinux/netlabel.c:616:2> FUNC=selinux_netlbl_socket_connect L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 1 of sock_fasync <net/socket.c:1430:2> FUNC=sock_fasync L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of sockopt_release_sock <net/core/sock.c:1142:2> FUNC=sockopt_release_sock L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of sk_setsockopt <net/core/sock.c:1142:2> FUNC=sk_setsockopt L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of sock_set_sndtimeo <net/core/sock.c:824:2> FUNC=sock_set_sndtimeo L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of sock_set_reuseport <net/core/sock.c:798:2> FUNC=sock_set_reuseport L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of sock_set_reuseaddr <net/core/sock.c:790:2> FUNC=sock_set_reuseaddr L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of sock_set_rcvbuf <net/core/sock.c:986:2> FUNC=sock_set_rcvbuf L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of sock_set_mark <net/core/sock.c:1002:2> FUNC=sock_set_mark L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of sock_set_keepalive <net/core/sock.c:957:2> FUNC=sock_set_keepalive L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of sock_no_linger <net/core/sock.c:807:2> FUNC=sock_no_linger L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of sock_enable_timestamps <net/core/sock.c:842:2> FUNC=sock_enable_timestamps L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of sock_bindtoindex <net/core/sock.c:671:3> FUNC=sock_bindtoindex L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of sk_wait_data <net/core/sock.c:3171:7> FUNC=sk_wait_data L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of sk_stream_wait_memory <net/core/stream.c:145:9> FUNC=sk_stream_wait_memory L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of sk_stream_wait_connect <net/core/stream.c:75:10> FUNC=sk_stream_wait_connect L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of sk_stream_wait_close <net/core/stream.c:104:8> FUNC=sk_stream_wait_close L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of netlink_insert <net/netlink/af_netlink.c:590:2> FUNC=netlink_insert L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of ipv6_getorigdst <net/netfilter/nf_conntrack_proto.c:343:2> FUNC=ipv6_getorigdst L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of getorigdst <net/netfilter/nf_conntrack_proto.c:283:2> FUNC=getorigdst L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of inet_csk_accept <net/ipv4/inet_connection_sock.c:639:3> FUNC=inet_csk_accept L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of tcp_splice_read <net/ipv4/tcp.c:872:2> FUNC=tcp_splice_read L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of tcp_splice_eof <net/ipv4/tcp.c:1377:2> FUNC=tcp_splice_eof L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of tcp_sock_set_quickack <net/ipv4/tcp.c:3599:2> FUNC=tcp_sock_set_quickack L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of tcp_sock_set_nodelay <net/ipv4/tcp.c:3574:2> FUNC=tcp_sock_set_nodelay L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of tcp_sock_set_keepidle <net/ipv4/tcp.c:3655:2> FUNC=tcp_sock_set_keepidle L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of tcp_sock_set_cork <net/ipv4/tcp.c:3550:2> FUNC=tcp_sock_set_cork L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of tcp_sendmsg <net/ipv4/tcp.c:1359:2> FUNC=tcp_sendmsg L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of tcp_recvmsg <net/ipv4/tcp.c:2866:2> FUNC=tcp_recvmsg L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of tcp_ioctl <./include/net/sock.h:1681:3> FUNC=tcp_ioctl L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of tcp_get_info <./include/net/sock.h:1681:3> FUNC=tcp_get_info L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of tcp_inq_hint <net/ipv4/tcp.c:2344:3> FUNC=tcp_inq_hint L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of tcp_close <net/ipv4/tcp.c:3235:2> FUNC=tcp_close L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of tcp_abort <net/ipv4/tcp.c:4918:4> FUNC=tcp_abort L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of ip4_datagram_connect <net/ipv4/datagram.c:93:2> FUNC=ip4_datagram_connect L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of raw_destroy <net/ipv4/raw.c:696:2> FUNC=raw_destroy L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of raw_sendmsg <net/ipv4/raw.c:661:3> FUNC=raw_sendmsg L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of raw_bind <net/ipv4/raw.c:730:2> FUNC=raw_bind L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of raw_abort <net/ipv4/raw.c:923:2> FUNC=raw_abort L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of udp_connect <net/ipv4/udp.c:2150:2> FUNC=udp_connect L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of udp_disconnect <net/ipv4/udp.c:2186:2> FUNC=udp_disconnect L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of udp_destroy_sock <./include/net/sock.h:1681:3> FUNC=udp_destroy_sock L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of udp_sendmsg <net/ipv4/udp.c:1314:5> FUNC=udp_sendmsg L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of udp_splice_eof <net/ipv4/udp.c:1562:2> FUNC=udp_splice_eof L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of udp_abort <net/ipv4/udp.c:3176:3> FUNC=udp_abort L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of udp_lib_setsockopt <net/ipv4/udp.c:2953:4> FUNC=udp_lib_setsockopt L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of ip_mc_autojoin_config <net/ipv4/devinet.c:653:2> FUNC=ip_mc_autojoin_config L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of inet_stream_connect <net/ipv4/af_inet.c:749:2> FUNC=inet_stream_connect L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of inet_getname <net/ipv4/af_inet.c:809:4> FUNC=inet_getname L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of inet_listen <net/ipv4/af_inet.c:243:2> FUNC=inet_listen L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of inet_shutdown <net/ipv4/af_inet.c:942:2> FUNC=inet_shutdown L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of inet_send_prepare <net/ipv4/af_inet.c:0> FUNC=inet_send_prepare L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of __inet_stream_connect <net/ipv4/af_inet.c:609:3> FUNC=__inet_stream_connect L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of __inet_bind <net/ipv4/af_inet.c:563:3> FUNC=__inet_bind L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of inet_dgram_connect <net/ipv4/af_inet.c:0> FUNC=inet_dgram_connect L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of ping_v4_sendmsg <net/ipv4/ping.c:829:2> FUNC=ping_v4_sendmsg L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of ping_bind <net/ipv4/ping.c:466:2> FUNC=ping_bind L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of inet6_getname <net/ipv6/af_inet6.c:0> FUNC=inet6_getname L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of __inet6_bind <net/ipv6/af_inet6.c:434:3> FUNC=__inet6_bind L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of ipv6_mc_config <net/ipv6/addrconf.c:3002:2> FUNC=ipv6_mc_config L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of udpv6_connect <net/ipv6/udp.c:1313:2> FUNC=udpv6_connect L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of udpv6_destroy_sock <net/ipv6/udp.c:1824:2> FUNC=udpv6_destroy_sock L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of udpv6_sendmsg <net/ipv6/udp.c:1569:5> FUNC=udpv6_sendmsg L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of udpv6_splice_eof <net/ipv6/udp.c:1813:2> FUNC=udpv6_splice_eof L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of raw6_destroy <net/ipv6/raw.c:1180:2> FUNC=raw6_destroy L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of rawv6_sendmsg <net/ipv6/raw.c:928:3> FUNC=rawv6_sendmsg L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of rawv6_bind <net/ipv6/raw.c:293:2> FUNC=rawv6_bind L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of ipv6_sock_mc_close <net/ipv6/mcast.c:360:2> FUNC=ipv6_sock_mc_close L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of ping_v6_sendmsg <net/ipv6/ping.c:190:2> FUNC=ping_v6_sendmsg L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of ip6_datagram_connect_v6_only <net/ipv6/datagram.c:280:2> FUNC=ip6_datagram_connect_v6_only L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of ip6_datagram_connect <net/ipv6/datagram.c:280:2> FUNC=ip6_datagram_connect L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of packet_release <net/packet/af_packet.c:3214:2> FUNC=packet_release L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of packet_setsockopt <net/packet/af_packet.c:3894:3> FUNC=packet_setsockopt L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of packet_do_bind <net/packet/af_packet.c:3330:2> FUNC=packet_do_bind L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of xs_reset_transport <net/sunrpc/xprtsock.c:1289:2> FUNC=xs_reset_transport L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of xs_stream_nospace <net/sunrpc/xprtsock.c:877:2> FUNC=xs_stream_nospace L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of xs_udp_send_request <net/sunrpc/xprtsock.c:861:2> FUNC=xs_udp_send_request L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of svc_tcp_sock_detach <net/sunrpc/svcsock.c:1576:2> FUNC=svc_tcp_sock_detach L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of svc_udp_recvfrom <net/sunrpc/svcsock.c:351:2> FUNC=svc_udp_recvfrom L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of svc_sock_detach <net/sunrpc/svcsock.c:1576:2> FUNC=svc_sock_detach L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of dccp_flush_write_queue <net/dccp/output.c:226:2> FUNC=dccp_flush_write_queue L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of inet_dccp_listen <net/dccp/proto.c:958:2> FUNC=inet_dccp_listen L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of dccp_setsockopt <net/dccp/proto.c:503:2> FUNC=dccp_setsockopt L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of dccp_setsockopt_service <net/dccp/proto.c:444:2> FUNC=dccp_setsockopt_service L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of dccp_sendmsg <net/dccp/proto.c:763:2> FUNC=dccp_sendmsg L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of dccp_recvmsg <net/dccp/proto.c:914:2> FUNC=dccp_recvmsg L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of dccp_ioctl <net/dccp/proto.c:408:2> FUNC=dccp_ioctl L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of dccp_getsockopt_service <net/dccp/proto.c:611:2> FUNC=dccp_getsockopt_service L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of dccp_close <net/dccp/proto.c:1062:2> FUNC=dccp_close L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of rds_connect <net/rds/af_rds.c:628:2> FUNC=rds_connect L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of rds_setsockopt <net/rds/af_rds.c:465:3> FUNC=rds_setsockopt L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of rds_bind <net/rds/bind.c:271:2> FUNC=rds_bind L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of rds_sendmsg <net/rds/send.c:1206:3> FUNC=rds_sendmsg L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of smc_tcp_listen_work <net/smc/af_smc.c:1717:2> FUNC=smc_tcp_listen_work L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of smc_connect_work <net/smc/af_smc.c:1626:2> FUNC=smc_connect_work L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of smc_listen_out <net/smc/af_smc.c:1906:2> FUNC=smc_listen_out L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of smc_close_non_accepted <net/smc/af_smc.c:1840:2> FUNC=smc_close_non_accepted L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of __smc_release <net/smc/af_smc.c:300:4> FUNC=__smc_release L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of smc_release <net/smc/af_smc.c:349:2> FUNC=smc_release L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of smc_bind <net/smc/af_smc.c:443:2> FUNC=smc_bind L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of smc_connect <net/smc/af_smc.c:1705:2> FUNC=smc_connect L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of smc_accept <net/smc/af_smc.c:2699:3> FUNC=smc_accept L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of smc_ioctl <net/smc/af_smc.c:3182:4> FUNC=smc_ioctl L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of smc_listen <net/smc/af_smc.c:2680:2> FUNC=smc_listen L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of smc_shutdown <net/smc/af_smc.c:2987:2> FUNC=smc_shutdown L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of smc_setsockopt <net/smc/af_smc.c:3051:2> FUNC=smc_setsockopt L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of smc_sendmsg <net/smc/af_smc.c:2802:2> FUNC=smc_sendmsg L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of smc_recvmsg <net/smc/af_smc.c:2839:2> FUNC=smc_recvmsg L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of smc_splice_read <net/smc/af_smc.c:3297:2> FUNC=smc_splice_read L=4
+[UPWARD-INTERPROC] Call to release_sock taints argument 0 (local variable) <net/smc/smc_core.c:1567:3> FUNC=__smc_lgr_terminate L=4
+  [STORE DESTINATION] Marking pointer as tainted via call:   %17 = phi ptr [ %36, %35 ], [ %14, %7 ] FUNC=__smc_lgr_terminate L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of smc_conn_abort_work <net/smc/smc_core.c:1739:2> FUNC=smc_conn_abort_work L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of smc_tx_sendmsg <net/smc/smc_tx.c:115:3> FUNC=smc_tx_sendmsg L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of smc_tx_work <net/smc/smc_tx.c:689:2> FUNC=smc_tx_work L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of smc_rx_wait <net/smc/smc_rx.c:270:7> FUNC=smc_rx_wait L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of smc_rx_recvmsg <net/smc/smc_rx.c:270:7> FUNC=smc_rx_recvmsg L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of smc_close_active_abort <net/smc/smc_close.c:181:3> FUNC=smc_close_active_abort L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of smc_close_cancel_work <net/smc/smc_close.c:118:2> FUNC=smc_close_cancel_work L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of smc_close_active <net/smc/smc_close.c:226:3> FUNC=smc_close_active L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of smc_close_stream_wait <net/smc/smc_close.c:68:8> FUNC=smc_close_stream_wait L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of smc_close_shutdown_write <net/smc/smc_close.c:464:3> FUNC=smc_close_shutdown_write L=4
+[POINTER PARAMETER] Call to release_sock passes through pointer parameter 0 of smc_close_passive_work <net/smc/smc_close.c:374:3> FUNC=smc_close_passive_work L=4
+[POINTER PARAMETER] Call to __sk_flush_backlog passes through pointer parameter 0 of tcp_sendmsg_locked <./include/net/sock.h:1185:3> FUNC=tcp_sendmsg_locked L=4
+[POINTER PARAMETER] Call to __sk_flush_backlog passes through pointer parameter 0 of tcp_recvmsg_locked <net/ipv4/tcp.c:2711:4> FUNC=tcp_recvmsg_locked L=4
+[POINTER PARAMETER] Call to __release_sock passes through pointer parameter 0 of __tcp_close <net/ipv4/tcp.c:3156:2> FUNC=__tcp_close L=4
+[POINTER PARAMETER] Call to smc_listen_out passes through pointer parameter 0 of smc_listen_work <net/smc/af_smc.c:1942:2> FUNC=smc_listen_work L=5
+[POINTER PARAMETER] Call to smc_close_active_abort passes through pointer parameter 0 of smc_conn_kill <net/smc/smc_core.c:1524:2> FUNC=smc_conn_kill L=5
+[POINTER PARAMETER] Call to xs_reset_transport passes through pointer parameter 0 of xs_tcp_shutdown <net/sunrpc/xprtsock.c:1316:2> FUNC=xs_tcp_shutdown L=5
+[POINTER PARAMETER] Call to xs_reset_transport passes through pointer parameter 0 of xs_destroy <net/sunrpc/xprtsock.c:1316:2> FUNC=xs_destroy L=5
+[POINTER PARAMETER] Call to xs_reset_transport passes through pointer parameter 0 of xs_tcp_setup_socket <net/sunrpc/xprtsock.c:2414:3> FUNC=xs_tcp_setup_socket L=5
+[POINTER PARAMETER] Call to xs_reset_transport passes through pointer parameter 0 of xs_close <net/sunrpc/xprtsock.c:1316:2> FUNC=xs_close L=5
+[POINTER PARAMETER] Call to xs_stream_nospace passes through pointer parameter 0 of xs_tcp_send_request <net/sunrpc/xprtsock.c:1158:12> FUNC=xs_tcp_send_request L=5
+[POINTER PARAMETER] Call to xs_stream_nospace passes through pointer parameter 0 of xs_local_send_request <net/sunrpc/xprtsock.c:975:12> FUNC=xs_local_send_request L=5
+[POINTER PARAMETER] Call to dccp_getsockopt_service passes through pointer parameter 0 of dccp_getsockopt <net/dccp/proto.c:634:10> FUNC=dccp_getsockopt L=5
+[POINTER PARAMETER] Call to selinux_netlbl_socket_setsockopt passes through pointer parameter 0 of selinux_socket_setsockopt <security/selinux/hooks.c:5011:9> FUNC=selinux_socket_setsockopt L=5
+[POINTER PARAMETER] Call to selinux_netlbl_socket_connect passes through pointer parameter 0 of selinux_socket_connect <security/selinux/hooks.c:4947:9> FUNC=selinux_socket_connect L=5
+[POINTER PARAMETER] Call to sockopt_release_sock passes through pointer parameter 0 of sk_get_filter <net/core/filter.c:11210:2> FUNC=sk_get_filter L=5
+[POINTER PARAMETER] Call to sockopt_release_sock passes through pointer parameter 0 of ip_sock_set_tos <net/ipv4/ip_sockglue.c:605:2> FUNC=ip_sock_set_tos L=5
+[POINTER PARAMETER] Call to sockopt_release_sock passes through pointer parameter 0 of do_ip_setsockopt <net/ipv4/ip_sockglue.c:1354:2> FUNC=do_ip_setsockopt L=5
+[POINTER PARAMETER] Call to sockopt_release_sock passes through pointer parameter 0 of do_ip_getsockopt <net/ipv4/ip_sockglue.c:1735:2> FUNC=do_ip_getsockopt L=5
+[POINTER PARAMETER] Call to sockopt_release_sock passes through pointer parameter 0 of do_tcp_setsockopt <net/ipv4/tcp.c:3743:3> FUNC=do_tcp_setsockopt L=5
+[POINTER PARAMETER] Call to sockopt_release_sock passes through pointer parameter 0 of do_tcp_getsockopt <net/ipv4/tcp.c:0> FUNC=do_tcp_getsockopt L=5
+[POINTER PARAMETER] Call to sockopt_release_sock passes through pointer parameter 0 of do_ipv6_setsockopt <net/ipv6/ipv6_sockglue.c:971:2> FUNC=do_ipv6_setsockopt L=5
+[POINTER PARAMETER] Call to sockopt_release_sock passes through pointer parameter 0 of do_ipv6_getsockopt <net/ipv6/ipv6_sockglue.c:1154:3> FUNC=do_ipv6_getsockopt L=5
+[POINTER PARAMETER] Call to sockopt_release_sock passes through pointer parameter 0 of compat_ipv6_get_msfilter <net/ipv6/ipv6_sockglue.c:1091:2> FUNC=compat_ipv6_get_msfilter L=5
+[POINTER PARAMETER] Call to sockopt_release_sock passes through pointer parameter 0 of ipv6_get_msfilter <net/ipv6/ipv6_sockglue.c:1063:2> FUNC=ipv6_get_msfilter L=5
+[POINTER PARAMETER] Call to sk_setsockopt passes through pointer parameter 0 of sock_setsockopt <net/core/sock.c:1646:9> FUNC=sock_setsockopt L=5
+[POINTER PARAMETER] Call to sk_setsockopt passes through pointer parameter 0 of __bpf_setsockopt <net/core/filter.c:5258:9> FUNC=__bpf_setsockopt L=5
+[POINTER PARAMETER] Call to sock_set_keepalive passes through pointer parameter 1 of xs_tcp_set_socket_timeouts <net/sunrpc/xprtsock.c:2281:2> FUNC=xs_tcp_set_socket_timeouts L=5
+[POINTER PARAMETER] Call to sock_no_linger passes through pointer parameter 0 of svc_tcp_kill_temp_xprt <net/sunrpc/svcsock.c:412:2> FUNC=svc_tcp_kill_temp_xprt L=5
+[POINTER PARAMETER] Call to netlink_insert passes through pointer parameter 0 of netlink_bind <net/netlink/af_netlink.c:1032:4> FUNC=netlink_bind L=5
+[POINTER PARAMETER] Call to netlink_insert passes through pointer parameter 0 of netlink_autobind <net/netlink/af_netlink.c:828:8> FUNC=netlink_autobind L=5
+[POINTER PARAMETER] Call to tcp_sendmsg passes through pointer parameter 0 of inet_sendmsg <net/ipv4/af_inet.c:851:9> FUNC=inet_sendmsg L=5
+[POINTER PARAMETER] Call to tcp_sendmsg passes through pointer parameter 0 of inet6_sendmsg <net/ipv6/af_inet6.c:659:9> FUNC=inet6_sendmsg L=5
+[POINTER PARAMETER] Call to tcp_recvmsg passes through pointer parameter 0 of inet_recvmsg <net/ipv4/af_inet.c:883:8> FUNC=inet_recvmsg L=5
+[POINTER PARAMETER] Call to tcp_recvmsg passes through pointer parameter 0 of inet6_recvmsg <net/ipv6/af_inet6.c:678:8> FUNC=inet6_recvmsg L=5
+[POINTER PARAMETER] Call to tcp_recvmsg_locked passes through pointer parameter 0 of tcp_zerocopy_receive <net/ipv4/tcp.c:1910:8> FUNC=tcp_zerocopy_receive L=5
+[POINTER PARAMETER] Call to udp_lib_setsockopt passes through pointer parameter 0 of udp_setsockopt <net/ipv4/udp.c:3050:10> FUNC=udp_setsockopt L=5
+[POINTER PARAMETER] Call to udp_lib_setsockopt passes through pointer parameter 0 of udpv6_setsockopt <net/ipv6/udp.c:1847:10> FUNC=udpv6_setsockopt L=5
+[POINTER PARAMETER] Call to ip_mc_autojoin_config passes through pointer parameter 0 of inet_rtm_newaddr <net/ipv4/devinet.c:1002:10> FUNC=inet_rtm_newaddr L=5
+[POINTER PARAMETER] Call to ip_mc_autojoin_config passes through pointer parameter 0 of inet_rtm_deladdr <net/ipv4/devinet.c:704:4> FUNC=inet_rtm_deladdr L=5
+[POINTER PARAMETER] Call to inet_send_prepare passes through pointer parameter 0 of inet_splice_eof <net/ipv4/af_inet.c:861:6> FUNC=inet_splice_eof L=5
+[POINTER PARAMETER] Call to __inet_stream_connect passes through pointer parameter 0 of tcp_sendmsg_fastopen <net/ipv4/tcp.c:1039:8> FUNC=tcp_sendmsg_fastopen L=5
+[POINTER PARAMETER] Call to __inet_bind passes through pointer parameter 0 of inet_bind <net/ipv4/af_inet.c:462:9> FUNC=inet_bind L=5
+[POINTER PARAMETER] Call to __inet_bind passes through pointer parameter 0 of inet_bind_sk <net/ipv4/af_inet.c:462:9> FUNC=inet_bind_sk L=5
+[POINTER PARAMETER] Call to __inet6_bind passes through pointer parameter 0 of inet6_bind <net/ipv6/af_inet6.c:464:9> FUNC=inet6_bind L=5
+[POINTER PARAMETER] Call to __inet6_bind passes through pointer parameter 0 of inet6_bind_sk <net/ipv6/af_inet6.c:464:9> FUNC=inet6_bind_sk L=5
+[POINTER PARAMETER] Call to ipv6_mc_config passes through pointer parameter 0 of inet6_addr_add <net/ipv6/addrconf.c:3036:13> FUNC=inet6_addr_add L=5
+[POINTER PARAMETER] Call to ipv6_mc_config passes through pointer parameter 0 of inet6_addr_del <net/ipv6/addrconf.c:3120:5> FUNC=inet6_addr_del L=5
+[POINTER PARAMETER] Call to ipv6_sock_mc_close passes through pointer parameter 0 of inet6_release <net/ipv6/af_inet6.c:482:2> FUNC=inet6_release L=5
+[POINTER PARAMETER] Call to packet_do_bind passes through pointer parameter 0 of packet_bind <net/packet/af_packet.c:3373:9> FUNC=packet_bind L=5
+[POINTER PARAMETER] Call to packet_do_bind passes through pointer parameter 0 of packet_bind_spkt <net/packet/af_packet.c:3356:9> FUNC=packet_bind_spkt L=5
+[POINTER PARAMETER] Call to sock_setsockopt passes through pointer parameter 0 of do_sock_setsockopt <net/socket.c:2299:9> FUNC=do_sock_setsockopt L=6
+[POINTER PARAMETER] Call to sk_get_filter passes through pointer parameter 0 of sk_getsockopt <net/core/sock.c:1983:9> FUNC=sk_getsockopt L=6
+[POINTER PARAMETER] Call to netlink_autobind passes through pointer parameter 0 of netlink_connect <net/netlink/af_netlink.c:1093:9> FUNC=netlink_connect L=6
+[POINTER PARAMETER] Call to netlink_autobind passes through pointer parameter 0 of netlink_sendmsg <net/netlink/af_netlink.c:1845:9> FUNC=netlink_sendmsg L=6
+[POINTER PARAMETER] Call to do_ip_setsockopt passes through pointer parameter 0 of ip_setsockopt <net/ipv4/ip_sockglue.c:1417:8> FUNC=ip_setsockopt L=6
+[POINTER PARAMETER] Call to do_ip_getsockopt passes through pointer parameter 0 of __bpf_getsockopt <net/core/filter.c:5451:10> FUNC=__bpf_getsockopt L=6
+[POINTER PARAMETER] Call to do_ip_getsockopt passes through pointer parameter 0 of ip_getsockopt <net/ipv4/ip_sockglue.c:1765:8> FUNC=ip_getsockopt L=6
+[POINTER PARAMETER] Call to do_tcp_setsockopt passes through pointer parameter 0 of sol_tcp_sockopt <net/core/filter.c:5360:8> FUNC=sol_tcp_sockopt L=6
+[POINTER PARAMETER] Call to do_tcp_setsockopt passes through pointer parameter 0 of tcp_setsockopt <net/ipv4/tcp.c:4045:9> FUNC=tcp_setsockopt L=6
+[POINTER PARAMETER] Call to do_tcp_getsockopt passes through pointer parameter 0 of tcp_getsockopt <net/ipv4/tcp.c:4686:9> FUNC=tcp_getsockopt L=6
+[POINTER PARAMETER] Call to inet_sendmsg passes through pointer parameter 0 of __sock_sendmsg <net/socket.c:718:12> FUNC=__sock_sendmsg L=6
+[POINTER PARAMETER] Call to inet_sendmsg passes through pointer parameter 0 of sock_sendmsg_nosec <net/socket.c:718:12> FUNC=sock_sendmsg_nosec L=6
+[POINTER PARAMETER] Call to inet_recvmsg passes through pointer parameter 0 of sock_recvmsg <net/socket.c:1023:12> FUNC=sock_recvmsg L=6
+[POINTER PARAMETER] Call to inet_recvmsg passes through pointer parameter 0 of sock_recvmsg_nosec <net/socket.c:1023:12> FUNC=sock_recvmsg_nosec L=6
+[POINTER PARAMETER] Call to inet6_addr_add passes through pointer parameter 0 of addrconf_add_ifaddr <net/ipv6/addrconf.c:3156:9> FUNC=addrconf_add_ifaddr L=6
+[POINTER PARAMETER] Call to inet6_addr_add passes through pointer parameter 0 of inet6_rtm_newaddr <net/ipv6/addrconf.c:5054:9> FUNC=inet6_rtm_newaddr L=6
+[POINTER PARAMETER] Call to inet6_addr_del passes through pointer parameter 0 of addrconf_del_ifaddr <net/ipv6/addrconf.c:3175:8> FUNC=addrconf_del_ifaddr L=6
+[POINTER PARAMETER] Call to inet6_addr_del passes through pointer parameter 0 of inet6_rtm_deladdr <net/ipv6/addrconf.c:4796:8> FUNC=inet6_rtm_deladdr L=6
+[POINTER PARAMETER] Call to do_ipv6_setsockopt passes through pointer parameter 0 of ipv6_setsockopt <net/ipv6/ipv6_sockglue.c:993:8> FUNC=ipv6_setsockopt L=6
+[POINTER PARAMETER] Call to do_ipv6_getsockopt passes through pointer parameter 0 of ipv6_getsockopt <net/ipv6/ipv6_sockglue.c:1483:8> FUNC=ipv6_getsockopt L=6
+[POINTER PARAMETER] Call to __sock_sendmsg passes through pointer parameter 0 of sock_write_iter <net/socket.c:1137:8> FUNC=sock_write_iter L=7
+[POINTER PARAMETER] Call to __sock_sendmsg passes through pointer parameter 0 of sock_sendmsg <net/socket.c:756:8> FUNC=sock_sendmsg L=7
+[POINTER PARAMETER] Call to __sock_sendmsg passes through pointer parameter 0 of kernel_sendmsg <net/socket.c:756:8> FUNC=kernel_sendmsg L=7
+[POINTER PARAMETER] Call to __sock_sendmsg passes through pointer parameter 0 of ____sys_sendmsg <net/socket.c:2573:8> FUNC=____sys_sendmsg L=7
+[POINTER PARAMETER] Call to sock_recvmsg passes through pointer parameter 0 of sock_read_iter <net/socket.c:1115:8> FUNC=sock_read_iter L=7
+[POINTER PARAMETER] Call to sock_recvmsg passes through pointer parameter 0 of kernel_recvmsg <net/socket.c:1070:9> FUNC=kernel_recvmsg L=7
+[POINTER PARAMETER] Call to sock_recvmsg passes through pointer parameter 0 of ____sys_recvmsg <net/socket.c:2793:9> FUNC=____sys_recvmsg L=7
+[POINTER PARAMETER] Call to sock_recvmsg passes through pointer parameter 0 of sync_thread_backup <net/netfilter/ipvs/ip_vs_sync.c:1611:8> FUNC=sync_thread_backup L=7
+[POINTER PARAMETER] Call to sock_recvmsg passes through pointer parameter 0 of xs_stream_data_receive_workfn <net/sunrpc/xprtsock.c:399:8> FUNC=xs_stream_data_receive_workfn L=7
+[POINTER PARAMETER] Call to sock_recvmsg passes through pointer parameter 0 of xs_sock_recvmsg <net/sunrpc/xprtsock.c:399:8> FUNC=xs_sock_recvmsg L=7
+[POINTER PARAMETER] Call to sock_recvmsg passes through pointer parameter 0 of svc_tcp_recvfrom <net/sunrpc/svcsock.c:271:8> FUNC=svc_tcp_recvfrom L=7
+[POINTER PARAMETER] Call to sock_recvmsg passes through pointer parameter 0 of smc_clc_wait_msg <net/smc/smc_clc.c:713:8> FUNC=smc_clc_wait_msg L=7
+[POINTER PARAMETER] Call to do_sock_setsockopt passes through pointer parameter 0 of io_uring_cmd_sock <io_uring/uring_cmd.c:321:9> FUNC=io_uring_cmd_sock L=7
+[POINTER PARAMETER] Call to sk_getsockopt passes through pointer parameter 0 of do_sock_getsockopt <net/socket.c:2356:9> FUNC=do_sock_getsockopt L=7
+[POINTER PARAMETER] Call to ip_setsockopt passes through pointer parameter 0 of raw_setsockopt <net/ipv4/raw.c:845:10> FUNC=raw_setsockopt L=7
+[POINTER PARAMETER] Call to ip_getsockopt passes through pointer parameter 0 of raw_getsockopt <net/ipv4/raw.c:865:10> FUNC=raw_getsockopt L=7
+[POINTER PARAMETER] Call to ip_getsockopt passes through pointer parameter 0 of udp_getsockopt <net/ipv4/udp.c:3122:9> FUNC=udp_getsockopt L=7
+[POINTER PARAMETER] Call to addrconf_add_ifaddr passes through pointer parameter 0 of inet6_ioctl <net/ipv6/af_inet6.c:580:10> FUNC=inet6_ioctl L=7
+[POINTER PARAMETER] Call to ipv6_setsockopt passes through pointer parameter 0 of rawv6_setsockopt <net/ipv6/raw.c:1055:10> FUNC=rawv6_setsockopt L=7
+[POINTER PARAMETER] Call to ipv6_getsockopt passes through pointer parameter 0 of udpv6_getsockopt <net/ipv6/udp.c:1858:9> FUNC=udpv6_getsockopt L=7
+[POINTER PARAMETER] Call to ipv6_getsockopt passes through pointer parameter 0 of rawv6_getsockopt <net/ipv6/raw.c:1116:10> FUNC=rawv6_getsockopt L=7
+[POINTER PARAMETER] Call to smc_clc_wait_msg passes through pointer parameter 0 of smc_connect_clc <net/smc/af_smc.c:1169:9> FUNC=smc_connect_clc L=8
+[POINTER PARAMETER] Call to smc_clc_wait_msg passes through pointer parameter 0 of smcr_clnt_conf_first_link <net/smc/af_smc.c:602:8> FUNC=smcr_clnt_conf_first_link L=8
+[POINTER PARAMETER] Call to smc_clc_wait_msg passes through pointer parameter 0 of smc_listen_rdma_finish <net/smc/af_smc.c:1872:8> FUNC=smc_listen_rdma_finish L=8
+[POINTER PARAMETER] Call to xs_sock_recvmsg passes through pointer parameter 0 of xs_read_stream_request <net/sunrpc/xprtsock.c:420:9> FUNC=xs_read_stream_request L=8
+[POINTER PARAMETER] Call to sock_sendmsg passes through pointer parameter 0 of __skb_send_sock <net/core/skbuff.c:3175:9> FUNC=__skb_send_sock L=8
+[POINTER PARAMETER] Call to sock_sendmsg passes through pointer parameter 0 of sendmsg_unlocked <net/core/skbuff.c:3175:9> FUNC=sendmsg_unlocked L=8
+[POINTER PARAMETER] Call to sock_sendmsg passes through pointer parameter 0 of xprt_sock_sendmsg <net/sunrpc/socklib.c:211:9> FUNC=xprt_sock_sendmsg L=8
+[POINTER PARAMETER] Call to sock_sendmsg passes through pointer parameter 0 of svc_tcp_sendto <net/sunrpc/svcsock.c:1227:8> FUNC=svc_tcp_sendto L=8
+[POINTER PARAMETER] Call to sock_sendmsg passes through pointer parameter 0 of svc_udp_sendto <net/sunrpc/svcsock.c:721:8> FUNC=svc_udp_sendto L=8
+[POINTER PARAMETER] Call to sock_sendmsg passes through pointer parameter 0 of tls_alert_send <net/handshake/alert.c:63:8> FUNC=tls_alert_send L=8
+[POINTER PARAMETER] Call to kernel_sendmsg passes through pointer parameter 0 of sync_thread_master <net/netfilter/ipvs/ip_vs_sync.c:1582:8> FUNC=sync_thread_master L=8
+[POINTER PARAMETER] Call to kernel_sendmsg passes through pointer parameter 0 of smc_clc_send_decline <net/smc/smc_clc.c:838:8> FUNC=smc_clc_send_decline L=8
+[POINTER PARAMETER] Call to kernel_sendmsg passes through pointer parameter 0 of smc_clc_send_proposal <net/smc/smc_clc.c:1031:8> FUNC=smc_clc_send_proposal L=8
+[POINTER PARAMETER] Call to kernel_sendmsg passes through pointer parameter 0 of smc_clc_send_confirm_accept <net/smc/smc_clc.c:1206:9> FUNC=smc_clc_send_confirm_accept L=8
+[POINTER PARAMETER] Call to ____sys_sendmsg passes through pointer parameter 0 of __sys_sendmsg_sock <net/socket.c:2639:9> FUNC=__sys_sendmsg_sock L=8
+[POINTER PARAMETER] Call to ____sys_sendmsg passes through pointer parameter 0 of ___sys_sendmsg <net/socket.c:2627:8> FUNC=___sys_sendmsg L=8
+[POINTER PARAMETER] Call to ____sys_recvmsg passes through pointer parameter 0 of __sys_recvmsg_sock <net/socket.c:2848:9> FUNC=__sys_recvmsg_sock L=8
+[POINTER PARAMETER] Call to ____sys_recvmsg passes through pointer parameter 0 of ___sys_recvmsg <net/socket.c:2835:8> FUNC=___sys_recvmsg L=8
+[POINTER PARAMETER] Call to smc_connect_clc passes through pointer parameter 0 of __smc_connect <net/smc/af_smc.c:1538:7> FUNC=__smc_connect L=9
+[POINTER PARAMETER] Call to smcr_clnt_conf_first_link passes through pointer parameter 0 of smc_connect_rdma <net/smc/af_smc.c:1344:17> FUNC=smc_connect_rdma L=9
+[POINTER PARAMETER] Call to smc_clc_send_confirm_accept passes through pointer parameter 0 of smc_clc_send_confirm <net/smc/smc_clc.c:1221:8> FUNC=smc_clc_send_confirm L=9
+[POINTER PARAMETER] Call to smc_clc_send_confirm_accept passes through pointer parameter 0 of smc_clc_send_accept <net/smc/smc_clc.c:1244:8> FUNC=smc_clc_send_accept L=9
+[POINTER PARAMETER] Call to tls_alert_send passes through pointer parameter 0 of tls_handshake_close <net/handshake/tlshd.c:445:2> FUNC=tls_handshake_close L=9
+[POINTER PARAMETER] Call to xprt_sock_sendmsg passes through pointer parameter 0 of bc_send_request <net/sunrpc/xprtsock.c:2984:8> FUNC=bc_send_request L=9
+[POINTER PARAMETER] Call to __skb_send_sock passes through pointer parameter 0 of skb_send_sock_locked <net/core/skbuff.c:3281:9> FUNC=skb_send_sock_locked L=9
+[POINTER PARAMETER] Call to __skb_send_sock passes through pointer parameter 0 of skb_send_sock <net/core/skbuff.c:3288:9> FUNC=skb_send_sock L=9
+[POINTER PARAMETER] Call to smc_clc_send_confirm passes through pointer parameter 0 of smc_connect_ism <net/smc/af_smc.c:1447:7> FUNC=smc_connect_ism L=10
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 339
+
+Earliest instruction with L=0:
+    %12 = load volatile i8, ptr %11, align 2, <net/ipv4/tcp_input.c:6758:14> FUNC=tcp_rcv_state_process L=0
+
+Latest instruction with L=0:
+    br i1 %678, label %680, label %679, <net/ipv4/tcp_input.c:5829:6> FUNC=tcp_rcv_state_process L=0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/ipv4/tcp_input.ll
+../linux-wllvm-defconfig/net/ipv4/tcp_input.c

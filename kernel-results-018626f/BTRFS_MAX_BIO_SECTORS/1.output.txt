@@ -1,0 +1,15 @@
+=== Taint Tracker Configuration ===
+Function: btrfs_dio_iomap_begin
+Opcode: shl
+Constant: 8
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 8)
+
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/btrfs/direct-io.ll
+../linux-wllvm-defconfig/fs/btrfs/direct-io.c

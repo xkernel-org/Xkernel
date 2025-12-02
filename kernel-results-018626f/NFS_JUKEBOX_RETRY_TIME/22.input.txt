@@ -1,0 +1,5 @@
+SOURCE_FILE=fs/nfs/nfs3proc.c
+FUNCTION_NAME=do_proc_get_root
+SOURCE_OP="call"
+CONSTANT_VALUE=5000
+OCCURENCE=2

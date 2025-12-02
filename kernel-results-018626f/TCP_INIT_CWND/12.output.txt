@@ -1,0 +1,28 @@
+=== Taint Tracker Configuration ===
+Function: tcp_init_transfer
+Opcode: mul
+Constant: 10
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 10)
+
+[SOURCE] Tainting:   %160 = mul nuw nsw i32 %159, 10, <net/ipv4/tcp_input.c:595:25> FUNC=tcp_init_transfer L=0
+[USE] Source instruction in data flow <net/ipv4/tcp_input.c:595:25> FUNC=tcp_init_transfer L=0
+[USE] Processing uses of:   %160 = mul nuw nsw i32 %159, 10,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %161 = tail call i32 @llvm.umin.i32(i32 %156, i32 %160), !dbg !17867832 <net/ipv4/tcp_input.c:595:25>
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 1
+
+Earliest instruction with L=0:
+    %160 = mul nuw nsw i32 %159, 10, <net/ipv4/tcp_input.c:595:25> FUNC=tcp_init_transfer L=0
+
+(Earliest and latest are the same instruction)
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/ipv4/tcp_input.ll
+../linux-wllvm-defconfig/net/ipv4/tcp_input.c

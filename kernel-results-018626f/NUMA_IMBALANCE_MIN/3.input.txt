@@ -1,0 +1,5 @@
+SOURCE_FILE=kernel/sched/fair.c
+FUNCTION_NAME=task_numa_find_cpu
+SOURCE_OP="icmp"
+CONSTANT_VALUE=3
+OCCURENCE=1

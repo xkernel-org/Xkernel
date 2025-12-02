@@ -1,0 +1,28 @@
+=== Taint Tracker Configuration ===
+Function: task_numa_fault
+Opcode: add
+Constant: -7
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant -7)
+
+[SOURCE] Tainting:   %744 = add nsw i32 %741, -7, <kernel/sched/fair.c:2731:23> FUNC=task_numa_fault L=0
+[USE] Source instruction in data flow <kernel/sched/fair.c:2731:23> FUNC=task_numa_fault L=0
+[USE] Processing uses of:   %744 = add nsw i32 %741, -7,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %745 = call i32 @llvm.umax.i32(i32 %744, i32 1), !dbg !17868890 <kernel/sched/fair.c:2732:7>
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 1
+
+Earliest instruction with L=0:
+    %744 = add nsw i32 %741, -7, <kernel/sched/fair.c:2731:23> FUNC=task_numa_fault L=0
+
+(Earliest and latest are the same instruction)
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/kernel/sched/fair.ll
+../linux-wllvm-defconfig/kernel/sched/fair.c

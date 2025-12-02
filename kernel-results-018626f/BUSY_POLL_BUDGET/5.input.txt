@@ -1,0 +1,5 @@
+SOURCE_FILE=fs/eventpoll.c
+FUNCTION_NAME=do_epoll_wait
+SOURCE_OP="select"
+CONSTANT_VALUE=8
+OCCURENCE=1

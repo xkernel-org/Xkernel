@@ -1,0 +1,15 @@
+=== Taint Tracker Configuration ===
+Function: check_extent_item
+Opcode: icmp
+Constant: 1024
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 1024)
+
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/btrfs/send.ll
+../linux-wllvm-defconfig/fs/btrfs/send.c

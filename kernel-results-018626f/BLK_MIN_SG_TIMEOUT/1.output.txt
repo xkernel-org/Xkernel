@@ -1,0 +1,29 @@
+=== Taint Tracker Configuration ===
+Function: bsg_ioctl
+Opcode: call
+Constant: 7000
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 7000)
+
+[SOURCE] Tainting:   %146 = call range(i32 7000, 0) i32 @llvm.umax.i32(i32 %145, i32 7000), <block/bsg.c:54:9> FUNC=bsg_ioctl L=0
+[USE] Source instruction in data flow <block/bsg.c:54:9> FUNC=bsg_ioctl L=0
+[CHILD FUNCTION] Constant used in call to llvm.umax.i32 at argument 1 <block/bsg.c:54:9> FUNC=bsg_ioctl L=0
+[USE] Processing uses of:   %146 = call range(i32 7000, 0) i32 @llvm.umax.i32(i32 %145, i32 7000),
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %147 = call i32 %131(ptr noundef %132, ptr noundef nonnull %4, i1 noundef zeroext %123, i32 noundef %146) #270, !dbg !17867714 <block/bsg.c:67:8>
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 1
+
+Earliest instruction with L=0:
+    %146 = call range(i32 7000, 0) i32 @llvm.umax.i32(i32 %145, i32 7000), <block/bsg.c:54:9> FUNC=bsg_ioctl L=0
+
+(Earliest and latest are the same instruction)
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/block/bsg.ll
+../linux-wllvm-defconfig/block/bsg.c

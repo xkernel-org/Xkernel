@@ -1,0 +1,216 @@
+=== Taint Tracker Configuration ===
+Function: sbitmap_queue_recalculate_wake_batch
+Opcode: select
+Constant: 8
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 8)
+
+[SOURCE] Tainting:   %10 = select i1 %7, i32 8, i32 %9, <lib/sbitmap.c:479:15> FUNC=sbitmap_queue_recalculate_wake_batch L=0
+[USE] Source instruction in data flow <lib/sbitmap.c:479:15> FUNC=sbitmap_queue_recalculate_wake_batch L=0
+[USE] Processing uses of:   %10 = select i1 %7, i32 8, i32 %9,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter <lib/sbitmap.c:482:2>
+[POINTER PARAMETER] Call to sbitmap_queue_recalculate_wake_batch passes through pointer parameter 0 of __blk_mq_tag_busy <block/blk-mq-tag.c:26:2> FUNC=__blk_mq_tag_busy L=1
+[POINTER PARAMETER] Call to sbitmap_queue_recalculate_wake_batch passes through pointer parameter 0 of __blk_mq_tag_idle <block/blk-mq-tag.c:26:2> FUNC=__blk_mq_tag_idle L=1
+[POINTER PARAMETER] Call to __blk_mq_tag_busy passes through pointer parameter 0 of __blk_mq_alloc_driver_tag <block/blk-mq.h:201:3> FUNC=__blk_mq_alloc_driver_tag L=2
+[POINTER PARAMETER] Call to __blk_mq_tag_idle passes through pointer parameter 2 of blk_mq_exit_hctx <block/blk-mq.h:207:3> FUNC=blk_mq_exit_hctx L=2
+[POINTER PARAMETER] Call to __blk_mq_alloc_driver_tag passes through pointer parameter 0 of blk_mq_request_issue_directly <block/blk-mq.h:366:35> FUNC=blk_mq_request_issue_directly L=3
+[UPWARD-INTERPROC] Call to __blk_mq_alloc_driver_tag taints argument 0 (local variable) <block/blk-mq.h:366:35> FUNC=blk_mq_dispatch_rq_list L=3
+  [STORE DESTINATION] Marking pointer as tainted via call:   %13 = phi ptr [ %204, %202 ], [ %7, %9 ], FUNC=blk_mq_dispatch_rq_list L=3
+[POINTER PARAMETER] Call to __blk_mq_alloc_driver_tag passes through pointer parameter 1 of blk_mq_try_issue_directly <block/blk-mq.h:366:35> FUNC=blk_mq_try_issue_directly L=3
+[LOAD] Tainted load from tracked pointer (struct field):   %19 = load ptr, ptr %18, align 8, (base:   %13 = phi ptr [ %204, %202 ], [ %7, %9 ],)  <block/blk-mq.c:2104:3> FUNC=blk_mq_dispatch_rq_list L=3
+[LOAD] Tainted load from tracked pointer (struct field):   %22 = load ptr, ptr %18, align 8, (base:   %13 = phi ptr [ %204, %202 ], [ %7, %9 ],)  <block/blk-mq.c:2014:35> FUNC=blk_mq_dispatch_rq_list L=3
+[LOAD] Tainted load from tracked pointer (struct field):   %27 = load ptr, ptr %17, align 8, (base:   %13 = phi ptr [ %204, %202 ], [ %7, %9 ],)  <block/blk-mq.c:2018:49> FUNC=blk_mq_dispatch_rq_list L=3
+[LOAD] Tainted load from tracked pointer (struct field):   %37 = load ptr, ptr %17, align 8, (base:   %13 = phi ptr [ %204, %202 ], [ %7, %9 ],)  <block/blk-mq.h:275:10> FUNC=blk_mq_dispatch_rq_list L=3
+[LOAD] Tainted load from tracked pointer (struct field):   %42 = load i32, ptr %41, align 8, (base:   %13 = phi ptr [ %204, %202 ], [ %7, %9 ],)  <block/blk-mq.h:356:10> FUNC=blk_mq_dispatch_rq_list L=3
+[LOAD] Tainted load from tracked pointer (struct field):   %46 = load i32, ptr %45, align 4, (base:   %13 = phi ptr [ %204, %202 ], [ %7, %9 ],)  <block/blk-mq.h:356:38> FUNC=blk_mq_dispatch_rq_list L=3
+[LOAD] Tainted load from tracked pointer (struct field):   %49 = load ptr, ptr %18, align 8, (base:   %13 = phi ptr [ %204, %202 ], [ %7, %9 ],)  <block/blk-mq.h:359:30> FUNC=blk_mq_dispatch_rq_list L=3
+[LOAD] Tainted load from tracked pointer (struct field):   %67 = load ptr, ptr %66, align 8, (base:   %13 = phi ptr [ %204, %202 ], [ %7, %9 ],)  <block/blk-mq.h:350:33> FUNC=blk_mq_dispatch_rq_list L=3
+[LOAD] Tainted load from tracked pointer (struct field):   %68 = load i32, ptr %41, align 8, (base:   %13 = phi ptr [ %204, %202 ], [ %7, %9 ],)  <block/blk-mq.h:350:45> FUNC=blk_mq_dispatch_rq_list L=3
+[LOAD] Tainted load from tracked pointer (struct field):   %79 = load i32, ptr %78, align 8, (base:   %13 = phi ptr [ %204, %202 ], [ %7, %9 ],)  <block/blk-mq.h:366:10> FUNC=blk_mq_dispatch_rq_list L=3
+[LOAD] Tainted load from tracked pointer (struct field):   %89 = load i32, ptr %78, align 8, (base:   %13 = phi ptr [ %204, %202 ], [ %7, %9 ],)  <block/blk-mq.h:366:10> FUNC=blk_mq_dispatch_rq_list L=3
+[LOAD] Tainted load from tracked pointer (struct field):   %104 = load ptr, ptr %18, align 8, (base:   %13 = phi ptr [ %204, %202 ], [ %7, %9 ],)  <block/blk-mq.c:1912:33> FUNC=blk_mq_dispatch_rq_list L=3
+[LOAD] Tainted load from tracked pointer (struct field):   %108 = load i32, ptr %107, align 4, (base:   %13 = phi ptr [ %204, %202 ], [ %7, %9 ],)  <block/blk-mq.c:1912:58> FUNC=blk_mq_dispatch_rq_list L=3
+[LOAD] Tainted load from tracked pointer (struct field):   %152 = load i32, ptr %78, align 8, (base:   %13 = phi ptr [ %204, %202 ], [ %7, %9 ],)  <block/blk-mq.h:366:10> FUNC=blk_mq_dispatch_rq_list L=3
+[LOAD] Tainted load from tracked pointer (struct field):   %163 = load ptr, ptr %17, align 8, (base:   %13 = phi ptr [ %204, %202 ], [ %7, %9 ],)  <block/blk-mq.c:2040:36> FUNC=blk_mq_dispatch_rq_list L=3
+[LOAD] Tainted load from tracked pointer (struct field):   %173 = load ptr, ptr %172, align 8, (base:   %13 = phi ptr [ %204, %202 ], [ %7, %9 ],)  <./include/linux/list.h:218:20> FUNC=blk_mq_dispatch_rq_list L=3
+[LOAD] Tainted load from tracked pointer:   %174 = load ptr, ptr %13, align 8, (  %13 = phi ptr [ %204, %202 ], [ %7, %9 ], !dbg !17867544)  <./include/linux/list.h:218:33> FUNC=blk_mq_dispatch_rq_list L=3
+[LOAD] Tainted load from tracked pointer (struct field):   %193 = load i32, ptr %192, align 4, (base:   %13 = phi ptr [ %204, %202 ], [ %7, %9 ],)  <./include/linux/blk-mq.h:1077:13> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %194 = call zeroext i1 @blk_update_request(ptr noundef %17, i8 noundef zeroext %182, i32 noundef %193) #271, <block/blk-mq.c:1145:6> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   br i1 %194, label %195, label %196, <block/blk-mq.c:1145:6> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %175 = getelementptr inbounds nuw i8, ptr %174, i64 8, <./include/linux/list.h:195:8> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   store volatile ptr %174, ptr %173, align 8, <./include/linux/list.h:196:2> FUNC=blk_mq_dispatch_rq_list L=3
+  [STORE DESTINATION] Marking pointer as tainted:   %173 = load ptr, ptr %172, align 8, <./include/linux/list.h:196:2> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   store ptr %173, ptr %175, align 8, <./include/linux/list.h:195:13> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %164 = getelementptr inbounds nuw i8, ptr %163, i64 16, <block/blk-mq.h:259:9> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   call void %167(ptr noundef %163, i32 noundef range(i32 -1, -2147483648) %77) #270, <block/blk-mq.h:260:3> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %165 = load ptr, ptr %164, align 8, <block/blk-mq.h:259:9> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %166 = getelementptr inbounds nuw i8, ptr %165, i64 32, <block/blk-mq.h:259:17> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %167 = load ptr, ptr %166, align 8, <block/blk-mq.h:259:17> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %168 = icmp eq ptr %167, null, <block/blk-mq.h:259:6> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   br i1 %168, label %197, label %169, <block/blk-mq.h:259:6> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %153 = icmp eq i32 %152, -1, <block/blk-mq.h:366:14> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   br i1 %153, label %154, label %156, <block/blk-mq.h:366:31> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %111 = icmp ult i32 %108, %110, <block/blk-mq.h:213:13> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %114 = select i1 %111, i64 80, i64 16 FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %115 = getelementptr inbounds nuw i8, ptr %113, i64 %114, <block/blk-mq.c:0> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %118 = getelementptr inbounds nuw i8, ptr %115, i64 40, <block/blk-mq.h:191:15> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %122 = getelementptr inbounds nuw i8, ptr %115, i64 40, <./include/linux/sbitmap.h:573:13> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %137 = getelementptr inbounds nuw i8, ptr %115, i64 48, <block/blk-mq.c:1926:19> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   call void asm sideeffect ".pushsection .smp_locks,\22a\22\0A.balign 4\0A.long 671f - .\0A.popsection\0A671:\0A\09lock; incl $0", "=*m,*m,~{memory},~{dirflag},~{fpsr},~{flags}"(ptr nonnull elementtype(i32) %137, ptr nonnull elementtype(i32) %137) #269, <./arch/x86/include/asm/atomic.h:53:2> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   call void asm sideeffect ".pushsection .smp_locks,\22a\22\0A.balign 4\0A.long 671f - .\0A.popsection\0A671:\0A\09lock; decl $0", "=*m,*m,~{memory},~{dirflag},~{fpsr},~{flags}"(ptr nonnull elementtype(i32) %137, ptr nonnull elementtype(i32) %137) #269, <./arch/x86/include/asm/atomic.h:60:2> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %123 = load ptr, ptr %122, align 8, <./include/linux/sbitmap.h:573:13> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %126 = getelementptr %struct.sbq_wait_state, ptr %123, i64 %125, <./include/linux/sbitmap.h:573:8> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %132 = phi ptr [ %126, %120 ], [ %119, %117 ], <block/blk-mq.h:0> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   call void @_raw_spin_lock_irq(ptr noundef %132) #270, <./include/linux/spinlock.h:376:2> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %140 = getelementptr inbounds nuw i8, ptr %132, i64 8, <./include/linux/wait.h:171:37> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   call void @_raw_spin_unlock_irq(ptr noundef %132) #270, <./include/linux/spinlock.h:401:2> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   call void @_raw_spin_unlock_irq(ptr noundef %132) #270, <./include/linux/spinlock.h:401:2> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %142 = phi ptr [ %140, %136 ], [ %143, %145 ], <./include/linux/wait.h:0> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %144 = icmp eq ptr %143, %140, <./include/linux/list.h:364:14> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   br i1 %144, label %150, label %145, <./include/linux/wait.h:174:2> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %143 = load ptr, ptr %142, align 8, <./include/linux/wait.h:174:2> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   store ptr %142, ptr %100, align 8, <./include/linux/list.h:155:12> FUNC=blk_mq_dispatch_rq_list L=3
+  [STORE DESTINATION] Marking pointer as tainted:   %100 = getelementptr inbounds nuw i8, ptr %24, i64 304, <./include/linux/list.h:155:12> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   store volatile ptr %96, ptr %142, align 8, <./include/linux/list.h:156:2> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %146 = getelementptr i8, ptr %143, i64 -24, <./include/linux/wait.h:174:2> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %151 = getelementptr inbounds nuw i8, ptr %143, i64 8, <./include/linux/list.h:153:8> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   store ptr %143, ptr %96, align 8, <./include/linux/list.h:154:12> FUNC=blk_mq_dispatch_rq_list L=3
+  [STORE DESTINATION] Marking pointer as tainted:   %96 = getelementptr inbounds nuw i8, ptr %24, i64 296, <./include/linux/list.h:154:12> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   store ptr %96, ptr %151, align 8, <./include/linux/list.h:153:13> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %147 = load i32, ptr %146, align 8, <./include/linux/wait.h:175:13> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %148 = and i32 %147, 16, <./include/linux/wait.h:175:19> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %149 = icmp eq i32 %148, 0, <./include/linux/wait.h:175:19> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   br i1 %149, label %150, label %141, <./include/linux/wait.h:175:7> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %119 = load ptr, ptr %118, align 8, <block/blk-mq.h:191:15> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %105 = getelementptr inbounds nuw i8, ptr %104, i64 328, <block/blk-mq.c:1912:42> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %106 = load ptr, ptr %105, align 8, <block/blk-mq.c:1912:42> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %109 = getelementptr inbounds nuw i8, ptr %106, i64 4, <block/blk-mq.h:213:21> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %110 = load i32, ptr %109, align 4, <block/blk-mq.h:213:21> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %90 = icmp eq i32 %89, -1, <block/blk-mq.h:366:14> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   br i1 %90, label %91, label %171, <block/blk-mq.h:366:31> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %80 = icmp eq i32 %79, -1, <block/blk-mq.h:366:14> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   br i1 %80, label %81, label %171, <block/blk-mq.h:366:31> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   call void @blk_mq_put_tag(ptr noundef %65, ptr noundef %67, i32 noundef %68) #270, <block/blk-mq.h:350:2> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %50 = getelementptr inbounds nuw i8, ptr %49, i64 168, <block/blk-mq.h:336:12> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %58 = getelementptr inbounds nuw i8, ptr %49, i64 184, <block/blk-mq.h:304:26> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %62 = getelementptr inbounds nuw i8, ptr %49, i64 344, <block/blk-mq.h:306:26> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %64 = getelementptr inbounds nuw i8, ptr %49, i64 320, <block/blk-mq.h:350:23> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %65 = load ptr, ptr %64, align 64, <block/blk-mq.h:350:23> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   call void asm sideeffect ".pushsection .smp_locks,\22a\22\0A.balign 4\0A.long 671f - .\0A.popsection\0A671:\0A\09lock; subl $1,$0", "=*m,ir,*m,~{memory},~{dirflag},~{fpsr},~{flags}"(ptr nonnull elementtype(i32) %62, i32 1, ptr nonnull elementtype(i32) %62) #269, <./arch/x86/include/asm/atomic.h:40:2> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %59 = load ptr, ptr %58, align 8, <block/blk-mq.h:304:26> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %60 = getelementptr inbounds nuw i8, ptr %59, i64 448, <block/blk-mq.h:304:33> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   call void asm sideeffect ".pushsection .smp_locks,\22a\22\0A.balign 4\0A.long 671f - .\0A.popsection\0A671:\0A\09lock; subl $1,$0", "=*m,ir,*m,~{memory},~{dirflag},~{fpsr},~{flags}"(ptr nonnull elementtype(i32) %60, i32 1, ptr nonnull elementtype(i32) %60) #269, <./arch/x86/include/asm/atomic.h:40:2> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %51 = load i64, ptr %50, align 8, <block/blk-mq.h:336:12> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %52 = and i64 %51, 2, <block/blk-mq.h:336:18> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %55 = and i64 %51, 8, <block/blk-mq.h:218:9> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %56 = icmp eq i64 %55, 0, <block/blk-mq.h:218:9> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   br i1 %56, label %61, label %57, <block/blk-mq.h:303:6> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %53 = icmp eq i64 %52, 0, <block/blk-mq.h:336:18> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   br i1 %53, label %63, label %54, <block/blk-mq.h:336:18> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %47 = icmp eq i32 %46, -1, <block/blk-mq.h:356:51> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   br i1 %47, label %197, label %48, <block/blk-mq.h:356:31> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %43 = icmp eq i32 %42, -1, <block/blk-mq.h:356:14> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   br i1 %43, label %197, label %44, <block/blk-mq.h:356:31> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %38 = getelementptr inbounds nuw i8, ptr %37, i64 16 FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %39 = load ptr, ptr %38, align 8, <block/blk-mq.h:275:13> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %70 = phi ptr [ %39, %36 ], [ %29, %26 ], <block/blk-mq.h:275:13> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %72 = getelementptr inbounds nuw i8, ptr %70, i64 40, <block/blk-mq.h:275:21> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %73 = load ptr, ptr %72, align 8, <block/blk-mq.h:275:21> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %74 = icmp eq ptr %73, null, <block/blk-mq.h:275:6> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   call void %73(ptr noundef %17, i32 noundef range(i32 0, -2147483648) %71) #270, <block/blk-mq.h:276:3> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   br i1 %74, label %76, label %75, <block/blk-mq.h:275:6> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %28 = getelementptr inbounds nuw i8, ptr %27, i64 16, <block/blk-mq.h:265:9> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %34 = call i32 %31(ptr noundef %27) #270, <block/blk-mq.h:266:10> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %35 = icmp slt i32 %34, 0, <block/blk-mq.c:2019:20> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %71 = phi i32 [ %34, %36 ], [ 0, %26 ] FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %77 = phi i32 [ -1, %23 ], [ %71, %69 ], [ %71, %75 ], <block/blk-mq.c:0> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   br i1 %35, label %40, label %36, <block/blk-mq.c:2019:20> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %29 = load ptr, ptr %28, align 8, <block/blk-mq.h:265:9> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %30 = getelementptr inbounds nuw i8, ptr %29, i64 24, <block/blk-mq.h:265:17> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %31 = load ptr, ptr %30, align 8, <block/blk-mq.h:265:17> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %32 = icmp eq ptr %31, null, <block/blk-mq.h:265:6> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   br i1 %32, label %69, label %33, <block/blk-mq.h:265:6> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %24 = phi ptr [ %22, %21 ], [ %19, %12 ], <block/blk-mq.c:2014:35> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %84 = getelementptr inbounds nuw i8, ptr %24, i64 168, <block/blk-mq.c:1893:14> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   call void @blk_mq_sched_mark_restart_hctx(ptr noundef %24) #270, <block/blk-mq.c:1895:3> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %95 = getelementptr inbounds nuw i8, ptr %24, i64 272, <block/blk-mq.c:1908:16> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %96 = getelementptr inbounds nuw i8, ptr %24, i64 296, <block/blk-mq.c:1909:33> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %100 = getelementptr inbounds nuw i8, ptr %24, i64 304, <./include/linux/list.h:410:46> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %112 = getelementptr inbounds nuw i8, ptr %24, i64 320, <block/blk-mq.c:0> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %116 = icmp eq ptr %24, null, <block/blk-mq.h:190:7> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %121 = getelementptr inbounds nuw i8, ptr %24, i64 312, <block/blk-mq.h:192:33> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %133 = getelementptr inbounds nuw i8, ptr %24, i64 264, <block/blk-mq.c:1919:19> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   call void @_raw_spin_lock(ptr noundef nonnull %133) #270, <./include/linux/spinlock.h:351:2> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   call void @_raw_spin_unlock(ptr noundef nonnull %133) #270, <./include/linux/spinlock.h:391:2> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   call void @_raw_spin_unlock(ptr noundef nonnull %133) #270, <./include/linux/spinlock.h:391:2> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %124 = load volatile i32, ptr %121, align 4, <./arch/x86/include/asm/atomic.h:23:9> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %127 = load volatile i32, ptr %121, align 4, <./arch/x86/include/asm/atomic.h:23:9> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %130 = call i32 asm sideeffect ".pushsection .smp_locks,\22a\22\0A.balign 4\0A.long 671f - .\0A.popsection\0A671:\0A\09lock; cmpxchgl $2,$1", "={ax},=*m,r,0,*m,~{memory},~{dirflag},~{fpsr},~{flags}"(ptr nonnull elementtype(i32) %121, i32 range(i32 0, 8) %129, i32 %127, ptr nonnull elementtype(i32) %121) #269, <./arch/x86/include/asm/atomic.h:101:9> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %128 = add i32 %127, 1, <./include/linux/sbitmap.h:552:16> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %129 = and i32 %128, 7, <./include/linux/sbitmap.h:552:21> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %125 = sext i32 %124 to i64, <./include/linux/sbitmap.h:573:8> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   br i1 %116, label %117, label %120, <block/blk-mq.h:190:6> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %113 = load ptr, ptr %112, align 64, <block/blk-mq.c:0> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %101 = load volatile ptr, ptr %100, align 8, <./include/linux/list.h:410:46> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %157 = load ptr, ptr %100, align 8, <./include/linux/list.h:218:20> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   store volatile ptr %96, ptr %100, align 8, <./include/linux/list.h:38:2> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   store ptr %157, ptr %159, align 8, <./include/linux/list.h:195:13> FUNC=blk_mq_dispatch_rq_list L=3
+  [STORE DESTINATION] Marking pointer as tainted:   %159 = getelementptr inbounds nuw i8, ptr %158, i64 8, <./include/linux/list.h:195:13> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   store volatile ptr %158, ptr %157, align 8, <./include/linux/list.h:196:2> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %102 = icmp eq ptr %96, %101, <./include/linux/list.h:410:43> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   br i1 %102, label %103, label %161, <block/blk-mq.c:1909:6> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %97 = load volatile ptr, ptr %96, align 8, <./include/linux/list.h:409:27> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %98 = icmp eq ptr %97, %96, <./include/linux/list.h:364:14> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %134 = load volatile ptr, ptr %96, align 8, <./include/linux/list.h:373:9> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %135 = icmp eq ptr %134, %96, <./include/linux/list.h:373:31> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %158 = load ptr, ptr %96, align 8, <./include/linux/list.h:218:33> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   store volatile ptr %96, ptr %96, align 8, <./include/linux/list.h:37:2> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %159 = getelementptr inbounds nuw i8, ptr %158, i64 8, <./include/linux/list.h:195:8> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   br i1 %135, label %136, label %160, <block/blk-mq.c:1920:6> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   br i1 %98, label %99, label %161, <./include/linux/list.h:410:34> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %138 = load i32, ptr %95, align 8, <block/blk-mq.c:1927:14> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   store i32 %139, ptr %95, align 8, <block/blk-mq.c:1927:14> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %139 = and i32 %138, -2, <block/blk-mq.c:1927:14> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %85 = load i64, ptr %84, align 8, <block/blk-mq.c:1893:14> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %86 = and i64 %85, 10, <block/blk-mq.c:1893:49> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %87 = icmp eq i64 %86, 0, <block/blk-mq.c:1893:49> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   br i1 %87, label %88, label %94, <block/blk-mq.c:1893:49> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   %20 = icmp eq ptr %0, %19, <block/blk-mq.c:2104:3> FUNC=blk_mq_dispatch_rq_list L=3
+  [USE] Taint flows to:   br i1 %20, label %23, label %21, <block/blk-mq.c:2104:3> FUNC=blk_mq_dispatch_rq_list L=3
+[POINTER PARAMETER] Call to blk_mq_request_issue_directly passes through pointer parameter 0 of blk_insert_cloned_request <block/blk-mq.c:3236:2> FUNC=blk_insert_cloned_request L=4
+[UPWARD-INTERPROC] Call to blk_mq_request_issue_directly taints argument 0 (local variable) <block/blk-mq.c:2932:9> FUNC=blk_mq_try_issue_list_directly L=4
+  [STORE DESTINATION] Marking pointer as tainted via call:   %9 = phi ptr [ %34, %33 ], [ %6, %5 ] FUNC=blk_mq_try_issue_list_directly L=4
+[SKIP] Load before taint origin, not tainting:   %12 = load ptr, ptr %11, align 8, <./include/linux/list.h:218:20> FUNC=blk_mq_try_issue_list_directly L=4
+[SKIP] Load before taint origin, not tainting:   %13 = load ptr, ptr %9, align 8, <./include/linux/list.h:218:33> FUNC=blk_mq_try_issue_list_directly L=4
+[LOAD] Tainted load from tracked pointer (struct field):   %21 = load ptr, ptr %20, align 8, (base:   %9 = phi ptr [ %34, %33 ], [ %6, %5 ])  <block/blk-mq.c:2544:35> FUNC=blk_mq_try_issue_list_directly L=4
+[LOAD] Tainted load from tracked pointer (struct field):   %30 = load i32, ptr %29, align 4, (base:   %9 = phi ptr [ %34, %33 ], [ %6, %5 ])  <./include/linux/blk-mq.h:1077:13> FUNC=blk_mq_try_issue_list_directly L=4
+  [USE] Taint flows to:   %31 = tail call zeroext i1 @blk_update_request(ptr noundef %10, i8 noundef zeroext %17, i32 noundef %30) #269, <block/blk-mq.c:1145:6> FUNC=blk_mq_try_issue_list_directly L=4
+  [USE] Taint flows to:   br i1 %31, label %32, label %33, <block/blk-mq.c:1145:6> FUNC=blk_mq_try_issue_list_directly L=4
+  [USE] Taint flows to:   tail call void @_raw_spin_lock(ptr noundef %21) #270, <./include/linux/spinlock.h:351:2> FUNC=blk_mq_try_issue_list_directly L=4
+  [USE] Taint flows to:   %22 = getelementptr inbounds nuw i8, ptr %21, i64 8, <block/blk-mq.c:0> FUNC=blk_mq_try_issue_list_directly L=4
+  [USE] Taint flows to:   %23 = getelementptr inbounds nuw i8, ptr %21, i64 16, <./include/linux/list.h:183:24> FUNC=blk_mq_try_issue_list_directly L=4
+  [USE] Taint flows to:   tail call void @_raw_spin_unlock(ptr noundef %21) #270, <./include/linux/spinlock.h:391:2> FUNC=blk_mq_try_issue_list_directly L=4
+  [USE] Taint flows to:   %24 = load ptr, ptr %23, align 8, <./include/linux/list.h:183:24> FUNC=blk_mq_try_issue_list_directly L=4
+  [USE] Taint flows to:   store ptr %9, ptr %23, align 8, <./include/linux/list.h:153:13> FUNC=blk_mq_try_issue_list_directly L=4
+  [USE] Taint flows to:   store ptr %24, ptr %19, align 8, <./include/linux/list.h:155:12> FUNC=blk_mq_try_issue_list_directly L=4
+  [STORE DESTINATION] Marking pointer as tainted:   %19 = getelementptr i8, ptr %9, i64 8 <./include/linux/list.h:155:12> FUNC=blk_mq_try_issue_list_directly L=4
+  [USE] Taint flows to:   store volatile ptr %9, ptr %24, align 8, <./include/linux/list.h:156:2> FUNC=blk_mq_try_issue_list_directly L=4
+  [USE] Taint flows to:   store ptr %22, ptr %9, align 8, <./include/linux/list.h:154:12> FUNC=blk_mq_try_issue_list_directly L=4
+
+=== Maximum Level Statistics ===
+Largest L value: 4
+Number of instructions with L=4: 13
+
+Earliest instruction with L=4:
+    %21 = load ptr, ptr %20, align 8, <block/blk-mq.c:2544:35> FUNC=blk_mq_try_issue_list_directly L=4
+
+Latest instruction with L=4:
+    br i1 %31, label %32, label %33, <block/blk-mq.c:1145:6> FUNC=blk_mq_try_issue_list_directly L=4
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/lib/sbitmap.ll
+../linux-wllvm-defconfig/lib/sbitmap.c
