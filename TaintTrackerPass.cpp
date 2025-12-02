@@ -941,10 +941,9 @@ found:
                                     errs() << "  [EXTERNAL CALL] Tainted value used in external/indirect call: "
                                            << *Call << getDebugLoc(Call) << "\n";
                                 }
-                                // In non-interproc mode, don't propagate the call further
-                                if (!InterprocMode) {
-                                    continue;
-                                }
+                                // In non-interproc mode, don't propagate INTO the callee's parameters,
+                                // but still propagate taint to the call instruction result itself
+                                // (fall through to general propagation below)
                             }
                         }
                         if (ReturnInst *Ret = dyn_cast<ReturnInst>(UserInst)) {
