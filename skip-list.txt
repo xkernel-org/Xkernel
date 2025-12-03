@@ -1,5 +1,0 @@
-kernel-results/TCP_MAX_WSCALE/15.input.txt
-kernel-results/BLK_MQ_MAX_DEPTH/6.input.txt
-kernel-results/BLK_MQ_MAX_DEPTH/3.input.txt
-kernel-results/BLK_MAX_REQUEST_COUNT/1.input.txt
-kernel-results/TCP_MAX_WSCALE/8.input.txt
