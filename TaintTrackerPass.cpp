@@ -231,7 +231,8 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
     }
 
     // Helper to get which pointer parameter a value derives from (returns parameter, or nullptr if not from param)
-    Argument* getPointerParameterOrigin(Value *V, DenseSet<Value*> *Visited = nullptr) {
+    // With verbose tracking option
+    Argument* getPointerParameterOrigin(Value *V, DenseSet<Value*> *Visited = nullptr, bool PrintTracking = false, int Depth = 0) {
         if (!V) return nullptr;
 
         // Track visited values to avoid infinite loops
@@ -240,27 +241,83 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
             Visited = &LocalVisited;
         }
         if (!Visited->insert(V).second) {
+            if (PrintTracking) {
+                for (int i = 0; i < Depth; ++i) errs() << "  ";
+                errs() << "→ (already visited, stopping)\n";
+            }
             return nullptr;  // Already visited
         }
 
+        std::string indent(Depth * 2, ' ');
+        if (PrintTracking) {
+            errs() << indent << getValueName(V) << "\n";
+        }
+
         // Strip pointer casts
-        V = V->stripPointerCasts();
+        Value *Stripped = V->stripPointerCasts();
+        if (Stripped != V && PrintTracking) {
+            errs() << indent << "  (after stripping casts)\n";
+            errs() << indent << "  " << getValueName(Stripped) << "\n";
+        }
+        V = Stripped;
 
         // Direct parameter check
         if (Argument *Arg = dyn_cast<Argument>(V)) {
             if (Arg->getType()->isPointerTy()) {
+                if (PrintTracking) {
+                    errs() << indent << "  → parameter #" << Arg->getArgNo() << "\n";
+                }
                 return Arg;
             }
         }
 
+        // If it's a PHI node, check all incoming values
+        if (PHINode *Phi = dyn_cast<PHINode>(V)) {
+            if (PrintTracking) {
+                errs() << indent << "  PHI with " << Phi->getNumIncomingValues() << " paths:\n";
+            }
+            Argument *FirstParam = nullptr;
+            for (unsigned i = 0; i < Phi->getNumIncomingValues(); ++i) {
+                Value *Incoming = Phi->getIncomingValue(i);
+                if (PrintTracking) {
+                    errs() << indent << "  Path " << i << " (from %"
+                           << Phi->getIncomingBlock(i)->getName() << "):\n";
+                    errs() << indent << "    ";
+                }
+                Argument *Param = getPointerParameterOrigin(Incoming, Visited, PrintTracking, Depth + 2);
+                if (Param) {
+                    if (!FirstParam) {
+                        FirstParam = Param;
+                    }
+                    if (PrintTracking) {
+                        errs() << indent << "    → connects to parameter #" << Param->getArgNo() << "\n";
+                    }
+                } else {
+                    if (PrintTracking) {
+                        errs() << indent << "    → no parameter connection\n";
+                    }
+                }
+            }
+            // Return the first parameter found (if any)
+            return FirstParam;
+        }
+
         // If it's a GEP (struct field access), check the base pointer
         if (GetElementPtrInst *GEP = dyn_cast<GetElementPtrInst>(V)) {
-            return getPointerParameterOrigin(GEP->getPointerOperand(), Visited);
+            if (PrintTracking) {
+                errs() << indent << "  → base pointer:\n";
+                errs() << indent << "    ";
+            }
+            return getPointerParameterOrigin(GEP->getPointerOperand(), Visited, PrintTracking, Depth + 2);
         }
 
         // If it's a load instruction, check what it loads from
         if (LoadInst *LI = dyn_cast<LoadInst>(V)) {
             Value *LoadPtr = LI->getPointerOperand()->stripPointerCasts();
+            if (PrintTracking) {
+                errs() << indent << "  → load from:\n";
+                errs() << indent << "    " << getValueName(LoadPtr) << "\n";
+            }
 
             // Check if we're loading from an alloca that stores a parameter (or something derived from a parameter)
             if (AllocaInst *AI = dyn_cast<AllocaInst>(LoadPtr)) {
@@ -272,13 +329,16 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
                         // Direct parameter store
                         if (Argument *Arg = dyn_cast<Argument>(StoredVal)) {
                             if (Arg->getType()->isPointerTy()) {
+                                if (PrintTracking) {
+                                    errs() << indent << "    → stores parameter #" << Arg->getArgNo() << "\n";
+                                }
                                 return Arg;
                             }
                         }
 
                         // Recursively check if the stored value derives from a parameter
                         // This handles cases like: int *y = x; where x is a parameter
-                        if (Argument *Arg = getPointerParameterOrigin(StoredVal, Visited)) {
+                        if (Argument *Arg = getPointerParameterOrigin(StoredVal, Visited, PrintTracking, Depth + 2)) {
                             return Arg;
                         }
                     }
@@ -287,11 +347,27 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
             // Also check if we're loading from a pointer that itself derives from a parameter
             // This handles: int *y = s->x; where s is a parameter
             // LoadPtr could be a GEP on a parameter, so recursively check it
-            else if (Argument *Arg = getPointerParameterOrigin(LoadPtr, Visited)) {
+            else if (Argument *Arg = getPointerParameterOrigin(LoadPtr, Visited, PrintTracking, Depth + 2)) {
                 return Arg;
             }
         }
 
+        // If it's a call instruction, it doesn't derive from a parameter
+        if (CallInst *CI = dyn_cast<CallInst>(V)) {
+            if (PrintTracking) {
+                Function *Callee = CI->getCalledFunction();
+                if (Callee) {
+                    errs() << indent << "  → call to " << Callee->getName() << " (no parameter)\n";
+                } else {
+                    errs() << indent << "  → indirect call (no parameter)\n";
+                }
+            }
+            return nullptr;
+        }
+
+        if (PrintTracking) {
+            errs() << indent << "  → no parameter connection\n";
+        }
         return nullptr;
     }
 
@@ -415,6 +491,18 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
                                         errs() << fieldIndices[i];
                                     }
                                     errs() << "\n";
+                                }
+                            }
+                        } else {
+                            // Check if this is a GEP and report if it doesn't connect to a parameter
+                            if (GetElementPtrInst *GEP = dyn_cast<GetElementPtrInst>(Store->getPointerOperand())) {
+                                DenseSet<Value*> TrackingVisited;
+                                Argument *Param = getPointerParameterOrigin(Store->getPointerOperand(), &TrackingVisited, true, 0);
+                                if (Param) {
+                                    errs() << "  → Connects to parameter #" << Param->getArgNo()
+                                           << " (" << getValueName(Param) << ")\n";
+                                } else {
+                                    errs() << "  → No parameter connection\n";
                                 }
                             }
                         }
@@ -682,18 +770,22 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
                                             if (GlobalVariable *GV = dyn_cast<GlobalVariable>(Ptr)) {
                                                 errs() << "[GLOBAL] Constant stored to global variable: "
                                                        << GV->getName() << getDebugLoc(Store) << getFuncLevel(Store, ValueLevel, FunctionLevel) << "\n";
-                                            } else if (Argument *PtrParam = getPointerParameterOrigin(Store->getPointerOperand())) {
-                                                // Track this for upward interprocedural analysis ONLY
-                                                // We do NOT mark the parameter as tainted locally to avoid tracking
-                                                // all other operations on this parameter within this function
-                                                Function *ContainingFunc = Store->getFunction();
-                                                if (ContainingFunc) {
-                                                    unsigned ParamIdx = PtrParam->getArgNo();
-                                                    FunctionsTaintingPointerParams[ContainingFunc].insert(ParamIdx);
+                                            } else {
+                                                // Check for pointer parameter with verbose tracking
+                                                DenseSet<Value*> TrackingVisited;
+                                                Argument *PtrParam = getPointerParameterOrigin(Store->getPointerOperand(), &TrackingVisited, true, 0);
+                                                if (PtrParam) {
+                                                    // Track this for upward interprocedural analysis ONLY
+                                                    // We do NOT mark the parameter as tainted locally to avoid tracking
+                                                    // all other operations on this parameter within this function
+                                                    Function *ContainingFunc = Store->getFunction();
+                                                    if (ContainingFunc) {
+                                                        unsigned ParamIdx = PtrParam->getArgNo();
+                                                        FunctionsTaintingPointerParams[ContainingFunc].insert(ParamIdx);
 
-                                                    errs() << "[POINTER PARAMETER] Constant stored through pointer parameter #" << ParamIdx
-                                                           << " (" << getValueName(PtrParam) << ")"
-                                                           << getDebugLoc(Store) << getFuncLevel(Store, ValueLevel, FunctionLevel) << "\n";
+                                                        errs() << "[POINTER PARAMETER] Constant stored through pointer parameter #" << ParamIdx
+                                                               << " (" << getValueName(PtrParam) << ")"
+                                                               << getDebugLoc(Store) << getFuncLevel(Store, ValueLevel, FunctionLevel) << "\n";
 
                                                     // Track which struct fields are accessed
                                                     SmallVector<int64_t, 4> fieldIndices = extractStructFieldIndices(Store->getPointerOperand(), nullptr, false);
@@ -726,11 +818,12 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
                                                         errs() << "\n";
                                                     }
                                                 }
-                                            } else {
-                                                // Local variable - mark pointer as tainted for propagation
-                                                if (TaintedPointers.insert(Ptr).second) {
-                                                    // Already printed STORE DESTINATION above
-                                                    PointerTaintOrigin[Ptr] = Store;
+                                                } else {
+                                                    // Local variable - mark pointer as tainted for propagation
+                                                    if (TaintedPointers.insert(Ptr).second) {
+                                                        // Already printed STORE DESTINATION above
+                                                        PointerTaintOrigin[Ptr] = Store;
+                                                    }
                                                 }
                                             }
                                         }
@@ -983,6 +1076,17 @@ found:
                                     continue;
                                 }
                                 // For local variables, mark the pointer as tainted
+                                // Check if this is a GEP and report if it doesn't connect to a parameter
+                                if (GetElementPtrInst *GEP = dyn_cast<GetElementPtrInst>(Store->getPointerOperand())) {
+                                    DenseSet<Value*> TrackingVisited;
+                                    Argument *Param = getPointerParameterOrigin(Store->getPointerOperand(), &TrackingVisited, true, 0);
+                                    if (Param) {
+                                        errs() << "  → Connects to parameter #" << Param->getArgNo()
+                                               << " (" << getValueName(Param) << ")\n";
+                                    } else {
+                                        errs() << "  → No parameter connection\n";
+                                    }
+                                }
                                 if (TaintedPointers.insert(Ptr).second) {
                                     errs() << "  [STORE DESTINATION] Marking pointer as tainted: "
                                            << getValueName(Ptr) << getDebugLoc(Store) << "\n";
