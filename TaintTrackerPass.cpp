@@ -1634,12 +1634,109 @@ found:
                 } else if (latestInst == earliestInst) {
                     errs() << "\n(Earliest and latest are the same instruction)\n";
                 }
+
+                // --- Instruction Count Statistics ---
+                // For max-level functions: count instructions between first and last tainted instruction
+                // For other visited functions: count all instructions
+                DenseSet<Function*> AllVisitedFunctions;
+                for (auto &Entry : ValueLevel) {
+                    Value *V = Entry.first;
+                    if (!TaintedValues.count(V)) continue;
+                    
+                    Function *F = nullptr;
+                    if (Instruction *I = dyn_cast<Instruction>(V)) {
+                        F = I->getFunction();
+                    } else if (Argument *Arg = dyn_cast<Argument>(V)) {
+                        F = Arg->getParent();
+                    }
+                    if (F) {
+                        AllVisitedFunctions.insert(F);
+                    }
+                }
+
+                unsigned maxLevelFunctionInstructionCount = 0;
+                unsigned otherFunctionInstructionCount = 0;
+
+                // For each function, determine if it's a max-level function
+                DenseMap<Function*, std::pair<Instruction*, Instruction*>> MaxLevelFunctionRanges;
+                
+                // Find first and last tainted instruction for each max-level function
+                for (Function &F : M) {
+                    if (F.isDeclaration()) continue;
+                    if (!AllVisitedFunctions.count(&F)) continue;
+                    
+                    bool isMaxLevelFunc = MaxLevelCountPerFunction.count(&F);
+                    
+                    if (isMaxLevelFunc) {
+                        Instruction *first = nullptr;
+                        Instruction *last = nullptr;
+                        
+                        for (BasicBlock &BB : F) {
+                            for (Instruction &I : BB) {
+                                if (TaintedValues.count(&I) && ValueLevel.count(&I) && ValueLevel[&I] == maxLevel) {
+                                    if (!first) first = &I;
+                                    last = &I;
+                                }
+                            }
+                        }
+                        
+                        if (first && last) {
+                            MaxLevelFunctionRanges[&F] = {first, last};
+                        }
+                    }
+                }
+
+                // Count instructions
+                for (Function &F : M) {
+                    if (F.isDeclaration()) continue;
+                    if (!AllVisitedFunctions.count(&F)) continue;
+                    
+                    bool isMaxLevelFunc = MaxLevelFunctionRanges.count(&F);
+                    
+                    if (isMaxLevelFunc) {
+                        // Count instructions between first and last tainted instruction
+                        auto Range = MaxLevelFunctionRanges[&F];
+                        Instruction *first = Range.first;
+                        Instruction *last = Range.second;
+                        
+                        bool inRange = false;
+                        bool foundLast = false;
+                        for (BasicBlock &BB : F) {
+                            for (Instruction &I : BB) {
+                                if (&I == first) inRange = true;
+                                if (inRange) maxLevelFunctionInstructionCount++;
+                                if (&I == last) {
+                                    foundLast = true;
+                                    break;
+                                }
+                            }
+                            if (foundLast) break;
+                        }
+                    } else {
+                        // Count all instructions in this visited function
+                        for (BasicBlock &BB : F) {
+                            for (Instruction &I : BB) {
+                                otherFunctionInstructionCount++;
+                            }
+                        }
+                    }
+                }
+
+                unsigned totalInstructionCount = maxLevelFunctionInstructionCount + otherFunctionInstructionCount;
+
+                errs() << "\n=== Instruction Count Statistics ===\n";
+                errs() << "Max-level functions (data flow span): " << maxLevelFunctionInstructionCount << " instructions\n";
+                errs() << "Other visited functions (total): " << otherFunctionInstructionCount << " instructions\n";
+                errs() << "Total: " << totalInstructionCount << " instructions\n";
+                errs() << "Number of max-level functions: " << MaxLevelFunctionRanges.size() << "\n";
+                errs() << "Number of other visited functions: " << (AllVisitedFunctions.size() - MaxLevelFunctionRanges.size()) << "\n";
+
             } else if (!MaxLevelArguments.empty()) {
                 // Only arguments at max level, no instructions
                 errs() << "\n=== Maximum Level Statistics ===\n";
                 errs() << "Largest L value: " << maxLevel << "\n";
                 errs() << "Number of arguments with L=" << maxLevel << ": " << MaxLevelArguments.size() << "\n";
-
+                
                 // Show per-function breakdown
                 if (MaxLevelCountPerFunction.size() > 1) {
                     errs() << "\nPer-function breakdown:\n";
@@ -1652,6 +1749,60 @@ found:
                         errs() << "  " << Entry.first->getName() << ": " << Entry.second << " value(s)\n";
                     }
                 }
+
+                // --- Instruction Count Statistics (for arguments case) ---
+                DenseSet<Function*> AllVisitedFunctions;
+                for (auto &Entry : ValueLevel) {
+                    Value *V = Entry.first;
+                    if (!TaintedValues.count(V)) continue;
+                    
+                    Function *F = nullptr;
+                    if (Instruction *I = dyn_cast<Instruction>(V)) {
+                        F = I->getFunction();
+                    } else if (Argument *Arg = dyn_cast<Argument>(V)) {
+                        F = Arg->getParent();
+                    }
+                    if (F) {
+                        AllVisitedFunctions.insert(F);
+                    }
+                }
+
+                unsigned maxLevelFunctionInstructionCount = 0;
+                unsigned otherFunctionInstructionCount = 0;
+
+                // For max-level functions with only arguments, count all instructions
+                // (since there's no data flow span to measure)
+                for (Function &F : M) {
+                    if (F.isDeclaration()) continue;
+                    if (!AllVisitedFunctions.count(&F)) continue;
+                    
+                    bool isMaxLevelFunc = MaxLevelCountPerFunction.count(&F);
+                    
+                    if (isMaxLevelFunc) {
+                        // Count all instructions since only arguments are tainted
+                        for (BasicBlock &BB : F) {
+                            for (Instruction &I : BB) {
+                                maxLevelFunctionInstructionCount++;
+                            }
+                        }
+                    } else {
+                        // Count all instructions in other visited functions
+                        for (BasicBlock &BB : F) {
+                            for (Instruction &I : BB) {
+                                otherFunctionInstructionCount++;
+                            }
+                        }
+                    }
+                }
+
+                unsigned totalInstructionCount = maxLevelFunctionInstructionCount + otherFunctionInstructionCount;
+
+                errs() << "\n=== Instruction Count Statistics ===\n";
+                errs() << "Max-level functions (total): " << maxLevelFunctionInstructionCount << " instructions\n";
+                errs() << "Other visited functions (total): " << otherFunctionInstructionCount << " instructions\n";
+                errs() << "Total: " << totalInstructionCount << " instructions\n";
+                errs() << "Number of max-level functions: " << MaxLevelCountPerFunction.size() << "\n";
+                errs() << "Number of other visited functions: " << (AllVisitedFunctions.size() - MaxLevelCountPerFunction.size()) << "\n";
             }
         }
 
