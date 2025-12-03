@@ -1642,7 +1642,7 @@ found:
                 for (auto &Entry : ValueLevel) {
                     Value *V = Entry.first;
                     if (!TaintedValues.count(V)) continue;
-                    
+
                     Function *F = nullptr;
                     if (Instruction *I = dyn_cast<Instruction>(V)) {
                         F = I->getFunction();
@@ -1659,18 +1659,18 @@ found:
 
                 // For each function, determine if it's a max-level function
                 DenseMap<Function*, std::pair<Instruction*, Instruction*>> MaxLevelFunctionRanges;
-                
+
                 // Find first and last tainted instruction for each max-level function
                 for (Function &F : M) {
                     if (F.isDeclaration()) continue;
                     if (!AllVisitedFunctions.count(&F)) continue;
-                    
+
                     bool isMaxLevelFunc = MaxLevelCountPerFunction.count(&F);
-                    
+
                     if (isMaxLevelFunc) {
                         Instruction *first = nullptr;
                         Instruction *last = nullptr;
-                        
+
                         for (BasicBlock &BB : F) {
                             for (Instruction &I : BB) {
                                 if (TaintedValues.count(&I) && ValueLevel.count(&I) && ValueLevel[&I] == maxLevel) {
@@ -1679,7 +1679,7 @@ found:
                                 }
                             }
                         }
-                        
+
                         if (first && last) {
                             MaxLevelFunctionRanges[&F] = {first, last};
                         }
@@ -1690,15 +1690,15 @@ found:
                 for (Function &F : M) {
                     if (F.isDeclaration()) continue;
                     if (!AllVisitedFunctions.count(&F)) continue;
-                    
+
                     bool isMaxLevelFunc = MaxLevelFunctionRanges.count(&F);
-                    
+
                     if (isMaxLevelFunc) {
                         // Count instructions between first and last tainted instruction
                         auto Range = MaxLevelFunctionRanges[&F];
                         Instruction *first = Range.first;
                         Instruction *last = Range.second;
-                        
+
                         bool inRange = false;
                         bool foundLast = false;
                         for (BasicBlock &BB : F) {
@@ -1731,12 +1731,72 @@ found:
                 errs() << "Number of max-level functions: " << MaxLevelFunctionRanges.size() << "\n";
                 errs() << "Number of other visited functions: " << (AllVisitedFunctions.size() - MaxLevelFunctionRanges.size()) << "\n";
 
+                // --- Detailed Per-Function Span Information ---
+                errs() << "\n=== Data Flow Span Details ===\n";
+
+                // Sort functions by name for deterministic output
+                SmallVector<Function*, 16> SortedMaxLevelFunctions;
+                for (auto &Entry : MaxLevelFunctionRanges) {
+                    SortedMaxLevelFunctions.push_back(Entry.first);
+                }
+                llvm::sort(SortedMaxLevelFunctions, [](Function *A, Function *B) {
+                    return A->getName() < B->getName();
+                });
+
+                for (Function *F : SortedMaxLevelFunctions) {
+                    auto Range = MaxLevelFunctionRanges[F];
+                    Instruction *first = Range.first;
+                    Instruction *last = Range.second;
+
+                    // Find BB and instruction indices
+                    unsigned startBBIdx = 0, startInstIdx = 0;
+                    unsigned endBBIdx = 0, endInstIdx = 0;
+                    unsigned currentBBIdx = 0;
+                    bool foundStart = false;
+
+                    for (BasicBlock &BB : *F) {
+                        unsigned currentInstIdx = 0;
+                        for (Instruction &I : BB) {
+                            if (&I == first) {
+                                startBBIdx = currentBBIdx;
+                                startInstIdx = currentInstIdx;
+                                foundStart = true;
+                            }
+                            if (&I == last) {
+                                endBBIdx = currentBBIdx;
+                                endInstIdx = currentInstIdx;
+                            }
+                            currentInstIdx++;
+                        }
+                        currentBBIdx++;
+                    }
+
+                    errs() << F->getName() << ", "
+                           << startBBIdx << ", " << startInstIdx << ", "
+                           << endBBIdx << ", " << endInstIdx << "\n";
+                }
+
+                // Also list other visited functions (full span)
+                SmallVector<Function*, 16> SortedOtherFunctions;
+                for (Function *F : AllVisitedFunctions) {
+                    if (!MaxLevelFunctionRanges.count(F)) {
+                        SortedOtherFunctions.push_back(F);
+                    }
+                }
+                llvm::sort(SortedOtherFunctions, [](Function *A, Function *B) {
+                    return A->getName() < B->getName();
+                });
+
+                for (Function *F : SortedOtherFunctions) {
+                    errs() << F->getName() << ", full span\n";
+                }
+
             } else if (!MaxLevelArguments.empty()) {
                 // Only arguments at max level, no instructions
                 errs() << "\n=== Maximum Level Statistics ===\n";
                 errs() << "Largest L value: " << maxLevel << "\n";
                 errs() << "Number of arguments with L=" << maxLevel << ": " << MaxLevelArguments.size() << "\n";
-                
+
                 // Show per-function breakdown
                 if (MaxLevelCountPerFunction.size() > 1) {
                     errs() << "\nPer-function breakdown:\n";
@@ -1755,7 +1815,7 @@ found:
                 for (auto &Entry : ValueLevel) {
                     Value *V = Entry.first;
                     if (!TaintedValues.count(V)) continue;
-                    
+
                     Function *F = nullptr;
                     if (Instruction *I = dyn_cast<Instruction>(V)) {
                         F = I->getFunction();
@@ -1775,9 +1835,9 @@ found:
                 for (Function &F : M) {
                     if (F.isDeclaration()) continue;
                     if (!AllVisitedFunctions.count(&F)) continue;
-                    
+
                     bool isMaxLevelFunc = MaxLevelCountPerFunction.count(&F);
-                    
+
                     if (isMaxLevelFunc) {
                         // Count all instructions since only arguments are tainted
                         for (BasicBlock &BB : F) {
@@ -1803,6 +1863,37 @@ found:
                 errs() << "Total: " << totalInstructionCount << " instructions\n";
                 errs() << "Number of max-level functions: " << MaxLevelCountPerFunction.size() << "\n";
                 errs() << "Number of other visited functions: " << (AllVisitedFunctions.size() - MaxLevelCountPerFunction.size()) << "\n";
+
+                // --- Detailed Per-Function Span Information (arguments case) ---
+                errs() << "\n=== Data Flow Span Details ===\n";
+
+                // For max-level functions (only arguments tainted, so full span)
+                SmallVector<Function*, 16> SortedMaxLevelFunctions;
+                for (auto &Entry : MaxLevelCountPerFunction) {
+                    SortedMaxLevelFunctions.push_back(Entry.first);
+                }
+                llvm::sort(SortedMaxLevelFunctions, [](Function *A, Function *B) {
+                    return A->getName() < B->getName();
+                });
+
+                for (Function *F : SortedMaxLevelFunctions) {
+                    errs() << F->getName() << ", full span\n";
+                }
+
+                // Other visited functions (full span)
+                SmallVector<Function*, 16> SortedOtherFunctions;
+                for (Function *F : AllVisitedFunctions) {
+                    if (!MaxLevelCountPerFunction.count(F)) {
+                        SortedOtherFunctions.push_back(F);
+                    }
+                }
+                llvm::sort(SortedOtherFunctions, [](Function *A, Function *B) {
+                    return A->getName() < B->getName();
+                });
+
+                for (Function *F : SortedOtherFunctions) {
+                    errs() << F->getName() << ", full span\n";
+                }
             }
         }
 
