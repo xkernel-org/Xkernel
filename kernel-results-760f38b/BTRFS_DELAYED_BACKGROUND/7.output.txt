@@ -1,0 +1,40 @@
+=== Taint Tracker Configuration ===
+Function: btrfs_async_run_delayed_root
+Opcode: icmp
+Constant: 64
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 64)
+
+[SOURCE] Tainting:   %13 = icmp slt i32 %12, 64, <fs/btrfs/delayed-inode.c:1338:41> FUNC=btrfs_async_run_delayed_root L=0
+[USE] Source instruction in data flow <fs/btrfs/delayed-inode.c:1338:41> FUNC=btrfs_async_run_delayed_root L=0
+[USE] Processing uses of:   %13 = icmp slt i32 %12, 64,
+  [USE] Taint flows to:   br i1 %13, label %57, label %14, <fs/btrfs/delayed-inode.c:1338:41> FUNC=btrfs_async_run_delayed_root L=0
+[NO USE] No uses of:   br i1 %13, label %57, label %14,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 2
+
+Earliest instruction with L=0:
+    %13 = icmp slt i32 %12, 64, <fs/btrfs/delayed-inode.c:1338:41> FUNC=btrfs_async_run_delayed_root L=0
+
+Latest instruction with L=0:
+    br i1 %13, label %57, label %14, <fs/btrfs/delayed-inode.c:1338:41> FUNC=btrfs_async_run_delayed_root L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 2 instructions
+Other visited functions (total): 0 instructions
+Total: 2 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+btrfs_async_run_delayed_root, 2, 2, 2, 3
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/btrfs/delayed-inode.ll
+../linux-wllvm-defconfig/fs/btrfs/delayed-inode.c

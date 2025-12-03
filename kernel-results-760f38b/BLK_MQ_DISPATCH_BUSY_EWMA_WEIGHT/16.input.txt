@@ -1,0 +1,5 @@
+SOURCE_FILE=block/blk-mq.c
+FUNCTION_NAME=blk_mq_try_issue_directly
+SOURCE_OP="lshr"
+CONSTANT_VALUE=3
+OCCURENCE=3

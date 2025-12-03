@@ -1,0 +1,41 @@
+=== Taint Tracker Configuration ===
+Function: dccp_delack_timer
+Opcode: add
+Constant: 40
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 40)
+
+[SOURCE] Tainting:   %14 = add i64 %13, 40, <net/dccp/timer.c:181:19> FUNC=dccp_delack_timer L=0
+[USE] Source instruction in data flow <net/dccp/timer.c:181:19> FUNC=dccp_delack_timer L=0
+[USE] Processing uses of:   %14 = add i64 %13, 40,
+  [CHILD FUNCTION] Tainted value used in call to sk_reset_timer at argument 2:   tail call void @sk_reset_timer(ptr noundef %2, ptr noundef %0, i64 noundef %14) #278, <net/dccp/timer.c:180:3> FUNC=dccp_delack_timer L=0
+  [USE] Taint flows to:   tail call void @sk_reset_timer(ptr noundef %2, ptr noundef %0, i64 noundef %14) #278, <net/dccp/timer.c:180:3> FUNC=dccp_delack_timer L=0
+[NO USE] No uses of:   tail call void @sk_reset_timer(ptr noundef %2, ptr noundef %0, i64 noundef %14) #278,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 2
+
+Earliest instruction with L=0:
+    %14 = add i64 %13, 40, <net/dccp/timer.c:181:19> FUNC=dccp_delack_timer L=0
+
+Latest instruction with L=0:
+    tail call void @sk_reset_timer(ptr noundef %2, ptr noundef %0, i64 noundef %14) #278, <net/dccp/timer.c:180:3> FUNC=dccp_delack_timer L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 2 instructions
+Other visited functions (total): 0 instructions
+Total: 2 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+dccp_delack_timer, 1, 7, 1, 8
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/dccp/timer.ll
+../linux-wllvm-defconfig/net/dccp/timer.c

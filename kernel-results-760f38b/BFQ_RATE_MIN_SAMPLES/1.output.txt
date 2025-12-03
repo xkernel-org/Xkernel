@@ -1,0 +1,40 @@
+=== Taint Tracker Configuration ===
+Function: bfq_update_rate_reset
+Opcode: icmp
+Constant: 32
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 32)
+
+[SOURCE] Tainting:   %5 = icmp slt i32 %4, 32, <block/bfq-iosched.c:3475:30> FUNC=bfq_update_rate_reset L=0
+[USE] Source instruction in data flow <block/bfq-iosched.c:3475:30> FUNC=bfq_update_rate_reset L=0
+[USE] Processing uses of:   %5 = icmp slt i32 %4, 32,
+  [USE] Taint flows to:   br i1 %5, label %78, label %6, <block/bfq-iosched.c:3475:53> FUNC=bfq_update_rate_reset L=0
+[NO USE] No uses of:   br i1 %5, label %78, label %6,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 2
+
+Earliest instruction with L=0:
+    %5 = icmp slt i32 %4, 32, <block/bfq-iosched.c:3475:30> FUNC=bfq_update_rate_reset L=0
+
+Latest instruction with L=0:
+    br i1 %5, label %78, label %6, <block/bfq-iosched.c:3475:53> FUNC=bfq_update_rate_reset L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 2 instructions
+Other visited functions (total): 0 instructions
+Total: 2 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+bfq_update_rate_reset, 0, 2, 0, 3
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/block/bfq-iosched.ll
+../linux-wllvm-defconfig/block/bfq-iosched.c

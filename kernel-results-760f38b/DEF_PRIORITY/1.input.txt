@@ -1,0 +1,5 @@
+SOURCE_FILE=fs/xfs/xfs_icache.c
+FUNCTION_NAME=xfs_inodegc_register_shrinker
+SOURCE_OP="store"
+CONSTANT_VALUE=2049
+OCCURENCE=1

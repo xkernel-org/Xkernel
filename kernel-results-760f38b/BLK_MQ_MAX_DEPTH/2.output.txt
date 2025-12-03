@@ -1,0 +1,38 @@
+=== Taint Tracker Configuration ===
+Function: blk_mq_alloc_tag_set
+Opcode: call
+Constant: 10240
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 10240)
+
+[SOURCE] Tainting:   %29 = tail call i32 (ptr, ...) @_printk(ptr noundef nonnull @.str.9.44146, i32 noundef 10240) #278, <block/blk-mq.c:4739:3> FUNC=blk_mq_alloc_tag_set L=0
+[USE] Source instruction in data flow <block/blk-mq.c:4739:3> FUNC=blk_mq_alloc_tag_set L=0
+[CHILD FUNCTION] Constant used in call to _printk at argument 1 <block/blk-mq.c:4739:3> FUNC=blk_mq_alloc_tag_set L=0
+[NO USE] No uses of:   %29 = tail call i32 (ptr, ...) @_printk(ptr noundef nonnull @.str.9.44146, i32 noundef 10240) #278,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 1
+
+Earliest instruction with L=0:
+    %29 = tail call i32 (ptr, ...) @_printk(ptr noundef nonnull @.str.9.44146, i32 noundef 10240) #278, <block/blk-mq.c:4739:3> FUNC=blk_mq_alloc_tag_set L=0
+
+(Earliest and latest are the same instruction)
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 1 instructions
+Other visited functions (total): 0 instructions
+Total: 1 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+blk_mq_alloc_tag_set, 6, 0, 6, 0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/block/blk-mq.ll
+../linux-wllvm-defconfig/block/blk-mq.c

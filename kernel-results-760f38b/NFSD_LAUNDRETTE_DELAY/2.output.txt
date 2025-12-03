@@ -1,0 +1,38 @@
+=== Taint Tracker Configuration ===
+Function: nfsd_file_gc_worker
+Opcode: call
+Constant: 64
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 64)
+
+[SOURCE] Tainting:   %139 = call zeroext i1 @queue_delayed_work_on(i32 noundef 64, ptr noundef %138, ptr noundef nonnull @nfsd_filecache_laundrette, i64 noundef 2000) #280, <./include/linux/workqueue.h:677:9> FUNC=nfsd_file_gc_worker L=0
+[USE] Source instruction in data flow <./include/linux/workqueue.h:677:9> FUNC=nfsd_file_gc_worker L=0
+[CHILD FUNCTION] Constant used in call to queue_delayed_work_on at argument 0 <./include/linux/workqueue.h:677:9> FUNC=nfsd_file_gc_worker L=0
+[NO USE] No uses of:   %139 = call zeroext i1 @queue_delayed_work_on(i32 noundef 64, ptr noundef %138, ptr noundef nonnull @nfsd_filecache_laundrette, i64 noundef 2000) #280,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 1
+
+Earliest instruction with L=0:
+    %139 = call zeroext i1 @queue_delayed_work_on(i32 noundef 64, ptr noundef %138, ptr noundef nonnull @nfsd_filecache_laundrette, i64 noundef 2000) #280, <./include/linux/workqueue.h:677:9> FUNC=nfsd_file_gc_worker L=0
+
+(Earliest and latest are the same instruction)
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 1 instructions
+Other visited functions (total): 0 instructions
+Total: 1 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+nfsd_file_gc_worker, 32, 1, 32, 1
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/nfsd/filecache.ll
+../linux-wllvm-defconfig/fs/nfsd/filecache.c

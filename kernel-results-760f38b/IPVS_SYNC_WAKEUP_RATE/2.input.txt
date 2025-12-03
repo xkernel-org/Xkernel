@@ -1,0 +1,5 @@
+SOURCE_FILE=net/netfilter/ipvs/ip_vs_sync.c
+FUNCTION_NAME=master_wakeup_work_handler
+SOURCE_OP="icmp"
+CONSTANT_VALUE=8
+OCCURENCE=1

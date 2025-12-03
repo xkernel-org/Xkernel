@@ -1,0 +1,48 @@
+=== Taint Tracker Configuration ===
+Function: f2fs_build_segment_manager
+Opcode: icmp
+Constant: 409699
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 409699)
+
+[SOURCE] Tainting:   %35 = icmp ugt i32 %32, 409699, <fs/f2fs/segment.c:5629:36> FUNC=f2fs_build_segment_manager L=0
+[USE] Source instruction in data flow <fs/f2fs/segment.c:5629:36> FUNC=f2fs_build_segment_manager L=0
+[USE] Processing uses of:   %35 = icmp ugt i32 %32, 409699,
+  [USE] Taint flows to:   %36 = select i1 %35, i32 4096, i32 %33, <fs/f2fs/segment.c:5629:36> FUNC=f2fs_build_segment_manager L=0
+[USE] Processing uses of:   %36 = select i1 %35, i32 4096, i32 %33,
+  %34 = getelementptr inbounds nuw i8, ptr %7, i64 100,
+  → base pointer:
+          %7 = tail call noalias align 8 dereferenceable_or_null(160) ptr @__kmalloc_cache_noprof(ptr noundef %6, i32 noundef 3520, i64 noundef range(i64 0, 171798691801) 160) #278,
+      → call to __kmalloc_cache_noprof (no parameter)
+  → Result: No parameter connection found
+  [STORE DESTINATION] Marking pointer as tainted:   %34 = getelementptr inbounds nuw i8, ptr %7, i64 100, <fs/f2fs/segment.c:0>
+  [USE] Taint flows to:   store i32 %36, ptr %34, align 4, <fs/f2fs/segment.c:0> FUNC=f2fs_build_segment_manager L=0
+[NO USE] No uses of:   store i32 %36, ptr %34, align 4,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 3
+
+Earliest instruction with L=0:
+    %35 = icmp ugt i32 %32, 409699, <fs/f2fs/segment.c:5629:36> FUNC=f2fs_build_segment_manager L=0
+
+Latest instruction with L=0:
+    store i32 %36, ptr %34, align 4, <fs/f2fs/segment.c:0> FUNC=f2fs_build_segment_manager L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 3 instructions
+Other visited functions (total): 0 instructions
+Total: 3 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+f2fs_build_segment_manager, 1, 33, 1, 35
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/f2fs/segment.ll
+../linux-wllvm-defconfig/fs/f2fs/segment.c

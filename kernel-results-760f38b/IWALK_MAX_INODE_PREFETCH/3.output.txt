@@ -1,0 +1,62 @@
+=== Taint Tracker Configuration ===
+Function: xfs_iwalk_threaded
+Opcode: call
+Constant: 2048
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 2048)
+
+[SOURCE] Tainting:   %20 = call i32 @llvm.umin.i32(i32 %4, i32 2048) FUNC=xfs_iwalk_threaded L=0
+[USE] Source instruction in data flow FUNC=xfs_iwalk_threaded L=0
+[CHILD FUNCTION] Constant used in call to llvm.umin.i32 at argument 1 FUNC=xfs_iwalk_threaded L=0
+[USE] Processing uses of:   %20 = call i32 @llvm.umin.i32(i32 %4, i32 2048)
+  [USE] Taint flows to:   %21 = add nsw i32 %20, -1 FUNC=xfs_iwalk_threaded L=0
+[USE] Processing uses of:   %21 = add nsw i32 %20, -1
+  [USE] Taint flows to:   %22 = or i32 %21, 63 FUNC=xfs_iwalk_threaded L=0
+[USE] Processing uses of:   %22 = or i32 %21, 63
+  [USE] Taint flows to:   %23 = mul nsw i32 %22, 5 FUNC=xfs_iwalk_threaded L=0
+[USE] Processing uses of:   %23 = mul nsw i32 %22, 5
+  [USE] Taint flows to:   %24 = add nsw i32 %23, 5 FUNC=xfs_iwalk_threaded L=0
+[USE] Processing uses of:   %24 = add nsw i32 %23, 5
+  [USE] Taint flows to:   %25 = lshr i32 %24, 8 FUNC=xfs_iwalk_threaded L=0
+[USE] Processing uses of:   %25 = lshr i32 %24, 8
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %26 = call i32 @llvm.umax.i32(i32 %25, i32 2)
+  [USE] Taint flows to:   %26 = call i32 @llvm.umax.i32(i32 %25, i32 2) FUNC=xfs_iwalk_threaded L=0
+[USE] Processing uses of:   %26 = call i32 @llvm.umax.i32(i32 %25, i32 2)
+  [USE] Taint flows to:   %27 = select i1 %19, i32 40, i32 %26 FUNC=xfs_iwalk_threaded L=0
+[USE] Processing uses of:   %27 = select i1 %19, i32 40, i32 %26
+  %49 = getelementptr inbounds nuw i8, ptr %42, i64 88,
+  → base pointer:
+          %42 = call noalias noundef align 8 dereferenceable_or_null(128) ptr @__kmalloc_cache_noprof(ptr noundef %41, i32 noundef 36288, i64 noundef 128) #280,
+      → call to __kmalloc_cache_noprof (no parameter)
+  → Result: No parameter connection found
+  [STORE DESTINATION] Marking pointer as tainted:   %49 = getelementptr inbounds nuw i8, ptr %42, i64 88, <fs/xfs/xfs_iwalk.c:679:17>
+  [USE] Taint flows to:   store i32 %27, ptr %49, align 8, <fs/xfs/xfs_iwalk.c:679:17> FUNC=xfs_iwalk_threaded L=0
+[NO USE] No uses of:   store i32 %27, ptr %49, align 8,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 9
+
+Earliest instruction with L=0:
+    %20 = call i32 @llvm.umin.i32(i32 %4, i32 2048) FUNC=xfs_iwalk_threaded L=0
+
+Latest instruction with L=0:
+    store i32 %27, ptr %49, align 8, <fs/xfs/xfs_iwalk.c:679:17> FUNC=xfs_iwalk_threaded L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 36 instructions
+Other visited functions (total): 0 instructions
+Total: 36 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+xfs_iwalk_threaded, 1, 3, 4, 14
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/xfs/xfs_iwalk.ll
+../linux-wllvm-defconfig/fs/xfs/xfs_iwalk.c

@@ -1,0 +1,38 @@
+=== Taint Tracker Configuration ===
+Function: do_proc_get_root
+Opcode: call
+Constant: 5000
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 2 (of constant 5000)
+
+[SOURCE] Tainting:   %45 = call i64 @schedule_timeout(i64 noundef 5000) #279, <fs/nfs/nfs3proc.c:40:3> FUNC=do_proc_get_root L=0
+[USE] Source instruction in data flow <fs/nfs/nfs3proc.c:40:3> FUNC=do_proc_get_root L=0
+[CHILD FUNCTION] Constant used in call to schedule_timeout at argument 0 <fs/nfs/nfs3proc.c:40:3> FUNC=do_proc_get_root L=0
+[NO USE] No uses of:   %45 = call i64 @schedule_timeout(i64 noundef 5000) #279,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 1
+
+Earliest instruction with L=0:
+    %45 = call i64 @schedule_timeout(i64 noundef 5000) #279, <fs/nfs/nfs3proc.c:40:3> FUNC=do_proc_get_root L=0
+
+(Earliest and latest are the same instruction)
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 1 instructions
+Other visited functions (total): 0 instructions
+Total: 1 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+do_proc_get_root, 9, 1, 9, 1
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/nfs/nfs3proc.ll
+../linux-wllvm-defconfig/fs/nfs/nfs3proc.c

@@ -1,0 +1,5 @@
+SOURCE_FILE=mm/oom_kill.c
+FUNCTION_NAME=oom_kill_process
+SOURCE_OP="add"
+CONSTANT_VALUE=2000
+OCCURENCE=1

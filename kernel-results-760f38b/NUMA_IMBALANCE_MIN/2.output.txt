@@ -1,0 +1,145 @@
+=== Taint Tracker Configuration ===
+Function: sched_balance_rq
+Opcode: icmp
+Constant: 3
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 2 (of constant 3)
+
+[SOURCE] Tainting:   %889 = icmp slt i32 %881, 3, <kernel/sched/fair.c:1420:18> FUNC=sched_balance_rq L=0
+[USE] Source instruction in data flow <kernel/sched/fair.c:1420:18> FUNC=sched_balance_rq L=0
+[USE] Processing uses of:   %889 = icmp slt i32 %881, 3,
+  [USE] Taint flows to:   %891 = select i1 %889, i64 0, i64 %890, <kernel/sched/fair.c:1420:18> FUNC=sched_balance_rq L=0
+[USE] Processing uses of:   %891 = select i1 %889, i64 0, i64 %890,
+  [USE] Taint flows to:   %892 = select i1 %886, i64 %888, i64 %891, <kernel/sched/fair.c:1420:18> FUNC=sched_balance_rq L=0
+[USE] Processing uses of:   %892 = select i1 %886, i64 %888, i64 %891,
+  [USE] Taint flows to:   %894 = phi i64 [ %892, %880 ], [ %876, %875 ], <kernel/sched/fair.c:11188:18> FUNC=sched_balance_rq L=0
+[USE] Processing uses of:   %894 = phi i64 [ %892, %880 ], [ %876, %875 ],
+  [USE] Taint flows to:   %895 = ashr i64 %894, 1, <kernel/sched/fair.c:11188:18> FUNC=sched_balance_rq L=0
+[USE] Processing uses of:   %895 = ashr i64 %894, 1,
+  [USE] Taint flows to:   %933 = phi i64 [ %931, %920 ], [ %895, %893 ], [ %804, %802 ], [ %801, %800 ] FUNC=sched_balance_rq L=0
+[USE] Processing uses of:   %933 = phi i64 [ %931, %920 ], [ %895, %893 ], [ %804, %802 ], [ %801, %800 ]
+  %28 = getelementptr inbounds nuw i8, ptr %10, i64 48,
+  → base pointer:
+          %10 = alloca %struct.lb_env, align 8, !DIAssignID !18658040
+      → no parameter connection
+  → Result: No parameter connection found
+  [STORE DESTINATION] Marking pointer as tainted:   %28 = getelementptr inbounds nuw i8, ptr %10, i64 48, <kernel/sched/fair.c:0>
+  [USE] Taint flows to:   store i64 %933, ptr %28, align 8, <kernel/sched/fair.c:0> FUNC=sched_balance_rq L=0
+  [USE] Taint flows to:   %935 = phi i64 [ %818, %815 ], [ %933, %932 ], <kernel/sched/fair.c:11404:14> FUNC=sched_balance_rq L=0
+[USE] Processing uses of:   %935 = phi i64 [ %818, %815 ], [ %933, %932 ],
+  [USE] Taint flows to:   %936 = freeze i64 %935, <kernel/sched/fair.c:11404:9> FUNC=sched_balance_rq L=0
+[USE] Processing uses of:   %936 = freeze i64 %935,
+  [USE] Taint flows to:   %937 = icmp eq i64 %936, 0, <kernel/sched/fair.c:11404:9> FUNC=sched_balance_rq L=0
+[USE] Processing uses of:   %937 = icmp eq i64 %936, 0,
+  [USE] Taint flows to:   br i1 %937, label %939, label %947, <kernel/sched/fair.c:11404:9> FUNC=sched_balance_rq L=0
+[NO USE] No uses of:   br i1 %937, label %939, label %947,
+[NO USE] No uses of:   store i64 %933, ptr %28, align 8,
+[KILL] Store overwrites tainted pointer with non-tainted value:   store i64 0, ptr %28, align 8,
+[KILL] Store overwrites tainted pointer with non-tainted value:   store i64 %818, ptr %28, align 8,
+[KILL] Store overwrites tainted pointer with non-tainted value:   store i64 %876, ptr %28, align 8,
+[KILL] Store overwrites tainted pointer with non-tainted value:   store i64 0, ptr %28, align 8,
+[KILL] Store overwrites tainted pointer with non-tainted value:   store i64 1, ptr %28, align 8,
+[KILL] Store overwrites tainted pointer with non-tainted value:   store i64 %1323, ptr %28, align 8,
+[LOAD] Tainted load from tracked pointer:   %1055 = load i64, ptr %28, align 8 (  %28 = getelementptr inbounds nuw i8, ptr %10, i64 48, !dbg !18658053)  FUNC=sched_balance_rq L=0
+[LOAD] Tainted load from tracked pointer:   %1134 = load i64, ptr %28, align 8, (  %28 = getelementptr inbounds nuw i8, ptr %10, i64 48, !dbg !18658053)  <kernel/sched/fair.c:0> FUNC=sched_balance_rq L=0
+[LOAD] Tainted load from tracked pointer:   %1161 = load i64, ptr %28, align 8, (  %28 = getelementptr inbounds nuw i8, ptr %10, i64 48, !dbg !18658053)  <kernel/sched/fair.c:9537:11> FUNC=sched_balance_rq L=0
+[LOAD] Tainted load from tracked pointer:   %1278 = load i64, ptr %28, align 8, (  %28 = getelementptr inbounds nuw i8, ptr %10, i64 48, !dbg !18658053)  <kernel/sched/fair.c:9586:59> FUNC=sched_balance_rq L=0
+[LOAD] Tainted load from tracked pointer:   %1296 = load i64, ptr %28, align 8, (  %28 = getelementptr inbounds nuw i8, ptr %10, i64 48, !dbg !18658053)  <kernel/sched/fair.c:9595:59> FUNC=sched_balance_rq L=0
+[LOAD] Tainted load from tracked pointer:   %1301 = load i64, ptr %28, align 8, (  %28 = getelementptr inbounds nuw i8, ptr %10, i64 48, !dbg !18658053)  <kernel/sched/fair.c:9602:18> FUNC=sched_balance_rq L=0
+[LOAD] Tainted load from tracked pointer:   %1353 = load i64, ptr %28, align 8 (  %28 = getelementptr inbounds nuw i8, ptr %10, i64 48, !dbg !18658053)  FUNC=sched_balance_rq L=0
+[LOAD] Tainted load from tracked pointer:   %1431 = load i64, ptr %28, align 8 (  %28 = getelementptr inbounds nuw i8, ptr %10, i64 48, !dbg !18658053)  FUNC=sched_balance_rq L=0
+[USE] Processing uses of:   %1431 = load i64, ptr %28, align 8
+  [USE] Taint flows to:   %1432 = icmp sgt i64 %1431, 0 FUNC=sched_balance_rq L=0
+[USE] Processing uses of:   %1432 = icmp sgt i64 %1431, 0
+  [USE] Taint flows to:   %1433 = select i1 %1430, i1 %1432, i1 false, <kernel/sched/fair.c:11831:36> FUNC=sched_balance_rq L=0
+  [USE] Taint flows to:   %1450 = select i1 %1449, i1 %1432, i1 false, <kernel/sched/fair.c:11855:38> FUNC=sched_balance_rq L=0
+[USE] Processing uses of:   %1450 = select i1 %1449, i1 %1432, i1 false,
+  [USE] Taint flows to:   br i1 %1450, label %1451, label %1457, <kernel/sched/fair.c:11855:38> FUNC=sched_balance_rq L=0
+[NO USE] No uses of:   br i1 %1450, label %1451, label %1457,
+[USE] Processing uses of:   %1433 = select i1 %1430, i1 %1432, i1 false,
+  [USE] Taint flows to:   br i1 %1433, label %1434, label %1446, <kernel/sched/fair.c:11831:36> FUNC=sched_balance_rq L=0
+[NO USE] No uses of:   br i1 %1433, label %1434, label %1446,
+[USE] Processing uses of:   %1353 = load i64, ptr %28, align 8
+  [USE] Taint flows to:   %1354 = icmp slt i64 %1353, 1 FUNC=sched_balance_rq L=0
+[USE] Processing uses of:   %1354 = icmp slt i64 %1353, 1
+  [USE] Taint flows to:   %1355 = select i1 %1352, i1 true, i1 %1354, <kernel/sched/fair.c:9625:17> FUNC=sched_balance_rq L=0
+[USE] Processing uses of:   %1355 = select i1 %1352, i1 true, i1 %1354,
+  [USE] Taint flows to:   br i1 %1355, label %1375, label %1165, <kernel/sched/fair.c:9625:17> FUNC=sched_balance_rq L=0
+[NO USE] No uses of:   br i1 %1355, label %1375, label %1165,
+[USE] Processing uses of:   %1301 = load i64, ptr %28, align 8,
+  [USE] Taint flows to:   %1302 = add i64 %1301, -1, <kernel/sched/fair.c:9602:18> FUNC=sched_balance_rq L=0
+[USE] Processing uses of:   %1302 = add i64 %1301, -1,
+  [USE] Taint flows to:   %1323 = phi i64 [ %1302, %1300 ], [ %1299, %1298 ], [ %1281, %1280 ], [ 0, %1303 ] FUNC=sched_balance_rq L=0
+[USE] Processing uses of:   %1323 = phi i64 [ %1302, %1300 ], [ %1299, %1298 ], [ %1281, %1280 ], [ 0, %1303 ]
+  %28 = getelementptr inbounds nuw i8, ptr %10, i64 48,
+  → base pointer:
+          %10 = alloca %struct.lb_env, align 8, !DIAssignID !18658040
+      → no parameter connection
+  → Result: No parameter connection found
+  [USE] Taint flows to:   store i64 %1323, ptr %28, align 8, <kernel/sched/fair.c:0> FUNC=sched_balance_rq L=0
+[NO USE] No uses of:   store i64 %1323, ptr %28, align 8,
+[USE] Processing uses of:   %1296 = load i64, ptr %28, align 8,
+  [USE] Taint flows to:   %1297 = icmp ugt i64 %1295, %1296, <kernel/sched/fair.c:9595:52> FUNC=sched_balance_rq L=0
+  [USE] Taint flows to:   %1299 = sub i64 %1296, %1289, <kernel/sched/fair.c:9598:19> FUNC=sched_balance_rq L=0
+[USE] Processing uses of:   %1299 = sub i64 %1296, %1289,
+[USE] Processing uses of:   %1297 = icmp ugt i64 %1295, %1296,
+  [USE] Taint flows to:   br i1 %1297, label %1356, label %1298, <kernel/sched/fair.c:9595:52> FUNC=sched_balance_rq L=0
+[NO USE] No uses of:   br i1 %1297, label %1356, label %1298,
+[USE] Processing uses of:   %1278 = load i64, ptr %28, align 8,
+  [USE] Taint flows to:   %1279 = icmp ugt i64 %1277, %1278, <kernel/sched/fair.c:9586:52> FUNC=sched_balance_rq L=0
+  [USE] Taint flows to:   %1281 = sub i64 %1278, %1271, <kernel/sched/fair.c:9589:19> FUNC=sched_balance_rq L=0
+[USE] Processing uses of:   %1281 = sub i64 %1278, %1271,
+[USE] Processing uses of:   %1279 = icmp ugt i64 %1277, %1278,
+  [USE] Taint flows to:   br i1 %1279, label %1356, label %1280, <kernel/sched/fair.c:9586:52> FUNC=sched_balance_rq L=0
+[NO USE] No uses of:   br i1 %1279, label %1356, label %1280,
+[USE] Processing uses of:   %1161 = load i64, ptr %28, align 8,
+  [USE] Taint flows to:   %1162 = icmp slt i64 %1161, 1, <kernel/sched/fair.c:9537:21> FUNC=sched_balance_rq L=0
+[USE] Processing uses of:   %1162 = icmp slt i64 %1161, 1,
+  [USE] Taint flows to:   br i1 %1162, label %1385, label %1163, <kernel/sched/fair.c:9537:21> FUNC=sched_balance_rq L=0
+[NO USE] No uses of:   br i1 %1162, label %1385, label %1163,
+[USE] Processing uses of:   %1134 = load i64, ptr %28, align 8,
+  [USE] Taint flows to:   %1137 = trunc i64 %1134 to i32, <kernel/sched/fair.c:0> FUNC=sched_balance_rq L=0
+[USE] Processing uses of:   %1137 = trunc i64 %1134 to i32,
+  [USE] Taint flows to:   %1138 = add i32 %1136, %1137, <kernel/sched/fair.c:0> FUNC=sched_balance_rq L=0
+[USE] Processing uses of:   %1138 = add i32 %1136, %1137,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #2 (ptr %2) <kernel/sched/fair.c:0>
+[USE] Processing uses of:   %1055 = load i64, ptr %28, align 8
+  [USE] Taint flows to:   %1056 = icmp ugt i64 %1054, %1055 FUNC=sched_balance_rq L=0
+[USE] Processing uses of:   %1056 = icmp ugt i64 %1054, %1055
+  [USE] Taint flows to:   %1057 = select i1 %1050, i1 %1056, i1 false, <kernel/sched/fair.c:11487:24> FUNC=sched_balance_rq L=0
+[USE] Processing uses of:   %1057 = select i1 %1050, i1 %1056, i1 false,
+  [USE] Taint flows to:   br i1 %1057, label %1058, label %1070, <kernel/sched/fair.c:11487:24> FUNC=sched_balance_rq L=0
+[NO USE] No uses of:   br i1 %1057, label %1058, label %1070,
+[KILL] Store overwrites tainted pointer with non-tainted value:   store i64 0, ptr %28, align 8,
+[KILL] Store overwrites tainted pointer with non-tainted value:   store i64 %818, ptr %28, align 8,
+[KILL] Store overwrites tainted pointer with non-tainted value:   store i64 %876, ptr %28, align 8,
+[KILL] Store overwrites tainted pointer with non-tainted value:   store i64 0, ptr %28, align 8,
+[KILL] Store overwrites tainted pointer with non-tainted value:   store i64 1, ptr %28, align 8,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 43
+
+Earliest instruction with L=0:
+    %889 = icmp slt i32 %881, 3, <kernel/sched/fair.c:1420:18> FUNC=sched_balance_rq L=0
+
+Latest instruction with L=0:
+    br i1 %1450, label %1451, label %1457, <kernel/sched/fair.c:11855:38> FUNC=sched_balance_rq L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 637 instructions
+Other visited functions (total): 0 instructions
+Total: 637 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+sched_balance_rq, 159, 8, 268, 3
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/kernel/sched/fair.ll
+../linux-wllvm-defconfig/kernel/sched/fair.c

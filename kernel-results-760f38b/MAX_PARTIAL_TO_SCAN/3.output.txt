@@ -1,0 +1,112 @@
+=== Taint Tracker Configuration ===
+Function: count_partial_free_approx
+Opcode: phi
+Constant: 5000
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 5000)
+
+[SOURCE] Tainting:   %54 = phi i64 [ %52, %51 ], [ 5000, %40 ], [ %24, %23 ], <mm/slub.c:0> FUNC=count_partial_free_approx L=0
+[USE] Source instruction in data flow <mm/slub.c:0> FUNC=count_partial_free_approx L=0
+[USE] Processing uses of:   %54 = phi i64 [ %52, %51 ], [ 5000, %40 ], [ %24, %23 ],
+  [USE] Taint flows to:   %66 = phi i64 [ %75, %59 ], [ %54, %53 ] FUNC=count_partial_free_approx L=0
+  [USE] Taint flows to:   %78 = phi i64 [ %54, %53 ], [ 10000, %63 ], [ %75, %59 ], <mm/slub.c:0> FUNC=count_partial_free_approx L=0
+[USE] Processing uses of:   %78 = phi i64 [ %54, %53 ], [ 10000, %63 ], [ %75, %59 ],
+  [USE] Taint flows to:   %80 = udiv i64 %79, %78, <mm/slub.c:3509:7> FUNC=count_partial_free_approx L=0
+  [USE] Taint flows to:   %81 = urem i64 %79, %78, <mm/slub.c:3509:7> FUNC=count_partial_free_approx L=0
+  [USE] Taint flows to:   %84 = udiv i64 %83, %78, <mm/slub.c:3509:7> FUNC=count_partial_free_approx L=0
+[USE] Processing uses of:   %84 = udiv i64 %83, %78,
+  [USE] Taint flows to:   %85 = add i64 %84, %82, <mm/slub.c:3509:7> FUNC=count_partial_free_approx L=0
+[USE] Processing uses of:   %85 = add i64 %84, %82,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %88 = tail call i64 @llvm.umin.i64(i64 %85, i64 %87), !dbg !18658169 <mm/slub.c:3510:7>
+  [USE] Taint flows to:   %88 = tail call i64 @llvm.umin.i64(i64 %85, i64 %87), <mm/slub.c:3510:7> FUNC=count_partial_free_approx L=0
+[USE] Processing uses of:   %88 = tail call i64 @llvm.umin.i64(i64 %85, i64 %87),
+  [USE] Taint flows to:   %90 = phi i64 [ %88, %77 ], [ 0, %7 ], [ %20, %10 ], <mm/slub.c:0> FUNC=count_partial_free_approx L=0
+[USE] Processing uses of:   %90 = phi i64 [ %88, %77 ], [ 0, %7 ], [ %20, %10 ],
+  [RETURN] Stop: Tainted value is returned:   ret i64 %90, <mm/slub.c:3513:2>
+[USE] Processing uses of:   %81 = urem i64 %79, %78,
+  [USE] Taint flows to:   %83 = mul i64 %81, %4, <mm/slub.c:3509:7> FUNC=count_partial_free_approx L=0
+[USE] Processing uses of:   %83 = mul i64 %81, %4,
+[USE] Processing uses of:   %80 = udiv i64 %79, %78,
+  [USE] Taint flows to:   %82 = mul i64 %80, %4, <mm/slub.c:3509:7> FUNC=count_partial_free_approx L=0
+[USE] Processing uses of:   %82 = mul i64 %80, %4,
+[USE] Processing uses of:   %66 = phi i64 [ %75, %59 ], [ %54, %53 ]
+  [USE] Taint flows to:   %75 = add nuw nsw i64 %66, 1, <mm/slub.c:3506:8> FUNC=count_partial_free_approx L=0
+[USE] Processing uses of:   %75 = add nuw nsw i64 %66, 1,
+  [USE] Taint flows to:   %76 = icmp eq i64 %75, 10000, <mm/slub.c:3506:18> FUNC=count_partial_free_approx L=0
+[USE] Processing uses of:   %76 = icmp eq i64 %75, 10000,
+  [USE] Taint flows to:   br i1 %76, label %77, label %59, <mm/slub.c:3506:18> FUNC=count_partial_free_approx L=0
+[NO USE] No uses of:   br i1 %76, label %77, label %59,
+[UPWARD-INTERPROC] Call to count_partial_free_approx returns tainted value <mm/slub.c:3543:14> FUNC=slab_out_of_memory L=1
+[UPWARD-INTERPROC] Call to count_partial_free_approx returns tainted value <mm/slub.c:7610:14> FUNC=get_slabinfo L=1
+  [USE] Taint flows to:   %25 = add i64 %24, %10, <mm/slub.c:7610:11> FUNC=get_slabinfo L=1
+  [USE] Taint flows to:   %31 = phi i64 [ %25, %17 ], [ %10, %7 ], <mm/slub.c:0> FUNC=get_slabinfo L=1
+  [USE] Taint flows to:   %10 = phi i64 [ 0, %5 ], [ %31, %27 ] FUNC=get_slabinfo L=1
+  [USE] Taint flows to:   %37 = phi i64 [ 0, %2 ], [ %31, %27 ], <mm/slub.c:0> FUNC=get_slabinfo L=1
+  [USE] Taint flows to:   %38 = sub i64 %36, %37, <mm/slub.c:7613:31> FUNC=get_slabinfo L=1
+  [USE] Taint flows to:   store i64 %38, ptr %1, align 8, <mm/slub.c:7613:21> FUNC=get_slabinfo L=1
+  [STORE DESTINATION] Marking pointer as tainted: ptr %1 <mm/slub.c:7613:21> FUNC=get_slabinfo L=1
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #1 (ptr %1) <mm/slub.c:7613:21> FUNC=get_slabinfo L=1
+  [USE] Taint flows to:   %62 = call i32 (ptr, ...) @_printk(ptr noundef nonnull @.str.62.17821, i32 noundef %51, i64 noundef %59, i64 noundef %61, i64 noundef %57) #280, <mm/slub.c:3547:3> FUNC=slab_out_of_memory L=1
+[UPWARD-INTERPROC] Call to get_slabinfo taints argument 1 (local variable) <mm/slab_common.c:1114:2> FUNC=slab_show L=2
+  [STORE DESTINATION] Marking pointer as tainted via call:   %3 = alloca %struct.slabinfo, align 8, !DIAssignID !18658029 FUNC=slab_show L=2
+[UPWARD-INTERPROC] Call to get_slabinfo taints argument 1 (local variable) <mm/slab_common.c:1161:3> FUNC=dump_unreclaimable_slab L=2
+  [STORE DESTINATION] Marking pointer as tainted via call:   %1 = alloca %struct.slabinfo, align 8, !DIAssignID !18658044 FUNC=dump_unreclaimable_slab L=2
+[LOAD] Tainted load from tracked pointer:   %15 = load i64, ptr %3, align 8, (  %3 = alloca %struct.slabinfo, align 8, !DIAssignID !18658029)  <mm/slab_common.c:1117:21> FUNC=slab_show L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %17 = load i64, ptr %16, align 8, (base:   %3 = alloca %struct.slabinfo, align 8, !DIAssignID !18658029)  <mm/slab_common.c:1117:40> FUNC=slab_show L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %21 = load i32, ptr %20, align 4, (base:   %3 = alloca %struct.slabinfo, align 8, !DIAssignID !18658029)  <mm/slab_common.c:1118:12> FUNC=slab_show L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %23 = load i32, ptr %22, align 8, (base:   %3 = alloca %struct.slabinfo, align 8, !DIAssignID !18658029)  <mm/slab_common.c:1118:42> FUNC=slab_show L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %26 = load i32, ptr %25, align 8, (base:   %3 = alloca %struct.slabinfo, align 8, !DIAssignID !18658029)  <mm/slab_common.c:1121:12> FUNC=slab_show L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %28 = load i32, ptr %27, align 4, (base:   %3 = alloca %struct.slabinfo, align 8, !DIAssignID !18658029)  <mm/slab_common.c:1121:25> FUNC=slab_show L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %30 = load i32, ptr %29, align 8, (base:   %3 = alloca %struct.slabinfo, align 8, !DIAssignID !18658029)  <mm/slab_common.c:1121:43> FUNC=slab_show L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %32 = load i64, ptr %31, align 8, (base:   %3 = alloca %struct.slabinfo, align 8, !DIAssignID !18658029)  <mm/slab_common.c:1123:12> FUNC=slab_show L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %34 = load i64, ptr %33, align 8, (base:   %3 = alloca %struct.slabinfo, align 8, !DIAssignID !18658029)  <mm/slab_common.c:1123:32> FUNC=slab_show L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %36 = load i64, ptr %35, align 8, (base:   %3 = alloca %struct.slabinfo, align 8, !DIAssignID !18658029)  <mm/slab_common.c:1123:49> FUNC=slab_show L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %21 = load i64, ptr %12, align 8, (base:   %1 = alloca %struct.slabinfo, align 8, !DIAssignID !18658044)  <mm/slab_common.c:1163:13> FUNC=dump_unreclaimable_slab L=2
+[LOAD] Tainted load from tracked pointer:   %26 = load i64, ptr %1, align 8, (  %1 = alloca %struct.slabinfo, align 8, !DIAssignID !18658044)  <mm/slab_common.c:1164:4> FUNC=dump_unreclaimable_slab L=2
+  [USE] Taint flows to:   %30 = mul i64 %26, %29, <mm/slab_common.c:1164:4> FUNC=dump_unreclaimable_slab L=2
+  [USE] Taint flows to:   %31 = lshr i64 %30, 10, <mm/slab_common.c:1164:4> FUNC=dump_unreclaimable_slab L=2
+  [USE] Taint flows to:   %34 = call i32 (ptr, ...) @_printk(ptr noundef nonnull @.str.137.16410, ptr noundef %25, i64 noundef %31, i64 noundef %33) #280, <mm/slab_common.c:1164:4> FUNC=dump_unreclaimable_slab L=2
+  [USE] Taint flows to:   %22 = icmp eq i64 %21, 0, <mm/slab_common.c:1163:22> FUNC=dump_unreclaimable_slab L=2
+  [USE] Taint flows to:   %32 = mul i64 %21, %29, <mm/slab_common.c:1164:4> FUNC=dump_unreclaimable_slab L=2
+  [USE] Taint flows to:   %33 = lshr i64 %32, 10, <mm/slab_common.c:1164:4> FUNC=dump_unreclaimable_slab L=2
+  [USE] Taint flows to:   br i1 %22, label %35, label %23, <mm/slab_common.c:1163:22> FUNC=dump_unreclaimable_slab L=2
+  [USE] Taint flows to:   call void (ptr, ptr, ...) @seq_printf(ptr noundef %0, ptr noundef nonnull @.str.252.16324, i64 noundef %32, i64 noundef %34, i64 noundef %36) #278, <mm/slab_common.c:1122:2> FUNC=slab_show L=2
+  [USE] Taint flows to:   call void (ptr, ptr, ...) @seq_printf(ptr noundef %0, ptr noundef nonnull @.str.251.16323, i32 noundef %26, i32 noundef %28, i32 noundef %30) #278, <mm/slab_common.c:1120:2> FUNC=slab_show L=2
+  [USE] Taint flows to:   %24 = shl nuw i32 1, %23, <mm/slab_common.c:1118:33> FUNC=slab_show L=2
+  [USE] Taint flows to:   call void (ptr, ptr, ...) @seq_printf(ptr noundef %0, ptr noundef nonnull @.str.250.16322, ptr noundef %14, i64 noundef %15, i64 noundef %17, i32 noundef %19, i32 noundef %21, i32 noundef %24) #278, <mm/slab_common.c:1116:2> FUNC=slab_show L=2
+
+=== Maximum Level Statistics ===
+Largest L value: 2
+Number of instructions with L=2: 23
+
+Per-function breakdown:
+  dump_unreclaimable_slab: 9 value(s)
+  slab_show: 14 value(s)
+
+Earliest instruction with L=2:
+    %15 = load i64, ptr %3, align 8, <mm/slab_common.c:1117:21> FUNC=slab_show L=2
+
+Latest instruction with L=2:
+    %34 = call i32 (ptr, ...) @_printk(ptr noundef nonnull @.str.137.16410, ptr noundef %25, i64 noundef %31, i64 noundef %33) #280, <mm/slab_common.c:1164:4> FUNC=dump_unreclaimable_slab L=2
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 39 instructions
+Other visited functions (total): 211 instructions
+Total: 250 instructions
+Number of max-level functions: 2
+Number of other visited functions: 3
+
+=== Data Flow Span Details ===
+dump_unreclaimable_slab, 5, 2, 6, 10
+slab_show, 2, 6, 2, 30
+count_partial_free_approx, full span
+get_slabinfo, full span
+slab_out_of_memory, full span
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/mm/slub.ll
+../linux-wllvm-defconfig/mm/slub.c

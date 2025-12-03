@@ -1,0 +1,43 @@
+=== Taint Tracker Configuration ===
+Function: btrfs_run_defrag_inodes
+Opcode: call
+Constant: 1024
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 1024)
+
+[SOURCE] Tainting:   %130 = call i32 @btrfs_defrag_file(ptr noundef %99, ptr noundef nonnull %3, ptr noundef nonnull %2, i64 noundef %129, i64 noundef 1024) #280, <fs/btrfs/defrag.c:267:8> FUNC=btrfs_run_defrag_inodes L=0
+[USE] Source instruction in data flow <fs/btrfs/defrag.c:267:8> FUNC=btrfs_run_defrag_inodes L=0
+[CHILD FUNCTION] Constant used in call to btrfs_defrag_file at argument 4 <fs/btrfs/defrag.c:267:8> FUNC=btrfs_run_defrag_inodes L=0
+[USE] Processing uses of:   %130 = call i32 @btrfs_defrag_file(ptr noundef %99, ptr noundef nonnull %3, ptr noundef nonnull %2, i64 noundef %129, i64 noundef 1024) #280,
+  [USE] Taint flows to:   %151 = icmp slt i32 %130, 0, <fs/btrfs/defrag.c:272:10> FUNC=btrfs_run_defrag_inodes L=0
+[USE] Processing uses of:   %151 = icmp slt i32 %130, 0,
+  [USE] Taint flows to:   br i1 %151, label %158, label %152, <fs/btrfs/defrag.c:272:10> FUNC=btrfs_run_defrag_inodes L=0
+[NO USE] No uses of:   br i1 %151, label %158, label %152,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 3
+
+Earliest instruction with L=0:
+    %130 = call i32 @btrfs_defrag_file(ptr noundef %99, ptr noundef nonnull %3, ptr noundef nonnull %2, i64 noundef %129, i64 noundef 1024) #280, <fs/btrfs/defrag.c:267:8> FUNC=btrfs_run_defrag_inodes L=0
+
+Latest instruction with L=0:
+    br i1 %151, label %158, label %152, <fs/btrfs/defrag.c:272:10> FUNC=btrfs_run_defrag_inodes L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 32 instructions
+Other visited functions (total): 0 instructions
+Total: 32 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+btrfs_run_defrag_inodes, 30, 1, 35, 2
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/btrfs/defrag.ll
+../linux-wllvm-defconfig/fs/btrfs/defrag.c

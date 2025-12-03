@@ -1,0 +1,40 @@
+=== Taint Tracker Configuration ===
+Function: ubifs_garbage_collect
+Opcode: icmp
+Constant: 32
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 32)
+
+[SOURCE] Tainting:   %52 = icmp samesign ugt i32 %45, 32, <fs/ubifs/gc.c:717:9> FUNC=ubifs_garbage_collect L=0
+[USE] Source instruction in data flow <fs/ubifs/gc.c:717:9> FUNC=ubifs_garbage_collect L=0
+[USE] Processing uses of:   %52 = icmp samesign ugt i32 %45, 32,
+  [USE] Taint flows to:   br i1 %52, label %106, label %53, <fs/ubifs/gc.c:717:9> FUNC=ubifs_garbage_collect L=0
+[NO USE] No uses of:   br i1 %52, label %106, label %53,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 2
+
+Earliest instruction with L=0:
+    %52 = icmp samesign ugt i32 %45, 32, <fs/ubifs/gc.c:717:9> FUNC=ubifs_garbage_collect L=0
+
+Latest instruction with L=0:
+    br i1 %52, label %106, label %53, <fs/ubifs/gc.c:717:9> FUNC=ubifs_garbage_collect L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 2 instructions
+Other visited functions (total): 0 instructions
+Total: 2 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+ubifs_garbage_collect, 12, 0, 12, 1
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/ubifs/gc.ll
+../linux-wllvm-defconfig/fs/ubifs/gc.c

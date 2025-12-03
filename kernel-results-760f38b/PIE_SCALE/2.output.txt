@@ -1,0 +1,113 @@
+=== Taint Tracker Configuration ===
+Function: pie_calculate_probability
+Opcode: shl
+Constant: 8
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 8)
+
+[SOURCE] Tainting:   %14 = shl i32 %2, 8, <net/sched/sch_pie.c:318:22> FUNC=pie_calculate_probability L=0
+[USE] Source instruction in data flow <net/sched/sch_pie.c:318:22> FUNC=pie_calculate_probability L=0
+[USE] Processing uses of:   %14 = shl i32 %2, 8,
+  [USE] Taint flows to:   %15 = udiv i32 %14, %11, <net/sched/sch_pie.c:318:36> FUNC=pie_calculate_probability L=0
+[USE] Processing uses of:   %15 = udiv i32 %14, %11,
+  [USE] Taint flows to:   %16 = zext i32 %15 to i64, <net/sched/sch_pie.c:318:13> FUNC=pie_calculate_probability L=0
+[USE] Processing uses of:   %16 = zext i32 %15 to i64,
+  [USE] Taint flows to:   %20 = phi i64 [ %16, %13 ], [ %7, %17 ], [ 0, %9 ], <net/sched/sch_pie.c:0> FUNC=pie_calculate_probability L=0
+[USE] Processing uses of:   %20 = phi i64 [ %16, %13 ], [ %7, %17 ], [ 0, %9 ],
+  [USE] Taint flows to:   %22 = icmp ne i64 %20, 0, <net/sched/sch_pie.c:329:13> FUNC=pie_calculate_probability L=0
+  [USE] Taint flows to:   %64 = sub i64 %20, %63, <net/sched/sch_pie.c:359:27> FUNC=pie_calculate_probability L=0
+  [USE] Taint flows to:   %66 = sub i64 %20, %21, <net/sched/sch_pie.c:360:26> FUNC=pie_calculate_probability L=0
+  [USE] Taint flows to:   %72 = icmp ugt i64 %20, 3906250, <net/sched/sch_pie.c:374:13> FUNC=pie_calculate_probability L=0
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #1 (ptr %1) <net/sched/sch_pie.c:404:15>
+  [USE] Taint flows to:   %97 = icmp ult i64 %20, %96, <net/sched/sch_pie.c:413:20> FUNC=pie_calculate_probability L=0
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #1 (ptr %1) <net/sched/sch_pie.c:421:20>
+[USE] Processing uses of:   %97 = icmp ult i64 %20, %96,
+  [USE] Taint flows to:   %99 = select i1 %97, i1 %98, i1 false, <net/sched/sch_pie.c:413:42> FUNC=pie_calculate_probability L=0
+[USE] Processing uses of:   %99 = select i1 %97, i1 %98, i1 false,
+  [USE] Taint flows to:   %101 = and i1 %99, %100, <net/sched/sch_pie.c:413:42> FUNC=pie_calculate_probability L=0
+[USE] Processing uses of:   %101 = and i1 %99, %100,
+  [USE] Taint flows to:   br i1 %101, label %102, label %115, <net/sched/sch_pie.c:413:42> FUNC=pie_calculate_probability L=0
+[NO USE] No uses of:   br i1 %101, label %102, label %115,
+[USE] Processing uses of:   %72 = icmp ugt i64 %20, 3906250,
+  [USE] Taint flows to:   %74 = select i1 %72, i64 %73, i64 %71, <net/sched/sch_pie.c:374:13> FUNC=pie_calculate_probability L=0
+[USE] Processing uses of:   %74 = select i1 %72, i64 %73, i64 %71,
+  [USE] Taint flows to:   %75 = add i64 %74, %35, <net/sched/sch_pie.c:377:13> FUNC=pie_calculate_probability L=0
+  [USE] Taint flows to:   %76 = icmp sgt i64 %74, 0, <net/sched/sch_pie.c:379:12> FUNC=pie_calculate_probability L=0
+[USE] Processing uses of:   %76 = icmp sgt i64 %74, 0,
+  [USE] Taint flows to:   br i1 %76, label %77, label %79, <net/sched/sch_pie.c:379:12> FUNC=pie_calculate_probability L=0
+[NO USE] No uses of:   br i1 %76, label %77, label %79,
+[USE] Processing uses of:   %75 = add i64 %74, %35,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #1 (ptr %1) <net/sched/sch_pie.c:377:13>
+  [USE] Taint flows to:   %78 = icmp ult i64 %75, %35, <net/sched/sch_pie.c:381:18> FUNC=pie_calculate_probability L=0
+  [USE] Taint flows to:   %80 = icmp ugt i64 %75, %35, <net/sched/sch_pie.c:392:18> FUNC=pie_calculate_probability L=0
+  [USE] Taint flows to:   %83 = phi i64 [ %75, %77 ], [ 0, %81 ], [ %75, %79 ] FUNC=pie_calculate_probability L=0
+[USE] Processing uses of:   %83 = phi i64 [ %75, %77 ], [ 0, %81 ], [ %75, %79 ]
+  [USE] Taint flows to:   %88 = lshr i64 %83, 6, <net/sched/sch_pie.c:402:28> FUNC=pie_calculate_probability L=0
+  [USE] Taint flows to:   %89 = sub i64 %83, %88, <net/sched/sch_pie.c:402:14> FUNC=pie_calculate_probability L=0
+  [USE] Taint flows to:   %93 = phi i64 [ %83, %82 ], [ %91, %90 ] FUNC=pie_calculate_probability L=0
+[USE] Processing uses of:   %93 = phi i64 [ %83, %82 ], [ %91, %90 ]
+  [USE] Taint flows to:   %100 = icmp eq i64 %93, 0 FUNC=pie_calculate_probability L=0
+[USE] Processing uses of:   %100 = icmp eq i64 %93, 0
+[USE] Processing uses of:   %89 = sub i64 %83, %88,
+  [USE] Taint flows to:   %91 = phi i64 [ %89, %87 ], [ 72057594037927935, %77 ] FUNC=pie_calculate_probability L=0
+[USE] Processing uses of:   %91 = phi i64 [ %89, %87 ], [ 72057594037927935, %77 ]
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #1 (ptr %1) <net/sched/sch_pie.c:0>
+[USE] Processing uses of:   %88 = lshr i64 %83, 6,
+[USE] Processing uses of:   %80 = icmp ugt i64 %75, %35,
+  [USE] Taint flows to:   br i1 %80, label %81, label %82, <net/sched/sch_pie.c:392:18> FUNC=pie_calculate_probability L=0
+[NO USE] No uses of:   br i1 %80, label %81, label %82,
+[USE] Processing uses of:   %78 = icmp ult i64 %75, %35,
+  [USE] Taint flows to:   br i1 %78, label %90, label %82, <net/sched/sch_pie.c:381:18> FUNC=pie_calculate_probability L=0
+[NO USE] No uses of:   br i1 %78, label %90, label %82,
+[USE] Processing uses of:   %66 = sub i64 %20, %21,
+  [USE] Taint flows to:   %67 = mul i64 %62, %66, <net/sched/sch_pie.c:360:16> FUNC=pie_calculate_probability L=0
+[USE] Processing uses of:   %67 = mul i64 %62, %66,
+  [USE] Taint flows to:   %68 = add i64 %65, %67, <net/sched/sch_pie.c:360:8> FUNC=pie_calculate_probability L=0
+[USE] Processing uses of:   %68 = add i64 %65, %67,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %70 = tail call i64 @llvm.smin.i64(i64 %68, i64 1441151880758558), !dbg !18658104 <net/sched/sch_pie.c:365:42>
+  [USE] Taint flows to:   %70 = tail call i64 @llvm.smin.i64(i64 %68, i64 1441151880758558), <net/sched/sch_pie.c:365:42> FUNC=pie_calculate_probability L=0
+  [USE] Taint flows to:   %71 = select i1 %69, i64 %70, i64 %68, <net/sched/sch_pie.c:365:42> FUNC=pie_calculate_probability L=0
+[USE] Processing uses of:   %71 = select i1 %69, i64 %70, i64 %68,
+  [USE] Taint flows to:   %73 = add i64 %71, 1441151880758558, <net/sched/sch_pie.c:374:13> FUNC=pie_calculate_probability L=0
+[USE] Processing uses of:   %73 = add i64 %71, 1441151880758558,
+[USE] Processing uses of:   %70 = tail call i64 @llvm.smin.i64(i64 %68, i64 1441151880758558),
+[USE] Processing uses of:   %64 = sub i64 %20, %63,
+  [USE] Taint flows to:   %65 = mul i64 %64, %61, <net/sched/sch_pie.c:359:17> FUNC=pie_calculate_probability L=0
+[USE] Processing uses of:   %65 = mul i64 %64, %61,
+[USE] Processing uses of:   %22 = icmp ne i64 %20, 0,
+  [USE] Taint flows to:   %85 = select i1 %22, i1 true, i1 %84, <net/sched/sch_pie.c:400:18> FUNC=pie_calculate_probability L=0
+[USE] Processing uses of:   %85 = select i1 %22, i1 true, i1 %84,
+  [USE] Taint flows to:   %86 = or i1 %85, %23, <net/sched/sch_pie.c:400:18> FUNC=pie_calculate_probability L=0
+[USE] Processing uses of:   %86 = or i1 %85, %23,
+  [USE] Taint flows to:   br i1 %86, label %92, label %87, <net/sched/sch_pie.c:400:18> FUNC=pie_calculate_probability L=0
+[NO USE] No uses of:   br i1 %86, label %92, label %87,
+[POINTER PARAMETER] Call to pie_calculate_probability passes through pointer parameter 0 of pie_timer <net/sched/sch_pie.c:434:2> FUNC=pie_timer L=1
+[UPWARD-INTERPROC] No callers found for pie_timer (function taints pointer parameter #0)
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 35
+
+Earliest instruction with L=0:
+    %14 = shl i32 %2, 8, <net/sched/sch_pie.c:318:22> FUNC=pie_calculate_probability L=0
+
+Latest instruction with L=0:
+    br i1 %101, label %102, label %115, <net/sched/sch_pie.c:413:42> FUNC=pie_calculate_probability L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 94 instructions
+Other visited functions (total): 0 instructions
+Total: 94 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+pie_calculate_probability, 2, 0, 18, 11
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/sched/sch_pie.ll
+../linux-wllvm-defconfig/net/sched/sch_pie.c

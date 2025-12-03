@@ -1,0 +1,5 @@
+SOURCE_FILE=io_uring/io_uring.c
+FUNCTION_NAME=io_uring_fill_params
+SOURCE_OP="icmp"
+CONSTANT_VALUE=65536
+OCCURENCE=1

@@ -1,0 +1,42 @@
+=== Taint Tracker Configuration ===
+Function: get_next_ino
+Opcode: and
+Constant: 1023
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 1023)
+
+[SOURCE] Tainting:   %5 = and i32 %4, 1023, <fs/inode.c:1144:6> FUNC=get_next_ino L=0
+[USE] Source instruction in data flow <fs/inode.c:1144:6> FUNC=get_next_ino L=0
+[USE] Processing uses of:   %5 = and i32 %4, 1023,
+  [USE] Taint flows to:   %6 = icmp eq i32 %5, 0, <fs/inode.c:1144:6> FUNC=get_next_ino L=0
+[USE] Processing uses of:   %6 = icmp eq i32 %5, 0,
+  [USE] Taint flows to:   br i1 %6, label %7, label %9, <fs/inode.c:1144:6> FUNC=get_next_ino L=0
+[NO USE] No uses of:   br i1 %6, label %7, label %9,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 3
+
+Earliest instruction with L=0:
+    %5 = and i32 %4, 1023, <fs/inode.c:1144:6> FUNC=get_next_ino L=0
+
+Latest instruction with L=0:
+    br i1 %6, label %7, label %9, <fs/inode.c:1144:6> FUNC=get_next_ino L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 3 instructions
+Other visited functions (total): 0 instructions
+Total: 3 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+get_next_ino, 0, 6, 0, 8
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/inode.ll
+../linux-wllvm-defconfig/fs/inode.c

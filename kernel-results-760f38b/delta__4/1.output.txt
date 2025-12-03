@@ -1,0 +1,118 @@
+=== Taint Tracker Configuration ===
+Function: shrink_slab
+Opcode: shl
+Constant: 2
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 2)
+
+[SOURCE] Tainting:   %72 = shl i64 %71, 2, <mm/shrinker.c:397:9> FUNC=shrink_slab L=0
+[USE] Source instruction in data flow <mm/shrinker.c:397:9> FUNC=shrink_slab L=0
+[USE] Processing uses of:   %72 = shl i64 %71, 2,
+  [USE] Taint flows to:   %74 = udiv i64 %72, %73, <mm/shrinker.c:398:3> FUNC=shrink_slab L=0
+[USE] Processing uses of:   %74 = udiv i64 %72, %73,
+  [USE] Taint flows to:   %78 = phi i64 [ %76, %75 ], [ %74, %70 ], <mm/shrinker.c:0> FUNC=shrink_slab L=0
+[USE] Processing uses of:   %78 = phi i64 [ %76, %75 ], [ %74, %70 ],
+  [USE] Taint flows to:   %81 = add i64 %78, %80, <mm/shrinker.c:409:13> FUNC=shrink_slab L=0
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %95 = call i32 @__SCT__tp_func_mm_shrink_slab_start(ptr noundef %94, ptr noundef %17, ptr noundef nonnull %5, i64 noundef %66, i64 noundef range(i64 1, 0) %45, i64 noundef %78, i64 noundef %82, i32 noundef %3) #278, !dbg !18658426 <./include/trace/events/vmscan.h:199:1>
+  [USE] Taint flows to:   %95 = call i32 @__SCT__tp_func_mm_shrink_slab_start(ptr noundef %94, ptr noundef %17, ptr noundef nonnull %5, i64 noundef %66, i64 noundef range(i64 1, 0) %45, i64 noundef %78, i64 noundef %82, i32 noundef %3) #278, <./include/trace/events/vmscan.h:199:1> FUNC=shrink_slab L=0
+  [USE] Taint flows to:   %136 = add i64 %78, %66, <mm/shrinker.c:455:18> FUNC=shrink_slab L=0
+[USE] Processing uses of:   %136 = add i64 %78, %66,
+  [USE] Taint flows to:   %137 = sub i64 %136, %125, <mm/shrinker.c:455:18> FUNC=shrink_slab L=0
+[USE] Processing uses of:   %137 = sub i64 %136, %125,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %138 = call i64 @llvm.smax.i64(i64 %137, i64 0), !dbg !18658511 <mm/shrinker.c:455:18>
+  [USE] Taint flows to:   %138 = call i64 @llvm.smax.i64(i64 %137, i64 0), <mm/shrinker.c:455:18> FUNC=shrink_slab L=0
+[USE] Processing uses of:   %138 = call i64 @llvm.smax.i64(i64 %137, i64 0),
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %139 = call i64 @llvm.smin.i64(i64 %138, i64 %79), !dbg !18658512 <mm/shrinker.c:456:18>
+  [USE] Taint flows to:   %139 = call i64 @llvm.smin.i64(i64 %138, i64 %79), <mm/shrinker.c:456:18> FUNC=shrink_slab L=0
+[USE] Processing uses of:   %139 = call i64 @llvm.smin.i64(i64 %138, i64 %79),
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %148 = call i64 asm sideeffect ".pushsection .smp_locks,\22a\22\0A.balign 4\0A.long 671f - .\0A.popsection\0A671:\0A\09lock; xaddq ${0:q}, $1\0A", "=r,=*m,0,*m,~{memory},~{cc},~{dirflag},~{fpsr},~{flags}"(ptr elementtype(i64) %147, i64 %139, ptr elementtype(i64) %147) #279, !dbg !18658549, !srcloc !18658550 <./arch/x86/include/asm/atomic64_64.h:79:13>
+  [USE] Taint flows to:   %148 = call i64 asm sideeffect ".pushsection .smp_locks,\22a\22\0A.balign 4\0A.long 671f - .\0A.popsection\0A671:\0A\09lock; xaddq ${0:q}, $1\0A", "=r,=*m,0,*m,~{memory},~{cc},~{dirflag},~{fpsr},~{flags}"(ptr elementtype(i64) %147, i64 %139, ptr elementtype(i64) %147) #279, <./arch/x86/include/asm/atomic64_64.h:79:13> FUNC=shrink_slab L=0
+  [USE] Taint flows to:   %149 = add i64 %148, %139, <./arch/x86/include/asm/atomic64_64.h:79:11> FUNC=shrink_slab L=0
+[USE] Processing uses of:   %149 = add i64 %148, %139,
+  [USE] Taint flows to:   %151 = phi i64 [ %149, %135 ], [ 0, %124 ], <mm/shrinker.c:0> FUNC=shrink_slab L=0
+[USE] Processing uses of:   %151 = phi i64 [ %149, %135 ], [ 0, %124 ],
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %166 = call i32 @__SCT__tp_func_mm_shrink_slab_end(ptr noundef %165, ptr noundef %17, i32 noundef %152, i32 noundef %153, i64 noundef %66, i64 noundef %151, i64 noundef %126) #278, !dbg !18658611 <./include/trace/events/vmscan.h:244:1>
+  [USE] Taint flows to:   %166 = call i32 @__SCT__tp_func_mm_shrink_slab_end(ptr noundef %165, ptr noundef %17, i32 noundef %152, i32 noundef %153, i64 noundef %66, i64 noundef %151, i64 noundef %126) #278, <./include/trace/events/vmscan.h:244:1> FUNC=shrink_slab L=0
+[NO USE] No uses of:   %166 = call i32 @__SCT__tp_func_mm_shrink_slab_end(ptr noundef %165, ptr noundef %17, i32 noundef %152, i32 noundef %153, i64 noundef %66, i64 noundef %151, i64 noundef %126) #278,
+[USE] Processing uses of:   %148 = call i64 asm sideeffect ".pushsection .smp_locks,\22a\22\0A.balign 4\0A.long 671f - .\0A.popsection\0A671:\0A\09lock; xaddq ${0:q}, $1\0A", "=r,=*m,0,*m,~{memory},~{cc},~{dirflag},~{fpsr},~{flags}"(ptr elementtype(i64) %147, i64 %139, ptr elementtype(i64) %147) #279,
+[NO USE] No uses of:   %95 = call i32 @__SCT__tp_func_mm_shrink_slab_start(ptr noundef %94, ptr noundef %17, ptr noundef nonnull %5, i64 noundef %66, i64 noundef range(i64 1, 0) %45, i64 noundef %78, i64 noundef %82, i32 noundef %3) #278,
+[USE] Processing uses of:   %81 = add i64 %78, %80,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %82 = call i64 @llvm.smin.i64(i64 %81, i64 %79), !dbg !18658290 <mm/shrinker.c:410:15>
+  [USE] Taint flows to:   %82 = call i64 @llvm.smin.i64(i64 %81, i64 %79), <mm/shrinker.c:410:15> FUNC=shrink_slab L=0
+[USE] Processing uses of:   %82 = call i64 @llvm.smin.i64(i64 %81, i64 %79),
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %95 = call i32 @__SCT__tp_func_mm_shrink_slab_start(ptr noundef %94, ptr noundef %17, ptr noundef nonnull %5, i64 noundef %66, i64 noundef range(i64 1, 0) %45, i64 noundef %78, i64 noundef %82, i32 noundef %3) #278, !dbg !18658426 <./include/trace/events/vmscan.h:199:1>
+  [USE] Taint flows to:   %105 = icmp slt i64 %82, %104, <mm/shrinker.c:430:34> FUNC=shrink_slab L=0
+  [USE] Taint flows to:   %110 = phi i64 [ %82, %106 ], [ %120, %116 ] FUNC=shrink_slab L=0
+  [USE] Taint flows to:   %126 = phi i64 [ %82, %103 ], [ %120, %116 ], [ %110, %108 ], <mm/shrinker.c:410:13> FUNC=shrink_slab L=0
+[USE] Processing uses of:   %126 = phi i64 [ %82, %103 ], [ %120, %116 ], [ %110, %108 ],
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %166 = call i32 @__SCT__tp_func_mm_shrink_slab_end(ptr noundef %165, ptr noundef %17, i32 noundef %152, i32 noundef %153, i64 noundef %66, i64 noundef %151, i64 noundef %126) #278, !dbg !18658611 <./include/trace/events/vmscan.h:244:1>
+[USE] Processing uses of:   %110 = phi i64 [ %82, %106 ], [ %120, %116 ]
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %112 = call i64 @llvm.smin.i64(i64 %43, i64 %110), !dbg !18658451 <mm/shrinker.c:433:30>
+  [USE] Taint flows to:   %112 = call i64 @llvm.smin.i64(i64 %43, i64 %110), <mm/shrinker.c:433:30> FUNC=shrink_slab L=0
+  [USE] Taint flows to:   %120 = sub i64 %110, %119, <mm/shrinker.c:443:14> FUNC=shrink_slab L=0
+[USE] Processing uses of:   %120 = sub i64 %110, %119,
+  [USE] Taint flows to:   %123 = icmp slt i64 %120, %104, <mm/shrinker.c:430:34> FUNC=shrink_slab L=0
+[USE] Processing uses of:   %123 = icmp slt i64 %120, %104,
+  [USE] Taint flows to:   br i1 %123, label %124, label %108, <mm/shrinker.c:430:2> FUNC=shrink_slab L=0
+[NO USE] No uses of:   br i1 %123, label %124, label %108,
+[USE] Processing uses of:   %112 = call i64 @llvm.smin.i64(i64 %43, i64 %110),
+  %10 = getelementptr inbounds nuw i8, ptr %5, i64 8
+  → base pointer:
+          %5 = alloca %struct.shrink_control, align 8, !DIAssignID !18658041
+      → no parameter connection
+  → Result: No parameter connection found
+  [STORE DESTINATION] Marking pointer as tainted:   %10 = getelementptr inbounds nuw i8, ptr %5, i64 8 <mm/shrinker.c:435:25>
+  [USE] Taint flows to:   store i64 %112, ptr %10, align 8, <mm/shrinker.c:435:25> FUNC=shrink_slab L=0
+  %11 = getelementptr inbounds nuw i8, ptr %5, i64 16
+  → base pointer:
+          %5 = alloca %struct.shrink_control, align 8, !DIAssignID !18658041
+      → no parameter connection
+  → Result: No parameter connection found
+  [STORE DESTINATION] Marking pointer as tainted:   %11 = getelementptr inbounds nuw i8, ptr %5, i64 16 <mm/shrinker.c:436:25>
+  [USE] Taint flows to:   store i64 %112, ptr %11, align 8, <mm/shrinker.c:436:25> FUNC=shrink_slab L=0
+[NO USE] No uses of:   store i64 %112, ptr %11, align 8,
+[NO USE] No uses of:   store i64 %112, ptr %10, align 8,
+[USE] Processing uses of:   %105 = icmp slt i64 %82, %104,
+  [USE] Taint flows to:   br i1 %105, label %124, label %106, <mm/shrinker.c:430:2> FUNC=shrink_slab L=0
+[NO USE] No uses of:   br i1 %105, label %124, label %106,
+[LOAD] Tainted load from tracked pointer:   %118 = load i64, ptr %11, align 8, (  %11 = getelementptr inbounds nuw i8, ptr %5, i64 16)  <mm/shrinker.c:442:45> FUNC=shrink_slab L=0
+[LOAD] Tainted load from tracked pointer:   %119 = load i64, ptr %11, align 8, (  %11 = getelementptr inbounds nuw i8, ptr %5, i64 16)  <mm/shrinker.c:443:28> FUNC=shrink_slab L=0
+[USE] Processing uses of:   %119 = load i64, ptr %11, align 8,
+  [USE] Taint flows to:   %121 = add i64 %119, %111, <mm/shrinker.c:444:11> FUNC=shrink_slab L=0
+[USE] Processing uses of:   %121 = add i64 %119, %111,
+  [USE] Taint flows to:   %111 = phi i64 [ 0, %106 ], [ %121, %116 ] FUNC=shrink_slab L=0
+  [USE] Taint flows to:   %125 = phi i64 [ 0, %103 ], [ %121, %116 ], [ %111, %108 ], <mm/shrinker.c:382:7> FUNC=shrink_slab L=0
+[USE] Processing uses of:   %125 = phi i64 [ 0, %103 ], [ %121, %116 ], [ %111, %108 ],
+[USE] Processing uses of:   %111 = phi i64 [ 0, %106 ], [ %121, %116 ]
+[USE] Processing uses of:   %118 = load i64, ptr %11, align 8,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   call void asm sideeffect "addq $1, %gs:$0", "=*m,re,*m,~{dirflag},~{fpsr},~{flags}"(ptr nonnull elementtype(i64) getelementptr inbounds nuw (i8, ptr @vm_event_states, i64 312), i64 %118, ptr nonnull elementtype(i64) getelementptr inbounds nuw (i8, ptr @vm_event_states, i64 312)) #279, !dbg !18658481, !srcloc !18658482 <./include/linux/vmstat.h:85:2>
+  [USE] Taint flows to:   call void asm sideeffect "addq $1, %gs:$0", "=*m,re,*m,~{dirflag},~{fpsr},~{flags}"(ptr nonnull elementtype(i64) getelementptr inbounds nuw (i8, ptr @vm_event_states, i64 312), i64 %118, ptr nonnull elementtype(i64) getelementptr inbounds nuw (i8, ptr @vm_event_states, i64 312)) #279, <./include/linux/vmstat.h:85:2> FUNC=shrink_slab L=0
+[NO USE] No uses of:   call void asm sideeffect "addq $1, %gs:$0", "=*m,re,*m,~{dirflag},~{fpsr},~{flags}"(ptr nonnull elementtype(i64) getelementptr inbounds nuw (i8, ptr @vm_event_states, i64 312), i64 %118, ptr nonnull elementtype(i64) getelementptr inbounds nuw (i8, ptr @vm_event_states, i64 312)) #279,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 30
+
+Earliest instruction with L=0:
+    %72 = shl i64 %71, 2, <mm/shrinker.c:397:9> FUNC=shrink_slab L=0
+
+Latest instruction with L=0:
+    %166 = call i32 @__SCT__tp_func_mm_shrink_slab_end(ptr noundef %165, ptr noundef %17, i32 noundef %152, i32 noundef %153, i64 noundef %66, i64 noundef %151, i64 noundef %126) #278, <./include/trace/events/vmscan.h:244:1> FUNC=shrink_slab L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 107 instructions
+Other visited functions (total): 0 instructions
+Total: 107 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+shrink_slab, 12, 1, 29, 2
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/mm/shrinker.ll
+../linux-wllvm-defconfig/mm/shrinker.c

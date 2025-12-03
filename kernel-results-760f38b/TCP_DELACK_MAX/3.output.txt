@@ -1,0 +1,76 @@
+=== Taint Tracker Configuration ===
+Function: dccp_send_ack
+Opcode: add
+Constant: 200
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 200)
+
+[SOURCE] Tainting:   %23 = add i64 %22, 200, <./include/net/inet_connection_sock.h:0> FUNC=dccp_send_ack L=0
+[USE] Source instruction in data flow <./include/net/inet_connection_sock.h:0> FUNC=dccp_send_ack L=0
+[USE] Processing uses of:   %23 = add i64 %22, 200,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #0 (ptr %0) <./include/net/inet_connection_sock.h:0>
+  [CHILD FUNCTION] Tainted value used in call to sk_reset_timer at argument 2:   tail call void @sk_reset_timer(ptr noundef %0, ptr noundef nonnull %25, i64 noundef %23) #278, <./include/net/inet_connection_sock.h:0> FUNC=dccp_send_ack L=0
+  [USE] Taint flows to:   tail call void @sk_reset_timer(ptr noundef %0, ptr noundef nonnull %25, i64 noundef %23) #278, <./include/net/inet_connection_sock.h:0> FUNC=dccp_send_ack L=0
+[NO USE] No uses of:   tail call void @sk_reset_timer(ptr noundef %0, ptr noundef nonnull %25, i64 noundef %23) #278,
+[POINTER PARAMETER] Call to dccp_send_ack passes through pointer parameter 0 of dccp_rcv_request_sent_state_process <net/dccp/input.c:497:3> FUNC=dccp_rcv_request_sent_state_process L=1
+[POINTER PARAMETER] Call to dccp_send_ack passes through pointer parameter 0 of dccp_xmit_packet <net/dccp/output.c:266:4> FUNC=dccp_xmit_packet L=1
+[POINTER PARAMETER] Call to dccp_send_ack passes through pointer parameter 0 of dccp_delack_timer <net/dccp/timer.c:208:3> FUNC=dccp_delack_timer L=1
+[POINTER PARAMETER] Call to dccp_send_ack passes through pointer parameter 0 of ccid2_hc_rx_packet_recv <net/dccp/ccids/ccid2.c:772:3> FUNC=ccid2_hc_rx_packet_recv L=1
+[POINTER PARAMETER] Call to dccp_send_ack passes through pointer parameter 0 of ccid3_hc_rx_packet_recv <net/dccp/ccids/ccid3.c:635:2> FUNC=ccid3_hc_rx_packet_recv L=1
+[POINTER PARAMETER] Call to dccp_rcv_request_sent_state_process passes through pointer parameter 0 of dccp_rcv_state_process <net/dccp/input.c:676:12> FUNC=dccp_rcv_state_process L=2
+[POINTER PARAMETER] Call to dccp_xmit_packet passes through pointer parameter 0 of dccp_flush_write_queue <net/dccp/output.c:340:4> FUNC=dccp_flush_write_queue L=2
+[POINTER PARAMETER] Call to dccp_xmit_packet passes through pointer parameter 0 of dccp_write_xmit <net/dccp/output.c:366:4> FUNC=dccp_write_xmit L=2
+[UPWARD-INTERPROC] No callers found for dccp_delack_timer (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for ccid2_hc_rx_packet_recv (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for ccid3_hc_rx_packet_recv (function taints pointer parameter #0)
+[POINTER PARAMETER] Call to dccp_rcv_state_process passes through pointer parameter 1 of dccp_child_process <net/dccp/minisocks.c:222:9> FUNC=dccp_child_process L=3
+[POINTER PARAMETER] Call to dccp_rcv_state_process passes through pointer parameter 0 of dccp_v4_do_rcv <net/dccp/ipv4.c:710:6> FUNC=dccp_v4_do_rcv L=3
+[POINTER PARAMETER] Call to dccp_rcv_state_process passes through pointer parameter 0 of dccp_v6_do_rcv <net/dccp/ipv6.c:657:6> FUNC=dccp_v6_do_rcv L=3
+[POINTER PARAMETER] Call to dccp_flush_write_queue passes through pointer parameter 0 of dccp_close <net/dccp/proto.c:1040:3> FUNC=dccp_close L=3
+[POINTER PARAMETER] Call to dccp_write_xmit passes through pointer parameter 0 of dccp_sendmsg <net/dccp/proto.c:801:3> FUNC=dccp_sendmsg L=3
+[POINTER PARAMETER] Call to dccp_write_xmit passes through pointer parameter 0 of dccp_write_xmitlet <net/dccp/timer.c:231:3> FUNC=dccp_write_xmitlet L=3
+[UPWARD-INTERPROC] No callers found for dccp_delack_timer (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for ccid2_hc_rx_packet_recv (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for ccid3_hc_rx_packet_recv (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for dccp_sendmsg (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for dccp_close (function taints pointer parameter #0)
+[POINTER PARAMETER] Call to dccp_write_xmitlet passes through pointer parameter 0 of dccp_write_xmit_timer <net/dccp/timer.c:240:2> FUNC=dccp_write_xmit_timer L=4
+[UPWARD-INTERPROC] No callers found for dccp_delack_timer (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for ccid2_hc_rx_packet_recv (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for ccid3_hc_rx_packet_recv (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for dccp_v6_do_rcv (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for dccp_sendmsg (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for dccp_close (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for dccp_write_xmit_timer (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for dccp_delack_timer (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for ccid2_hc_rx_packet_recv (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for ccid3_hc_rx_packet_recv (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for dccp_v6_do_rcv (function taints pointer parameter #0)
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 2
+
+Earliest instruction with L=0:
+    %23 = add i64 %22, 200, <./include/net/inet_connection_sock.h:0> FUNC=dccp_send_ack L=0
+
+Latest instruction with L=0:
+    tail call void @sk_reset_timer(ptr noundef %0, ptr noundef nonnull %25, i64 noundef %23) #278, <./include/net/inet_connection_sock.h:0> FUNC=dccp_send_ack L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 5 instructions
+Other visited functions (total): 0 instructions
+Total: 5 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+dccp_send_ack, 2, 14, 2, 18
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/dccp/output.ll
+../linux-wllvm-defconfig/net/dccp/output.c

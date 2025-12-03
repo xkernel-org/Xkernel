@@ -1,0 +1,43 @@
+=== Taint Tracker Configuration ===
+Function: blk_alloc_queue
+Opcode: store
+Constant: 128
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 128)
+
+[SOURCE] Tainting:   store i64 128, ptr %41, align 8, <block/blk-core.c:458:17> FUNC=blk_alloc_queue L=0
+[USE] Source instruction in data flow <block/blk-core.c:458:17> FUNC=blk_alloc_queue L=0
+[STORE DESTINATION] Storing constant to:   %41 = getelementptr inbounds nuw i8, ptr %4, i64 368, <block/blk-core.c:458:17> FUNC=blk_alloc_queue L=0
+  %41 = getelementptr inbounds nuw i8, ptr %4, i64 368,
+  → base pointer:
+          %4 = tail call noalias align 8 ptr @kmem_cache_alloc_node_noprof(ptr noundef %3, i32 noundef 3520, i32 noundef %1) #278,
+      → call to kmem_cache_alloc_node_noprof (no parameter)
+→ Result: No parameter connection found
+[NO USE] No uses of:   store i64 128, ptr %41, align 8,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 1
+
+Earliest instruction with L=0:
+    store i64 128, ptr %41, align 8, <block/blk-core.c:458:17> FUNC=blk_alloc_queue L=0
+
+(Earliest and latest are the same instruction)
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 1 instructions
+Other visited functions (total): 0 instructions
+Total: 1 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+blk_alloc_queue, 5, 1, 5, 1
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/block/blk-core.ll
+../linux-wllvm-defconfig/block/blk-core.c

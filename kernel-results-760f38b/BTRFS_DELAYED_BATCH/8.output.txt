@@ -1,0 +1,43 @@
+=== Taint Tracker Configuration ===
+Function: btrfs_balance_delayed_items
+Opcode: store
+Constant: 16
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 16)
+
+[SOURCE] Tainting:   store i32 16, ptr %61, align 8, <fs/btrfs/delayed-inode.c:1390:17> FUNC=btrfs_balance_delayed_items L=0
+[USE] Source instruction in data flow <fs/btrfs/delayed-inode.c:1390:17> FUNC=btrfs_balance_delayed_items L=0
+[STORE DESTINATION] Storing constant to:   %61 = getelementptr inbounds nuw i8, ptr %57, i64 8, <fs/btrfs/delayed-inode.c:1390:17> FUNC=btrfs_balance_delayed_items L=0
+  %61 = getelementptr inbounds nuw i8, ptr %57, i64 8,
+  → base pointer:
+          %57 = tail call noalias align 8 dereferenceable_or_null(96) ptr @__kmalloc_cache_noprof(ptr noundef %56, i32 noundef 3136, i64 noundef 96) #279,
+      → call to __kmalloc_cache_noprof (no parameter)
+→ Result: No parameter connection found
+[NO USE] No uses of:   store i32 16, ptr %61, align 8,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 1
+
+Earliest instruction with L=0:
+    store i32 16, ptr %61, align 8, <fs/btrfs/delayed-inode.c:1390:17> FUNC=btrfs_balance_delayed_items L=0
+
+(Earliest and latest are the same instruction)
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 1 instructions
+Other visited functions (total): 0 instructions
+Total: 1 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+btrfs_balance_delayed_items, 13, 4, 13, 4
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/btrfs/delayed-inode.ll
+../linux-wllvm-defconfig/fs/btrfs/delayed-inode.c

@@ -1,0 +1,38 @@
+=== Taint Tracker Configuration ===
+Function: nfs41_sequence_call_done
+Opcode: call
+Constant: 15000
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 15000)
+
+[SOURCE] Tainting:   tail call void @rpc_delay(ptr noundef %0, i64 noundef 15000) #280, <fs/nfs/nfs4proc.c:9563:3> FUNC=nfs41_sequence_call_done L=0
+[USE] Source instruction in data flow <fs/nfs/nfs4proc.c:9563:3> FUNC=nfs41_sequence_call_done L=0
+[CHILD FUNCTION] Constant used in call to rpc_delay at argument 1 <fs/nfs/nfs4proc.c:9563:3> FUNC=nfs41_sequence_call_done L=0
+[NO USE] No uses of:   tail call void @rpc_delay(ptr noundef %0, i64 noundef 15000) #280,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 1
+
+Earliest instruction with L=0:
+    tail call void @rpc_delay(ptr noundef %0, i64 noundef 15000) #280, <fs/nfs/nfs4proc.c:9563:3> FUNC=nfs41_sequence_call_done L=0
+
+(Earliest and latest are the same instruction)
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 1 instructions
+Other visited functions (total): 0 instructions
+Total: 1 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+nfs41_sequence_call_done, 14, 0, 14, 0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/nfs/nfs4proc.ll
+../linux-wllvm-defconfig/fs/nfs/nfs4proc.c

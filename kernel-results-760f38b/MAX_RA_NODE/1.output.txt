@@ -1,0 +1,38 @@
+=== Taint Tracker Configuration ===
+Function: __get_node_page
+Opcode: call
+Constant: 128
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 128)
+
+[SOURCE] Tainting:   tail call fastcc void @f2fs_ra_node_pages(ptr noundef nonnull %2, i32 noundef %28, i32 noundef 128) #280, <fs/f2fs/node.c:1476:3> FUNC=__get_node_page L=0
+[USE] Source instruction in data flow <fs/f2fs/node.c:1476:3> FUNC=__get_node_page L=0
+[CHILD FUNCTION] Constant used in call to f2fs_ra_node_pages at argument 2 <fs/f2fs/node.c:1476:3> FUNC=__get_node_page L=0
+[NO USE] No uses of:   tail call fastcc void @f2fs_ra_node_pages(ptr noundef nonnull %2, i32 noundef %28, i32 noundef 128) #280,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 1
+
+Earliest instruction with L=0:
+    tail call fastcc void @f2fs_ra_node_pages(ptr noundef nonnull %2, i32 noundef %28, i32 noundef 128) #280, <fs/f2fs/node.c:1476:3> FUNC=__get_node_page L=0
+
+(Earliest and latest are the same instruction)
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 1 instructions
+Other visited functions (total): 0 instructions
+Total: 1 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+__get_node_page, 9, 0, 9, 0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/f2fs/node.ll
+../linux-wllvm-defconfig/fs/f2fs/node.c

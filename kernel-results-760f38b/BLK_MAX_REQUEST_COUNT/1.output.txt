@@ -1,0 +1,42 @@
+=== Taint Tracker Configuration ===
+Function: blk_start_plug_nr_ios
+Opcode: call
+Constant: 32
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 32)
+
+[SOURCE] Tainting:   %9 = tail call i16 @llvm.umin.i16(i16 %1, i16 32), <block/blk-core.c:1125:17> FUNC=blk_start_plug_nr_ios L=0
+[USE] Source instruction in data flow <block/blk-core.c:1125:17> FUNC=blk_start_plug_nr_ios L=0
+[CHILD FUNCTION] Constant used in call to llvm.umin.i16 at argument 1 <block/blk-core.c:1125:17> FUNC=blk_start_plug_nr_ios L=0
+[USE] Processing uses of:   %9 = tail call i16 @llvm.umin.i16(i16 %1, i16 32),
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #0 (ptr %0) <block/blk-core.c:1125:15>
+[POINTER PARAMETER] Call to blk_start_plug_nr_ios passes through pointer parameter 0 of io_submit_sqes <io_uring/io_uring.c:2099:4> FUNC=io_submit_sqes L=1
+[POINTER PARAMETER] Call to io_submit_sqes passes through pointer parameter 0 of io_sq_thread <io_uring/sqpoll.c:189:10> FUNC=io_sq_thread L=2
+[UPWARD-INTERPROC] No callers found for io_sq_thread (function taints pointer parameter #0)
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 1
+
+Earliest instruction with L=0:
+    %9 = tail call i16 @llvm.umin.i16(i16 %1, i16 32), <block/blk-core.c:1125:17> FUNC=blk_start_plug_nr_ios L=0
+
+(Earliest and latest are the same instruction)
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 1 instructions
+Other visited functions (total): 0 instructions
+Total: 1 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+blk_start_plug_nr_ios, 1, 0, 1, 0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/block/blk-core.ll
+../linux-wllvm-defconfig/block/blk-core.c

@@ -1,0 +1,5 @@
+SOURCE_FILE=mm/vmscan.c
+FUNCTION_NAME=try_to_free_pages
+SOURCE_OP="store"
+CONSTANT_VALUE=12
+OCCURENCE=1
