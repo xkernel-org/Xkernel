@@ -1,0 +1,45 @@
+=== Taint Tracker Configuration ===
+Function: master_wakeup_work_handler
+Opcode: store
+Constant: 8
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 8)
+
+[SOURCE] Tainting:   store i32 8, ptr %10, align 8, <net/netfilter/ipvs/ip_vs_sync.c:1631:24> FUNC=master_wakeup_work_handler L=0
+[USE] Source instruction in data flow <net/netfilter/ipvs/ip_vs_sync.c:1631:24> FUNC=master_wakeup_work_handler L=0
+[STORE DESTINATION] Storing constant to:   %10 = getelementptr i8, ptr %0, i64 -8, <net/netfilter/ipvs/ip_vs_sync.c:1631:24> FUNC=master_wakeup_work_handler L=0
+  %10 = getelementptr i8, ptr %0, i64 -8,
+  → base pointer:
+        ptr %0
+      → parameter #0
+→ Result: Connects to parameter #0 (ptr %0)
+[POINTER PARAMETER] Constant stored through pointer parameter #0 (ptr %0) <net/netfilter/ipvs/ip_vs_sync.c:1631:24> FUNC=master_wakeup_work_handler L=0
+[NO USE] No uses of:   store i32 8, ptr %10, align 8,
+[UPWARD-INTERPROC] No callers found for master_wakeup_work_handler (function taints pointer parameter #0)
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 1
+
+Earliest instruction with L=0:
+    store i32 8, ptr %10, align 8, <net/netfilter/ipvs/ip_vs_sync.c:1631:24> FUNC=master_wakeup_work_handler L=0
+
+(Earliest and latest are the same instruction)
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 1 instructions
+Other visited functions (total): 0 instructions
+Total: 1 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+master_wakeup_work_handler, 2, 6, 2, 6
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/netfilter/ipvs/ip_vs_sync.ll
+../linux-wllvm-defconfig/net/netfilter/ipvs/ip_vs_sync.c

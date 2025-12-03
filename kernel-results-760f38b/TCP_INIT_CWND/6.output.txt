@@ -1,0 +1,52 @@
+=== Taint Tracker Configuration ===
+Function: bbr_main
+Opcode: phi
+Constant: 11
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 4 (of constant 11)
+
+[SOURCE] Tainting:   %452 = phi i32 [ %450, %439 ], [ 11, %428 ], <net/ipv4/tcp_bbr.c:0> FUNC=bbr_main L=0
+[USE] Source instruction in data flow <net/ipv4/tcp_bbr.c:0> FUNC=bbr_main L=0
+[USE] Processing uses of:   %452 = phi i32 [ %450, %439 ], [ 11, %428 ],
+  [USE] Taint flows to:   %468 = add i32 %467, %452, <net/ipv4/tcp_bbr.c:403:15> FUNC=bbr_main L=0
+[USE] Processing uses of:   %468 = add i32 %467, %452,
+  [USE] Taint flows to:   %469 = and i32 %468, -2, <net/ipv4/tcp_bbr.c:403:20> FUNC=bbr_main L=0
+[USE] Processing uses of:   %469 = and i32 %468, -2,
+  [USE] Taint flows to:   %477 = add i32 %469, 2 FUNC=bbr_main L=0
+  [USE] Taint flows to:   %478 = select i1 %476, i32 %477, i32 %469, <net/ipv4/tcp_bbr.c:406:32> FUNC=bbr_main L=0
+  [USE] Taint flows to:   %480 = phi i32 [ %469, %451 ], [ %478, %473 ], <net/ipv4/tcp_bbr.c:0> FUNC=bbr_main L=0
+[USE] Processing uses of:   %480 = phi i32 [ %469, %451 ], [ %478, %473 ],
+  [USE] Taint flows to:   %481 = icmp ugt i32 %436, %480, <net/ipv4/tcp_bbr.c:903:71> FUNC=bbr_main L=0
+[USE] Processing uses of:   %481 = icmp ugt i32 %436, %480,
+  [USE] Taint flows to:   br i1 %481, label %501, label %482, <net/ipv4/tcp_bbr.c:902:29> FUNC=bbr_main L=0
+[NO USE] No uses of:   br i1 %481, label %501, label %482,
+[USE] Processing uses of:   %478 = select i1 %476, i32 %477, i32 %469,
+[USE] Processing uses of:   %477 = add i32 %469, 2
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 8
+
+Earliest instruction with L=0:
+    %452 = phi i32 [ %450, %439 ], [ 11, %428 ], <net/ipv4/tcp_bbr.c:0> FUNC=bbr_main L=0
+
+Latest instruction with L=0:
+    br i1 %481, label %501, label %482, <net/ipv4/tcp_bbr.c:902:29> FUNC=bbr_main L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 31 instructions
+Other visited functions (total): 0 instructions
+Total: 31 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+bbr_main, 55, 0, 57, 2
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/ipv4/tcp_bbr.ll
+../linux-wllvm-defconfig/net/ipv4/tcp_bbr.c

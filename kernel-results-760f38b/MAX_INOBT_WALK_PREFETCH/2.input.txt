@@ -1,0 +1,5 @@
+SOURCE_FILE=fs/xfs/xfs_iwalk.c
+FUNCTION_NAME=xfs_inobt_walk
+SOURCE_OP="select"
+CONSTANT_VALUE=256
+OCCURENCE=1

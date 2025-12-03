@@ -1,0 +1,5 @@
+SOURCE_FILE=block/bio.c
+FUNCTION_NAME=bio_alloc_bioset
+SOURCE_OP="icmp"
+CONSTANT_VALUE=15
+OCCURENCE=1

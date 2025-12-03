@@ -1,0 +1,46 @@
+=== Taint Tracker Configuration ===
+Function: kswapd
+Opcode: icmp
+Constant: 10
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 10)
+
+[SOURCE] Tainting:   %234 = icmp eq i8 %233, 10 FUNC=kswapd L=0
+[USE] Source instruction in data flow FUNC=kswapd L=0
+[USE] Processing uses of:   %234 = icmp eq i8 %233, 10
+  [USE] Taint flows to:   %235 = select i1 %228, i1 %234, i1 false, <mm/vmscan.c:6961:24> FUNC=kswapd L=0
+[USE] Processing uses of:   %235 = select i1 %228, i1 %234, i1 false,
+  [USE] Taint flows to:   %358 = select i1 %357, i1 true, i1 %235, <mm/vmscan.c:6999:7> FUNC=kswapd L=0
+[USE] Processing uses of:   %358 = select i1 %357, i1 true, i1 %235,
+  [USE] Taint flows to:   %378 = and i1 %358, %375, <mm/vmscan.c:7033:22> FUNC=kswapd L=0
+[USE] Processing uses of:   %378 = and i1 %358, %375,
+  [USE] Taint flows to:   br i1 %378, label %388, label %380, <mm/vmscan.c:7033:22> FUNC=kswapd L=0
+[NO USE] No uses of:   br i1 %378, label %388, label %380,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 5
+
+Earliest instruction with L=0:
+    %234 = icmp eq i8 %233, 10 FUNC=kswapd L=0
+
+Latest instruction with L=0:
+    br i1 %378, label %388, label %380, <mm/vmscan.c:7033:22> FUNC=kswapd L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 157 instructions
+Other visited functions (total): 0 instructions
+Total: 157 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+kswapd, 57, 1, 86, 2
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/mm/vmscan.ll
+../linux-wllvm-defconfig/mm/vmscan.c

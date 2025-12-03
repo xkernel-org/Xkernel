@@ -1,0 +1,38 @@
+=== Taint Tracker Configuration ===
+Function: nfs4_get_lease_time_done
+Opcode: call
+Constant: 100
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 100)
+
+[SOURCE] Tainting:   tail call void @rpc_delay(ptr noundef %0, i64 noundef 100) #279, <fs/nfs/nfs4proc.c:9261:3> FUNC=nfs4_get_lease_time_done L=0
+[USE] Source instruction in data flow <fs/nfs/nfs4proc.c:9261:3> FUNC=nfs4_get_lease_time_done L=0
+[CHILD FUNCTION] Constant used in call to rpc_delay at argument 1 <fs/nfs/nfs4proc.c:9261:3> FUNC=nfs4_get_lease_time_done L=0
+[NO USE] No uses of:   tail call void @rpc_delay(ptr noundef %0, i64 noundef 100) #279,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 1
+
+Earliest instruction with L=0:
+    tail call void @rpc_delay(ptr noundef %0, i64 noundef 100) #279, <fs/nfs/nfs4proc.c:9261:3> FUNC=nfs4_get_lease_time_done L=0
+
+(Earliest and latest are the same instruction)
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 1 instructions
+Other visited functions (total): 0 instructions
+Total: 1 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+nfs4_get_lease_time_done, 2, 0, 2, 0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/nfs/nfs4proc.ll
+../linux-wllvm-defconfig/fs/nfs/nfs4proc.c

@@ -1,0 +1,5 @@
+SOURCE_FILE=net/netfilter/nf_synproxy_core.c
+FUNCTION_NAME=synproxy_parse_options
+SOURCE_OP="call"
+CONSTANT_VALUE=14
+OCCURENCE=1

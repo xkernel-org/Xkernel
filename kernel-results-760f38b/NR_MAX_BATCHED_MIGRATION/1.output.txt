@@ -1,0 +1,40 @@
+=== Taint Tracker Configuration ===
+Function: migrate_pages
+Opcode: icmp
+Constant: 511
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 511)
+
+[SOURCE] Tainting:   %298 = icmp sgt i32 %297, 511, <mm/migrate.c:2083:16> FUNC=migrate_pages L=0
+[USE] Source instruction in data flow <mm/migrate.c:2083:16> FUNC=migrate_pages L=0
+[USE] Processing uses of:   %298 = icmp sgt i32 %297, 511,
+  [USE] Taint flows to:   br i1 %298, label %305, label %299, <mm/migrate.c:2083:16> FUNC=migrate_pages L=0
+[NO USE] No uses of:   br i1 %298, label %305, label %299,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 2
+
+Earliest instruction with L=0:
+    %298 = icmp sgt i32 %297, 511, <mm/migrate.c:2083:16> FUNC=migrate_pages L=0
+
+Latest instruction with L=0:
+    br i1 %298, label %305, label %299, <mm/migrate.c:2083:16> FUNC=migrate_pages L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 2 instructions
+Other visited functions (total): 0 instructions
+Total: 2 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+migrate_pages, 72, 2, 72, 3
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/mm/migrate.ll
+../linux-wllvm-defconfig/mm/migrate.c

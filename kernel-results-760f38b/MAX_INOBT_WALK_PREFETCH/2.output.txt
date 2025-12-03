@@ -1,0 +1,46 @@
+=== Taint Tracker Configuration ===
+Function: xfs_inobt_walk
+Opcode: select
+Constant: 256
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 256)
+
+[SOURCE] Tainting:   %19 = select i1 %16, i32 256, i32 %18, <fs/xfs/xfs_iwalk.c:714:20> FUNC=xfs_inobt_walk L=0
+[USE] Source instruction in data flow <fs/xfs/xfs_iwalk.c:714:20> FUNC=xfs_inobt_walk L=0
+[USE] Processing uses of:   %19 = select i1 %16, i32 256, i32 %18,
+  %15 = getelementptr inbounds nuw i8, ptr %8, i64 88,
+  → base pointer:
+          %8 = alloca %struct.xfs_iwalk_ag, align 8, !DIAssignID !18658034
+      → no parameter connection
+  → Result: No parameter connection found
+  [STORE DESTINATION] Marking pointer as tainted:   %15 = getelementptr inbounds nuw i8, ptr %8, i64 88, <fs/xfs/xfs_iwalk.c:747:29>
+  [USE] Taint flows to:   store i32 %19, ptr %15, align 8, <fs/xfs/xfs_iwalk.c:747:29> FUNC=xfs_inobt_walk L=0
+[NO USE] No uses of:   store i32 %19, ptr %15, align 8,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 2
+
+Earliest instruction with L=0:
+    %19 = select i1 %16, i32 256, i32 %18, <fs/xfs/xfs_iwalk.c:714:20> FUNC=xfs_inobt_walk L=0
+
+Latest instruction with L=0:
+    store i32 %19, ptr %15, align 8, <fs/xfs/xfs_iwalk.c:747:29> FUNC=xfs_inobt_walk L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 2 instructions
+Other visited functions (total): 0 instructions
+Total: 2 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+xfs_inobt_walk, 0, 19, 0, 20
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/xfs/xfs_iwalk.ll
+../linux-wllvm-defconfig/fs/xfs/xfs_iwalk.c

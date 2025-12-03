@@ -1,0 +1,49 @@
+=== Taint Tracker Configuration ===
+Function: cubictcp_acked
+Opcode: call
+Constant: 32007
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 32007)
+
+[SOURCE] Tainting:   %126 = tail call i32 @llvm.umax.i32(i32 %124, i32 32007), <net/ipv4/tcp_cubic.c:439:8> FUNC=cubictcp_acked L=0
+[USE] Source instruction in data flow <net/ipv4/tcp_cubic.c:439:8> FUNC=cubictcp_acked L=0
+[CHILD FUNCTION] Constant used in call to llvm.umax.i32 at argument 1 <net/ipv4/tcp_cubic.c:439:8> FUNC=cubictcp_acked L=0
+[USE] Processing uses of:   %126 = tail call i32 @llvm.umax.i32(i32 %124, i32 32007),
+  [USE] Taint flows to:   %127 = lshr i32 %126, 3, <net/ipv4/tcp_cubic.c:439:8> FUNC=cubictcp_acked L=0
+[USE] Processing uses of:   %127 = lshr i32 %126, 3,
+  [USE] Taint flows to:   %128 = select i1 %125, i32 16000, i32 %127, <net/ipv4/tcp_cubic.c:439:8> FUNC=cubictcp_acked L=0
+[USE] Processing uses of:   %128 = select i1 %125, i32 16000, i32 %127,
+  [USE] Taint flows to:   %129 = add i32 %128, %124, <net/ipv4/tcp_cubic.c:438:37> FUNC=cubictcp_acked L=0
+[USE] Processing uses of:   %129 = add i32 %128, %124,
+  [USE] Taint flows to:   %130 = icmp ugt i32 %117, %129, <net/ipv4/tcp_cubic.c:438:21> FUNC=cubictcp_acked L=0
+[USE] Processing uses of:   %130 = icmp ugt i32 %117, %129,
+  [USE] Taint flows to:   br i1 %130, label %131, label %144, <net/ipv4/tcp_cubic.c:438:21> FUNC=cubictcp_acked L=0
+[NO USE] No uses of:   br i1 %130, label %131, label %144,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 6
+
+Earliest instruction with L=0:
+    %126 = tail call i32 @llvm.umax.i32(i32 %124, i32 32007), <net/ipv4/tcp_cubic.c:439:8> FUNC=cubictcp_acked L=0
+
+Latest instruction with L=0:
+    br i1 %130, label %131, label %144, <net/ipv4/tcp_cubic.c:438:21> FUNC=cubictcp_acked L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 6 instructions
+Other visited functions (total): 0 instructions
+Total: 6 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+cubictcp_acked, 21, 2, 21, 7
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/ipv4/tcp_cubic.ll
+../linux-wllvm-defconfig/net/ipv4/tcp_cubic.c

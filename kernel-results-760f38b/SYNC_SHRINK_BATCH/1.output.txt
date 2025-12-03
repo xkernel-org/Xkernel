@@ -1,0 +1,38 @@
+=== Taint Tracker Configuration ===
+Function: mb_cache_entry_create
+Opcode: call
+Constant: 64
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 2 (of constant 64)
+
+[SOURCE] Tainting:   %23 = tail call fastcc i64 @mb_cache_shrink(ptr noundef %0, i64 noundef 64) #279, <fs/mbcache.c:86:3> FUNC=mb_cache_entry_create L=0
+[USE] Source instruction in data flow <fs/mbcache.c:86:3> FUNC=mb_cache_entry_create L=0
+[CHILD FUNCTION] Constant used in call to mb_cache_shrink at argument 1 <fs/mbcache.c:86:3> FUNC=mb_cache_entry_create L=0
+[NO USE] No uses of:   %23 = tail call fastcc i64 @mb_cache_shrink(ptr noundef %0, i64 noundef 64) #279,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 1
+
+Earliest instruction with L=0:
+    %23 = tail call fastcc i64 @mb_cache_shrink(ptr noundef %0, i64 noundef 64) #279, <fs/mbcache.c:86:3> FUNC=mb_cache_entry_create L=0
+
+(Earliest and latest are the same instruction)
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 1 instructions
+Other visited functions (total): 0 instructions
+Total: 1 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+mb_cache_entry_create, 3, 0, 3, 0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/mbcache.ll
+../linux-wllvm-defconfig/fs/mbcache.c

@@ -1,0 +1,71 @@
+=== Taint Tracker Configuration ===
+Function: do_select
+Opcode: call
+Constant: 100000000
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 100000000)
+
+[SOURCE] Tainting:   %148 = call i64 @llvm.smin.i64(i64 %147, i64 100000000), <fs/select.c:0> FUNC=do_select L=0
+[USE] Source instruction in data flow <fs/select.c:0> FUNC=do_select L=0
+[CHILD FUNCTION] Constant used in call to llvm.smin.i64 at argument 1 <fs/select.c:0> FUNC=do_select L=0
+[USE] Processing uses of:   %148 = call i64 @llvm.smin.i64(i64 %147, i64 100000000),
+  [USE] Taint flows to:   %150 = phi i64 [ 0, %119 ], [ 100000000, %132 ], [ %148, %143 ], <fs/select.c:0> FUNC=do_select L=0
+[USE] Processing uses of:   %150 = phi i64 [ 0, %119 ], [ 100000000, %132 ], [ %148, %143 ],
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %151 = call i64 @llvm.umax.i64(i64 %150, i64 %117), !dbg !18658238 <fs/select.c:0>
+  [USE] Taint flows to:   %151 = call i64 @llvm.umax.i64(i64 %150, i64 %117), <fs/select.c:0> FUNC=do_select L=0
+[USE] Processing uses of:   %151 = call i64 @llvm.umax.i64(i64 %150, i64 %117),
+  [USE] Taint flows to:   %153 = phi i64 [ 0, %115 ], [ %151, %149 ], <fs/select.c:0> FUNC=do_select L=0
+[USE] Processing uses of:   %153 = phi i64 [ 0, %115 ], [ %151, %149 ],
+  [USE] Taint flows to:   %156 = phi i64 [ %153, %152 ], [ 0, %99 ], [ 0, %114 ], <fs/select.c:0> FUNC=do_select L=0
+[USE] Processing uses of:   %156 = phi i64 [ %153, %152 ], [ 0, %99 ], [ 0, %114 ],
+  [CHILD FUNCTION] Tainted value used in call to schedule_hrtimeout_range at argument 1:   %378 = call i32 @schedule_hrtimeout_range(ptr noundef %369, i64 noundef %156, i32 noundef 0) #279, <fs/select.c:241:8> FUNC=do_select L=0
+  [USE] Taint flows to:   %378 = call i32 @schedule_hrtimeout_range(ptr noundef %369, i64 noundef %156, i32 noundef 0) #279, <fs/select.c:241:8> FUNC=do_select L=0
+[USE] Processing uses of:   %378 = call i32 @schedule_hrtimeout_range(ptr noundef %369, i64 noundef %156, i32 noundef 0) #279,
+  [USE] Taint flows to:   %380 = freeze i32 %378, <fs/select.c:603:8> FUNC=do_select L=0
+[USE] Processing uses of:   %380 = freeze i32 %378,
+  [USE] Taint flows to:   %381 = icmp eq i32 %380, 0, <fs/select.c:603:8> FUNC=do_select L=0
+[USE] Processing uses of:   %381 = icmp eq i32 %380, 0,
+  [USE] Taint flows to:   %382 = zext i1 %381 to i32, <fs/select.c:603:7> FUNC=do_select L=0
+[USE] Processing uses of:   %382 = zext i1 %381 to i32,
+  [USE] Taint flows to:   %376 = phi i32 [ %382, %377 ], [ 0, %373 ] FUNC=do_select L=0
+[USE] Processing uses of:   %376 = phi i32 [ %382, %377 ], [ 0, %373 ]
+  [USE] Taint flows to:   %167 = phi i32 [ %155, %154 ], [ %376, %375 ] FUNC=do_select L=0
+[USE] Processing uses of:   %167 = phi i32 [ %155, %154 ], [ %376, %375 ]
+  [USE] Taint flows to:   %171 = phi i32 [ %167, %165 ], [ 0, %346 ] FUNC=do_select L=0
+[USE] Processing uses of:   %171 = phi i32 [ %167, %165 ], [ 0, %346 ]
+  [USE] Taint flows to:   %176 = phi i32 [ 0, %352 ], [ %171, %170 ], <fs/select.c:488:17> FUNC=do_select L=0
+[USE] Processing uses of:   %176 = phi i32 [ 0, %352 ], [ %171, %170 ],
+  [USE] Taint flows to:   %327 = or i32 %324, %176, <fs/select.c:575:14> FUNC=do_select L=0
+[USE] Processing uses of:   %327 = or i32 %324, %176,
+  [USE] Taint flows to:   %328 = icmp eq i32 %327, 0, <fs/select.c:575:14> FUNC=do_select L=0
+[USE] Processing uses of:   %328 = icmp eq i32 %327, 0,
+  [USE] Taint flows to:   br i1 %328, label %329, label %383, <fs/select.c:575:14> FUNC=do_select L=0
+[NO USE] No uses of:   br i1 %328, label %329, label %383,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 16
+
+Earliest instruction with L=0:
+    %148 = call i64 @llvm.smin.i64(i64 %147, i64 100000000), <fs/select.c:0> FUNC=do_select L=0
+
+Latest instruction with L=0:
+    %382 = zext i1 %381 to i32, <fs/select.c:603:7> FUNC=do_select L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 246 instructions
+Other visited functions (total): 0 instructions
+Total: 246 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+do_select, 21, 4, 67, 5
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/select.ll
+../linux-wllvm-defconfig/fs/select.c

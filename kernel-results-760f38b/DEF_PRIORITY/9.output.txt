@@ -1,0 +1,40 @@
+=== Taint Tracker Configuration ===
+Function: do_try_to_free_pages
+Opcode: icmp
+Constant: 10
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 10)
+
+[SOURCE] Tainting:   %163 = icmp slt i8 %162, 10, <mm/vmscan.c:6311:20> FUNC=do_try_to_free_pages L=0
+[USE] Source instruction in data flow <mm/vmscan.c:6311:20> FUNC=do_try_to_free_pages L=0
+[USE] Processing uses of:   %163 = icmp slt i8 %162, 10,
+  [USE] Taint flows to:   br i1 %163, label %164, label %166, <mm/vmscan.c:6311:20> FUNC=do_try_to_free_pages L=0
+[NO USE] No uses of:   br i1 %163, label %164, label %166,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 2
+
+Earliest instruction with L=0:
+    %163 = icmp slt i8 %162, 10, <mm/vmscan.c:6311:20> FUNC=do_try_to_free_pages L=0
+
+Latest instruction with L=0:
+    br i1 %163, label %164, label %166, <mm/vmscan.c:6311:20> FUNC=do_try_to_free_pages L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 2 instructions
+Other visited functions (total): 0 instructions
+Total: 2 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+do_try_to_free_pages, 35, 1, 35, 2
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/mm/vmscan.ll
+../linux-wllvm-defconfig/mm/vmscan.c

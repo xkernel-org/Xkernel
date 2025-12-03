@@ -1,0 +1,5 @@
+SOURCE_FILE=drivers/md/dm-rq.c
+FUNCTION_NAME=dm_mq_init_request_queue
+SOURCE_OP="call"
+CONSTANT_VALUE=2048
+OCCURENCE=1

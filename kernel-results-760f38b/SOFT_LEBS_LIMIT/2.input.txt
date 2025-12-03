@@ -1,0 +1,5 @@
+SOURCE_FILE=fs/ubifs/gc.c
+FUNCTION_NAME=ubifs_garbage_collect
+SOURCE_OP="icmp"
+CONSTANT_VALUE=4
+OCCURENCE=2

@@ -1,0 +1,23 @@
+	Command being timed: "opt -load-pass-plugin=build/libTaintTrackerPass.so -passes=taint-tracker<bfq_update_rate_reset;icmp;32;false;false;false;true;1> -disable-output ../linux-wllvm-defconfig/vmlinux.bc"
+	User time (seconds): 143.50
+	System time (seconds): 10.51
+	Percent of CPU this job got: 99%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 2:34.02
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 7482464
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 35
+	Minor (reclaiming a frame) page faults: 3974077
+	Voluntary context switches: 43
+	Involuntary context switches: 166
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 16
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

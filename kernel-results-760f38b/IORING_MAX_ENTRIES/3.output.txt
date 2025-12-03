@@ -1,0 +1,40 @@
+=== Taint Tracker Configuration ===
+Function: io_uring_fill_params
+Opcode: icmp
+Constant: 65536
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 65536)
+
+[SOURCE] Tainting:   %32 = icmp ugt i32 %29, 65536, <io_uring/io_uring.c:3571:21> FUNC=io_uring_fill_params L=0
+[USE] Source instruction in data flow <io_uring/io_uring.c:3571:21> FUNC=io_uring_fill_params L=0
+[USE] Processing uses of:   %32 = icmp ugt i32 %29, 65536,
+  [USE] Taint flows to:   br i1 %32, label %33, label %36, <io_uring/io_uring.c:3571:21> FUNC=io_uring_fill_params L=0
+[NO USE] No uses of:   br i1 %32, label %33, label %36,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 2
+
+Earliest instruction with L=0:
+    %32 = icmp ugt i32 %29, 65536, <io_uring/io_uring.c:3571:21> FUNC=io_uring_fill_params L=0
+
+Latest instruction with L=0:
+    br i1 %32, label %33, label %36, <io_uring/io_uring.c:3571:21> FUNC=io_uring_fill_params L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 2 instructions
+Other visited functions (total): 0 instructions
+Total: 2 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+io_uring_fill_params, 6, 0, 6, 1
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/io_uring/io_uring.ll
+../linux-wllvm-defconfig/io_uring/io_uring.c

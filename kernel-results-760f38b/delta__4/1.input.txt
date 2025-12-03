@@ -1,0 +1,5 @@
+SOURCE_FILE=mm/shrinker.c
+FUNCTION_NAME=shrink_slab
+SOURCE_OP="shl"
+CONSTANT_VALUE=2
+OCCURENCE=1

@@ -1,0 +1,43 @@
+=== Taint Tracker Configuration ===
+Function: f2fs_start_gc_thread
+Opcode: store
+Constant: 500
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 500)
+
+[SOURCE] Tainting:   store i32 500, ptr %11, align 8, <fs/f2fs/gc.c:198:27> FUNC=f2fs_start_gc_thread L=0
+[USE] Source instruction in data flow <fs/f2fs/gc.c:198:27> FUNC=f2fs_start_gc_thread L=0
+[STORE DESTINATION] Storing constant to:   %11 = getelementptr inbounds nuw i8, ptr %8, i64 32, <fs/f2fs/gc.c:198:27> FUNC=f2fs_start_gc_thread L=0
+  %11 = getelementptr inbounds nuw i8, ptr %8, i64 32,
+  → base pointer:
+          %8 = tail call noalias noundef align 8 dereferenceable_or_null(96) ptr @__kmalloc_cache_noprof(ptr noundef %7, i32 noundef 3264, i64 noundef 96) #278,
+      → call to __kmalloc_cache_noprof (no parameter)
+→ Result: No parameter connection found
+[NO USE] No uses of:   store i32 500, ptr %11, align 8,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 1
+
+Earliest instruction with L=0:
+    store i32 500, ptr %11, align 8, <fs/f2fs/gc.c:198:27> FUNC=f2fs_start_gc_thread L=0
+
+(Earliest and latest are the same instruction)
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 1 instructions
+Other visited functions (total): 0 instructions
+Total: 1 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+f2fs_start_gc_thread, 1, 1, 1, 1
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/f2fs/gc.ll
+../linux-wllvm-defconfig/fs/f2fs/gc.c

@@ -1,0 +1,5 @@
+SOURCE_FILE=kernel/sched/fair.c
+FUNCTION_NAME=sched_balance_find_dst_cpu
+SOURCE_OP="icmp"
+CONSTANT_VALUE=3
+OCCURENCE=1

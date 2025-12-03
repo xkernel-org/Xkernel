@@ -1,0 +1,5 @@
+SOURCE_FILE=block/blk-mq-sched.c
+FUNCTION_NAME=blk_mq_init_sched
+SOURCE_OP="call"
+CONSTANT_VALUE=-1
+OCCURENCE=1

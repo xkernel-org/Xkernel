@@ -1,0 +1,5 @@
+SOURCE_FILE=net/ipv4/tcp.c
+FUNCTION_NAME=tcp_repair_options_est
+SOURCE_OP="and"
+CONSTANT_VALUE=65535
+OCCURENCE=1

@@ -1,0 +1,46 @@
+=== Taint Tracker Configuration ===
+Function: nfs4_proc_layoutget
+Opcode: select
+Constant: 200
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 200)
+
+[SOURCE] Tainting:   %124 = select i1 %121, i64 200, i64 %123, <fs/nfs/nfs4proc.c:433:15> FUNC=nfs4_proc_layoutget L=0
+[USE] Source instruction in data flow <fs/nfs/nfs4proc.c:433:15> FUNC=nfs4_proc_layoutget L=0
+[USE] Processing uses of:   %124 = select i1 %121, i64 200, i64 %123,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #1 (ptr %1) <fs/nfs/nfs4proc.c:438:11>
+[UPWARD-INTERPROC] Call to nfs4_proc_layoutget taints argument 1 (local variable) <fs/nfs/pnfs.c:2277:9> FUNC=pnfs_update_layout L=1
+  [STORE DESTINATION] Marking pointer as tainted via call:   %10 = alloca %struct.nfs4_exception, align 8, !DIAssignID !18658086 FUNC=pnfs_update_layout L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %534 = load i8, ptr %133, align 2, (base:   %10 = alloca %struct.nfs4_exception, align 8, !DIAssignID !18658086)  <fs/nfs/pnfs.c:2304:19> FUNC=pnfs_update_layout L=1
+  [USE] Taint flows to:   %535 = and i8 %534, 8, <fs/nfs/pnfs.c:2304:9> FUNC=pnfs_update_layout L=1
+  [USE] Taint flows to:   %536 = icmp eq i8 %535, 0, <fs/nfs/pnfs.c:2304:9> FUNC=pnfs_update_layout L=1
+  [USE] Taint flows to:   br i1 %536, label %563, label %537, <fs/nfs/pnfs.c:2304:8> FUNC=pnfs_update_layout L=1
+
+=== Maximum Level Statistics ===
+Largest L value: 1
+Number of instructions with L=1: 4
+
+Earliest instruction with L=1:
+    %534 = load i8, ptr %133, align 2, <fs/nfs/pnfs.c:2304:19> FUNC=pnfs_update_layout L=1
+
+Latest instruction with L=1:
+    br i1 %536, label %563, label %537, <fs/nfs/pnfs.c:2304:8> FUNC=pnfs_update_layout L=1
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 4 instructions
+Other visited functions (total): 209 instructions
+Total: 213 instructions
+Number of max-level functions: 1
+Number of other visited functions: 1
+
+=== Data Flow Span Details ===
+pnfs_update_layout, 131, 0, 131, 3
+nfs4_proc_layoutget, full span
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/nfs/nfs4proc.ll
+../linux-wllvm-defconfig/fs/nfs/nfs4proc.c

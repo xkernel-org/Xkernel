@@ -1,0 +1,5 @@
+SOURCE_FILE=drivers/nvme/host/core.c
+FUNCTION_NAME=nvme_alloc_io_tag_set
+SOURCE_OP="call"
+CONSTANT_VALUE=10239
+OCCURENCE=1

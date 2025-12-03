@@ -1,0 +1,38 @@
+=== Taint Tracker Configuration ===
+Function: make_free_space
+Opcode: call
+Constant: 16
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 16)
+
+[SOURCE] Tainting:   tail call void @writeback_inodes_sb_nr(ptr noundef %16, i64 noundef 16, i32 noundef 5) #278, <fs/ubifs/budget.c:54:2> FUNC=make_free_space L=0
+[USE] Source instruction in data flow <fs/ubifs/budget.c:54:2> FUNC=make_free_space L=0
+[CHILD FUNCTION] Constant used in call to writeback_inodes_sb_nr at argument 1 <fs/ubifs/budget.c:54:2> FUNC=make_free_space L=0
+[NO USE] No uses of:   tail call void @writeback_inodes_sb_nr(ptr noundef %16, i64 noundef 16, i32 noundef 5) #278,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 1
+
+Earliest instruction with L=0:
+    tail call void @writeback_inodes_sb_nr(ptr noundef %16, i64 noundef 16, i32 noundef 5) #278, <fs/ubifs/budget.c:54:2> FUNC=make_free_space L=0
+
+(Earliest and latest are the same instruction)
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 1 instructions
+Other visited functions (total): 0 instructions
+Total: 1 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+make_free_space, 1, 12, 1, 12
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/ubifs/budget.ll
+../linux-wllvm-defconfig/fs/ubifs/budget.c

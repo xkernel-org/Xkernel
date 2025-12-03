@@ -1,0 +1,5 @@
+SOURCE_FILE=io_uring/io_uring.c
+FUNCTION_NAME=__se_sys_io_uring_enter
+SOURCE_OP="call"
+CONSTANT_VALUE=20
+OCCURENCE=1

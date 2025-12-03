@@ -1,0 +1,239 @@
+=== Taint Tracker Configuration ===
+Function: blk_mq_request_issue_directly
+Opcode: mul
+Constant: 7
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 2 (of constant 7)
+
+[SOURCE] Tainting:   %76 = mul i32 %75, 7, <block/blk-mq.c:1988:7> FUNC=blk_mq_request_issue_directly L=0
+[USE] Source instruction in data flow <block/blk-mq.c:1988:7> FUNC=blk_mq_request_issue_directly L=0
+[USE] Processing uses of:   %76 = mul i32 %75, 7,
+  [USE] Taint flows to:   %77 = add i32 %76, 16 FUNC=blk_mq_request_issue_directly L=0
+[USE] Processing uses of:   %77 = add i32 %76, 16
+  [USE] Taint flows to:   %78 = lshr i32 %77, 3, <block/blk-mq.c:1991:7> FUNC=blk_mq_request_issue_directly L=0
+[USE] Processing uses of:   %78 = lshr i32 %77, 3,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #0 (ptr %0) <block/blk-mq.c:1993:22>
+[POINTER PARAMETER] Call to blk_mq_request_issue_directly passes through pointer parameter 0 of blk_insert_cloned_request <block/blk-mq.c:3236:2> FUNC=blk_insert_cloned_request L=1
+[POINTER PARAMETER] Call to blk_mq_request_issue_directly passes through pointer parameter 0 of blk_mq_plug_issue_direct <block/blk-mq.c:2799:9> FUNC=blk_mq_plug_issue_direct L=1
+[POINTER PARAMETER] Call to blk_mq_request_issue_directly passes through pointer parameter 1 of blk_mq_try_issue_list_directly <block/blk-mq.c:2932:9> FUNC=blk_mq_try_issue_list_directly L=1
+[POINTER PARAMETER] Call to blk_mq_plug_issue_direct passes through pointer parameter 0 of blk_mq_flush_plug_list <block/blk-mq.c:2910:3> FUNC=blk_mq_flush_plug_list L=2
+[UPWARD-INTERPROC] Call to blk_mq_try_issue_list_directly taints argument 1 (local variable) <block/blk-mq.c:2566:3> FUNC=blk_mq_flush_plug_list L=2
+  [STORE DESTINATION] Marking pointer as tainted via call:   %3 = alloca %struct.list_head, align 8, !DIAssignID !18658045 FUNC=blk_mq_flush_plug_list L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %162 = load ptr, ptr %108, align 8, (base:   %3 = alloca %struct.list_head, align 8, !DIAssignID !18658045)  <./include/linux/list.h:183:24> FUNC=blk_mq_flush_plug_list L=2
+[LOAD] Tainted load from tracked pointer:   %211 = load volatile ptr, ptr %3, align 8, (  %3 = alloca %struct.list_head, align 8, !DIAssignID !18658045)  <./include/linux/list.h:373:9> FUNC=blk_mq_flush_plug_list L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %217 = load ptr, ptr %108, align 8, (base:   %3 = alloca %struct.list_head, align 8, !DIAssignID !18658045)  <./include/linux/list.h:528:33> FUNC=blk_mq_flush_plug_list L=2
+[LOAD] Tainted load from tracked pointer:   %237 = load ptr, ptr %3, align 8, (  %3 = alloca %struct.list_head, align 8, !DIAssignID !18658045)  <block/blk-mq.c:2576:2> FUNC=blk_mq_flush_plug_list L=2
+[LOAD] Tainted load from tracked pointer:   %256 = load volatile ptr, ptr %3, align 8, (  %3 = alloca %struct.list_head, align 8, !DIAssignID !18658045)  <./include/linux/list.h:373:9> FUNC=blk_mq_flush_plug_list L=2
+[LOAD] Tainted load from tracked pointer:   %300 = load volatile ptr, ptr %3, align 8, (  %3 = alloca %struct.list_head, align 8, !DIAssignID !18658045)  <./include/linux/list.h:373:9> FUNC=blk_mq_flush_plug_list L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %308 = load ptr, ptr %108, align 8, (base:   %3 = alloca %struct.list_head, align 8, !DIAssignID !18658045)  <./include/linux/list.h:528:33> FUNC=blk_mq_flush_plug_list L=2
+  [USE] Taint flows to:   store ptr %305, ptr %308, align 8, <./include/linux/list.h:533:13> FUNC=blk_mq_flush_plug_list L=2
+  [USE] Taint flows to:   store ptr %308, ptr %306, align 8, <./include/linux/list.h:534:13> FUNC=blk_mq_flush_plug_list L=2
+  [STORE DESTINATION] Marking pointer as tainted:   %306 = getelementptr inbounds nuw i8, ptr %305, i64 8, <./include/linux/list.h:534:13> FUNC=blk_mq_flush_plug_list L=2
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #0 (ptr %0) <./include/linux/list.h:534:13> FUNC=blk_mq_flush_plug_list L=2
+  [USE] Taint flows to:   %301 = icmp eq ptr %300, %3, <./include/linux/list.h:373:31> FUNC=blk_mq_flush_plug_list L=2
+  [USE] Taint flows to:   %309 = getelementptr inbounds nuw i8, ptr %300, i64 8, <./include/linux/list.h:530:9> FUNC=blk_mq_flush_plug_list L=2
+  [USE] Taint flows to:   store ptr %300, ptr %307, align 8, <./include/linux/list.h:531:13> FUNC=blk_mq_flush_plug_list L=2
+  [STORE DESTINATION] Marking pointer as tainted:   %307 = load ptr, ptr %306, align 8, <./include/linux/list.h:531:13> FUNC=blk_mq_flush_plug_list L=2
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #0 (ptr %0) <./include/linux/list.h:531:13> FUNC=blk_mq_flush_plug_list L=2
+  [USE] Taint flows to:   store ptr %307, ptr %309, align 8, <./include/linux/list.h:530:14> FUNC=blk_mq_flush_plug_list L=2
+  [USE] Taint flows to:   br i1 %301, label %310, label %302, <./include/linux/list.h:588:6> FUNC=blk_mq_flush_plug_list L=2
+  [USE] Taint flows to:   %259 = phi ptr [ %237, %236 ], [ %256, %255 ], <block/blk-mq.c:2576:2> FUNC=blk_mq_flush_plug_list L=2
+  [USE] Taint flows to:   %257 = icmp eq ptr %256, %3, <./include/linux/list.h:373:31> FUNC=blk_mq_flush_plug_list L=2
+  [USE] Taint flows to:   br i1 %257, label %342, label %258, <block/blk-mq.c:2568:7> FUNC=blk_mq_flush_plug_list L=2
+  [USE] Taint flows to:   %260 = icmp eq ptr %259, %3, <./include/linux/list.h:364:14> FUNC=blk_mq_flush_plug_list L=2
+  [USE] Taint flows to:   %262 = phi ptr [ %296, %290 ], [ %259, %258 ] FUNC=blk_mq_flush_plug_list L=2
+  [USE] Taint flows to:   %264 = getelementptr i8, ptr %262, i64 -72, <block/blk-mq.c:2576:2> FUNC=blk_mq_flush_plug_list L=2
+  [USE] Taint flows to:   %265 = getelementptr i8, ptr %262, i64 -64, <block/blk-mq.c:2577:3> FUNC=blk_mq_flush_plug_list L=2
+  [USE] Taint flows to:   %291 = getelementptr i8, ptr %262, i64 -48, <block/blk-mq.c:2579:11> FUNC=blk_mq_flush_plug_list L=2
+  [USE] Taint flows to:   %296 = load ptr, ptr %262, align 8, <block/blk-mq.c:2576:2> FUNC=blk_mq_flush_plug_list L=2
+  [USE] Taint flows to:   %297 = icmp eq ptr %296, %3, <./include/linux/list.h:364:14> FUNC=blk_mq_flush_plug_list L=2
+  [USE] Taint flows to:   br i1 %297, label %298, label %261, <block/blk-mq.c:2576:2> FUNC=blk_mq_flush_plug_list L=2
+  [USE] Taint flows to:   %292 = load i32, ptr %291, align 8, <block/blk-mq.c:2579:11> FUNC=blk_mq_flush_plug_list L=2
+  [USE] Taint flows to:   %293 = and i32 %292, 2097152, <block/blk-mq.c:2579:21> FUNC=blk_mq_flush_plug_list L=2
+  [USE] Taint flows to:   %294 = icmp ne i32 %293, 0, <block/blk-mq.c:2579:21> FUNC=blk_mq_flush_plug_list L=2
+  [USE] Taint flows to:   %295 = select i1 %294, i1 true, i1 %263, <block/blk-mq.c:2579:21> FUNC=blk_mq_flush_plug_list L=2
+  [USE] Taint flows to:   %263 = phi i1 [ %295, %290 ], [ %1, %258 ] FUNC=blk_mq_flush_plug_list L=2
+  [USE] Taint flows to:   %299 = phi i1 [ %1, %258 ], [ %295, %290 ] FUNC=blk_mq_flush_plug_list L=2
+  [USE] Taint flows to:   %343 = phi i1 [ %1, %225 ], [ %1, %219 ], [ %299, %341 ], [ false, %255 ] FUNC=blk_mq_flush_plug_list L=2
+  [USE] Taint flows to:   call void @blk_mq_run_hw_queue(ptr noundef %171, i1 noundef zeroext %343) #280, <block/blk-mq.c:0> FUNC=blk_mq_flush_plug_list L=2
+  [USE] Taint flows to:   %266 = load ptr, ptr %265, align 8, <block/blk-mq.c:2577:3> FUNC=blk_mq_flush_plug_list L=2
+  [USE] Taint flows to:   %267 = icmp eq ptr %266, %168, <block/blk-mq.c:2577:3> FUNC=blk_mq_flush_plug_list L=2
+  [USE] Taint flows to:   br i1 %267, label %269, label %268, <block/blk-mq.c:2577:3> FUNC=blk_mq_flush_plug_list L=2
+  [USE] Taint flows to:   %282 = call i32 @__SCT__tp_func_block_rq_insert(ptr noundef %281, ptr noundef %264) #279, <./include/trace/events/block.h:238:1> FUNC=blk_mq_flush_plug_list L=2
+  [USE] Taint flows to:   br i1 %260, label %298, label %261, <block/blk-mq.c:2576:2> FUNC=blk_mq_flush_plug_list L=2
+  [USE] Taint flows to:   store ptr %214, ptr %217, align 8, <./include/linux/list.h:533:13> FUNC=blk_mq_flush_plug_list L=2
+  [USE] Taint flows to:   store ptr %217, ptr %215, align 8, <./include/linux/list.h:534:13> FUNC=blk_mq_flush_plug_list L=2
+  [STORE DESTINATION] Marking pointer as tainted:   %215 = getelementptr inbounds nuw i8, ptr %171, i64 16, <./include/linux/list.h:534:13> FUNC=blk_mq_flush_plug_list L=2
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #0 (ptr %0) <./include/linux/list.h:534:13> FUNC=blk_mq_flush_plug_list L=2
+  [USE] Taint flows to:   %212 = icmp eq ptr %211, %3, <./include/linux/list.h:373:31> FUNC=blk_mq_flush_plug_list L=2
+  [USE] Taint flows to:   %218 = getelementptr inbounds nuw i8, ptr %211, i64 8, <./include/linux/list.h:530:9> FUNC=blk_mq_flush_plug_list L=2
+  [USE] Taint flows to:   store ptr %211, ptr %216, align 8, <./include/linux/list.h:531:13> FUNC=blk_mq_flush_plug_list L=2
+  [STORE DESTINATION] Marking pointer as tainted:   %216 = load ptr, ptr %215, align 8, <./include/linux/list.h:531:13> FUNC=blk_mq_flush_plug_list L=2
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #0 (ptr %0) <./include/linux/list.h:531:13> FUNC=blk_mq_flush_plug_list L=2
+  [USE] Taint flows to:   store ptr %216, ptr %218, align 8, <./include/linux/list.h:530:14> FUNC=blk_mq_flush_plug_list L=2
+  [USE] Taint flows to:   br i1 %212, label %219, label %213, <./include/linux/list.h:588:6> FUNC=blk_mq_flush_plug_list L=2
+  [USE] Taint flows to:   store ptr %162, ptr %163, align 8, <./include/linux/list.h:155:12> FUNC=blk_mq_flush_plug_list L=2
+  [STORE DESTINATION] Marking pointer as tainted:   %163 = getelementptr inbounds nuw i8, ptr %114, i64 80, <./include/linux/list.h:155:12> FUNC=blk_mq_flush_plug_list L=2
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #0 (ptr %0) <./include/linux/list.h:155:12> FUNC=blk_mq_flush_plug_list L=2
+  [USE] Taint flows to:   store volatile ptr %161, ptr %162, align 8, <./include/linux/list.h:156:2> FUNC=blk_mq_flush_plug_list L=2
+[SKIP] Load before taint origin, not tainting:   %216 = load ptr, ptr %215, align 8, <./include/linux/list.h:589:29> FUNC=blk_mq_flush_plug_list L=2
+[SKIP] Load before taint origin, not tainting:   %307 = load ptr, ptr %306, align 8, <./include/linux/list.h:589:29> FUNC=blk_mq_flush_plug_list L=2
+[POINTER PARAMETER] Call to blk_mq_flush_plug_list passes through pointer parameter 0 of __blk_flush_plug <block/blk-core.c:1213:2> FUNC=__blk_flush_plug L=3
+[POINTER PARAMETER] Call to blk_mq_flush_plug_list passes through pointer parameter 0 of blk_add_rq_to_plug <block/blk-mq.c:1384:3> FUNC=blk_add_rq_to_plug L=3
+[UPWARD-INTERPROC] Call to __blk_flush_plug taints argument 0 (local variable) <block/blk-core.c:1240:3> FUNC=__submit_bio L=4
+  [STORE DESTINATION] Marking pointer as tainted via call:   %2 = alloca %struct.blk_plug, align 8, !DIAssignID !18658030 FUNC=__submit_bio L=4
+[POINTER PARAMETER] Call to __blk_flush_plug passes through pointer parameter 0 of blk_finish_plug <block/blk-core.c:1240:3> FUNC=blk_finish_plug L=4
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <kernel/power/swap.c:242:2> FUNC=swsusp_write L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %2 = alloca %struct.hib_bio_batch, align 8, !DIAssignID !18658031 FUNC=swsusp_write L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <kernel/power/swap.c:242:2> FUNC=save_image L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %4 = alloca %struct.hib_bio_batch, align 8, !DIAssignID !18658034 FUNC=save_image L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <kernel/power/swap.c:242:2> FUNC=swsusp_read L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %2 = alloca %struct.hib_bio_batch, align 8, !DIAssignID !18658030 FUNC=swsusp_read L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <kernel/power/swap.c:242:2> FUNC=load_image L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %4 = alloca %struct.hib_bio_batch, align 8, !DIAssignID !18658034 FUNC=load_image L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <mm/page-writeback.c:2671:2> FUNC=do_writepages L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %4 = alloca %struct.blk_plug, align 8, !DIAssignID !18658033 FUNC=do_writepages L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <mm/readahead.c:173:2> FUNC=read_pages L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %2 = alloca %struct.blk_plug, align 8, !DIAssignID !18658028 FUNC=read_pages L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <mm/vmscan.c:5808:2> FUNC=shrink_node L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %8 = alloca %struct.blk_plug, align 8, !DIAssignID !18658168 FUNC=shrink_node L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <mm/madvise.c:1702:2> FUNC=do_madvise L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %6 = alloca %struct.blk_plug, align 8, !DIAssignID !18658036 FUNC=do_madvise L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <mm/swap_state.c:697:2> FUNC=swap_cluster_readahead L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %5 = alloca %struct.blk_plug, align 8, !DIAssignID !18658041 FUNC=swap_cluster_readahead L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <mm/swap_state.c:847:2> FUNC=swapin_readahead L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %5 = alloca %struct.blk_plug, align 8, !DIAssignID !18658032 FUNC=swapin_readahead L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <fs/fs-writeback.c:2194:2> FUNC=wb_writeback L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %3 = alloca %struct.blk_plug, align 8, !DIAssignID !18658034 FUNC=wb_writeback L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <fs/fs-writeback.c:2079:2> FUNC=writeback_inodes_wb L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %3 = alloca %struct.blk_plug, align 8, !DIAssignID !18658033 FUNC=writeback_inodes_wb L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <fs/buffer.c:817:2> FUNC=sync_mapping_buffers L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %2 = alloca %struct.blk_plug, align 8, !DIAssignID !18658028 FUNC=sync_mapping_buffers L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <fs/mpage.c:669:2> FUNC=mpage_writepages L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %5 = alloca %struct.blk_plug, align 8, !DIAssignID !18658067 FUNC=mpage_writepages L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <fs/direct-io.c:1272:2> FUNC=__blockdev_direct_IO L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %11 = alloca %struct.blk_plug, align 8, !DIAssignID !18658134 FUNC=__blockdev_direct_IO L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <fs/aio.c:2116:3> FUNC=__se_sys_io_submit L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %4 = alloca %struct.blk_plug, align 8, !DIAssignID !18658030 FUNC=__se_sys_io_submit L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <fs/aio.c:2158:3> FUNC=__ia32_compat_sys_io_submit L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %2 = alloca %struct.blk_plug, align 8, !DIAssignID !18658029 FUNC=__ia32_compat_sys_io_submit L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <fs/iomap/direct-io.c:709:2> FUNC=__iomap_dio_rw L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %9 = alloca %struct.blk_plug, align 8, !DIAssignID !18658090 FUNC=__iomap_dio_rw L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <fs/ext4/inode.c:4534:2> FUNC=__ext4_get_inode_loc L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %6 = alloca %struct.blk_plug, align 8, !DIAssignID !18658087 FUNC=__ext4_get_inode_loc L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <fs/ext4/inode.c:2786:2> FUNC=ext4_do_writepages L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %4 = alloca %struct.blk_plug, align 8, !DIAssignID !18658565 FUNC=ext4_do_writepages L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <fs/ext4/mballoc.c:2759:2> FUNC=ext4_mb_prefetch L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %5 = alloca %struct.blk_plug, align 8, !DIAssignID !18658036 FUNC=ext4_mb_prefetch L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <fs/ext4/fast_commit.c:1149:2> FUNC=ext4_fc_commit L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %4 = alloca %struct.blk_plug, align 8, !DIAssignID !18658475 FUNC=ext4_fc_commit L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <fs/jbd2/commit.c:790:2> FUNC=jbd2_journal_commit_transaction L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %6 = alloca %struct.blk_plug, align 8, !DIAssignID !18658098 FUNC=jbd2_journal_commit_transaction L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <fs/jbd2/checkpoint.c:135:2> FUNC=jbd2_log_do_checkpoint L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %3 = alloca %struct.blk_plug, align 8, !DIAssignID !18658045 FUNC=jbd2_log_do_checkpoint L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <fs/jbd2/checkpoint.c:135:2> FUNC=jbd2_log_do_checkpoint L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %2 = alloca %struct.blk_plug, align 8, !DIAssignID !18658044 FUNC=jbd2_log_do_checkpoint L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <fs/fat/fatent.c:706:3> FUNC=fat_ent_reada L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %4 = alloca %struct.blk_plug, align 8, !DIAssignID !18658049 FUNC=fat_ent_reada L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <fs/nfs/blocklayout/blocklayout.c:318:2> FUNC=bl_read_pagelist L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %5 = alloca %struct.blk_plug, align 8, !DIAssignID !18658046 FUNC=bl_read_pagelist L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <fs/nfs/blocklayout/blocklayout.c:440:2> FUNC=bl_write_pagelist L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %6 = alloca %struct.blk_plug, align 8, !DIAssignID !18658045 FUNC=bl_write_pagelist L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <fs/xfs/xfs_buf.c:1505:2> FUNC=xfs_buf_submit L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %2 = alloca %struct.blk_plug, align 8, !DIAssignID !18658025 FUNC=xfs_buf_submit L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <fs/xfs/xfs_buf.c:2162:2> FUNC=xfs_buf_delwri_submit_nowait L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %2 = alloca %struct.blk_plug, align 8, !DIAssignID !18658039 FUNC=xfs_buf_delwri_submit_nowait L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <fs/xfs/xfs_buf.c:2195:2> FUNC=xfs_buf_delwri_submit L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %3 = alloca %struct.blk_plug, align 8, !DIAssignID !18658046 FUNC=xfs_buf_delwri_submit L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <fs/xfs/xfs_dir2_readdir.c:333:2> FUNC=xfs_dir2_leaf_readbuf L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %8 = alloca %struct.blk_plug, align 8, !DIAssignID !18658098 FUNC=xfs_dir2_leaf_readbuf L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <fs/xfs/xfs_discard.c:165:2> FUNC=xfs_discard_extents L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %4 = alloca %struct.blk_plug, align 8, !DIAssignID !18658040 FUNC=xfs_discard_extents L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <fs/xfs/xfs_iwalk.c:122:2> FUNC=xfs_iwalk_ichunk_ra L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %5 = alloca %struct.blk_plug, align 8, !DIAssignID !18658039 FUNC=xfs_iwalk_ichunk_ra L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <fs/btrfs/transaction.c:1259:2> FUNC=btrfs_commit_transaction L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %3 = alloca %struct.blk_plug, align 8, !DIAssignID !18658106 FUNC=btrfs_commit_transaction L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <fs/btrfs/transaction.c:1259:2> FUNC=btrfs_write_and_wait_transaction L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %2 = alloca %struct.blk_plug, align 8, !DIAssignID !18658056 FUNC=btrfs_write_and_wait_transaction L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <fs/btrfs/file.c:1440:2> FUNC=btrfs_sync_file L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %6 = alloca %struct.blk_plug, align 8, !DIAssignID !18658132 FUNC=btrfs_sync_file L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <fs/btrfs/file.c:1440:2> FUNC=btrfs_sync_file L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %5 = alloca %struct.blk_plug, align 8, !DIAssignID !18658131 FUNC=btrfs_sync_file L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <fs/btrfs/tree-log.c:3003:3> FUNC=btrfs_sync_log L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %7 = alloca %struct.blk_plug, align 8, !DIAssignID !18658149 FUNC=btrfs_sync_log L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <fs/btrfs/scrub.c:1832:2> FUNC=submit_initial_group_read L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %4 = alloca %struct.blk_plug, align 8, !DIAssignID !18658035 FUNC=submit_initial_group_read L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <fs/f2fs/dir.c:1035:3> FUNC=f2fs_fill_dentries L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %5 = alloca %struct.blk_plug, align 8, !DIAssignID !18658651 FUNC=f2fs_fill_dentries L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <fs/f2fs/checkpoint.c:489:2> FUNC=f2fs_sync_meta_pages L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %8 = alloca %struct.blk_plug, align 8, !DIAssignID !18658052 FUNC=f2fs_sync_meta_pages L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <fs/f2fs/checkpoint.c:321:2> FUNC=f2fs_ra_meta_pages L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %7 = alloca %struct.blk_plug, align 8, !DIAssignID !18658039 FUNC=f2fs_ra_meta_pages L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <fs/f2fs/gc.c:1849:2> FUNC=do_garbage_collect L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %21 = alloca %struct.blk_plug, align 8, !DIAssignID !18658211 FUNC=do_garbage_collect L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <fs/f2fs/data.c:3310:2> FUNC=f2fs_write_data_pages L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %12 = alloca %struct.blk_plug, align 8, !DIAssignID !18658135 FUNC=f2fs_write_data_pages L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <fs/f2fs/node.c:2174:2> FUNC=f2fs_write_node_pages L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %3 = alloca %struct.blk_plug, align 8, !DIAssignID !18658033 FUNC=f2fs_write_node_pages L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <fs/f2fs/node.c:643:2> FUNC=f2fs_ra_node_pages L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %4 = alloca %struct.blk_plug, align 8, !DIAssignID !18658037 FUNC=f2fs_ra_node_pages L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <fs/f2fs/segment.c:529:3> FUNC=f2fs_balance_fs_bg L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %3 = alloca %struct.blk_plug, align 8, !DIAssignID !18658032 FUNC=f2fs_balance_fs_bg L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <fs/f2fs/segment.c:1631:2> FUNC=__issue_discard_cmd L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %3 = alloca %struct.blk_plug, align 8, !DIAssignID !18658079 FUNC=__issue_discard_cmd L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <fs/f2fs/segment.c:1698:3> FUNC=__issue_discard_cmd L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %4 = alloca %struct.blk_plug, align 8, !DIAssignID !18658080 FUNC=__issue_discard_cmd L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <fs/f2fs/segment.c:3398:4> FUNC=__issue_discard_cmd_range L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %6 = alloca %struct.blk_plug, align 8, !DIAssignID !18658072 FUNC=__issue_discard_cmd_range L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <block/fops.c:460:2> FUNC=blkdev_writepages L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %3 = alloca %struct.blk_plug, align 8, !DIAssignID !18658028 FUNC=blkdev_writepages L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <block/fops.c:259:2> FUNC=__blkdev_direct_IO L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %4 = alloca %struct.blk_plug, align 8, !DIAssignID !18658051 FUNC=__blkdev_direct_IO L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <block/blk-lib.c:169:2> FUNC=blkdev_issue_zeroout L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %8 = alloca %struct.blk_plug, align 8, !DIAssignID !18658046 FUNC=blkdev_issue_zeroout L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <block/blk-lib.c:0> FUNC=blkdev_issue_zeroout L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %7 = alloca %struct.blk_plug, align 8, !DIAssignID !18658045 FUNC=blkdev_issue_zeroout L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <block/blk-lib.c:366:2> FUNC=blkdev_issue_secure_erase L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %5 = alloca %struct.blk_plug, align 8, !DIAssignID !18658040 FUNC=blkdev_issue_secure_erase L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <block/blk-lib.c:100:2> FUNC=blkdev_issue_discard L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %5 = alloca %struct.blk_plug, align 8, !DIAssignID !18658033 FUNC=blkdev_issue_discard L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <block/ioctl.c:173:2> FUNC=blkdev_common_ioctl L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %17 = alloca %struct.blk_plug, align 8, !DIAssignID !18658068 FUNC=blkdev_common_ioctl L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <block/blk-cgroup.c:232:3> FUNC=blkg_async_bio_workfn L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %2 = alloca %struct.blk_plug, align 8, !DIAssignID !18658054 FUNC=blkg_async_bio_workfn L=5
+[POINTER PARAMETER] Call to blk_finish_plug passes through pointer parameter 0 of io_submit_sqes <io_uring/io_uring.c:2220:3> FUNC=io_submit_sqes L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <drivers/md/md.c:9230:2> FUNC=md_do_sync L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %7 = alloca %struct.blk_plug, align 8, !DIAssignID !18658143 FUNC=md_do_sync L=5
+[UPWARD-INTERPROC] Call to blk_finish_plug taints argument 0 (local variable) <drivers/md/dm-kcopyd.c:671:2> FUNC=do_work.83302 L=5
+  [STORE DESTINATION] Marking pointer as tainted via call:   %2 = alloca %struct.blk_plug, align 8, !DIAssignID !18658029 FUNC=do_work.83302 L=5
+[POINTER PARAMETER] Call to io_submit_sqes passes through pointer parameter 0 of io_sq_thread <io_uring/sqpoll.c:189:10> FUNC=io_sq_thread L=6
+[UPWARD-INTERPROC] No callers found for io_sq_thread (function taints pointer parameter #0)
+
+=== Maximum Level Statistics ===
+Largest L value: 2
+Number of instructions with L=2: 47
+
+Earliest instruction with L=2:
+    %162 = load ptr, ptr %108, align 8, <./include/linux/list.h:183:24> FUNC=blk_mq_flush_plug_list L=2
+
+Latest instruction with L=2:
+    call void @blk_mq_run_hw_queue(ptr noundef %171, i1 noundef zeroext %343) #280, <block/blk-mq.c:0> FUNC=blk_mq_flush_plug_list L=2
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 234 instructions
+Other visited functions (total): 101 instructions
+Total: 335 instructions
+Number of max-level functions: 1
+Number of other visited functions: 1
+
+=== Data Flow Span Details ===
+blk_mq_flush_plug_list, 39, 4, 79, 1
+blk_mq_request_issue_directly, full span
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/block/blk-mq.ll
+../linux-wllvm-defconfig/block/blk-mq.c

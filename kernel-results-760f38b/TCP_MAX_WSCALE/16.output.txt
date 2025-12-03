@@ -1,0 +1,244 @@
+=== Taint Tracker Configuration ===
+Function: synproxy_parse_options
+Opcode: call
+Constant: 14
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 14)
+
+[SOURCE] Tainting:   %69 = call i8 @llvm.umin.i8(i8 %68, i8 14), <net/netfilter/nf_synproxy_core.c:71:23> FUNC=synproxy_parse_options L=0
+[USE] Source instruction in data flow <net/netfilter/nf_synproxy_core.c:71:23> FUNC=synproxy_parse_options L=0
+[CHILD FUNCTION] Constant used in call to llvm.umin.i8 at argument 1 <net/netfilter/nf_synproxy_core.c:71:23> FUNC=synproxy_parse_options L=0
+[USE] Processing uses of:   %69 = call i8 @llvm.umin.i8(i8 %68, i8 14),
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #3 (ptr %3) <net/netfilter/nf_synproxy_core.c:0>
+[UPWARD-INTERPROC] Call to synproxy_parse_options taints argument 3 (local variable) <net/netfilter/nf_synproxy_core.c:1114:8> FUNC=ipv6_synproxy_hook L=1
+  [STORE DESTINATION] Marking pointer as tainted via call:   %4 = alloca %struct.synproxy_options, align 4, !DIAssignID !18658083 FUNC=ipv6_synproxy_hook L=1
+[UPWARD-INTERPROC] Call to synproxy_parse_options taints argument 3 (local variable) <net/netfilter/nf_synproxy_core.c:691:8> FUNC=ipv4_synproxy_hook L=1
+  [STORE DESTINATION] Marking pointer as tainted via call:   %4 = alloca %struct.synproxy_options, align 4, !DIAssignID !18658081 FUNC=ipv4_synproxy_hook L=1
+[UPWARD-INTERPROC] Call to synproxy_parse_options taints argument 3 (local variable) <net/ipv4/netfilter/ipt_SYNPROXY.c:28:7> FUNC=synproxy_tg4 L=1
+  [STORE DESTINATION] Marking pointer as tainted via call:   %3 = alloca %struct.synproxy_options, align 4, !DIAssignID !18658254 FUNC=synproxy_tg4 L=1
+[LOAD] Tainted load from tracked pointer:   %142 = load i8, ptr %4, align 4, (  %4 = alloca %struct.synproxy_options, align 4, !DIAssignID !18658083)  <net/netfilter/nf_synproxy_core.c:1134:12> FUNC=ipv6_synproxy_hook L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %147 = load i32, ptr %146, align 4, (base:   %4 = alloca %struct.synproxy_options, align 4, !DIAssignID !18658083)  <net/netfilter/nf_synproxy_core.c:1135:25> FUNC=ipv6_synproxy_hook L=1
+[LOAD] Tainted load from tracked pointer:   %157 = load i8, ptr %4, align 4, (  %4 = alloca %struct.synproxy_options, align 4, !DIAssignID !18658083)  <net/netfilter/nf_synproxy_core.c:1146:12> FUNC=ipv6_synproxy_hook L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %161 = load i32, ptr %160, align 4, (base:   %4 = alloca %struct.synproxy_options, align 4, !DIAssignID !18658083)  <net/netfilter/nf_synproxy_core.c:0> FUNC=ipv6_synproxy_hook L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %171 = load i32, ptr %170, align 4, (base:   %4 = alloca %struct.synproxy_options, align 4, !DIAssignID !18658083)  <net/netfilter/nf_synproxy_core.c:1155:3> FUNC=ipv6_synproxy_hook L=1
+[LOAD] Tainted load from tracked pointer:   %140 = load i8, ptr %4, align 4, (  %4 = alloca %struct.synproxy_options, align 4, !DIAssignID !18658081)  <net/netfilter/nf_synproxy_core.c:711:12> FUNC=ipv4_synproxy_hook L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %145 = load i32, ptr %144, align 4, (base:   %4 = alloca %struct.synproxy_options, align 4, !DIAssignID !18658081)  <net/netfilter/nf_synproxy_core.c:712:25> FUNC=ipv4_synproxy_hook L=1
+[LOAD] Tainted load from tracked pointer:   %155 = load i8, ptr %4, align 4, (  %4 = alloca %struct.synproxy_options, align 4, !DIAssignID !18658081)  <net/netfilter/nf_synproxy_core.c:723:12> FUNC=ipv4_synproxy_hook L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %159 = load i32, ptr %158, align 4, (base:   %4 = alloca %struct.synproxy_options, align 4, !DIAssignID !18658081)  <net/netfilter/nf_synproxy_core.c:0> FUNC=ipv4_synproxy_hook L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %169 = load i32, ptr %168, align 4, (base:   %4 = alloca %struct.synproxy_options, align 4, !DIAssignID !18658081)  <net/netfilter/nf_synproxy_core.c:732:3> FUNC=ipv4_synproxy_hook L=1
+[LOAD] Tainted load from tracked pointer:   %59 = load i8, ptr %3, align 4, (  %3 = alloca %struct.synproxy_options, align 4, !DIAssignID !18658254)  <net/ipv4/netfilter/ipt_SYNPROXY.c:38:16> FUNC=synproxy_tg4 L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %65 = load i16, ptr %64, align 2, (base:   %3 = alloca %struct.synproxy_options, align 4, !DIAssignID !18658254)  <net/ipv4/netfilter/ipt_SYNPROXY.c:39:26> FUNC=synproxy_tg4 L=1
+  [USE] Taint flows to:   store i16 %65, ptr %66, align 4, <net/ipv4/netfilter/ipt_SYNPROXY.c:39:19> FUNC=synproxy_tg4 L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %66 = getelementptr inbounds nuw i8, ptr %3, i64 4, <net/ipv4/netfilter/ipt_SYNPROXY.c:39:19> FUNC=synproxy_tg4 L=1
+  %66 = getelementptr inbounds nuw i8, ptr %3, i64 4,
+  → base pointer:
+          %3 = alloca %struct.synproxy_options, align 4, !DIAssignID !18658254
+      → no parameter connection
+  → Result: No parameter connection found
+  [USE] Taint flows to:   %61 = select i1 %58, i8 %60, i8 %59, <net/ipv4/netfilter/ipt_SYNPROXY.c:35:15> FUNC=synproxy_tg4 L=1
+  [USE] Taint flows to:   %60 = or i8 %59, 16 FUNC=synproxy_tg4 L=1
+  [USE] Taint flows to:   %63 = and i8 %61, %62, <net/ipv4/netfilter/ipt_SYNPROXY.c:38:16> FUNC=synproxy_tg4 L=1
+  [USE] Taint flows to:   store i8 %63, ptr %3, align 4, <net/ipv4/netfilter/ipt_SYNPROXY.c:38:16> FUNC=synproxy_tg4 L=1
+  [USE] Taint flows to:   %69 = and i8 %63, 8, <net/ipv4/netfilter/ipt_SYNPROXY.c:41:20> FUNC=synproxy_tg4 L=1
+  [USE] Taint flows to:   %73 = and i8 %63, -31, <net/ipv4/netfilter/ipt_SYNPROXY.c:44:17> FUNC=synproxy_tg4 L=1
+  [USE] Taint flows to:   store i8 %73, ptr %3, align 4, <net/ipv4/netfilter/ipt_SYNPROXY.c:44:17> FUNC=synproxy_tg4 L=1
+  [USE] Taint flows to:   %70 = icmp eq i8 %69, 0, <net/ipv4/netfilter/ipt_SYNPROXY.c:41:20> FUNC=synproxy_tg4 L=1
+  [USE] Taint flows to:   br i1 %70, label %72, label %71, <net/ipv4/netfilter/ipt_SYNPROXY.c:41:20> FUNC=synproxy_tg4 L=1
+  [USE] Taint flows to:   store i32 %169, ptr %167, align 4, <net/netfilter/nf_synproxy_core.c:732:3> FUNC=ipv4_synproxy_hook L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %167 = getelementptr inbounds nuw i8, ptr %4, i64 8, <net/netfilter/nf_synproxy_core.c:732:3> FUNC=ipv4_synproxy_hook L=1
+  %167 = getelementptr inbounds nuw i8, ptr %4, i64 8,
+  → base pointer:
+          %4 = alloca %struct.synproxy_options, align 4, !DIAssignID !18658081
+      → no parameter connection
+  → Result: No parameter connection found
+  [USE] Taint flows to:   store i32 %169, ptr %168, align 4, <net/netfilter/nf_synproxy_core.c:738:3> FUNC=ipv4_synproxy_hook L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %168 = getelementptr inbounds nuw i8, ptr %4, i64 12, <net/netfilter/nf_synproxy_core.c:738:3> FUNC=ipv4_synproxy_hook L=1
+  %168 = getelementptr inbounds nuw i8, ptr %4, i64 12,
+  → base pointer:
+          %4 = alloca %struct.synproxy_options, align 4, !DIAssignID !18658081
+      → no parameter connection
+  → Result: No parameter connection found
+  [USE] Taint flows to:   %163 = sub i32 %159, %162, <net/netfilter/nf_synproxy_core.c:724:33> FUNC=ipv4_synproxy_hook L=1
+  [USE] Taint flows to:   store i32 %159, ptr %168, align 4, <net/netfilter/nf_synproxy_core.c:732:3> FUNC=ipv4_synproxy_hook L=1
+  %168 = getelementptr inbounds nuw i8, ptr %4, i64 12,
+  → base pointer:
+          %4 = alloca %struct.synproxy_options, align 4, !DIAssignID !18658081
+      → no parameter connection
+  → Result: No parameter connection found
+  [USE] Taint flows to:   store i32 %159, ptr %167, align 4, <net/netfilter/nf_synproxy_core.c:738:3> FUNC=ipv4_synproxy_hook L=1
+  %167 = getelementptr inbounds nuw i8, ptr %4, i64 8,
+  → base pointer:
+          %4 = alloca %struct.synproxy_options, align 4, !DIAssignID !18658081
+      → no parameter connection
+  → Result: No parameter connection found
+  [USE] Taint flows to:   store i32 %163, ptr %164, align 4, <net/netfilter/nf_synproxy_core.c:724:20> FUNC=ipv4_synproxy_hook L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %164 = getelementptr inbounds nuw i8, ptr %39, i64 8, <net/netfilter/nf_synproxy_core.c:724:20> FUNC=ipv4_synproxy_hook L=1
+  %164 = getelementptr inbounds nuw i8, ptr %39, i64 8,
+  → base pointer:
+          %39 = phi ptr [ %34, %33 ], [ %37, %35 ],
+      PHI with 2 paths:
+      Path 0 (from %):
+                  %34 = tail call ptr @__nf_ct_ext_find(ptr noundef nonnull %23, i8 noundef zeroext 4) #278,
+          → call to __nf_ct_ext_find (no parameter)
+        → no parameter connection
+      Path 1 (from %):
+                  %37 = getelementptr i8, ptr %23, i64 %36,
+          → base pointer:
+                          %23 = load ptr, ptr %22, align 8,
+              → load from:
+                  %22 = getelementptr inbounds nuw i8, ptr %19, i64 176,
+                  %22 = getelementptr inbounds nuw i8, ptr %19, i64 176,
+                  → base pointer:
+                                          %19 = inttoptr i64 %18 to ptr,
+                      → no parameter connection
+              → no parameter connection
+        → no parameter connection
+  → Result: No parameter connection found
+  [USE] Taint flows to:   %156 = and i8 %155, 8, <net/netfilter/nf_synproxy_core.c:723:20> FUNC=ipv4_synproxy_hook L=1
+  [USE] Taint flows to:   %166 = and i8 %155, -8, <net/netfilter/nf_synproxy_core.c:728:16> FUNC=ipv4_synproxy_hook L=1
+  [USE] Taint flows to:   store i8 %166, ptr %4, align 4, <net/netfilter/nf_synproxy_core.c:728:16> FUNC=ipv4_synproxy_hook L=1
+  [USE] Taint flows to:   %157 = icmp eq i8 %156, 0, <net/netfilter/nf_synproxy_core.c:723:20> FUNC=ipv4_synproxy_hook L=1
+  [USE] Taint flows to:   br i1 %157, label %165, label %160, <net/netfilter/nf_synproxy_core.c:723:20> FUNC=ipv4_synproxy_hook L=1
+  [USE] Taint flows to:   store i32 %145, ptr %146, align 4, <net/netfilter/nf_synproxy_core.c:712:18> FUNC=ipv4_synproxy_hook L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %146 = getelementptr inbounds nuw i8, ptr %39, i64 4, <net/netfilter/nf_synproxy_core.c:712:18> FUNC=ipv4_synproxy_hook L=1
+  %146 = getelementptr inbounds nuw i8, ptr %39, i64 4,
+  → base pointer:
+          %39 = phi ptr [ %34, %33 ], [ %37, %35 ],
+      PHI with 2 paths:
+      Path 0 (from %):
+                  %34 = tail call ptr @__nf_ct_ext_find(ptr noundef nonnull %23, i8 noundef zeroext 4) #278,
+          → call to __nf_ct_ext_find (no parameter)
+        → no parameter connection
+      Path 1 (from %):
+                  %37 = getelementptr i8, ptr %23, i64 %36,
+          → base pointer:
+                          %23 = load ptr, ptr %22, align 8,
+              → load from:
+                  %22 = getelementptr inbounds nuw i8, ptr %19, i64 176,
+                  %22 = getelementptr inbounds nuw i8, ptr %19, i64 176,
+                  → base pointer:
+                                          %19 = inttoptr i64 %18 to ptr,
+                      → no parameter connection
+              → no parameter connection
+        → no parameter connection
+  → Result: No parameter connection found
+  [USE] Taint flows to:   %141 = and i8 %140, 8, <net/netfilter/nf_synproxy_core.c:711:20> FUNC=ipv4_synproxy_hook L=1
+  [USE] Taint flows to:   %142 = icmp eq i8 %141, 0, <net/netfilter/nf_synproxy_core.c:711:20> FUNC=ipv4_synproxy_hook L=1
+  [USE] Taint flows to:   br i1 %142, label %176, label %143, <net/netfilter/nf_synproxy_core.c:711:20> FUNC=ipv4_synproxy_hook L=1
+  [USE] Taint flows to:   store i32 %171, ptr %169, align 4, <net/netfilter/nf_synproxy_core.c:1155:3> FUNC=ipv6_synproxy_hook L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %169 = getelementptr inbounds nuw i8, ptr %4, i64 8, <net/netfilter/nf_synproxy_core.c:1155:3> FUNC=ipv6_synproxy_hook L=1
+  %169 = getelementptr inbounds nuw i8, ptr %4, i64 8,
+  → base pointer:
+          %4 = alloca %struct.synproxy_options, align 4, !DIAssignID !18658083
+      → no parameter connection
+  → Result: No parameter connection found
+  [USE] Taint flows to:   store i32 %171, ptr %170, align 4, <net/netfilter/nf_synproxy_core.c:1161:3> FUNC=ipv6_synproxy_hook L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %170 = getelementptr inbounds nuw i8, ptr %4, i64 12, <net/netfilter/nf_synproxy_core.c:1161:3> FUNC=ipv6_synproxy_hook L=1
+  %170 = getelementptr inbounds nuw i8, ptr %4, i64 12,
+  → base pointer:
+          %4 = alloca %struct.synproxy_options, align 4, !DIAssignID !18658083
+      → no parameter connection
+  → Result: No parameter connection found
+  [USE] Taint flows to:   %165 = sub i32 %161, %164, <net/netfilter/nf_synproxy_core.c:1147:33> FUNC=ipv6_synproxy_hook L=1
+  [USE] Taint flows to:   store i32 %161, ptr %170, align 4, <net/netfilter/nf_synproxy_core.c:1155:3> FUNC=ipv6_synproxy_hook L=1
+  %170 = getelementptr inbounds nuw i8, ptr %4, i64 12,
+  → base pointer:
+          %4 = alloca %struct.synproxy_options, align 4, !DIAssignID !18658083
+      → no parameter connection
+  → Result: No parameter connection found
+  [USE] Taint flows to:   store i32 %161, ptr %169, align 4, <net/netfilter/nf_synproxy_core.c:1161:3> FUNC=ipv6_synproxy_hook L=1
+  %169 = getelementptr inbounds nuw i8, ptr %4, i64 8,
+  → base pointer:
+          %4 = alloca %struct.synproxy_options, align 4, !DIAssignID !18658083
+      → no parameter connection
+  → Result: No parameter connection found
+  [USE] Taint flows to:   store i32 %165, ptr %166, align 4, <net/netfilter/nf_synproxy_core.c:1147:20> FUNC=ipv6_synproxy_hook L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %166 = getelementptr inbounds nuw i8, ptr %41, i64 8, <net/netfilter/nf_synproxy_core.c:1147:20> FUNC=ipv6_synproxy_hook L=1
+  %166 = getelementptr inbounds nuw i8, ptr %41, i64 8,
+  → base pointer:
+          %41 = phi ptr [ %36, %35 ], [ %39, %37 ],
+      PHI with 2 paths:
+      Path 0 (from %):
+                  %36 = tail call ptr @__nf_ct_ext_find(ptr noundef nonnull %25, i8 noundef zeroext 4) #278,
+          → call to __nf_ct_ext_find (no parameter)
+        → no parameter connection
+      Path 1 (from %):
+                  %39 = getelementptr i8, ptr %25, i64 %38,
+          → base pointer:
+                          %25 = load ptr, ptr %24, align 8,
+              → load from:
+                  %24 = getelementptr inbounds nuw i8, ptr %21, i64 176,
+                  %24 = getelementptr inbounds nuw i8, ptr %21, i64 176,
+                  → base pointer:
+                                          %21 = inttoptr i64 %20 to ptr,
+                      → no parameter connection
+              → no parameter connection
+        → no parameter connection
+  → Result: No parameter connection found
+  [USE] Taint flows to:   %158 = and i8 %157, 8, <net/netfilter/nf_synproxy_core.c:1146:20> FUNC=ipv6_synproxy_hook L=1
+  [USE] Taint flows to:   %168 = and i8 %157, -8, <net/netfilter/nf_synproxy_core.c:1151:16> FUNC=ipv6_synproxy_hook L=1
+  [USE] Taint flows to:   store i8 %168, ptr %4, align 4, <net/netfilter/nf_synproxy_core.c:1151:16> FUNC=ipv6_synproxy_hook L=1
+  [USE] Taint flows to:   %159 = icmp eq i8 %158, 0, <net/netfilter/nf_synproxy_core.c:1146:20> FUNC=ipv6_synproxy_hook L=1
+  [USE] Taint flows to:   br i1 %159, label %167, label %162, <net/netfilter/nf_synproxy_core.c:1146:20> FUNC=ipv6_synproxy_hook L=1
+  [USE] Taint flows to:   store i32 %147, ptr %148, align 4, <net/netfilter/nf_synproxy_core.c:1135:18> FUNC=ipv6_synproxy_hook L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %148 = getelementptr inbounds nuw i8, ptr %41, i64 4, <net/netfilter/nf_synproxy_core.c:1135:18> FUNC=ipv6_synproxy_hook L=1
+  %148 = getelementptr inbounds nuw i8, ptr %41, i64 4,
+  → base pointer:
+          %41 = phi ptr [ %36, %35 ], [ %39, %37 ],
+      PHI with 2 paths:
+      Path 0 (from %):
+                  %36 = tail call ptr @__nf_ct_ext_find(ptr noundef nonnull %25, i8 noundef zeroext 4) #278,
+          → call to __nf_ct_ext_find (no parameter)
+        → no parameter connection
+      Path 1 (from %):
+                  %39 = getelementptr i8, ptr %25, i64 %38,
+          → base pointer:
+                          %25 = load ptr, ptr %24, align 8,
+              → load from:
+                  %24 = getelementptr inbounds nuw i8, ptr %21, i64 176,
+                  %24 = getelementptr inbounds nuw i8, ptr %21, i64 176,
+                  → base pointer:
+                                          %21 = inttoptr i64 %20 to ptr,
+                      → no parameter connection
+              → no parameter connection
+        → no parameter connection
+  → Result: No parameter connection found
+  [USE] Taint flows to:   %143 = and i8 %142, 8, <net/netfilter/nf_synproxy_core.c:1134:20> FUNC=ipv6_synproxy_hook L=1
+  [USE] Taint flows to:   %144 = icmp eq i8 %143, 0, <net/netfilter/nf_synproxy_core.c:1134:20> FUNC=ipv6_synproxy_hook L=1
+  [USE] Taint flows to:   br i1 %144, label %178, label %145, <net/netfilter/nf_synproxy_core.c:1134:20> FUNC=ipv6_synproxy_hook L=1
+
+=== Maximum Level Statistics ===
+Largest L value: 1
+Number of instructions with L=1: 52
+
+Per-function breakdown:
+  ipv4_synproxy_hook: 20 value(s)
+  ipv6_synproxy_hook: 20 value(s)
+  synproxy_tg4: 12 value(s)
+
+Earliest instruction with L=1:
+    %142 = load i8, ptr %4, align 4, <net/netfilter/nf_synproxy_core.c:1134:12> FUNC=ipv6_synproxy_hook L=1
+
+Latest instruction with L=1:
+    store i8 %73, ptr %3, align 4, <net/ipv4/netfilter/ipt_SYNPROXY.c:44:17> FUNC=synproxy_tg4 L=1
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 108 instructions
+Other visited functions (total): 101 instructions
+Total: 209 instructions
+Number of max-level functions: 3
+Number of other visited functions: 1
+
+=== Data Flow Span Details ===
+ipv4_synproxy_hook, 24, 4, 30, 15
+ipv6_synproxy_hook, 24, 4, 30, 15
+synproxy_tg4, 8, 5, 10, 1
+synproxy_parse_options, full span
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/netfilter/nf_synproxy_core.ll
+../linux-wllvm-defconfig/net/netfilter/nf_synproxy_core.c

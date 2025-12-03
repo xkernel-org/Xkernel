@@ -1,0 +1,42 @@
+=== Taint Tracker Configuration ===
+Function: __ia32_compat_sys_io_submit
+Opcode: icmp
+Constant: 2
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 2)
+
+[SOURCE] Tainting:   %21 = icmp samesign ugt i32 %20, 2, <fs/aio.c:2143:9> FUNC=__ia32_compat_sys_io_submit L=0
+[USE] Source instruction in data flow <fs/aio.c:2143:9> FUNC=__ia32_compat_sys_io_submit L=0
+[USE] Processing uses of:   %21 = icmp samesign ugt i32 %20, 2,
+  [USE] Taint flows to:   br i1 %21, label %22, label %23, <fs/aio.c:2143:9> FUNC=__ia32_compat_sys_io_submit L=0
+  [USE] Taint flows to:   br i1 %21, label %54, label %55, <fs/aio.c:2157:9> FUNC=__ia32_compat_sys_io_submit L=0
+[NO USE] No uses of:   br i1 %21, label %54, label %55,
+[NO USE] No uses of:   br i1 %21, label %22, label %23,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 3
+
+Earliest instruction with L=0:
+    %21 = icmp samesign ugt i32 %20, 2, <fs/aio.c:2143:9> FUNC=__ia32_compat_sys_io_submit L=0
+
+Latest instruction with L=0:
+    br i1 %21, label %54, label %55, <fs/aio.c:2157:9> FUNC=__ia32_compat_sys_io_submit L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 36 instructions
+Other visited functions (total): 0 instructions
+Total: 36 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+__ia32_compat_sys_io_submit, 2, 4, 11, 2
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/aio.ll
+../linux-wllvm-defconfig/fs/aio.c

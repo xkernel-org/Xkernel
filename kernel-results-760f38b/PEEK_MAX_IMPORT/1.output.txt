@@ -1,0 +1,368 @@
+=== Taint Tracker Configuration ===
+Function: io_ring_buffers_peek
+Opcode: call
+Constant: 256
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 256)
+
+[SOURCE] Tainting:   %39 = tail call i64 @llvm.umin.i64(i64 %37, i64 256), <io_uring/kbuf.c:232:13> FUNC=io_ring_buffers_peek L=0
+[USE] Source instruction in data flow <io_uring/kbuf.c:232:13> FUNC=io_ring_buffers_peek L=0
+[CHILD FUNCTION] Constant used in call to llvm.umin.i64 at argument 1 <io_uring/kbuf.c:232:13> FUNC=io_ring_buffers_peek L=0
+[USE] Processing uses of:   %39 = tail call i64 @llvm.umin.i64(i64 %37, i64 256),
+  [USE] Taint flows to:   %40 = select i1 %38, i64 256, i64 %39, <io_uring/kbuf.c:232:13> FUNC=io_ring_buffers_peek L=0
+[USE] Processing uses of:   %40 = select i1 %38, i64 256, i64 %39,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %42 = tail call i64 @llvm.umin.i64(i64 %40, i64 %41), !dbg !18658128 <io_uring/kbuf.c:233:17>
+  [USE] Taint flows to:   %42 = tail call i64 @llvm.umin.i64(i64 %40, i64 %41), <io_uring/kbuf.c:233:17> FUNC=io_ring_buffers_peek L=0
+[USE] Processing uses of:   %42 = tail call i64 @llvm.umin.i64(i64 %40, i64 %41),
+  [USE] Taint flows to:   %43 = trunc nuw nsw i64 %42 to i16, <io_uring/kbuf.c:233:17> FUNC=io_ring_buffers_peek L=0
+[USE] Processing uses of:   %43 = trunc nuw nsw i64 %42 to i16,
+  [USE] Taint flows to:   %45 = phi i16 [ 1, %28 ], [ %43, %33 ] FUNC=io_ring_buffers_peek L=0
+[USE] Processing uses of:   %45 = phi i16 [ 1, %28 ], [ %43, %33 ]
+  [USE] Taint flows to:   %50 = icmp ugt i16 %45, %7 FUNC=io_ring_buffers_peek L=0
+  [USE] Taint flows to:   %53 = zext nneg i16 %45 to i64, <io_uring/kbuf.c:243:9> FUNC=io_ring_buffers_peek L=0
+  [USE] Taint flows to:   %66 = phi i16 [ %45, %44 ], [ %13, %15 ] FUNC=io_ring_buffers_peek L=0
+  [USE] Taint flows to:   %70 = phi i16 [ %45, %63 ], [ %67, %65 ] FUNC=io_ring_buffers_peek L=0
+[USE] Processing uses of:   %70 = phi i16 [ %45, %63 ], [ %67, %65 ]
+  [USE] Taint flows to:   %72 = zext nneg i16 %70 to i32, <io_uring/kbuf.c:0> FUNC=io_ring_buffers_peek L=0
+[USE] Processing uses of:   %72 = zext nneg i16 %70 to i32,
+  [USE] Taint flows to:   %86 = phi i32 [ %72, %75 ], [ %116, %110 ], <io_uring/kbuf.c:0> FUNC=io_ring_buffers_peek L=0
+[USE] Processing uses of:   %86 = phi i32 [ %72, %75 ], [ %116, %110 ],
+  [USE] Taint flows to:   %116 = add i32 %86, -1 FUNC=io_ring_buffers_peek L=0
+[USE] Processing uses of:   %116 = add i32 %86, -1
+  [USE] Taint flows to:   %117 = icmp eq i32 %116, 0 FUNC=io_ring_buffers_peek L=0
+[USE] Processing uses of:   %117 = icmp eq i32 %116, 0
+  [USE] Taint flows to:   br i1 %117, label %118, label %82, !llvm.loop !18658205 FUNC=io_ring_buffers_peek L=0
+[NO USE] No uses of:   br i1 %117, label %118, label %82, !llvm.loop !18658205
+[USE] Processing uses of:   %66 = phi i16 [ %45, %44 ], [ %13, %15 ]
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %67 = tail call i16 @llvm.umin.i16(i16 %66, i16 %7), !dbg !18658169 <io_uring/kbuf.c:250:22>
+  [USE] Taint flows to:   %67 = tail call i16 @llvm.umin.i16(i16 %66, i16 %7), <io_uring/kbuf.c:250:22> FUNC=io_ring_buffers_peek L=0
+[USE] Processing uses of:   %67 = tail call i16 @llvm.umin.i16(i16 %66, i16 %7),
+[USE] Processing uses of:   %53 = zext nneg i16 %45 to i64,
+  [USE] Taint flows to:   %54 = shl nuw nsw i64 %53, 4, <./include/linux/slab.h:942:6> FUNC=io_ring_buffers_peek L=0
+[USE] Processing uses of:   %54 = shl nuw nsw i64 %53, 4,
+  [CHILD FUNCTION] Tainted value used in call to __kmalloc_noprof at argument 0:   %55 = tail call noalias align 8 ptr @__kmalloc_noprof(i64 noundef range(i64 0, 1048561) %54, i32 noundef 3264) #279, <./include/linux/slab.h:905:9> FUNC=io_ring_buffers_peek L=0
+  [USE] Taint flows to:   %55 = tail call noalias align 8 ptr @__kmalloc_noprof(i64 noundef range(i64 0, 1048561) %54, i32 noundef 3264) #279, <./include/linux/slab.h:905:9> FUNC=io_ring_buffers_peek L=0
+[USE] Processing uses of:   %55 = tail call noalias align 8 ptr @__kmalloc_noprof(i64 noundef range(i64 0, 1048561) %54, i32 noundef 3264) #279,
+  [USE] Taint flows to:   %56 = icmp eq ptr %55, null, <io_uring/kbuf.c:244:7> FUNC=io_ring_buffers_peek L=0
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #1 (ptr %1) <io_uring/kbuf.c:248:13>
+  [USE] Taint flows to:   %71 = phi ptr [ %55, %63 ], [ %5, %65 ], <io_uring/kbuf.c:0> FUNC=io_ring_buffers_peek L=0
+[USE] Processing uses of:   %71 = phi ptr [ %55, %63 ], [ %5, %65 ],
+  [USE] Taint flows to:   %87 = phi ptr [ %71, %75 ], [ %104, %110 ], <io_uring/kbuf.c:0> FUNC=io_ring_buffers_peek L=0
+[USE] Processing uses of:   %87 = phi ptr [ %71, %75 ], [ %104, %110 ],
+  [USE] Taint flows to:   store ptr %101, ptr %87, align 8, <io_uring/kbuf.c:269:17> FUNC=io_ring_buffers_peek L=0
+  [USE] Taint flows to:   %103 = getelementptr inbounds nuw i8, ptr %87, i64 8, <io_uring/kbuf.c:270:8> FUNC=io_ring_buffers_peek L=0
+  [USE] Taint flows to:   %104 = getelementptr i8, ptr %87, i64 16, <io_uring/kbuf.c:271:6> FUNC=io_ring_buffers_peek L=0
+[USE] Processing uses of:   %104 = getelementptr i8, ptr %87, i64 16,
+  [USE] Taint flows to:   %129 = ptrtoint ptr %104 to i64, <io_uring/kbuf.c:286:13> FUNC=io_ring_buffers_peek L=0
+[USE] Processing uses of:   %129 = ptrtoint ptr %104 to i64,
+  [USE] Taint flows to:   %131 = sub i64 %129, %130, <io_uring/kbuf.c:286:13> FUNC=io_ring_buffers_peek L=0
+[USE] Processing uses of:   %131 = sub i64 %129, %130,
+  [USE] Taint flows to:   %132 = lshr exact i64 %131, 4, <io_uring/kbuf.c:286:13> FUNC=io_ring_buffers_peek L=0
+[USE] Processing uses of:   %132 = lshr exact i64 %131, 4,
+  [USE] Taint flows to:   %133 = trunc i64 %132 to i32, <io_uring/kbuf.c:286:9> FUNC=io_ring_buffers_peek L=0
+[USE] Processing uses of:   %133 = trunc i64 %132 to i32,
+  [USE] Taint flows to:   %135 = phi i32 [ %133, %118 ], [ -105, %3 ], [ -12, %52 ], [ -105, %24 ], <io_uring/kbuf.c:0> FUNC=io_ring_buffers_peek L=0
+[USE] Processing uses of:   %135 = phi i32 [ %133, %118 ], [ -105, %3 ], [ -12, %52 ], [ -105, %24 ],
+  [RETURN] Stop: Tainted value is returned:   ret i32 %135, <io_uring/kbuf.c:287:1>
+[USE] Processing uses of:   %103 = getelementptr inbounds nuw i8, ptr %87, i64 8,
+  [USE] Taint flows to:   store i64 %102, ptr %103, align 8, <io_uring/kbuf.c:270:16> FUNC=io_ring_buffers_peek L=0
+[NO USE] No uses of:   store i64 %102, ptr %103, align 8,
+[NO USE] No uses of:   store ptr %101, ptr %87, align 8,
+[USE] Processing uses of:   %56 = icmp eq ptr %55, null,
+  [USE] Taint flows to:   br i1 %56, label %134, label %57, <io_uring/kbuf.c:244:7> FUNC=io_ring_buffers_peek L=0
+[NO USE] No uses of:   br i1 %56, label %134, label %57,
+[USE] Processing uses of:   %50 = icmp ugt i16 %45, %7
+  [USE] Taint flows to:   %51 = select i1 %49, i1 %50, i1 false, <io_uring/kbuf.c:242:35> FUNC=io_ring_buffers_peek L=0
+[USE] Processing uses of:   %51 = select i1 %49, i1 %50, i1 false,
+  [USE] Taint flows to:   br i1 %51, label %52, label %65, <io_uring/kbuf.c:242:35> FUNC=io_ring_buffers_peek L=0
+[NO USE] No uses of:   br i1 %51, label %52, label %65,
+[UPWARD-INTERPROC] Call to io_ring_buffers_peek returns tainted value <io_uring/kbuf.c:302:9> FUNC=io_buffers_select L=1
+[UPWARD-INTERPROC] Call to io_ring_buffers_peek returns tainted value <io_uring/kbuf.c:335:9> FUNC=io_buffers_peek L=1
+[POINTER PARAMETER] Call to io_ring_buffers_peek passes through pointer parameter 1 of io_buffers_select <io_uring/kbuf.c:302:9> FUNC=io_buffers_select L=1
+[POINTER PARAMETER] Call to io_ring_buffers_peek passes through pointer parameter 1 of io_buffers_peek <io_uring/kbuf.c:335:9> FUNC=io_buffers_peek L=1
+  [USE] Taint flows to:   %18 = icmp sgt i32 %17, 0, <io_uring/kbuf.c:336:11> FUNC=io_buffers_peek L=1
+  [USE] Taint flows to:   %60 = phi i32 [ -2, %2 ], [ %17, %19 ], [ %17, %16 ], [ 1, %55 ], [ -105, %41 ], [ -105, %23 ], <io_uring/kbuf.c:0> FUNC=io_buffers_peek L=1
+  [USE] Taint flows to:   ret i32 %60, <io_uring/kbuf.c:343:1> FUNC=io_buffers_peek L=1
+  [RETURN] Tainted value is returned <io_uring/kbuf.c:343:1> FUNC=io_buffers_peek L=1
+  [USE] Taint flows to:   br i1 %18, label %19, label %59, <io_uring/kbuf.c:336:11> FUNC=io_buffers_peek L=1
+  [USE] Taint flows to:   %24 = icmp sgt i32 %23, 0, <io_uring/kbuf.c:310:11> FUNC=io_buffers_select L=1
+  [USE] Taint flows to:   %100 = phi i32 [ -2, %10 ], [ %23, %22 ], [ %23, %25 ], [ %23, %54 ], [ %23, %58 ], [ 1, %95 ], [ -105, %81 ], [ -105, %63 ], <io_uring/kbuf.c:0> FUNC=io_buffers_select L=1
+  [USE] Taint flows to:   %61 = trunc i32 %23 to i16, <io_uring/kbuf.h:146:11> FUNC=io_buffers_select L=1
+  [USE] Taint flows to:   %62 = add i16 %60, %61, <io_uring/kbuf.h:146:11> FUNC=io_buffers_select L=1
+  [USE] Taint flows to:   store i16 %62, ptr %59, align 2, <io_uring/kbuf.h:146:11> FUNC=io_buffers_select L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %59 = getelementptr inbounds nuw i8, ptr %15, i64 22, <io_uring/kbuf.h:146:11> FUNC=io_buffers_select L=1
+  %59 = getelementptr inbounds nuw i8, ptr %15, i64 22,
+  → base pointer:
+          %15 = tail call ptr @xa_load(ptr noundef nonnull %13, i64 noundef %14) #278,
+      → call to xa_load (no parameter)
+  → Result: No parameter connection found
+  [USE] Taint flows to:   ret i32 %100, <io_uring/kbuf.c:319:2> FUNC=io_buffers_select L=1
+  [RETURN] Tainted value is returned <io_uring/kbuf.c:319:2> FUNC=io_buffers_select L=1
+  [USE] Taint flows to:   br i1 %24, label %25, label %99, <io_uring/kbuf.c:310:11> FUNC=io_buffers_select L=1
+[SKIP] Load before taint origin, not tainting:   %60 = load i16, ptr %59, align 2, <io_uring/kbuf.h:146:11> FUNC=io_buffers_select L=1
+[UPWARD-INTERPROC] Call to io_buffers_select returns tainted value <io_uring/net.c:593:8> FUNC=io_send L=2
+[UPWARD-INTERPROC] Call to io_buffers_peek returns tainted value <io_uring/net.c:1100:9> FUNC=io_recv L=2
+[UPWARD-INTERPROC] Call to io_buffers_select taints argument 1 (local variable) <io_uring/net.c:593:8> FUNC=io_send L=2
+  [STORE DESTINATION] Marking pointer as tainted via call:   %3 = alloca %struct.buf_sel_arg, align 8, !DIAssignID !18658035 FUNC=io_send L=2
+[UPWARD-INTERPROC] Call to io_buffers_peek taints argument 1 (local variable) <io_uring/net.c:1100:9> FUNC=io_recv L=2
+  [STORE DESTINATION] Marking pointer as tainted via call:   %3 = alloca %struct.buf_sel_arg, align 8, !DIAssignID !18658042 FUNC=io_recv L=2
+  [USE] Taint flows to:   %79 = icmp slt i32 %78, 0, <io_uring/net.c:1101:7> FUNC=io_recv L=2
+  [USE] Taint flows to:   %82 = icmp eq i32 %78, 1, <io_uring/net.c:1105:11> FUNC=io_recv L=2
+  [USE] Taint flows to:   %85 = zext nneg i32 %78 to i64, <io_uring/net.c:1110:59> FUNC=io_recv L=2
+  [USE] Taint flows to:   store i32 %78, ptr %39, align 8, <io_uring/net.c:1113:22> FUNC=io_recv L=2
+  [STORE DESTINATION] Marking pointer as tainted:   %39 = getelementptr inbounds nuw i8, ptr %7, i64 8 <io_uring/net.c:1113:22> FUNC=io_recv L=2
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #0 (ptr %0) <io_uring/net.c:1113:22> FUNC=io_recv L=2
+  [USE] Taint flows to:   %117 = phi i32 [ %78, %80 ], [ %114, %109 ], [ -105, %101 ] FUNC=io_recv L=2
+  [USE] Taint flows to:   store i32 %117, ptr %4, align 4, <io_uring/net.c:1161:7> FUNC=io_recv L=2
+  [STORE DESTINATION] Marking pointer as tainted:   %4 = alloca i32, align 4, !DIAssignID !18658043 <io_uring/net.c:1161:7> FUNC=io_recv L=2
+  [USE] Taint flows to:   %180 = phi i32 [ %129, %157 ], [ %129, %158 ], [ -4, %174 ], [ %129, %172 ], [ %117, %116 ], [ %126, %175 ] FUNC=io_recv L=2
+  [USE] Taint flows to:   %190 = phi i32 [ %121, %120 ], [ %126, %175 ], [ %180, %179 ], <io_uring/net.c:1200:19> FUNC=io_recv L=2
+  [USE] Taint flows to:   %192 = icmp slt i32 %190, 1, <io_uring/net.c:1200:23> FUNC=io_recv L=2
+  [USE] Taint flows to:   %193 = icmp sgt i32 %190, 0, <io_uring/net.c:1201:10> FUNC=io_recv L=2
+  [USE] Taint flows to:   %196 = add i32 %194, %190, <io_uring/net.c:1202:7> FUNC=io_recv L=2
+  [USE] Taint flows to:   store i32 %196, ptr %4, align 4, <io_uring/net.c:1202:7> FUNC=io_recv L=2
+  [USE] Taint flows to:   br i1 %193, label %195, label %197, <io_uring/net.c:1201:10> FUNC=io_recv L=2
+  [USE] Taint flows to:   %220 = call fastcc zeroext i1 @io_recv_finish(ptr noundef %0, ptr noundef nonnull %4, ptr noundef %7, i1 noundef zeroext %192, i32 noundef %1) #280, <io_uring/net.c:1208:7> FUNC=io_recv L=2
+  [USE] Taint flows to:   br i1 %220, label %221, label %52, <io_uring/net.c:1208:6> FUNC=io_recv L=2
+  [USE] Taint flows to:   call void @iov_iter_init(ptr noundef nonnull %41, i32 noundef 0, ptr noundef %83, i64 noundef %85, i64 noundef %86) #279, <io_uring/net.c:1110:3> FUNC=io_recv L=2
+  [USE] Taint flows to:   br i1 %82, label %96, label %84, <io_uring/net.c:1105:11> FUNC=io_recv L=2
+  [USE] Taint flows to:   br i1 %79, label %80, label %81, <io_uring/net.c:1101:7> FUNC=io_recv L=2
+  [USE] Taint flows to:   %72 = icmp slt i32 %71, 0, <io_uring/net.c:594:6> FUNC=io_send L=2
+  [USE] Taint flows to:   store i32 %71, ptr %32, align 8, <io_uring/net.c:598:21> FUNC=io_send L=2
+  [STORE DESTINATION] Marking pointer as tainted:   %32 = getelementptr inbounds nuw i8, ptr %5, i64 8 <io_uring/net.c:598:21> FUNC=io_send L=2
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #0 (ptr %0) <io_uring/net.c:598:21> FUNC=io_send L=2
+  [USE] Taint flows to:   %85 = icmp eq i32 %71, 1, <io_uring/net.c:604:10> FUNC=io_send L=2
+  [USE] Taint flows to:   %93 = zext nneg i32 %71 to i64, <io_uring/net.c:612:15> FUNC=io_send L=2
+  [USE] Taint flows to:   %95 = phi i32 [ %90, %86 ], [ %71, %70 ] FUNC=io_send L=2
+  [USE] Taint flows to:   %228 = phi i32 [ -11, %121 ], [ -88, %2 ], [ -11, %14 ], [ %95, %94 ], [ 0, %206 ], [ 0, %209 ], [ 0, %211 ], [ 0, %219 ], [ -11, %111 ], <io_uring/net.c:0> FUNC=io_send L=2
+  [USE] Taint flows to:   ret i32 %228, <io_uring/net.c:682:1> FUNC=io_send L=2
+  [RETURN] Tainted value is returned <io_uring/net.c:682:1> FUNC=io_send L=2
+  [USE] Taint flows to:   call void @iov_iter_init(ptr noundef nonnull %34, i32 noundef 1, ptr noundef %74, i64 noundef %93, i64 noundef %83) #278, <io_uring/net.c:611:3> FUNC=io_send L=2
+  [USE] Taint flows to:   br i1 %85, label %86, label %92, <io_uring/net.c:604:10> FUNC=io_send L=2
+  [USE] Taint flows to:   br i1 %72, label %94, label %73, <io_uring/net.c:594:6> FUNC=io_send L=2
+[LOAD] Tainted load from tracked pointer:   %74 = load ptr, ptr %3, align 8, (  %3 = alloca %struct.buf_sel_arg, align 8, !DIAssignID !18658035)  <io_uring/net.c:597:10> FUNC=io_send L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %83 = load i64, ptr %26, align 8, (base:   %3 = alloca %struct.buf_sel_arg, align 8, !DIAssignID !18658035)  <io_uring/net.c:602:16> FUNC=io_send L=2
+[LOAD] Tainted load from tracked pointer:   %61 = load i32, ptr %32, align 8, (  %32 = getelementptr inbounds nuw i8, ptr %5, i64 8)  <io_uring/net.c:583:23> FUNC=io_send L=2
+[LOAD] Tainted load from tracked pointer:   %83 = load ptr, ptr %3, align 8, (  %3 = alloca %struct.buf_sel_arg, align 8, !DIAssignID !18658042)  <io_uring/net.c:0> FUNC=io_recv L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %86 = load i64, ptr %34, align 8, (base:   %3 = alloca %struct.buf_sel_arg, align 8, !DIAssignID !18658042)  <io_uring/net.c:1111:9> FUNC=io_recv L=2
+[LOAD] Tainted load from tracked pointer:   %87 = load ptr, ptr %3, align 8, (  %3 = alloca %struct.buf_sel_arg, align 8, !DIAssignID !18658042)  <io_uring/net.c:1112:11> FUNC=io_recv L=2
+[LOAD] Tainted load from tracked pointer:   %222 = load i32, ptr %4, align 4, (  %4 = alloca i32, align 4, !DIAssignID !18658043)  <io_uring/net.c:1211:9> FUNC=io_recv L=2
+[LOAD] Tainted load from tracked pointer:   %66 = load i32, ptr %39, align 8, (  %39 = getelementptr inbounds nuw i8, ptr %7, i64 8)  <io_uring/net.c:1092:24> FUNC=io_recv L=2
+  [USE] Taint flows to:   %67 = trunc i32 %66 to i16, <io_uring/net.c:1092:18> FUNC=io_recv L=2
+  [USE] Taint flows to:   store i16 %67, ptr %36, align 8, <io_uring/net.c:1092:16> FUNC=io_recv L=2
+  [STORE DESTINATION] Marking pointer as tainted:   %36 = getelementptr inbounds nuw i8, ptr %3, i64 24 <io_uring/net.c:1092:16> FUNC=io_recv L=2
+  %36 = getelementptr inbounds nuw i8, ptr %3, i64 24
+  → base pointer:
+          %3 = alloca %struct.buf_sel_arg, align 8, !DIAssignID !18658042
+      → no parameter connection
+  → Result: No parameter connection found
+  [USE] Taint flows to:   %224 = phi i32 [ %222, %221 ], [ -11, %162 ], [ -11, %16 ], [ -88, %21 ], [ -11, %133 ], [ -529, %136 ], [ -529, %143 ], [ -529, %145 ], [ -529, %148 ], [ -529, %151 ], <io_uring/net.c:0> FUNC=io_recv L=2
+  [USE] Taint flows to:   ret i32 %224, <io_uring/net.c:1212:1> FUNC=io_recv L=2
+  [RETURN] Tainted value is returned <io_uring/net.c:1212:1> FUNC=io_recv L=2
+  [USE] Taint flows to:   %88 = icmp eq ptr %87, %33, <io_uring/net.c:1112:16> FUNC=io_recv L=2
+  [USE] Taint flows to:   %91 = icmp eq ptr %87, %90, <io_uring/net.c:1112:47> FUNC=io_recv L=2
+  [USE] Taint flows to:   store ptr %87, ptr %7, align 8, <io_uring/net.c:1114:19> FUNC=io_recv L=2
+  [STORE DESTINATION] Marking pointer as tainted:   %7 = load ptr, ptr %6, align 8, <io_uring/net.c:1114:19> FUNC=io_recv L=2
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #0 (ptr %0) <io_uring/net.c:1114:19> FUNC=io_recv L=2
+  [USE] Taint flows to:   br i1 %91, label %95, label %92, <io_uring/net.c:1112:35> FUNC=io_recv L=2
+  [USE] Taint flows to:   br i1 %88, label %95, label %89, <io_uring/net.c:1112:35> FUNC=io_recv L=2
+  [USE] Taint flows to:   %97 = load ptr, ptr %83, align 8, <io_uring/net.c:1106:26> FUNC=io_recv L=2
+  [USE] Taint flows to:   %98 = getelementptr inbounds nuw i8, ptr %83, i64 8, <io_uring/net.c:1107:26> FUNC=io_recv L=2
+  [USE] Taint flows to:   %99 = load i64, ptr %98, align 8, <io_uring/net.c:1107:26> FUNC=io_recv L=2
+  [USE] Taint flows to:   %100 = trunc i64 %99 to i32, <io_uring/net.c:1107:14> FUNC=io_recv L=2
+  [USE] Taint flows to:   %110 = phi i64 [ %99, %96 ], [ %107, %106 ], <io_uring/net.c:1127:45> FUNC=io_recv L=2
+  [USE] Taint flows to:   %112 = shl i64 %110, 32, <io_uring/net.c:1127:41> FUNC=io_recv L=2
+  [USE] Taint flows to:   %113 = ashr exact i64 %112, 32, <io_uring/net.c:1127:41> FUNC=io_recv L=2
+  [USE] Taint flows to:   %114 = call i32 @import_ubuf(i32 noundef 0, ptr noundef %111, i64 noundef %113, ptr noundef nonnull %41) #279, <io_uring/net.c:1127:9> FUNC=io_recv L=2
+  [USE] Taint flows to:   %115 = icmp eq i32 %114, 0, <io_uring/net.c:1129:7> FUNC=io_recv L=2
+  [USE] Taint flows to:   br i1 %115, label %118, label %116, <io_uring/net.c:1129:7> FUNC=io_recv L=2
+  [USE] Taint flows to:   store i32 %100, ptr %9, align 8, <io_uring/net.c:1107:12> FUNC=io_recv L=2
+  [STORE DESTINATION] Marking pointer as tainted:   %9 = getelementptr inbounds nuw i8, ptr %0, i64 16, <io_uring/net.c:1107:12> FUNC=io_recv L=2
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #0 (ptr %0) <io_uring/net.c:1107:12> FUNC=io_recv L=2
+  [USE] Taint flows to:   store ptr %97, ptr %42, align 8, <io_uring/net.c:1106:12> FUNC=io_recv L=2
+  [STORE DESTINATION] Marking pointer as tainted:   %42 = getelementptr inbounds nuw i8, ptr %0, i64 8 <io_uring/net.c:1106:12> FUNC=io_recv L=2
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #0 (ptr %0) <io_uring/net.c:1106:12> FUNC=io_recv L=2
+  [USE] Taint flows to:   %111 = phi ptr [ %97, %96 ], [ %104, %106 ], <io_uring/net.c:1127:36> FUNC=io_recv L=2
+  [USE] Taint flows to:   %62 = trunc i32 %61 to i16, <io_uring/net.c:583:17> FUNC=io_send L=2
+  [USE] Taint flows to:   store i16 %62, ptr %29, align 8, <io_uring/net.c:583:15> FUNC=io_send L=2
+  [STORE DESTINATION] Marking pointer as tainted:   %29 = getelementptr inbounds nuw i8, ptr %3, i64 24 <io_uring/net.c:583:15> FUNC=io_send L=2
+  %29 = getelementptr inbounds nuw i8, ptr %3, i64 24
+  → base pointer:
+          %3 = alloca %struct.buf_sel_arg, align 8, !DIAssignID !18658035
+      → no parameter connection
+  → Result: No parameter connection found
+  [USE] Taint flows to:   %84 = trunc i64 %83 to i32, <io_uring/net.c:602:12> FUNC=io_send L=2
+  [USE] Taint flows to:   %88 = shl i64 %83, 32, <io_uring/net.c:606:43> FUNC=io_send L=2
+  [USE] Taint flows to:   %89 = ashr exact i64 %88, 32, <io_uring/net.c:606:43> FUNC=io_send L=2
+  [USE] Taint flows to:   %90 = call i32 @import_ubuf(i32 noundef 1, ptr noundef %87, i64 noundef %89, ptr noundef nonnull %34) #278, <io_uring/net.c:606:9> FUNC=io_send L=2
+  [USE] Taint flows to:   %91 = icmp eq i32 %90, 0, <io_uring/net.c:608:7> FUNC=io_send L=2
+  [USE] Taint flows to:   br i1 %91, label %96, label %94, <io_uring/net.c:608:7> FUNC=io_send L=2
+  [USE] Taint flows to:   store i32 %84, ptr %28, align 8, <io_uring/net.c:602:10> FUNC=io_send L=2
+  [STORE DESTINATION] Marking pointer as tainted:   %28 = getelementptr inbounds nuw i8, ptr %0, i64 16 <io_uring/net.c:602:10> FUNC=io_send L=2
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #0 (ptr %0) <io_uring/net.c:602:10> FUNC=io_send L=2
+  [USE] Taint flows to:   %75 = icmp eq ptr %74, %25, <io_uring/net.c:597:15> FUNC=io_send L=2
+  [USE] Taint flows to:   %78 = icmp eq ptr %74, %77, <io_uring/net.c:597:46> FUNC=io_send L=2
+  [USE] Taint flows to:   store ptr %74, ptr %5, align 8, <io_uring/net.c:599:18> FUNC=io_send L=2
+  [STORE DESTINATION] Marking pointer as tainted:   %5 = load ptr, ptr %4, align 8, <io_uring/net.c:599:18> FUNC=io_send L=2
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #0 (ptr %0) <io_uring/net.c:599:18> FUNC=io_send L=2
+  [USE] Taint flows to:   %87 = load ptr, ptr %74, align 8, <io_uring/net.c:605:25> FUNC=io_send L=2
+  [USE] Taint flows to:   store ptr %87, ptr %35, align 8, <io_uring/net.c:605:11> FUNC=io_send L=2
+  [STORE DESTINATION] Marking pointer as tainted:   %35 = getelementptr inbounds nuw i8, ptr %0, i64 8 <io_uring/net.c:605:11> FUNC=io_send L=2
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #0 (ptr %0) <io_uring/net.c:605:11> FUNC=io_send L=2
+  [USE] Taint flows to:   br i1 %78, label %82, label %79, <io_uring/net.c:597:34> FUNC=io_send L=2
+  [USE] Taint flows to:   br i1 %75, label %82, label %76, <io_uring/net.c:597:34> FUNC=io_send L=2
+[LOAD] Tainted load from tracked pointer:   %58 = load ptr, ptr %5, align 8, (  %5 = load ptr, ptr %4, align 8, !dbg !18658037)  <io_uring/net.c:582:12> FUNC=io_send L=2
+[LOAD] Tainted load from tracked pointer:   %77 = load ptr, ptr %5, align 8, (  %5 = load ptr, ptr %4, align 8, !dbg !18658037)  <io_uring/net.c:597:55> FUNC=io_send L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %105 = load i64, ptr %36, align 8, (base:   %5 = load ptr, ptr %4, align 8,)  <./include/linux/uio.h:316:12> FUNC=io_send L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %157 = load i8, ptr %34, align 8, (base:   %5 = load ptr, ptr %4, align 8,)  <./include/linux/uio.h:106:12> FUNC=io_send L=2
+[LOAD] Tainted load from tracked pointer:   %160 = load ptr, ptr %5, align 8, (  %5 = load ptr, ptr %4, align 8, !dbg !18658037)  <io_uring/net.c:466:14> FUNC=io_send L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %163 = load i64, ptr %36, align 8, (base:   %5 = load ptr, ptr %4, align 8,)  <./include/linux/uio.h:316:12> FUNC=io_send L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %166 = load ptr, ptr %44, align 8, (base:   %5 = load ptr, ptr %4, align 8,)  <./include/linux/uio.h:98:15> FUNC=io_send L=2
+[LOAD] Tainted load from tracked pointer:   %54 = load i32, ptr %28, align 8, (  %28 = getelementptr inbounds nuw i8, ptr %0, i64 16)  <io_uring/net.c:578:14> FUNC=io_send L=2
+[LOAD] Tainted load from tracked pointer:   %122 = load i32, ptr %28, align 8, (  %28 = getelementptr inbounds nuw i8, ptr %0, i64 16)  <io_uring/net.c:662:12> FUNC=io_send L=2
+[LOAD] Tainted load from tracked pointer:   %124 = load ptr, ptr %35, align 8, (  %35 = getelementptr inbounds nuw i8, ptr %0, i64 8)  <io_uring/net.c:663:12> FUNC=io_send L=2
+[LOAD] Tainted load from tracked pointer:   %63 = load ptr, ptr %7, align 8, (  %7 = load ptr, ptr %6, align 8, !dbg !18658046)  <io_uring/net.c:1091:13> FUNC=io_recv L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %69 = load i32, ptr %40, align 4, (base:   %7 = load ptr, ptr %6, align 8,)  <io_uring/net.c:1097:17> FUNC=io_recv L=2
+[LOAD] Tainted load from tracked pointer:   %90 = load ptr, ptr %7, align 8, (  %7 = load ptr, ptr %6, align 8, !dbg !18658046)  <io_uring/net.c:1112:56> FUNC=io_recv L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %124 = load i64, ptr %47, align 8, (base:   %7 = load ptr, ptr %6, align 8,)  <./include/linux/uio.h:316:12> FUNC=io_recv L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %176 = load i32, ptr %44, align 4, (base:   %7 = load ptr, ptr %6, align 8,)  <io_uring/net.c:1195:49> FUNC=io_recv L=2
+[LOAD] Tainted load from tracked pointer:   %10 = load i32, ptr %9, align 8, (  %9 = getelementptr inbounds nuw i8, ptr %0, i64 16, !dbg !18658051)  <io_uring/net.c:1144:19> FUNC=io_recv L=2
+[LOAD] Tainted load from tracked pointer:   %72 = load i32, ptr %9, align 8, (  %9 = getelementptr inbounds nuw i8, ptr %0, i64 16, !dbg !18658051)  <io_uring/net.c:1098:18> FUNC=io_recv L=2
+[LOAD] Tainted load from tracked pointer:   %102 = load i32, ptr %9, align 8, (  %9 = getelementptr inbounds nuw i8, ptr %0, i64 16, !dbg !18658051)  <io_uring/net.c:1120:14> FUNC=io_recv L=2
+[LOAD] Tainted load from tracked pointer:   %163 = load i32, ptr %9, align 8, (  %9 = getelementptr inbounds nuw i8, ptr %0, i64 16, !dbg !18658051)  <io_uring/net.c:1186:12> FUNC=io_recv L=2
+[LOAD] Tainted load from tracked pointer:   %165 = load ptr, ptr %42, align 8, (  %42 = getelementptr inbounds nuw i8, ptr %0, i64 8)  <io_uring/net.c:1187:12> FUNC=io_recv L=2
+  [USE] Taint flows to:   %167 = getelementptr i8, ptr %165, i64 %166, <io_uring/net.c:1187:12> FUNC=io_recv L=2
+  [USE] Taint flows to:   store ptr %167, ptr %42, align 8, <io_uring/net.c:1187:12> FUNC=io_recv L=2
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #0 (ptr %0) <io_uring/net.c:1187:12> FUNC=io_recv L=2
+  [USE] Taint flows to:   %164 = sub i32 %163, %129, <io_uring/net.c:1186:12> FUNC=io_recv L=2
+  [USE] Taint flows to:   store i32 %164, ptr %9, align 8, <io_uring/net.c:1186:12> FUNC=io_recv L=2
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #0 (ptr %0) <io_uring/net.c:1186:12> FUNC=io_recv L=2
+  [USE] Taint flows to:   %103 = sext i32 %102 to i64, <io_uring/net.c:1120:10> FUNC=io_recv L=2
+  [USE] Taint flows to:   store i64 %103, ptr %5, align 8, <io_uring/net.c:1120:8> FUNC=io_recv L=2
+  [STORE DESTINATION] Marking pointer as tainted:   %5 = alloca i64, align 8, !DIAssignID !18658045 <io_uring/net.c:1120:8> FUNC=io_recv L=2
+  [USE] Taint flows to:   %73 = icmp eq i32 %72, 0, <io_uring/net.c:1098:18> FUNC=io_recv L=2
+  [USE] Taint flows to:   %74 = call i32 @llvm.smin.i32(i32 %72, i32 %69), <io_uring/net.c:1098:18> FUNC=io_recv L=2
+  [USE] Taint flows to:   %75 = select i1 %73, i32 %69, i32 %74, <io_uring/net.c:1098:18> FUNC=io_recv L=2
+  [USE] Taint flows to:   %76 = sext i32 %75 to i64, <io_uring/net.c:1098:18> FUNC=io_recv L=2
+  [USE] Taint flows to:   store i64 %76, ptr %35, align 8, <io_uring/net.c:1098:16> FUNC=io_recv L=2
+  [STORE DESTINATION] Marking pointer as tainted:   %35 = getelementptr inbounds nuw i8, ptr %3, i64 16 <io_uring/net.c:1098:16> FUNC=io_recv L=2
+  %35 = getelementptr inbounds nuw i8, ptr %3, i64 16
+  → base pointer:
+          %3 = alloca %struct.buf_sel_arg, align 8, !DIAssignID !18658042
+      → no parameter connection
+  → Result: No parameter connection found
+  [USE] Taint flows to:   %11 = sext i32 %10 to i64, <io_uring/net.c:1144:15> FUNC=io_recv L=2
+  [USE] Taint flows to:   store i64 %11, ptr %5, align 8, <io_uring/net.c:1144:9> FUNC=io_recv L=2
+  [USE] Taint flows to:   %177 = and i32 %176, 40, <io_uring/net.c:1195:59> FUNC=io_recv L=2
+  [USE] Taint flows to:   %178 = icmp eq i32 %177, 0, <io_uring/net.c:1195:59> FUNC=io_recv L=2
+  [USE] Taint flows to:   br i1 %178, label %189, label %179, <io_uring/net.c:1195:35> FUNC=io_recv L=2
+  [USE] Taint flows to:   %125 = trunc i64 %124 to i32, <io_uring/net.c:1173:13> FUNC=io_recv L=2
+  [USE] Taint flows to:   %127 = icmp slt i32 %126, %125, <io_uring/net.c:1176:10> FUNC=io_recv L=2
+  [USE] Taint flows to:   %130 = phi i32 [ %125, %123 ], [ %53, %120 ] FUNC=io_recv L=2
+  [USE] Taint flows to:   %181 = phi i32 [ %130, %157 ], [ %130, %158 ], [ %130, %174 ], [ %130, %172 ], [ %53, %116 ], [ %125, %175 ] FUNC=io_recv L=2
+  [USE] Taint flows to:   %191 = phi i32 [ %53, %120 ], [ %125, %175 ], [ %181, %179 ], <io_uring/net.c:0> FUNC=io_recv L=2
+  [USE] Taint flows to:   %53 = phi i32 [ 0, %25 ], [ %191, %219 ], <io_uring/net.c:1142:11> FUNC=io_recv L=2
+  [USE] Taint flows to:   %122 = icmp slt i32 %121, %53, <io_uring/net.c:1176:10> FUNC=io_recv L=2
+  [USE] Taint flows to:   br i1 %122, label %128, label %189, <io_uring/net.c:1176:10> FUNC=io_recv L=2
+  [USE] Taint flows to:   br i1 %127, label %128, label %175, <io_uring/net.c:1176:10> FUNC=io_recv L=2
+  [USE] Taint flows to:   %70 = icmp sgt i32 %69, 0, <io_uring/net.c:1097:25> FUNC=io_recv L=2
+  [USE] Taint flows to:   br i1 %70, label %71, label %77, <io_uring/net.c:1097:25> FUNC=io_recv L=2
+  [USE] Taint flows to:   %64 = icmp eq ptr %63, null, <io_uring/net.c:1091:7> FUNC=io_recv L=2
+  [USE] Taint flows to:   store ptr %63, ptr %3, align 8, <io_uring/net.c:1093:13> FUNC=io_recv L=2
+  [USE] Taint flows to:   br i1 %64, label %68, label %65, <io_uring/net.c:1091:7> FUNC=io_recv L=2
+  [USE] Taint flows to:   %126 = getelementptr i8, ptr %124, i64 %125, <io_uring/net.c:663:12> FUNC=io_send L=2
+  [USE] Taint flows to:   store ptr %126, ptr %35, align 8, <io_uring/net.c:663:12> FUNC=io_send L=2
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #0 (ptr %0) <io_uring/net.c:663:12> FUNC=io_send L=2
+  [USE] Taint flows to:   %123 = sub i32 %122, %109, <io_uring/net.c:662:12> FUNC=io_send L=2
+  [USE] Taint flows to:   store i32 %123, ptr %28, align 8, <io_uring/net.c:662:12> FUNC=io_send L=2
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #0 (ptr %0) <io_uring/net.c:662:12> FUNC=io_send L=2
+  [USE] Taint flows to:   %55 = icmp eq i32 %54, 0, <io_uring/net.c:578:14> FUNC=io_send L=2
+  [USE] Taint flows to:   %56 = select i1 %55, i32 2147483647, i32 %54, <io_uring/net.c:578:14> FUNC=io_send L=2
+  [USE] Taint flows to:   %57 = sext i32 %56 to i64, <io_uring/net.c:578:14> FUNC=io_send L=2
+  [USE] Taint flows to:   store i64 %57, ptr %27, align 8, <io_uring/net.c:576:27> FUNC=io_send L=2
+  [STORE DESTINATION] Marking pointer as tainted:   %27 = getelementptr inbounds nuw i8, ptr %3, i64 16 <io_uring/net.c:576:27> FUNC=io_send L=2
+  %27 = getelementptr inbounds nuw i8, ptr %3, i64 16
+  → base pointer:
+          %3 = alloca %struct.buf_sel_arg, align 8, !DIAssignID !18658035
+      → no parameter connection
+  → Result: No parameter connection found
+  [USE] Taint flows to:   %167 = ptrtoint ptr %166 to i64, <io_uring/net.c:472:40> FUNC=io_send L=2
+  [USE] Taint flows to:   %169 = sub i64 %167, %168, <io_uring/net.c:472:40> FUNC=io_send L=2
+  [USE] Taint flows to:   %170 = lshr exact i64 %169, 4, <io_uring/net.c:472:40> FUNC=io_send L=2
+  [USE] Taint flows to:   %171 = trunc i64 %170 to i32, <io_uring/net.c:472:10> FUNC=io_send L=2
+  [USE] Taint flows to:   %184 = phi i32 [ 1, %156 ], [ %171, %165 ], [ %180, %172 ] FUNC=io_send L=2
+  [USE] Taint flows to:   %185 = call fastcc range(i32 0, -65504) i32 @__io_put_kbufs(ptr noundef %0, i32 noundef %150, i32 noundef %184, i32 noundef %1) #280, <io_uring/kbuf.h:213:9> FUNC=io_send L=2
+  [USE] Taint flows to:   %190 = or i32 %185, 2, <io_uring/net.c:508:40> FUNC=io_send L=2
+  [USE] Taint flows to:   %200 = phi i32 [ %194, %192 ], [ %185, %189 ], [ %185, %183 ], <io_uring/net.c:0> FUNC=io_send L=2
+  [USE] Taint flows to:   store i32 %200, ptr %202, align 4, <io_uring/io_uring.h:225:17> FUNC=io_send L=2
+  [STORE DESTINATION] Marking pointer as tainted:   %202 = getelementptr inbounds nuw i8, ptr %0, i64 92, <io_uring/io_uring.h:225:17> FUNC=io_send L=2
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #0 (ptr %0) <io_uring/io_uring.h:225:17> FUNC=io_send L=2
+  [USE] Taint flows to:   %191 = call zeroext i1 @io_req_post_cqe(ptr noundef %0, i32 noundef %150, i32 noundef %190) #278, <io_uring/net.c:508:6> FUNC=io_send L=2
+  [USE] Taint flows to:   br i1 %191, label %195, label %199, <io_uring/net.c:508:6> FUNC=io_send L=2
+  [USE] Taint flows to:   %164 = icmp eq i64 %163, 0, <io_uring/net.c:471:7> FUNC=io_send L=2
+  [USE] Taint flows to:   br i1 %164, label %165, label %172, <io_uring/net.c:471:6> FUNC=io_send L=2
+  [USE] Taint flows to:   %161 = icmp eq ptr %160, null, <io_uring/net.c:467:7> FUNC=io_send L=2
+  [USE] Taint flows to:   %162 = select i1 %161, ptr %25, ptr %160, <io_uring/net.c:467:6> FUNC=io_send L=2
+  [USE] Taint flows to:   %168 = ptrtoint ptr %162 to i64, <io_uring/net.c:472:40> FUNC=io_send L=2
+  [USE] Taint flows to:   %176 = getelementptr %struct.change_member, ptr %162, i64 %175, i32 1, <io_uring/net.c:477:18> FUNC=io_send L=2
+  [USE] Taint flows to:   %177 = load i64, ptr %176, align 8, <io_uring/net.c:477:18> FUNC=io_send L=2
+  [USE] Taint flows to:   %178 = trunc i64 %177 to i32, <io_uring/net.c:477:18> FUNC=io_send L=2
+  [USE] Taint flows to:   %179 = call i32 @llvm.smin.i32(i32 %174, i32 %178), <io_uring/net.c:477:18> FUNC=io_send L=2
+  [USE] Taint flows to:   %181 = sub i32 %174, %179, <io_uring/net.c:480:7> FUNC=io_send L=2
+  [USE] Taint flows to:   %174 = phi i32 [ %181, %172 ], [ %150, %159 ] FUNC=io_send L=2
+  [USE] Taint flows to:   %182 = icmp eq i32 %181, 0, <io_uring/net.c:481:2> FUNC=io_send L=2
+  [USE] Taint flows to:   br i1 %182, label %183, label %172, <io_uring/net.c:481:2> FUNC=io_send L=2
+  [USE] Taint flows to:   %158 = icmp eq i8 %157, 0, <./include/linux/uio.h:119:26> FUNC=io_send L=2
+  [USE] Taint flows to:   br i1 %158, label %183, label %159, <io_uring/net.c:463:6> FUNC=io_send L=2
+  [USE] Taint flows to:   %106 = trunc i64 %105 to i32, <io_uring/net.c:652:13> FUNC=io_send L=2
+  [USE] Taint flows to:   %108 = phi i32 [ %106, %104 ], [ %50, %100 ], <io_uring/net.c:0> FUNC=io_send L=2
+  [USE] Taint flows to:   %50 = phi i32 [ 0, %19 ], [ %108, %195 ], <io_uring/net.c:0> FUNC=io_send L=2
+  [USE] Taint flows to:   %110 = icmp slt i32 %109, %108, <io_uring/net.c:657:10> FUNC=io_send L=2
+  [USE] Taint flows to:   br i1 %110, label %111, label %143, <io_uring/net.c:657:10> FUNC=io_send L=2
+  [USE] Taint flows to:   %59 = icmp eq ptr %58, null, <io_uring/net.c:582:6> FUNC=io_send L=2
+  [USE] Taint flows to:   store ptr %58, ptr %3, align 8, <io_uring/net.c:584:12> FUNC=io_send L=2
+  [USE] Taint flows to:   br i1 %59, label %63, label %60, <io_uring/net.c:582:6> FUNC=io_send L=2
+[LOAD] Tainted load from tracked pointer:   %107 = load i64, ptr %5, align 8, (  %5 = alloca i64, align 8, !DIAssignID !18658045)  <io_uring/net.c:1125:13> FUNC=io_recv L=2
+  [USE] Taint flows to:   %108 = trunc i64 %107 to i32, <io_uring/net.c:1125:13> FUNC=io_recv L=2
+  [USE] Taint flows to:   store i32 %108, ptr %9, align 8, <io_uring/net.c:1125:11> FUNC=io_recv L=2
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #0 (ptr %0) <io_uring/net.c:1125:11> FUNC=io_recv L=2
+[UPWARD-INTERPROC] No callers found for io_send (function returns tainted value)
+[UPWARD-INTERPROC] No callers found for io_recv (function returns tainted value)
+[UPWARD-INTERPROC] No callers found for io_send (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for io_recv (function taints pointer parameter #0)
+
+=== Maximum Level Statistics ===
+Largest L value: 2
+Number of instructions with L=2: 171
+
+Per-function breakdown:
+  io_recv: 89 value(s)
+  io_send: 82 value(s)
+
+Earliest instruction with L=2:
+    %50 = phi i32 [ 0, %19 ], [ %108, %195 ], <io_uring/net.c:0> FUNC=io_send L=2
+
+Latest instruction with L=2:
+    ret i32 %224, <io_uring/net.c:1212:1> FUNC=io_recv L=2
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 479 instructions
+Other visited functions (total): 337 instructions
+Total: 816 instructions
+Number of max-level functions: 2
+Number of other visited functions: 3
+
+=== Data Flow Span Details ===
+io_recv, 0, 9, 55, 3
+io_send, 4, 2, 45, 1
+io_buffers_peek, full span
+io_buffers_select, full span
+io_ring_buffers_peek, full span
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/io_uring/kbuf.ll
+../linux-wllvm-defconfig/io_uring/kbuf.c

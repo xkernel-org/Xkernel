@@ -1,0 +1,5 @@
+SOURCE_FILE=kernel/sched/fair.c
+FUNCTION_NAME=should_numa_migrate_memory
+SOURCE_OP="lshr"
+CONSTANT_VALUE=4
+OCCURENCE=2

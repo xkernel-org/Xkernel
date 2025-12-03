@@ -1,0 +1,5 @@
+SOURCE_FILE=net/rds/ib_recv
+FUNCTION_NAME=rds_ib_recv_cache_put
+SOURCE_OP=icmp
+CONSTANT_VALUE=32
+OCCURENCE=1

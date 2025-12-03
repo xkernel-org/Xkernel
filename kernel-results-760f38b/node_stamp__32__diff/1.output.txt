@@ -1,0 +1,61 @@
+=== Taint Tracker Configuration ===
+Function: task_numa_work
+Opcode: shl
+Constant: 5
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+Occurrence: 1 (of constant 5)
+
+[SOURCE] Tainting:   %435 = shl i64 %434, 5, <kernel/sched/fair.c:3534:23> FUNC=task_numa_work L=0
+[USE] Source instruction in data flow <kernel/sched/fair.c:3534:23> FUNC=task_numa_work L=0
+[USE] Processing uses of:   %435 = shl i64 %434, 5,
+  [USE] Taint flows to:   %437 = add i64 %436, %435, <kernel/sched/fair.c:3534:17> FUNC=task_numa_work L=0
+[USE] Processing uses of:   %437 = add i64 %436, %435,
+  %44 = getelementptr inbounds nuw i8, ptr %6, i64 2576,
+  → base pointer:
+          %6 = inttoptr i64 %5 to ptr,
+      → no parameter connection
+  → Result: No parameter connection found
+  [STORE DESTINATION] Marking pointer as tainted:   %44 = getelementptr inbounds nuw i8, ptr %6, i64 2576, <kernel/sched/fair.c:3534:17>
+  [USE] Taint flows to:   store i64 %437, ptr %44, align 16, <kernel/sched/fair.c:3534:17> FUNC=task_numa_work L=0
+[NO USE] No uses of:   store i64 %437, ptr %44, align 16,
+[KILL] Store overwrites tainted pointer with non-tainted value:   store i64 %46, ptr %44, align 16,
+[LOAD] Tainted load from tracked pointer:   %45 = load i64, ptr %44, align 16, (  %44 = getelementptr inbounds nuw i8, ptr %6, i64 2576, !dbg !18658204)  <kernel/sched/fair.c:3343:16> FUNC=task_numa_work L=0
+[SKIP] Load before taint origin, not tainting:   %436 = load i64, ptr %44, align 16, <kernel/sched/fair.c:3534:17> FUNC=task_numa_work L=0
+[USE] Processing uses of:   %45 = load i64, ptr %44, align 16,
+  [USE] Taint flows to:   %46 = add i64 %45, 2000000, <kernel/sched/fair.c:3343:16> FUNC=task_numa_work L=0
+[USE] Processing uses of:   %46 = add i64 %45, 2000000,
+  %44 = getelementptr inbounds nuw i8, ptr %6, i64 2576,
+  → base pointer:
+          %6 = inttoptr i64 %5 to ptr,
+      → no parameter connection
+  → Result: No parameter connection found
+  [USE] Taint flows to:   store i64 %46, ptr %44, align 16, <kernel/sched/fair.c:3343:16> FUNC=task_numa_work L=0
+[NO USE] No uses of:   store i64 %46, ptr %44, align 16,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 6
+
+Earliest instruction with L=0:
+    %45 = load i64, ptr %44, align 16, <kernel/sched/fair.c:3343:16> FUNC=task_numa_work L=0
+
+Latest instruction with L=0:
+    store i64 %437, ptr %44, align 16, <kernel/sched/fair.c:3534:17> FUNC=task_numa_work L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 470 instructions
+Other visited functions (total): 0 instructions
+Total: 470 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+task_numa_work, 7, 1, 92, 4
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/kernel/sched/fair.ll
+../linux-wllvm-defconfig/kernel/sched/fair.c
