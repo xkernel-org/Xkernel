@@ -1538,7 +1538,7 @@ found:
         Instruction *earliestInst = nullptr;
         Instruction *latestInst = nullptr;
 
-        // Find the maximum level (only considering actually tainted instructions, not skipped/killed ones)
+        // Find the maximum level (only considering actually tainted values, not skipped/killed ones)
         for (auto &Entry : ValueLevel) {
             Value *V = Entry.first;
             // Only consider values that are actually in TaintedValues (not skipped or killed)
@@ -1550,8 +1550,11 @@ found:
         }
 
         if (maxLevel > INT_MIN) {
-            // Collect all instructions with the maximum level
+            // Collect all values (instructions and arguments) with the maximum level
             SmallVector<Instruction*, 16> MaxLevelInstructions;
+            SmallVector<Argument*, 8> MaxLevelArguments;
+            DenseMap<Function*, unsigned> MaxLevelCountPerFunction;
+
             for (auto &Entry : ValueLevel) {
                 Value *V = Entry.first;
                 // Only consider values that are actually in TaintedValues (not skipped or killed)
@@ -1560,9 +1563,21 @@ found:
                 if (Entry.second == maxLevel) {
                     if (Instruction *I = dyn_cast<Instruction>(V)) {
                         MaxLevelInstructions.push_back(I);
+                        Function *F = I->getFunction();
+                        if (F) {
+                            MaxLevelCountPerFunction[F]++;
+                        }
+                    } else if (Argument *Arg = dyn_cast<Argument>(V)) {
+                        MaxLevelArguments.push_back(Arg);
+                        Function *F = Arg->getParent();
+                        if (F) {
+                            MaxLevelCountPerFunction[F]++;
+                        }
                     }
                 }
             }
+
+            size_t totalMaxLevelValues = MaxLevelInstructions.size() + MaxLevelArguments.size();
 
             // Find earliest and latest by iterating through the module in order
             // The first and last occurrences in program order
@@ -1589,6 +1604,24 @@ found:
                 errs() << "\n=== Maximum Level Statistics ===\n";
                 errs() << "Largest L value: " << maxLevel << "\n";
                 errs() << "Number of instructions with L=" << maxLevel << ": " << MaxLevelInstructions.size() << "\n";
+                if (!MaxLevelArguments.empty()) {
+                    errs() << "Number of arguments with L=" << maxLevel << ": " << MaxLevelArguments.size() << "\n";
+                    errs() << "Total values with L=" << maxLevel << ": " << totalMaxLevelValues << "\n";
+                }
+
+                // Show per-function breakdown if multiple functions are involved
+                if (MaxLevelCountPerFunction.size() > 1) {
+                    errs() << "\nPer-function breakdown:\n";
+                    // Sort functions by name for deterministic output
+                    SmallVector<std::pair<Function*, unsigned>, 16> SortedFunctionCounts(
+                        MaxLevelCountPerFunction.begin(), MaxLevelCountPerFunction.end());
+                    llvm::sort(SortedFunctionCounts, [](const auto &A, const auto &B) {
+                        return A.first->getName() < B.first->getName();
+                    });
+                    for (auto &Entry : SortedFunctionCounts) {
+                        errs() << "  " << Entry.first->getName() << ": " << Entry.second << " value(s)\n";
+                    }
+                }
 
                 if (earliestInst) {
                     errs() << "\nEarliest instruction with L=" << maxLevel << ":\n";
@@ -1600,6 +1633,24 @@ found:
                     errs() << "  " << getValueName(latestInst) << getDebugLoc(latestInst) << getFuncLevel(latestInst, ValueLevel, FunctionLevel) << "\n";
                 } else if (latestInst == earliestInst) {
                     errs() << "\n(Earliest and latest are the same instruction)\n";
+                }
+            } else if (!MaxLevelArguments.empty()) {
+                // Only arguments at max level, no instructions
+                errs() << "\n=== Maximum Level Statistics ===\n";
+                errs() << "Largest L value: " << maxLevel << "\n";
+                errs() << "Number of arguments with L=" << maxLevel << ": " << MaxLevelArguments.size() << "\n";
+
+                // Show per-function breakdown
+                if (MaxLevelCountPerFunction.size() > 1) {
+                    errs() << "\nPer-function breakdown:\n";
+                    SmallVector<std::pair<Function*, unsigned>, 16> SortedFunctionCounts(
+                        MaxLevelCountPerFunction.begin(), MaxLevelCountPerFunction.end());
+                    llvm::sort(SortedFunctionCounts, [](const auto &A, const auto &B) {
+                        return A.first->getName() < B.first->getName();
+                    });
+                    for (auto &Entry : SortedFunctionCounts) {
+                        errs() << "  " << Entry.first->getName() << ": " << Entry.second << " value(s)\n";
+                    }
                 }
             }
         }
