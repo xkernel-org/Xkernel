@@ -499,10 +499,10 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
                                 DenseSet<Value*> TrackingVisited;
                                 Argument *Param = getPointerParameterOrigin(Store->getPointerOperand(), &TrackingVisited, true, 0);
                                 if (Param) {
-                                    errs() << "  → Connects to parameter #" << Param->getArgNo()
+                                    errs() << "  → Result: Connects to parameter #" << Param->getArgNo()
                                            << " (" << getValueName(Param) << ")\n";
                                 } else {
-                                    errs() << "  → No parameter connection\n";
+                                    errs() << "  → Result: No parameter connection found\n";
                                 }
                             }
                         }
@@ -775,6 +775,8 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
                                                 DenseSet<Value*> TrackingVisited;
                                                 Argument *PtrParam = getPointerParameterOrigin(Store->getPointerOperand(), &TrackingVisited, true, 0);
                                                 if (PtrParam) {
+                                                    errs() << "→ Result: Connects to parameter #" << PtrParam->getArgNo()
+                                                           << " (" << getValueName(PtrParam) << ")\n";
                                                     // Track this for upward interprocedural analysis ONLY
                                                     // We do NOT mark the parameter as tainted locally to avoid tracking
                                                     // all other operations on this parameter within this function
@@ -819,6 +821,7 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
                                                     }
                                                 }
                                                 } else {
+                                                    errs() << "→ Result: No parameter connection found\n";
                                                     // Local variable - mark pointer as tainted for propagation
                                                     if (TaintedPointers.insert(Ptr).second) {
                                                         // Already printed STORE DESTINATION above
@@ -1081,10 +1084,10 @@ found:
                                     DenseSet<Value*> TrackingVisited;
                                     Argument *Param = getPointerParameterOrigin(Store->getPointerOperand(), &TrackingVisited, true, 0);
                                     if (Param) {
-                                        errs() << "  → Connects to parameter #" << Param->getArgNo()
+                                        errs() << "  → Result: Connects to parameter #" << Param->getArgNo()
                                                << " (" << getValueName(Param) << ")\n";
                                     } else {
-                                        errs() << "  → No parameter connection\n";
+                                        errs() << "  → Result: No parameter connection found\n";
                                     }
                                 }
                                 if (TaintedPointers.insert(Ptr).second) {
