@@ -18,7 +18,7 @@ message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 message(STATUS "LLVM Includes: ${LLVM_INCLUDE_DIRS}")
 message(STATUS "LLVM Libraries: ${LLVM_LIBRARIES}")
 
-# Add our pass as a plugin
+# Add TaintTrackerPass as a plugin
 add_library(TaintTrackerPass MODULE
   TaintTrackerPass.cpp
 )
@@ -39,5 +39,25 @@ target_link_libraries(TaintTrackerPass PRIVATE
 
 # Match LLVM's CXX flags
 set_target_properties(TaintTrackerPass PROPERTIES
+  COMPILE_FLAGS "${LLVM_CXX_FLAGS}"
+)
+
+# Add BBSizePass as a plugin
+add_library(BBSizePass MODULE
+  BBSizePass.cpp
+)
+
+target_include_directories(BBSizePass PRIVATE
+  ${LLVM_INCLUDE_DIRS}
+)
+target_compile_definitions(BBSizePass PRIVATE
+  ${LLVM_DEFINITIONS}
+)
+
+target_link_libraries(BBSizePass PRIVATE
+  ${LLVM_LIBRARIES}
+)
+
+set_target_properties(BBSizePass PROPERTIES
   COMPILE_FLAGS "${LLVM_CXX_FLAGS}"
 )
