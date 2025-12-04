@@ -1,0 +1,2 @@
+  bsg_ioctl: BB21:I1 -> BB27:I0
+  sg_io: [BB13:I1 -> BB13:I2, BB14:I0 -> BB14:I1]

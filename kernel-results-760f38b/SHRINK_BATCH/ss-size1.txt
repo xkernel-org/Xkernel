@@ -1,0 +1,2 @@
+  do_sync_mmap_readahead: [BB6:I2 -> BB6:I3, BB7:I2 -> BB7:I3]
+  shrink_slab: BB8:I4 -> BB29:I2

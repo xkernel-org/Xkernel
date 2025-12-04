@@ -1,0 +1,1 @@
+  nfsd_prune_bucket_locked: BB0:I1 -> BB4:I4

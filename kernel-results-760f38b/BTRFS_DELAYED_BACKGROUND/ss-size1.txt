@@ -1,0 +1,5 @@
+  __btrfs_kill_delayed_node: [BB7:I14 -> BB7:I18, BB13:I15 -> BB13:I19]
+  __btrfs_update_delayed_inode: [BB10:I15 -> BB10:I19, BB15:I16 -> BB15:I20]
+  btrfs_async_run_delayed_root: BB2:I2 -> BB2:I3
+  btrfs_balance_delayed_items: [BB0:I5 -> BB0:I6, BB5:I1 -> BB5:I2, BB7:I2 -> BB7:I3]
+  btrfs_release_delayed_item: BB4:I11 -> BB4:I15
