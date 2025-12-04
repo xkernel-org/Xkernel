@@ -1,0 +1,12 @@
+__tcp_send_ack: BB4:I7 -> BB4:I7 => 1 instructions
+__tcp_transmit_skb: BB96:I4 -> BB96:I4 => 1 instructions
+dccp_delack_timer: BB9:I4 -> BB9:I4 => 1 instructions
+dccp_send_ack: BB2:I7 -> BB2:I7 => 1 instructions
+tcp_data_queue: BB97:I5 -> BB97:I5 => 1 instructions
+tcp_delack_timer_handler: BB9:I4 -> BB9:I4 => 1 instructions
+tcp_ecn_check_ce: [BB5:I5 -> BB5:I5, BB12:I5 -> BB12:I5] => 2 instructions
+tcp_event_data_recv: BB28:I0 -> BB38:I10 => 68 instructions
+tcp_rcv_state_process: BB45:I5 -> BB45:I5 => 1 instructions
+tcp_send_dupack: BB4:I5 -> BB4:I5 => 1 instructions
+
+Total: 78 instructions

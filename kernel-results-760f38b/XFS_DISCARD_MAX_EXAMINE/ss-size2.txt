@@ -1,0 +1,3 @@
+xfs_trim_gather_extents: BB13:I0 -> BB15:I3 => 12 instructions
+
+Total: 12 instructions

@@ -1,0 +1,5 @@
+__se_sys_io_uring_setup: BB5:I1 -> BB5:I15 => 15 instructions
+io_register_resize_rings: full span => 291 instructions
+io_uring_fill_params: full span => 90 instructions
+
+Total: 396 instructions

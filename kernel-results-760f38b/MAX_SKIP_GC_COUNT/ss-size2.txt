@@ -1,0 +1,3 @@
+f2fs_gc: BB39:I5 -> BB39:I9 => 5 instructions
+
+Total: 5 instructions

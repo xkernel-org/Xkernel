@@ -1,0 +1,6 @@
+do_epoll_wait: BB6:I0 -> BB72:I1 => 347 instructions
+do_select: [BB20:I7 -> BB20:I10, BB21:I4 -> BB67:I5] => 250 instructions
+do_sys_poll: [BB12:I7 -> BB12:I10, BB13:I4 -> BB48:I5] => 165 instructions
+select_estimate_accuracy: full span => 51 instructions
+
+Total: 813 instructions

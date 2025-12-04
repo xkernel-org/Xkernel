@@ -1,0 +1,7 @@
+bpf_sol_tcp_setsockopt: BB7:I1 -> BB7:I3 => 3 instructions
+dccp_send_ack: BB2:I14 -> BB2:I18 => 5 instructions
+tcp_disconnect: BB29:I44 -> BB29:I44 => 1 instructions
+tcp_init_sock: BB0:I24 -> BB0:I24 => 1 instructions
+tcp_rcv_state_process: BB45:I12 -> BB45:I16 => 5 instructions
+
+Total: 15 instructions

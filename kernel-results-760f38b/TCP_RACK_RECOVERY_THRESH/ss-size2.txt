@@ -1,0 +1,4 @@
+tcp_fastretrans_alert: [BB87:I3 -> BB87:I6, BB160:I3 -> BB160:I6] => 8 instructions
+tcp_rack_update_reo_wnd: BB5:I9 -> BB5:I9 => 1 instructions
+
+Total: 9 instructions

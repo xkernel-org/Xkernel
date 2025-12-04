@@ -1,0 +1,3 @@
+cache_check_rcu: [BB37:I1 -> BB37:I2, BB38:I2 -> BB38:I3] => 4 instructions
+
+Total: 4 instructions

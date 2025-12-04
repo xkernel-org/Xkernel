@@ -1,0 +1,3 @@
+task_numa_work: BB7:I2 -> BB92:I4 => 469 instructions
+
+Total: 469 instructions

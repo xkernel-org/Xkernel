@@ -1,0 +1,3 @@
+do_garbage_collect: BB5:I14 -> BB333:I2 => 1681 instructions
+
+Total: 1681 instructions

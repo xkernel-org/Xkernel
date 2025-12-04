@@ -1,0 +1,5 @@
+tcp_fastretrans_alert: BB97:I2 -> BB170:I3 => 379 instructions
+tcp_rack_detect_loss: full span => 93 instructions
+tcp_rack_mark_lost: full span => 35 instructions
+
+Total: 507 instructions

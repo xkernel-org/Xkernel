@@ -1,0 +1,3 @@
+__get_node_page: BB9:I0 -> BB9:I0 => 1 instructions
+
+Total: 1 instructions

@@ -1,0 +1,3 @@
+f2fs_build_segment_manager: BB1:I30 -> BB1:I35 => 6 instructions
+
+Total: 6 instructions
