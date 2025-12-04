@@ -29,9 +29,9 @@ analysis_time_minutes_mean_str = "{:.0f}".format(analysis_time_minutes_mean)
 analysis_time_minutes_stddev_str = "{:.0f}".format(analysis_time_minutes_stddev)
 analysis_time_minutes_max_str = "{:.0f}".format(analysis_time_minutes_max)
 
-latex_macros.append(f"\\newcommand{{\\wentaoNumbersSsAnalysisTimeMean}}{{{analysis_time_minutes_mean_str}}}\\xspace")
-latex_macros.append(f"\\newcommand{{\\wentaoNumbersSsAnalysisTimeStddev}}{{{analysis_time_minutes_stddev_str}}}\\xspace")
-latex_macros.append(f"\\newcommand{{\\wentaoNumbersSsAnalysisTimeMax}}{{{analysis_time_minutes_max_str}}}\\xspace")
+latex_macros.append(f"\\newcommand{{\\wentaoNumbersSsAnalysisTimeMean}}{{{analysis_time_minutes_mean_str}\\xspace}}")
+latex_macros.append(f"\\newcommand{{\\wentaoNumbersSsAnalysisTimeStddev}}{{{analysis_time_minutes_stddev_str}\\xspace}}")
+latex_macros.append(f"\\newcommand{{\\wentaoNumbersSsAnalysisTimeMax}}{{{analysis_time_minutes_max_str}\\xspace}}")
 
 # In[3]:
 
