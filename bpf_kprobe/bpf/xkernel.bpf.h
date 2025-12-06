@@ -16,7 +16,7 @@ struct task_data {
     u64 transition_end;
 };
 
-#define MAX_CS 16
+#define MAX_CS 64
 struct critical_span {
     __u64 soff;
     __u64 eoff;
@@ -110,6 +110,20 @@ static __always_inline bool check_stack_safe(struct pt_regs *ctx) {
 
     stack_len = stack_size / sizeof(__u64);
     stack_len = MIN(stack_len, MAX_STACK_DEPTH);
+    for (int i = 1; i < stack_len; i++) { // Skip the current function
+        __u64 addr = stack[i];
+        if (contains_addr(addr)) {
+            bpf_printk("stack[%d] = %lx is in a critical span", i, addr);
+            return false;
+        }
+    }
+    for (int i = 1; i < stack_len; i++) { // Skip the current function
+        __u64 addr = stack[i];
+        if (contains_addr(addr)) {
+            bpf_printk("stack[%d] = %lx is in a critical span", i, addr);
+            return false;
+        }
+    }
     for (int i = 1; i < stack_len; i++) { // Skip the current function
         __u64 addr = stack[i];
         if (contains_addr(addr)) {

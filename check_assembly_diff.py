@@ -94,7 +94,7 @@ def process_file(kernel_path, build_path, file_path, is_original=True):
         raise RuntimeError(f"Build artifact {obj_abs_path} not found")
 
     print_color(f"Generating disassembly for {rel_path}...", "blue")
-    objdump_cmd = ["objdump", "-S", str(dest_obj_file)]
+    objdump_cmd = ["objdump", "-d", str(dest_obj_file)]
     disassembly_content = run_command(objdump_cmd, cwd=kernel_path, capture_output=True)
     if disassembly_content is False:
         raise RuntimeError(f"Disassembly failed for {rel_path}")
@@ -155,6 +155,227 @@ def diff_ignore_number_colon(file1, file2):
     import difflib
     diff = list(difflib.unified_diff(lines1, lines2, fromfile=str(file1), tofile=str(file2), lineterm=''))
     return diff
+
+def parse_functions_from_disassembly(disas_file):
+    """Parse disassembly file to extract function information.
+    Returns a dict mapping function name to (start_addr, end_addr, size).
+    Handles sections where each function has its own section.
+    """
+    functions = {}
+    current_section = None
+    section_functions = []  # List of (start_addr, func_name) within current section
+    section_last_addr = None  # Last instruction address in current section
+    
+    with open(disas_file, "r") as f:
+        for line in f:
+            # Match section header: "Disassembly of section .text.function_name:"
+            section_match = re.match(r'^Disassembly of section (\.text[^:]+):', line)
+            if section_match:
+                # Save previous section's functions
+                if section_functions:
+                    for i, (start_addr, func_name) in enumerate(section_functions):
+                        if i + 1 < len(section_functions):
+                            end_addr = section_functions[i + 1][0]
+                        else:
+                            # Last function in section: use section's last address
+                            end_addr = section_last_addr if section_last_addr else start_addr
+                        
+                        start_int = int(start_addr, 16)
+                        end_int = int(end_addr, 16)
+                        size = end_int - start_int
+                        functions[func_name] = (start_addr, end_addr, size)
+                
+                current_section = section_match.group(1)
+                section_functions = []
+                section_last_addr = None
+                continue
+            
+            # Match function definition: "0000000000000000 <function_name>:"
+            func_match = re.match(r'^([0-9a-fA-F]+)\s+<([^>]+)>:', line)
+            if func_match:
+                start_addr = func_match.group(1)
+                func_name = func_match.group(2)
+                # Skip prefix functions like __pfx_* and .cold variants
+                if not func_name.startswith('__pfx_') and not func_name.endswith('.cold'):
+                    section_functions.append((start_addr, func_name))
+            
+            # Track last instruction address in section
+            if current_section:
+                inst_match = re.match(r'^\s+([0-9a-fA-F]+):', line)
+                if inst_match:
+                    section_last_addr = inst_match.group(1)
+    
+    # Handle last section's functions
+    if section_functions:
+        for i, (start_addr, func_name) in enumerate(section_functions):
+            if i + 1 < len(section_functions):
+                end_addr = section_functions[i + 1][0]
+            else:
+                end_addr = section_last_addr if section_last_addr else start_addr
+            
+            start_int = int(start_addr, 16)
+            end_int = int(end_addr, 16)
+            size = end_int - start_int
+            functions[func_name] = (start_addr, end_addr, size)
+    
+    return functions
+
+def find_function_for_address_in_file(disas_file, addr_str, line_number=None):
+    """Find which function contains the given address by searching in the disassembly file.
+    This is more accurate because it considers the section context.
+    If line_number is provided, it will prioritize matches near that line number.
+    Returns (function_name, start_addr, end_addr, size, instruction_count) or None.
+    """
+    try:
+        addr = int(addr_str, 16)
+    except ValueError:
+        return None
+    
+    current_section = None
+    current_func = None
+    current_func_start = None
+    last_inst_addr = None
+    best_match = None  # Store the best match
+    best_match_line = None  # Store the line number of the best match
+    
+    with open(disas_file, "r") as f:
+        lines = f.readlines()
+    
+    for i, line in enumerate(lines):
+        # Match section header
+        section_match = re.match(r'^Disassembly of section (\.text[^:]+):', line)
+        if section_match:
+            # Reset for new section
+            current_section = section_match.group(1)
+            current_func = None
+            current_func_start = None
+            last_inst_addr = None
+            continue
+        
+        # Match function definition
+        func_match = re.match(r'^([0-9a-fA-F]+)\s+<([^>]+)>:', line)
+        if func_match:
+            func_start = func_match.group(1)
+            func_name = func_match.group(2)
+            # Skip prefix functions
+            if not func_name.startswith('__pfx_') and not func_name.endswith('.cold'):
+                # Start new function
+                current_func = func_name
+                current_func_start = func_start
+                last_inst_addr = None
+            continue
+        
+        # Match instruction line
+        if current_func and current_func_start:
+            inst_match = re.match(r'^\s+([0-9a-fA-F]+):', line)
+            if inst_match:
+                inst_addr_str = inst_match.group(1)
+                inst_addr = int(inst_addr_str, 16)
+                last_inst_addr = inst_addr_str  # Update last seen instruction
+                
+                # Check if this is the target address
+                if inst_addr == addr:
+                    # Found the address! Verify it's in the current function's range and section matches
+                    func_start_int = int(current_func_start, 16)
+                    # Address must be >= function start (it's an instruction in the function)
+                    if func_start_int <= addr:
+                        # Verify section name matches function name (section is usually .text.function_name)
+                        section_matches = True  # Default to True if no section info
+                        if current_section:
+                            # Extract function name from section
+                            # Section format: .text.function_name or .text.unlikely.function_name
+                            section_func_name = current_section
+                            # Remove .text. or .text.unlikely. prefix
+                            if section_func_name.startswith('.text.unlikely.'):
+                                section_func_name = section_func_name[len('.text.unlikely.'):]
+                            elif section_func_name.startswith('.text.'):
+                                section_func_name = section_func_name[len('.text.'):]
+                            
+                            # Check if section function name matches current function
+                            section_matches = (section_func_name == current_func)
+                        
+                        # Only process if section matches (to avoid false matches in other sections)
+                        if section_matches:
+                            # Now find the function's end by reading ahead
+                            func_end_int = inst_addr
+                            func_start_line_idx = None
+                            func_end_line_idx = i
+                            
+                            # Find function start line index
+                            for j in range(i, -1, -1):
+                                prev_line = lines[j]
+                                prev_func_match = re.match(r'^([0-9a-fA-F]+)\s+<([^>]+)>:', prev_line)
+                                if prev_func_match and prev_func_match.group(1) == current_func_start:
+                                    func_start_line_idx = j
+                                    break
+                            
+                            # Read ahead to find function end
+                            for j in range(i + 1, len(lines)):
+                                next_line = lines[j]
+                                # Check if we hit next function or section
+                                next_func_match = re.match(r'^([0-9a-fA-F]+)\s+<([^>]+)>:', next_line)
+                                next_section_match = re.match(r'^Disassembly of section', next_line)
+                                if next_func_match or next_section_match:
+                                    # Use the last instruction address we saw
+                                    break
+                                
+                                next_inst_match = re.match(r'^\s+([0-9a-fA-F]+):', next_line)
+                                if next_inst_match:
+                                    func_end_int = int(next_inst_match.group(1), 16)
+                                    func_end_line_idx = j
+                            
+                            # Count instructions from function start to end
+                            instruction_count = 0
+                            if func_start_line_idx is not None:
+                                for j in range(func_start_line_idx + 1, func_end_line_idx + 1):
+                                    inst_match = re.match(r'^\s+([0-9a-fA-F]+):', lines[j])
+                                    if inst_match:
+                                        instruction_count += 1
+                            
+                            size = func_end_int - func_start_int
+                            # Store this match
+                            # If line_number is provided, prioritize matches near that line number
+                            if line_number is not None:
+                                # Calculate distance from target line number
+                                distance = abs(i + 1 - line_number)  # i+1 because line numbers are 1-based
+                                if best_match is None or (best_match_line is not None and distance < abs(best_match_line - line_number)):
+                                    best_match = (current_func, current_func_start, f"{func_end_int:x}", size, instruction_count)
+                                    best_match_line = i + 1
+                            else:
+                                # If no line_number provided, use the last match (as diff usually shows the last occurrence)
+                                best_match = (current_func, current_func_start, f"{func_end_int:x}", size, instruction_count)
+                                best_match_line = i + 1
+    
+    # Return the best match found
+    # If line_number was provided, return the match closest to that line number
+    # Otherwise, return the last match found
+    return best_match
+
+def find_function_for_address(functions, addr_str, disas_file=None, line_number=None):
+    """Find which function contains the given address.
+    If disas_file is provided, uses more accurate section-aware search.
+    If line_number is provided, it will prioritize matches near that line number.
+    Returns (function_name, start_addr, end_addr, size, instruction_count) or None.
+    """
+    # If disas_file is provided, use the more accurate method
+    if disas_file:
+        return find_function_for_address_in_file(disas_file, addr_str, line_number)
+    
+    # Fallback to simple search
+    try:
+        addr = int(addr_str, 16)
+    except ValueError:
+        return None
+    
+    # Find function that contains this address
+    for func_name, (start_str, end_str, size) in functions.items():
+        start_addr = int(start_str, 16)
+        end_addr = int(end_str, 16)
+        if start_addr <= addr <= end_addr:
+            # Return 0 for instruction_count as we don't have file access in fallback mode
+            return (func_name, start_str, end_str, size, 0)
+    
+    return None
 
 def main():
     """Main execution function."""
@@ -314,6 +535,7 @@ def main():
 
             # --- Step 8: Always perform diff comparison ---
             print_color("\n8. Comparing disassembly results...", "blue")
+            diff_result = None
             for file in original_disas:
                 if file in recompiled_disas:
                     print_color(f"\n--- Diff for {file.relative_to(kernel_path)} ---", "yellow")
@@ -322,6 +544,11 @@ def main():
                         if diff:
                             for line in diff:
                                 print(line)
+                            # Create a mock diff_result object for step 10
+                            class MockDiffResult:
+                                def __init__(self, diff_lines):
+                                    self.stdout = '\n'.join(diff_lines)
+                            diff_result = MockDiffResult(diff)
                         else:
                             print_color("No differences found", "green")
                     else:
@@ -361,31 +588,66 @@ def main():
             print_color("Skipping modification, recompilation, and diff steps because --sed was not provided.", "yellow")
 
         # --- Step 10: Use addr2line to get all source-code lines for the instructions that have changed
-        print_color("\n10. Using addr2line to get all source-code lines for the instructions that have changed...", "blue")
-        for line in diff_result.stdout.splitlines():
-            flag = "+" if args.reverse else "-"
-            if line.startswith(flag):
-                if len(line.split()) < 2:
-                    continue
-                offset = line.split()[1]
-                obj = target_recomp_obj if args.reverse else target_orig_obj
-                addr2line_cmd = ["addr2line", "-e", str(obj), offset]
-                result = subprocess.run(addr2line_cmd, capture_output=True, text=True)
-                if result.stdout:
-                    if args.lines:
-                        line_number = result.stdout.split(":")[1]
-                        line_number = line_number.split(" ")[0]
-                        line_number = line_number.rstrip("\n")
-                        try:
-                            line_number = int(line_number)
-                        except ValueError:
-                            continue
-                        if line_number in args.lines:
+        if args.sed and diff_result and diff_result.stdout:
+            print_color("\n10. Using addr2line to get all source-code lines for the instructions that have changed...", "blue")
+            changed_instructions = []  # Store (line, offset, line_number) for step 11
+            current_diff_line_number = None  # Track line number from @@ -line_number
+            for line in diff_result.stdout.splitlines():
+                # Track line number from diff header: @@ -line_number
+                if line.startswith("@@"):
+                    match = re.search(r'@@\s+-(\d+)', line)
+                    if match:
+                        current_diff_line_number = int(match.group(1))
+                flag = "+" if args.reverse else "-"
+                if line.startswith(flag):
+                    if len(line.split()) < 2:
+                        continue
+                    offset = line.split()[1].rstrip(':')  # Remove colon if present
+                    obj = target_recomp_obj if args.reverse else target_orig_obj
+                    addr2line_cmd = ["addr2line", "-e", str(obj), offset]
+                    result = subprocess.run(addr2line_cmd, capture_output=True, text=True)
+                    if result.stdout:
+                        if args.lines:
+                            line_number = result.stdout.split(":")[1]
+                            line_number = line_number.split(" ")[0]
+                            line_number = line_number.rstrip("\n")
+                            try:
+                                line_number = int(line_number)
+                            except ValueError:
+                                continue
+                            if line_number in args.lines:
+                                print(line+"\t"+result.stdout, end="")
+                                changed_instructions.append((line, offset, current_diff_line_number))
+                        else:
                             print(line+"\t"+result.stdout, end="")
+                            changed_instructions.append((line, offset, current_diff_line_number))
                     else:
-                        print(line+"\t"+result.stdout, end="")
-                else:
-                    print_color("No differences found", "green")
+                        print_color("No differences found", "green")
+            
+            # --- Step 11: Find function information for each changed instruction
+            if changed_instructions:
+                print_color("\n11. Finding function information for changed instructions...", "blue")
+                # Parse functions from original disassembly file
+                original_disas_file = original_disas[source_file]
+                functions = parse_functions_from_disassembly(original_disas_file)
+                
+                for line, offset, diff_line_number in changed_instructions:
+                    # Try to extract address from the line if offset is not valid
+                    # Handle diff format: "- 4bc:  41 be 03 00 00 00"
+                    if not offset or offset == '':
+                        # Extract address from line (format: "- 4bc:" or "+ 4bc:")
+                        addr_match = re.search(r'^\s*[-+]\s+([0-9a-fA-F]+):', line)
+                        if addr_match:
+                            offset = addr_match.group(1)
+                    
+                    # Use section-aware search for accurate function matching
+                    # Pass diff_line_number to help locate the correct function
+                    func_info = find_function_for_address(functions, offset, original_disas_file, diff_line_number)
+                    if func_info:
+                        func_name, start_addr, end_addr, size, instruction_count = func_info
+                        print(f"{line}\tFunction: {func_name}, Start: 0x{start_addr}, End: 0x{end_addr}, Size: {size} bytes, Instructions: {instruction_count}")
+                    else:
+                        print(f"{line}\tFunction: Not found (offset: {offset})")
 
         # --- Step 11: Cleanup intermediate object files ---
         # print_color("\n10. Cleaning up intermediate object files...", "blue")
