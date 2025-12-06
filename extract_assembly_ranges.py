@@ -290,6 +290,28 @@ def find_address_range_for_single_line(vmlinux_path, nm_output, readelf_output, 
     Find all assembly instructions that correspond to a single source line.
     Returns a tuple of (start_addr, end_addr, base_address, symbol_name) or (None, None, None, None) if not found.
     This is used when the start and end source locations are the same line.
+
+    With the below example, previously we would return [b124, b124].
+    Now we will return [b124, b2e1].
+
+    /users/user42/linux-6.14.0-xkernel/io_uring/napi.c:170
+    ffffffff81afb124:	41 8b 3f             	mov    (%r15),%edi
+    ffffffff81afb127:	4c 89 ea             	mov    %r13,%rdx
+    ffffffff81afb12a:	83 e1 01             	and    $0x1,%ecx
+    ffffffff81afb12d:	41 b8 08 00 00 00    	mov    $0x8,%r8d
+    ffffffff81afb133:	4c 89 e6             	mov    %r12,%rsi
+    ffffffff81afb136:	e8 65 72 6c 00       	call   ffffffff821c23a0 <napi_busy_loop_rcu>
+    /users/user42/linux-6.14.0-xkernel/io_uring/napi.c:169 (discriminator 5)
+    ...
+    /users/user42/linux-6.14.0-xkernel/io_uring/napi.c:170
+    ffffffff81afb2d0:	41 8b 3c 24          	mov    (%r12),%edi
+    ffffffff81afb2d4:	83 e1 01             	and    $0x1,%ecx
+    ffffffff81afb2d7:	41 b8 08 00 00 00    	mov    $0x8,%r8d
+    ffffffff81afb2dd:	31 d2                	xor    %edx,%edx
+    ffffffff81afb2df:	31 f6                	xor    %esi,%esi
+    ffffffff81afb2e1:	e8 ba 70 6c 00       	call   ffffffff821c23a0 <napi_busy_loop_rcu>
+    /users/user42/linux-6.14.0-xkernel/io_uring/napi.c:169 (discriminator 5)
+
     """
     try:
         if not nm_output:
@@ -313,10 +335,9 @@ def find_address_range_for_single_line(vmlinux_path, nm_output, readelf_output, 
             # Try fallback - just find single address
             addr = find_address_for_line_using_readelf(readelf_output, source_file, line_number)
             if addr:
-                print(f"Found single address using readelf fallback", file=sys.stderr)
+                print(f"TODO: Found single address using readelf fallback for a single source line (function: {function_name}, source file: {source_file}, line number: {line_number})", file=sys.stderr)
                 return addr, addr, None, function_name
-            else:
-                print(f"TODO: no address found for {function_name} in {source_file}:{line_number}", file=sys.stderr)
+            print(f"TODO: No address found for function: {function_name}, source file: {source_file}, line number: {line_number}", file=sys.stderr)
             return None, None, None, None
 
         # Use objdump to disassemble the function with source line info
@@ -326,7 +347,6 @@ def find_address_range_for_single_line(vmlinux_path, nm_output, readelf_output, 
             '--stop-address=0x' + hex(int(func_addr, 16) + 0x100000)[2:],
             vmlinux_path
         ]
-        print(f"[DEBUG] Running objdump command for range: {objdump_cmd}", file=sys.stderr)
         objdump_result = subprocess.run(objdump_cmd, capture_output=True, text=True, timeout=600)
 
         # Parse objdump output to find ALL addresses matching the source line
@@ -361,14 +381,13 @@ def find_address_range_for_single_line(vmlinux_path, nm_output, readelf_output, 
             # Return the range: first instruction to last instruction
             start_addr = addresses[0]
             end_addr = addresses[-1]
-            print(f"[DEBUG] Found {len(addresses)} instructions for line {line_number}: {start_addr} to {end_addr}", file=sys.stderr)
             return start_addr, end_addr, func_addr, func_symbol
 
         # If no exact match, try readelf fallback
         print(f"Warning: No match found in objdump for {normalized_source}:{line_number}, trying readelf", file=sys.stderr)
         addr = find_address_for_line_using_readelf(readelf_output, source_file, line_number)
         if addr:
-            print(f"Found single address using readelf fallback", file=sys.stderr)
+            print(f"TODO: Found single address using readelf fallback for a single source line (function: {function_name}, source file: {source_file}, line number: {line_number})", file=sys.stderr)
             return addr, addr, func_addr, func_symbol
         return None, None, None, None
 
@@ -408,8 +427,6 @@ def find_address_for_line(vmlinux_path, nm_output, readelf_output, source_file, 
             addr = find_address_for_line_using_readelf(readelf_output, source_file, line_number)
             if addr:
                 print(f"Found address using readelf fallback", file=sys.stderr)
-            else:
-                print(f"TODO: no address found for {function_name} in {source_file}:{line_number}", file=sys.stderr)
             return (addr, None, function_name) if addr else (None, None, None)
 
         # Use objdump to disassemble the function with source line info
@@ -420,7 +437,7 @@ def find_address_for_line(vmlinux_path, nm_output, readelf_output, source_file, 
             '--stop-address=0x' + hex(int(func_addr, 16) + 0x100000)[2:],
             vmlinux_path
         ]
-        print(f"[DEBUG] Running objdump command: {objdump_cmd}", file=sys.stderr)
+
         objdump_result = subprocess.run(objdump_cmd, capture_output=True, text=True, timeout=600)
 
         # Parse objdump output to find addresses matching the source line
@@ -665,7 +682,6 @@ def batch_process(directory, vmlinux_path, nm_output, readelf_output, max_worker
 
 
 def main():
-    # vmlinux_path = "../addr/linux-6.14.0/vmlinux"
     vmlinux_path = "./xkernel.vmlinux"
 
     if not os.path.exists(vmlinux_path):
