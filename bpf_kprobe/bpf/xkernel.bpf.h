@@ -117,20 +117,6 @@ static __always_inline bool check_stack_safe(struct pt_regs *ctx) {
             return false;
         }
     }
-    for (int i = 1; i < stack_len; i++) { // Skip the current function
-        __u64 addr = stack[i];
-        if (contains_addr(addr)) {
-            bpf_printk("stack[%d] = %lx is in a critical span", i, addr);
-            return false;
-        }
-    }
-    for (int i = 1; i < stack_len; i++) { // Skip the current function
-        __u64 addr = stack[i];
-        if (contains_addr(addr)) {
-            bpf_printk("stack[%d] = %lx is in a critical span", i, addr);
-            return false;
-        }
-    }
 
     return true;
 }
