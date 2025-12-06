@@ -224,15 +224,6 @@ def normalize_path(path):
     """Normalize source file path for matching."""
     # Remove leading ./ or ../
     path = path.lstrip('./')
-    # FIXME I don't think this is needed
-    # # Handle relative paths like ../linux-wllvm-defconfig/
-    # if path.startswith('../'):
-    #     # Extract just the file path after the project directory
-    #     parts = path.split('/')
-    #     # Find where the actual source path starts (after project directories)
-    #     for i, part in enumerate(parts):
-    #         if part in ['fs', 'drivers', 'include', 'kernel', 'mm', 'net', 'arch', 'lib']:
-    #             return '/'.join(parts[i:])
     return path
 
 
@@ -272,7 +263,6 @@ def find_address_for_line_using_readelf(readelf_output, source_file, line_number
                                 # Check if this matches our target line
                                 if line_num == line_number and file_name == source_filename:
                                     # Verify the directory path if available
-                                    # FIXME
                                     if current_dir:
                                         full_path = normalize_path(current_dir)
                                         # Check if paths are compatible
@@ -295,24 +285,121 @@ def find_address_for_line_using_readelf(readelf_output, source_file, line_number
         return None
 
 
-def find_address_for_line(vmlinux_path, nm_output, readelf_output, source_file, line_number, function_name):
+def find_address_range_for_single_line(vmlinux_path, nm_output, readelf_output, source_file, line_number, function_name):
     """
-    Use objdump to find the assembly address for a given source line.
-    Returns the address or None if not found.
+    Find all assembly instructions that correspond to a single source line.
+    Returns a tuple of (start_addr, end_addr, base_address, symbol_name) or (None, None, None, None) if not found.
+    This is used when the start and end source locations are the same line.
     """
     try:
         if not nm_output:
-            return None
+            return None, None, None, None
 
         # Get symbol address for the function using nm
         func_addr = None
+        func_symbol = None
         for line in nm_output.splitlines():
             parts = line.split()
             if len(parts) >= 3:
                 symbol_name = parts[2]
-                # Match exact function name or with .llvm suffix # FIXME
+                # Match exact function name or with suffixes
                 if symbol_name == function_name or symbol_name.startswith(f"{function_name}."):
                     func_addr = parts[0]
+                    func_symbol = symbol_name
+                    break
+
+        if not func_addr:
+            print(f"Warning: Could not find function '{function_name}' in symbol table for range finding", file=sys.stderr)
+            # Try fallback - just find single address
+            addr = find_address_for_line_using_readelf(readelf_output, source_file, line_number)
+            if addr:
+                print(f"Found single address using readelf fallback", file=sys.stderr)
+                return addr, addr, None, function_name
+            else:
+                print(f"TODO: no address found for {function_name} in {source_file}:{line_number}", file=sys.stderr)
+            return None, None, None, None
+
+        # Use objdump to disassemble the function with source line info
+        objdump_cmd = [
+            'objdump', '-d', '-l', '-S',
+            '--start-address=0x' + func_addr,
+            '--stop-address=0x' + hex(int(func_addr, 16) + 0x100000)[2:],
+            vmlinux_path
+        ]
+        print(f"[DEBUG] Running objdump command for range: {objdump_cmd}", file=sys.stderr)
+        objdump_result = subprocess.run(objdump_cmd, capture_output=True, text=True, timeout=600)
+
+        # Parse objdump output to find ALL addresses matching the source line
+        addresses = []
+        normalized_source = normalize_path(source_file)
+
+        current_file = None
+        current_line = None
+
+        for line in objdump_result.stdout.splitlines():
+            # Match source file/line references like "/path/to/file.c:123"
+            src_match = re.match(r'^([^:]+):(\d+)', line)
+            if src_match:
+                current_file = src_match.group(1)
+                current_line = int(src_match.group(2))
+                continue
+
+            # Match address lines like "ffffffff81234567:"
+            addr_match = re.match(r'^\s*([0-9a-f]+):\s+', line)
+            if addr_match:
+                current_addr = addr_match.group(1)
+
+                # Check if this address corresponds to our target line
+                if current_file and current_line:
+                    # Normalize the file path for comparison
+                    norm_current = normalize_path(current_file)
+                    if norm_current.endswith(normalized_source) or normalized_source.endswith(norm_current):
+                        if current_line == line_number:
+                            addresses.append(current_addr)
+
+        if addresses:
+            # Return the range: first instruction to last instruction
+            start_addr = addresses[0]
+            end_addr = addresses[-1]
+            print(f"[DEBUG] Found {len(addresses)} instructions for line {line_number}: {start_addr} to {end_addr}", file=sys.stderr)
+            return start_addr, end_addr, func_addr, func_symbol
+
+        # If no exact match, try readelf fallback
+        print(f"Warning: No match found in objdump for {normalized_source}:{line_number}, trying readelf", file=sys.stderr)
+        addr = find_address_for_line_using_readelf(readelf_output, source_file, line_number)
+        if addr:
+            print(f"Found single address using readelf fallback", file=sys.stderr)
+            return addr, addr, func_addr, func_symbol
+        return None, None, None, None
+
+    except subprocess.TimeoutExpired:
+        print(f"Error: Timeout while processing {vmlinux_path}", file=sys.stderr)
+        return None, None, None, None
+    except Exception as e:
+        print(f"Error finding address range: {e}", file=sys.stderr)
+        return None, None, None, None
+
+
+def find_address_for_line(vmlinux_path, nm_output, readelf_output, source_file, line_number, function_name):
+    """
+    Use objdump to find the assembly address for a given source line.
+    Returns a tuple of (address, base_address, symbol_name) or (None, None, None) if not found.
+    """
+    try:
+        if not nm_output:
+            return None, None, None
+
+        # Get symbol address for the function using nm
+        func_addr = None
+        func_symbol = None
+        for line in nm_output.splitlines():
+            parts = line.split()
+            if len(parts) >= 3:
+                symbol_name = parts[2]
+                # Match exact function name or with suffixes
+                if symbol_name == function_name or symbol_name.startswith(f"{function_name}."):
+                    func_addr = parts[0]
+                    func_symbol = symbol_name
                     break
 
         if not func_addr:
@@ -321,7 +408,9 @@ def find_address_for_line(vmlinux_path, nm_output, readelf_output, source_file, 
             addr = find_address_for_line_using_readelf(readelf_output, source_file, line_number)
             if addr:
                 print(f"Found address using readelf fallback", file=sys.stderr)
-            return addr
+            else:
+                print(f"TODO: no address found for {function_name} in {source_file}:{line_number}", file=sys.stderr)
+            return (addr, None, function_name) if addr else (None, None, None)
 
         # Use objdump to disassemble the function with source line info
         # -d: disassemble, -l: include line numbers, -S: intermix source code
@@ -331,6 +420,7 @@ def find_address_for_line(vmlinux_path, nm_output, readelf_output, source_file, 
             '--stop-address=0x' + hex(int(func_addr, 16) + 0x100000)[2:],
             vmlinux_path
         ]
+        print(f"[DEBUG] Running objdump command: {objdump_cmd}", file=sys.stderr)
         objdump_result = subprocess.run(objdump_cmd, capture_output=True, text=True, timeout=600)
 
         # Parse objdump output to find addresses matching the source line
@@ -363,21 +453,22 @@ def find_address_for_line(vmlinux_path, nm_output, readelf_output, source_file, 
                             addresses.append(current_addr)
 
         if addresses:
-            return addresses[0]  # Return the first matching address
+            return addresses[0], func_addr, func_symbol  # Return address, base address, and symbol name
 
         # If no exact match, try readelf fallback
         print(f"Warning: No exact match found in objdump for {normalized_source}:{line_number}, trying readelf", file=sys.stderr)
         addr = find_address_for_line_using_readelf(readelf_output, source_file, line_number)
         if addr:
             print(f"Found address using readelf fallback", file=sys.stderr)
-        return addr
+            return addr, func_addr, func_symbol
+        return None, None, None
 
     except subprocess.TimeoutExpired:
         print(f"Error: Timeout while processing {vmlinux_path}", file=sys.stderr)
-        return None
+        return None, None, None
     except Exception as e:
         print(f"Error finding address: {e}", file=sys.stderr)
-        return None
+        return None, None, None
 
 
 def process_single_file(output_file, vmlinux_path, nm_output, readelf_output, verbose=True):
@@ -407,33 +498,73 @@ def process_single_file(output_file, vmlinux_path, nm_output, readelf_output, ve
         print(f"Latest: {result['latest_file']}:{result['latest_line']} (in {result['latest_func']})")
         print()
 
-    earliest_addr = find_address_for_line(
-        vmlinux_path,
-        nm_output,
-        readelf_output,
-        result['earliest_file'],
-        result['earliest_line'],
-        result['earliest_func']
-    )
+    # Check if start and end are the same source location
+    if (result['earliest_file'] == result['latest_file'] and
+        result['earliest_line'] == result['latest_line'] and
+        result['earliest_func'] == result['latest_func']):
+        # Same source line - find the assembly range for this single line
+        earliest_addr, latest_addr, earliest_base, earliest_symbol = find_address_range_for_single_line(
+            vmlinux_path,
+            nm_output,
+            readelf_output,
+            result['earliest_file'],
+            result['earliest_line'],
+            result['earliest_func']
+        )
+        latest_base = earliest_base
+        latest_symbol = earliest_symbol
+    else:
+        # Different source locations - find each address separately
+        earliest_addr, earliest_base, earliest_symbol = find_address_for_line(
+            vmlinux_path,
+            nm_output,
+            readelf_output,
+            result['earliest_file'],
+            result['earliest_line'],
+            result['earliest_func']
+        )
 
-    latest_addr = find_address_for_line(
-        vmlinux_path,
-        nm_output,
-        readelf_output,
-        result['latest_file'],
-        result['latest_line'],
-        result['latest_func']
-    )
+        latest_addr, latest_base, latest_symbol = find_address_for_line(
+            vmlinux_path,
+            nm_output,
+            readelf_output,
+            result['latest_file'],
+            result['latest_line'],
+            result['latest_func']
+        )
+
+    # Calculate offsets if we have base addresses
+    earliest_offset = None
+    latest_offset = None
+    if earliest_addr and earliest_base:
+        earliest_offset = hex(int(earliest_addr, 16) - int(earliest_base, 16))
+    if latest_addr and latest_base:
+        latest_offset = hex(int(latest_addr, 16) - int(latest_base, 16))
 
     if verbose:
         if earliest_addr and latest_addr:
-            print(f"Assembly address range: 0x{earliest_addr} - 0x{latest_addr}")
+            # Format: source start, source end, binary start, binary end, symbol name, start offset, end offset
+            source_start = f"{result['earliest_file']}:{result['earliest_line']}"
+            source_end = f"{result['latest_file']}:{result['latest_line']}"
+            binary_start = f"0x{earliest_addr}"
+            binary_end = f"0x{latest_addr}"
+            symbol = earliest_symbol if earliest_symbol else "N/A"
+            start_off = earliest_offset if earliest_offset else "N/A"
+            end_off = latest_offset if latest_offset else "N/A"
+
+            print(f"{source_start}, {source_end}, {binary_start}, {binary_end}, {symbol}, {start_off}, {end_off}")
         elif earliest_addr:
-            print(f"Start address: 0x{earliest_addr}")
-            print("End address: Not found")
+            source_start = f"{result['earliest_file']}:{result['earliest_line']}"
+            binary_start = f"0x{earliest_addr}"
+            symbol = earliest_symbol if earliest_symbol else "N/A"
+            start_off = earliest_offset if earliest_offset else "N/A"
+            print(f"{source_start}, N/A, {binary_start}, N/A, {symbol}, {start_off}, N/A")
         elif latest_addr:
-            print(f"Start address: Not found")
-            print(f"End address: 0x{latest_addr}")
+            source_end = f"{result['latest_file']}:{result['latest_line']}"
+            binary_end = f"0x{latest_addr}"
+            symbol = latest_symbol if latest_symbol else "N/A"
+            end_off = latest_offset if latest_offset else "N/A"
+            print(f"N/A, {source_end}, N/A, {binary_end}, {symbol}, N/A, {end_off}")
         else:
             print("Assembly addresses: Not found")
             print(f"(Tried to find addresses for {result['earliest_func']} in {vmlinux_path})")
@@ -447,7 +578,11 @@ def process_single_file(output_file, vmlinux_path, nm_output, readelf_output, ve
         "latest_file": result['latest_file'],
         "latest_line": result['latest_line'],
         "start_addr": earliest_addr,
-        "end_addr": latest_addr
+        "end_addr": latest_addr,
+        "start_symbol": earliest_symbol,
+        "end_symbol": latest_symbol,
+        "start_offset": earliest_offset,
+        "end_offset": latest_offset
     }
 
 
@@ -494,8 +629,18 @@ def batch_process(directory, vmlinux_path, nm_output, readelf_output, max_worker
                             print(f"  -> ERROR: {result.get('error', 'Unknown')}")
                         elif result["status"] == "SUCCESS":
                             if result["start_addr"] and result["end_addr"]:
-                                results["SUCCESS"].append((file_path, result["start_addr"], result["end_addr"]))
-                                print(f"  -> 0x{result['start_addr']} - 0x{result['end_addr']}")
+                                # Format: source start, source end, binary start, binary end, symbol name, start offset, end offset
+                                source_start = f"{result['earliest_file']}:{result['earliest_line']}"
+                                source_end = f"{result['latest_file']}:{result['latest_line']}"
+                                binary_start = f"0x{result['start_addr']}"
+                                binary_end = f"0x{result['end_addr']}"
+                                symbol = result.get('start_symbol', 'N/A')
+                                start_off = result.get('start_offset', 'N/A')
+                                end_off = result.get('end_offset', 'N/A')
+
+                                output_str = f"{source_start}, {source_end}, {binary_start}, {binary_end}, {symbol}, {start_off}, {end_off}"
+                                results["SUCCESS"].append((file_path, output_str))
+                                print(f"  -> {output_str}")
                             else:
                                 results["NOT_FOUND"].append(file_path)
                                 print(f"  -> Addresses not found")
