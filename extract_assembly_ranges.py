@@ -39,10 +39,13 @@ def get_cache_dir(vmlinux_path):
     return cache_dir
 
 
-def generate_nm_cache(vmlinux_path, cache_dir):
+def generate_nm_cache(vmlinux_path, cache_dir, module_name=None):
     """Generate and cache nm output."""
     print(f"Generating nm cache for {vmlinux_path}...", file=sys.stderr)
-    cache_file = cache_dir / "nm_output.txt"
+    if module_name:
+        cache_file = cache_dir / f"{module_name}.nm_output.txt"
+    else:
+        cache_file = cache_dir / "nm_output.txt"
     cache_dir.mkdir(parents=True, exist_ok=True)
 
     nm_cmd = ['nm', vmlinux_path]
@@ -59,10 +62,13 @@ def generate_nm_cache(vmlinux_path, cache_dir):
     return result.stdout
 
 
-def generate_readelf_cache(vmlinux_path, cache_dir):
+def generate_readelf_cache(vmlinux_path, cache_dir, module_name=None):
     """Generate and cache readelf debug line output."""
     print(f"Generating readelf cache for {vmlinux_path} (this may take 2-3 minutes)...", file=sys.stderr)
-    cache_file = cache_dir / "readelf_decodedline.txt"
+    if module_name:
+        cache_file = cache_dir / f"{module_name}.readelf_decodedline.txt"
+    else:
+        cache_file = cache_dir / "readelf_decodedline.txt"
     cache_dir.mkdir(parents=True, exist_ok=True)
 
     cmd = ['readelf', '--debug-dump=decodedline', vmlinux_path]
@@ -79,28 +85,34 @@ def generate_readelf_cache(vmlinux_path, cache_dir):
     return result.stdout
 
 
-def load_nm_cache(vmlinux_path, cache_dir):
+def load_nm_cache(vmlinux_path, cache_dir, module_name=None):
     """Load cached nm output or generate if not exists."""
-    cache_file = cache_dir / "nm_output.txt"
+    if module_name:
+        cache_file = cache_dir / f"{module_name}.nm_output.txt"
+    else:
+        cache_file = cache_dir / "nm_output.txt"
 
     if cache_file.exists():
         print(f"Loading nm cache from {cache_file}", file=sys.stderr)
         with open(cache_file, 'r') as f:
             return f.read()
 
-    return generate_nm_cache(vmlinux_path, cache_dir)
+    return generate_nm_cache(vmlinux_path, cache_dir, module_name)
 
 
-def load_readelf_cache(vmlinux_path, cache_dir):
+def load_readelf_cache(vmlinux_path, cache_dir, module_name=None):
     """Load cached readelf output or generate if not exists."""
-    cache_file = cache_dir / "readelf_decodedline.txt"
+    if module_name:
+        cache_file = cache_dir / f"{module_name}.readelf_decodedline.txt"
+    else:
+        cache_file = cache_dir / "readelf_decodedline.txt"
 
     if cache_file.exists():
         print(f"Loading readelf cache from {cache_file}", file=sys.stderr)
         with open(cache_file, 'r') as f:
             return f.read()
 
-    return generate_readelf_cache(vmlinux_path, cache_dir)
+    return generate_readelf_cache(vmlinux_path, cache_dir, module_name)
 
 
 def build_symbol_to_module_map(module_nm_cache, module_files):
@@ -180,12 +192,12 @@ def load_module_caches(module_files):
         cache_dir = get_module_cache_dir(ko_path)
 
         # Load nm cache
-        nm_output = load_nm_cache(ko_path, cache_dir)
+        nm_output = load_nm_cache(ko_path, cache_dir, module_name)
         if nm_output:
             module_nm_cache[module_name] = nm_output
 
         # Load readelf cache
-        readelf_output = load_readelf_cache(ko_path, cache_dir)
+        readelf_output = load_readelf_cache(ko_path, cache_dir, module_name)
         if readelf_output:
             module_readelf_cache[module_name] = readelf_output
 
@@ -1023,8 +1035,8 @@ def main():
         for module_name, ko_path in module_files.items():
             print(f"Generating cache for module {module_name}...")
             module_cache_dir = get_module_cache_dir(ko_path)
-            generate_nm_cache(ko_path, module_cache_dir)
-            generate_readelf_cache(ko_path, module_cache_dir)
+            generate_nm_cache(ko_path, module_cache_dir, module_name)
+            generate_readelf_cache(ko_path, module_cache_dir, module_name)
 
         print("Cache generation complete!")
         sys.exit(0)
