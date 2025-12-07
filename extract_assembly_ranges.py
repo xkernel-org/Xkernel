@@ -103,6 +103,113 @@ def load_readelf_cache(vmlinux_path, cache_dir):
     return generate_readelf_cache(vmlinux_path, cache_dir)
 
 
+def build_symbol_to_module_map(module_nm_cache, module_files):
+    """
+    Build a mapping from symbol names to module names by parsing nm output from all modules.
+    This is more reliable than Module.symvers which only contains exported symbols.
+    Returns a dict: {symbol_name: (module_name, ko_path)}
+    """
+    symbol_to_module = {}
+
+    print(f"Building symbol-to-module mapping from nm output...", file=sys.stderr)
+
+    for module_name, nm_output in module_nm_cache.items():
+        if module_name not in module_files:
+            continue
+
+        ko_path = module_files[module_name]
+
+        # Parse nm output to extract symbols
+        for line in nm_output.splitlines():
+            parts = line.split()
+            if len(parts) >= 3:
+                # nm format: <address> <type> <symbol>
+                symbol_name = parts[2]
+                # Store the module name and path for this symbol
+                # If symbol exists in multiple modules, last one wins (could track all if needed)
+                symbol_to_module[symbol_name] = (module_name, ko_path)
+
+    print(f"Built mapping for {len(symbol_to_module)} symbols across {len(module_nm_cache)} modules", file=sys.stderr)
+    return symbol_to_module
+
+
+def find_module_files(modules_dir):
+    """
+    Scan the modules directory and create a mapping from module names to .ko file paths.
+    Returns a dict: {module_name: ko_file_path}
+    """
+    module_files = {}
+
+    if not os.path.exists(modules_dir):
+        print(f"Warning: Modules directory not found at {modules_dir}", file=sys.stderr)
+        return module_files
+
+    print(f"Scanning for kernel modules in {modules_dir}...", file=sys.stderr)
+
+    # Find all .ko files recursively
+    for ko_file in Path(modules_dir).rglob("*.ko"):
+        # Extract module name from filename (without .ko extension)
+        module_name = ko_file.stem
+        module_files[module_name] = str(ko_file)
+
+    print(f"Found {len(module_files)} kernel module files", file=sys.stderr)
+    return module_files
+
+
+def get_module_cache_dir(ko_path):
+    """Get the cache directory for a kernel module file."""
+    ko_stat = os.stat(ko_path)
+    ko_id = f"{ko_path}_{ko_stat.st_mtime}_{ko_stat.st_size}"
+    cache_hash = hashlib.md5(ko_id.encode()).hexdigest()[:16]
+
+    cache_dir = Path(".module_cache") / cache_hash
+    return cache_dir
+
+
+def load_module_caches(module_files):
+    """
+    Load nm and readelf caches for all kernel modules.
+    Returns two dicts: {module_name: nm_output}, {module_name: readelf_output}
+    """
+    module_nm_cache = {}
+    module_readelf_cache = {}
+
+    print(f"Loading caches for {len(module_files)} modules...", file=sys.stderr)
+
+    for module_name, ko_path in module_files.items():
+        cache_dir = get_module_cache_dir(ko_path)
+
+        # Load nm cache
+        nm_output = load_nm_cache(ko_path, cache_dir)
+        if nm_output:
+            module_nm_cache[module_name] = nm_output
+
+        # Load readelf cache
+        readelf_output = load_readelf_cache(ko_path, cache_dir)
+        if readelf_output:
+            module_readelf_cache[module_name] = readelf_output
+
+    print(f"Loaded caches for {len(module_nm_cache)} modules", file=sys.stderr)
+    return module_nm_cache, module_readelf_cache
+
+
+def find_symbol_binary(function_name, symbol_to_module):
+    """
+    Determine which binary (vmlinux or a module) contains the function.
+    Returns tuple: (binary_path, binary_type, module_name)
+    where binary_type is 'vmlinux' or 'module'
+
+    symbol_to_module format: {symbol_name: (module_name, ko_path)}
+    """
+    # Check if symbol is in a module
+    if function_name in symbol_to_module:
+        module_name, ko_path = symbol_to_module[function_name]
+        return ko_path, 'module', module_name
+
+    # Default to vmlinux
+    return None, 'vmlinux', None
+
+
 def parse_dataflow_analysis_output_file(filepath):
     """Parse the kernel-results/*/*.output.txt file and extract relevant information."""
     with open(filepath, 'r') as f:
@@ -285,7 +392,7 @@ def find_address_for_line_using_readelf(readelf_output, source_file, line_number
         return None
 
 
-def find_address_range_for_single_line(vmlinux_path, nm_output, readelf_output, source_file, line_number, function_name):
+def find_address_range_for_single_line(binary_path, nm_output, readelf_output, source_file, line_number, function_name, symbol_to_module=None, module_nm_cache=None, module_readelf_cache=None):
     """
     Find all assembly instructions that correspond to a single source line.
     Returns a tuple of (start_addr, end_addr, base_address, symbol_name) or (None, None, None, None) if not found.
@@ -314,13 +421,26 @@ def find_address_range_for_single_line(vmlinux_path, nm_output, readelf_output, 
 
     """
     try:
-        if not nm_output:
+        # Check if function is in a module
+        actual_binary = binary_path
+        actual_nm = nm_output
+        actual_readelf = readelf_output
+
+        if symbol_to_module and module_nm_cache:
+            module_binary, binary_type, module_name = find_symbol_binary(function_name, symbol_to_module)
+            if binary_type == 'module' and module_binary:
+                actual_binary = module_binary
+                actual_nm = module_nm_cache.get(module_name, nm_output)
+                actual_readelf = module_readelf_cache.get(module_name, readelf_output) if module_readelf_cache else readelf_output
+                print(f"Using module {module_name} for function {function_name}", file=sys.stderr)
+
+        if not actual_nm:
             return None, None, None, None
 
         # Get symbol address for the function using nm
         func_addr = None
         func_symbol = None
-        for line in nm_output.splitlines():
+        for line in actual_nm.splitlines():
             parts = line.split()
             if len(parts) >= 3:
                 symbol_name = parts[2]
@@ -333,7 +453,7 @@ def find_address_range_for_single_line(vmlinux_path, nm_output, readelf_output, 
         if not func_addr:
             print(f"Warning: Could not find function '{function_name}' in symbol table for range finding", file=sys.stderr)
             # Try fallback - just find single address
-            addr = find_address_for_line_using_readelf(readelf_output, source_file, line_number)
+            addr = find_address_for_line_using_readelf(actual_readelf, source_file, line_number)
             if addr:
                 print(f"TODO: Found single address using readelf fallback for a single source line (function: {function_name}, source file: {source_file}, line number: {line_number})", file=sys.stderr)
                 return addr, addr, None, function_name
@@ -345,7 +465,7 @@ def find_address_range_for_single_line(vmlinux_path, nm_output, readelf_output, 
             'objdump', '-d', '-l', '-S',
             '--start-address=0x' + func_addr,
             '--stop-address=0x' + hex(int(func_addr, 16) + 0x100000)[2:],
-            vmlinux_path
+            actual_binary
         ]
         objdump_result = subprocess.run(objdump_cmd, capture_output=True, text=True, timeout=600)
 
@@ -385,33 +505,46 @@ def find_address_range_for_single_line(vmlinux_path, nm_output, readelf_output, 
 
         # If no exact match, try readelf fallback
         print(f"Warning: No match found in objdump for {normalized_source}:{line_number}, trying readelf", file=sys.stderr)
-        addr = find_address_for_line_using_readelf(readelf_output, source_file, line_number)
+        addr = find_address_for_line_using_readelf(actual_readelf, source_file, line_number)
         if addr:
             print(f"TODO: Found single address using readelf fallback for a single source line (function: {function_name}, source file: {source_file}, line number: {line_number})", file=sys.stderr)
             return addr, addr, func_addr, func_symbol
         return None, None, None, None
 
     except subprocess.TimeoutExpired:
-        print(f"Error: Timeout while processing {vmlinux_path}", file=sys.stderr)
+        print(f"Error: Timeout while processing {actual_binary}", file=sys.stderr)
         return None, None, None, None
     except Exception as e:
         print(f"Error finding address range: {e}", file=sys.stderr)
         return None, None, None, None
 
 
-def find_address_for_line(vmlinux_path, nm_output, readelf_output, source_file, line_number, function_name):
+def find_address_for_line(binary_path, nm_output, readelf_output, source_file, line_number, function_name, symbol_to_module=None, module_nm_cache=None, module_readelf_cache=None):
     """
     Use objdump to find the assembly address for a given source line.
     Returns a tuple of (address, base_address, symbol_name) or (None, None, None) if not found.
     """
     try:
-        if not nm_output:
+        # Check if function is in a module
+        actual_binary = binary_path
+        actual_nm = nm_output
+        actual_readelf = readelf_output
+
+        if symbol_to_module and module_nm_cache:
+            module_binary, binary_type, module_name = find_symbol_binary(function_name, symbol_to_module)
+            if binary_type == 'module' and module_binary:
+                actual_binary = module_binary
+                actual_nm = module_nm_cache.get(module_name, nm_output)
+                actual_readelf = module_readelf_cache.get(module_name, readelf_output) if module_readelf_cache else readelf_output
+                print(f"Using module {module_name} for function {function_name}", file=sys.stderr)
+
+        if not actual_nm:
             return None, None, None
 
         # Get symbol address for the function using nm
         func_addr = None
         func_symbol = None
-        for line in nm_output.splitlines():
+        for line in actual_nm.splitlines():
             parts = line.split()
             if len(parts) >= 3:
                 symbol_name = parts[2]
@@ -424,7 +557,7 @@ def find_address_for_line(vmlinux_path, nm_output, readelf_output, source_file, 
         if not func_addr:
             print(f"Warning: Could not find function '{function_name}' in symbol table, trying readelf fallback", file=sys.stderr)
             # Try fallback method using readelf
-            addr = find_address_for_line_using_readelf(readelf_output, source_file, line_number)
+            addr = find_address_for_line_using_readelf(actual_readelf, source_file, line_number)
             if addr:
                 print(f"Found address using readelf fallback", file=sys.stderr)
             return (addr, None, function_name) if addr else (None, None, None)
@@ -435,7 +568,7 @@ def find_address_for_line(vmlinux_path, nm_output, readelf_output, source_file, 
             'objdump', '-d', '-l', '-S',
             '--start-address=0x' + func_addr,
             '--stop-address=0x' + hex(int(func_addr, 16) + 0x100000)[2:],
-            vmlinux_path
+            actual_binary
         ]
 
         objdump_result = subprocess.run(objdump_cmd, capture_output=True, text=True, timeout=600)
@@ -474,21 +607,21 @@ def find_address_for_line(vmlinux_path, nm_output, readelf_output, source_file, 
 
         # If no exact match, try readelf fallback
         print(f"Warning: No exact match found in objdump for {normalized_source}:{line_number}, trying readelf", file=sys.stderr)
-        addr = find_address_for_line_using_readelf(readelf_output, source_file, line_number)
+        addr = find_address_for_line_using_readelf(actual_readelf, source_file, line_number)
         if addr:
             print(f"Found address using readelf fallback", file=sys.stderr)
             return addr, func_addr, func_symbol
         return None, None, None
 
     except subprocess.TimeoutExpired:
-        print(f"Error: Timeout while processing {vmlinux_path}", file=sys.stderr)
+        print(f"Error: Timeout while processing {actual_binary}", file=sys.stderr)
         return None, None, None
     except Exception as e:
         print(f"Error finding address: {e}", file=sys.stderr)
         return None, None, None
 
 
-def process_single_file(output_file, vmlinux_path, nm_output, readelf_output, verbose=True):
+def process_single_file(output_file, vmlinux_path, nm_output, readelf_output, verbose=True, symbol_to_module=None, module_nm_cache=None, module_readelf_cache=None):
     """Process a single output file and return the results."""
     if not os.path.exists(output_file):
         if verbose:
@@ -526,7 +659,10 @@ def process_single_file(output_file, vmlinux_path, nm_output, readelf_output, ve
             readelf_output,
             result['earliest_file'],
             result['earliest_line'],
-            result['earliest_func']
+            result['earliest_func'],
+            symbol_to_module,
+            module_nm_cache,
+            module_readelf_cache
         )
         latest_base = earliest_base
         latest_symbol = earliest_symbol
@@ -538,7 +674,10 @@ def process_single_file(output_file, vmlinux_path, nm_output, readelf_output, ve
             readelf_output,
             result['earliest_file'],
             result['earliest_line'],
-            result['earliest_func']
+            result['earliest_func'],
+            symbol_to_module,
+            module_nm_cache,
+            module_readelf_cache
         )
 
         latest_addr, latest_base, latest_symbol = find_address_for_line(
@@ -547,7 +686,10 @@ def process_single_file(output_file, vmlinux_path, nm_output, readelf_output, ve
             readelf_output,
             result['latest_file'],
             result['latest_line'],
-            result['latest_func']
+            result['latest_func'],
+            symbol_to_module,
+            module_nm_cache,
+            module_readelf_cache
         )
 
     # Calculate offsets if we have base addresses
@@ -603,7 +745,7 @@ def process_single_file(output_file, vmlinux_path, nm_output, readelf_output, ve
     }
 
 
-def batch_process(directory, vmlinux_path, nm_output, readelf_output, max_workers=None):
+def batch_process(directory, vmlinux_path, nm_output, readelf_output, max_workers=None, symbol_to_module=None, module_nm_cache=None, module_readelf_cache=None):
     """Process all .output.txt files in a directory tree in parallel."""
     pattern = os.path.join(directory, '**', '*.output.txt')
     files = glob.glob(pattern, recursive=True)
@@ -623,7 +765,8 @@ def batch_process(directory, vmlinux_path, nm_output, readelf_output, max_worker
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         # Submit all tasks
         future_to_file = {
-            executor.submit(process_single_file, file_path, vmlinux_path, nm_output, readelf_output, False): file_path
+            executor.submit(process_single_file, file_path, vmlinux_path, nm_output, readelf_output, False,
+                          symbol_to_module, module_nm_cache, module_readelf_cache): file_path
             for file_path in sorted(files)
         }
 
@@ -683,6 +826,7 @@ def batch_process(directory, vmlinux_path, nm_output, readelf_output, max_worker
 
 def main():
     vmlinux_path = "./xkernel.vmlinux"
+    modules_path = "../mods/modules/6.14.0-xkernel"
 
     if not os.path.exists(vmlinux_path):
         print(f"Error: vmlinux file {vmlinux_path} not found")
@@ -703,10 +847,20 @@ def main():
         print(f"Cache directory: {cache_dir}")
         generate_nm_cache(vmlinux_path, cache_dir)
         generate_readelf_cache(vmlinux_path, cache_dir)
+
+        # Also generate caches for modules
+        print("\nGenerating caches for kernel modules...")
+        module_files = find_module_files(modules_path)
+        for module_name, ko_path in module_files.items():
+            print(f"Generating cache for module {module_name}...")
+            module_cache_dir = get_module_cache_dir(ko_path)
+            generate_nm_cache(ko_path, module_cache_dir)
+            generate_readelf_cache(ko_path, module_cache_dir)
+
         print("Cache generation complete!")
         sys.exit(0)
 
-    # Load caches
+    # Load vmlinux caches
     nm_output = load_nm_cache(vmlinux_path, cache_dir)
     readelf_output = load_readelf_cache(vmlinux_path, cache_dir)
 
@@ -717,6 +871,14 @@ def main():
     if not readelf_output:
         print("Error: Failed to load readelf cache", file=sys.stderr)
         sys.exit(1)
+
+    # Load module information
+    print("\nLoading kernel module information...")
+    module_files = find_module_files(modules_path)
+    module_nm_cache, module_readelf_cache = load_module_caches(module_files)
+
+    # Build symbol-to-module mapping from nm output (more complete than Module.symvers)
+    symbol_to_module = build_symbol_to_module_map(module_nm_cache, module_files)
 
     if sys.argv[1] == "--batch":
         if len(sys.argv) < 3:
@@ -735,10 +897,13 @@ def main():
                 print("Error: --workers argument must be an integer")
                 sys.exit(1)
 
-        batch_process(directory, vmlinux_path, nm_output, readelf_output, max_workers)
+        batch_process(directory, vmlinux_path, nm_output, readelf_output, max_workers,
+                     symbol_to_module, module_nm_cache, module_readelf_cache)
     else:
         output_file = sys.argv[1]
-        process_single_file(output_file, vmlinux_path, nm_output, readelf_output, verbose=True)
+        process_single_file(output_file, vmlinux_path, nm_output, readelf_output, verbose=True,
+                          symbol_to_module=symbol_to_module,
+                          module_nm_cache=module_nm_cache, module_readelf_cache=module_readelf_cache)
 
 
 if __name__ == '__main__':
