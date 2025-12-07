@@ -53,14 +53,20 @@ with open('find-binary-addresses/addr.clean.log', 'r') as f:
                 source_end = result_parts[1].strip()
                 assembly_start = result_parts[2].strip()
                 assembly_end = result_parts[3].strip()
-                if (
-                    result_parts[5].strip() != 'None' and
-                    not result_parts[5].strip().startswith('-') and # TODO
-                    result_parts[6].strip() != 'None' and
-                    not result_parts[6].strip().startswith('-') # TODO
-                ):
-                    function = result_parts[4].strip()
-                    offset=result_parts[5].strip() + ' - ' + result_parts[6].strip()
+
+                start_offset = result_parts[5].strip()
+                end_offset = result_parts[6].strip()
+
+                # In some stages of the script, these values showed up but
+                # should not now.
+                if start_offset.startswith('-') or end_offset.startswith('-'):
+                    assert False
+                if start_offset == 'None' or end_offset == 'None':
+                    assert False
+
+                function = result_parts[4].strip()
+                offset = start_offset + ' - ' + end_offset
+
             print(f"{id_to_idx[perf_const_id]},{perf_const_id},{raw_output_file},{function},{offset},{source_start},{source_end}")
             perf_const_id = None
     assert perf_const_id is None
