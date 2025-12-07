@@ -144,8 +144,8 @@ Experiment with small programs
 ```shell
 export LLVM_COMPILER=clang
 export PATH=/lib/llvm-20/bin:$PATH
-bash build-tests.sh
-bash run-tests.sh
+bash build-tests.sh && \
+bash run-tests.sh && \
 python validate.py
 ```
 
@@ -166,6 +166,8 @@ bash run-kernel.sh
 Run all cases in Linux kernel
 
 ```shell
+rm -f kernel-results
+
 bash extract-kernel-params.sh
 
 # 215 cases: 9h28min 6.5GB c6420
