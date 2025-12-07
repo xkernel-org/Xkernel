@@ -369,7 +369,7 @@ def parse_dataflow_analysis_output_file(filepath):
         re.MULTILINE
     )
 
-    # Extract latest instruction with L=0
+    # Extract latest instruction with L=N
     latest_match = re.search(
         r'Latest instruction with L=\d+:\s*\n\s*.*?<([^>]+)>\s+FUNC=(\S+)',
         content,
@@ -576,6 +576,8 @@ def find_address_range_for_single_line(binary_path, nm_output, readelf_output, s
                 symbol_name = parts[2]
                 # Match exact function name or with suffixes
                 if symbol_name == function_name or symbol_name.startswith(f"{function_name}."):
+                    if symbol_name.startswith(f"{function_name}."):
+                        print(f"FINDME: Picked up a symbol name that's not an exact match {symbol_name}", file=sys.stderr)
                     func_addr = parts[0]
                     func_symbol = symbol_name
                     break
@@ -597,6 +599,7 @@ def find_address_range_for_single_line(binary_path, nm_output, readelf_output, s
             '--stop-address=0x' + hex(int(func_addr, 16) + 0x100000)[2:],
             actual_binary
         ]
+        print(f"objdump_cmd: {' '.join(objdump_cmd)}")
         objdump_result = subprocess.run(objdump_cmd, capture_output=True, text=True, timeout=600)
 
         # Parse objdump output to find ALL addresses matching the source line
@@ -680,6 +683,8 @@ def find_address_for_line(binary_path, nm_output, readelf_output, source_file, l
                 symbol_name = parts[2]
                 # Match exact function name or with suffixes
                 if symbol_name == function_name or symbol_name.startswith(f"{function_name}."):
+                    if symbol_name.startswith(f"{function_name}."):
+                        print(f"FINDME: Picked up a symbol name that's not an exact match {symbol_name}", file=sys.stderr)
                     func_addr = parts[0]
                     func_symbol = symbol_name
                     break
@@ -700,6 +705,7 @@ def find_address_for_line(binary_path, nm_output, readelf_output, source_file, l
             '--stop-address=0x' + hex(int(func_addr, 16) + 0x100000)[2:],
             actual_binary
         ]
+        print(f"objdump_cmd: {' '.join(objdump_cmd)}")
 
         objdump_result = subprocess.run(objdump_cmd, capture_output=True, text=True, timeout=600)
 
@@ -891,6 +897,12 @@ def batch_process(directory, vmlinux_path, nm_output, readelf_output, max_worker
     completed_count = 0
     print_lock = threading.Lock()
 
+    # Open output file for writing results
+    output_log_path = "addr.log"
+    output_file = open(output_log_path, 'w')
+    print(f"Saving results to {output_log_path}", file=sys.stderr)
+    print()
+
     # Process files in parallel
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         # Submit all tasks
@@ -908,15 +920,21 @@ def batch_process(directory, vmlinux_path, nm_output, readelf_output, max_worker
 
                 with print_lock:
                     completed_count += 1
-                    print(f"[{completed_count}/{len(files)}] {file_path}")
+                    header_line = f"[{completed_count}/{len(files)}] {file_path}"
+                    print(header_line)
+                    output_file.write(header_line + "\n")
 
                     if result:
                         if result["status"] == "TODO":
                             results["TODO"].append(file_path)
-                            print("  -> TODO")
+                            result_line = "  -> TODO"
+                            print(result_line)
+                            output_file.write(result_line + "\n")
                         elif result["status"] == "ERROR":
                             results["ERROR"].append((file_path, result.get("error", "Unknown error")))
-                            print(f"  -> ERROR: {result.get('error', 'Unknown')}")
+                            result_line = f"  -> ERROR: {result.get('error', 'Unknown')}"
+                            print(result_line)
+                            output_file.write(result_line + "\n")
                         elif result["status"] == "SUCCESS":
                             if result["start_addr"] and result["end_addr"]:
                                 # Format: source start, source end, binary start, binary end, symbol name, start offset, end offset
@@ -930,18 +948,35 @@ def batch_process(directory, vmlinux_path, nm_output, readelf_output, max_worker
 
                                 output_str = f"{source_start}, {source_end}, {binary_start}, {binary_end}, {symbol}, {start_off}, {end_off}"
                                 results["SUCCESS"].append((file_path, output_str))
-                                print(f"  -> {output_str}")
+                                result_line = f"  -> {output_str}"
+                                print(result_line)
+                                output_file.write(result_line + "\n")
                             else:
                                 results["NOT_FOUND"].append(file_path)
-                                print(f"  -> Addresses not found")
+                                result_line = "  -> Addresses not found"
+                                print(result_line)
+                                output_file.write(result_line + "\n")
                     print()
+                    output_file.write("\n")
+                    output_file.flush()  # Ensure data is written immediately
             except Exception as e:
                 with print_lock:
                     completed_count += 1
-                    print(f"[{completed_count}/{len(files)}] {file_path}")
-                    print(f"  -> EXCEPTION: {e}")
+                    header_line = f"[{completed_count}/{len(files)}] {file_path}"
+                    print(header_line)
+                    output_file.write(header_line + "\n")
+                    result_line = f"  -> EXCEPTION: {e}"
+                    print(result_line)
+                    output_file.write(result_line + "\n")
                     results["ERROR"].append((file_path, str(e)))
                     print()
+                    output_file.write("\n")
+                    output_file.flush()  # Ensure data is written immediately
+
+    # Close output file
+    output_file.close()
+    print(f"Results saved to {output_log_path}", file=sys.stderr)
+    print()
 
     # Print summary
     print("=" * 80)
