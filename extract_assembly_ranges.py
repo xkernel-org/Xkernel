@@ -206,6 +206,14 @@ def find_symbol_binary(function_name, symbol_to_module):
         module_name, ko_path = symbol_to_module[function_name]
         return ko_path, 'module', module_name
 
+    if f"{function_name}.part.0" in symbol_to_module:
+        module_name, ko_path = symbol_to_module[f"{function_name}.part.0"]
+        return ko_path, 'module', module_name
+
+    if f"{function_name}.isra.0" in symbol_to_module:
+        module_name, ko_path = symbol_to_module[f"{function_name}.isra.0"]
+        return ko_path, 'module', module_name
+
     # Default to vmlinux
     return None, 'vmlinux', None
 
@@ -214,6 +222,128 @@ def parse_dataflow_analysis_output_file(filepath):
     """Parse the kernel-results/*/*.output.txt file and extract relevant information."""
     with open(filepath, 'r') as f:
         content = f.read()
+
+    # Manual tweaks
+    if filepath == "kernel-results/BLK_PLUG_FLUSH_SIZE/1.output.txt":
+        # Multiline predicate
+        # https://elixir.bootlin.com/linux/v6.14/source/block/blk-mq.c#L1383
+        content = content.replace(
+            "%44 = icmp ugt i32 %43, 131071, <block/blk-mq.c:1383:26>",
+            "%44 = icmp ugt i32 %43, 131071, <block/blk-mq.c:1382:26>"
+        )
+        content = content.replace(
+            "br i1 %44, label %45, label %67, <block/blk-mq.c:1381:59>",
+            "br i1 %44, label %45, label %67, <block/blk-mq.c:1382:59>"
+        )
+    if filepath == "kernel-results/GSSD_MIN_TIMEOUT/1.output.txt":
+        # Function inlining
+        content = content.replace(
+            "gss_fill_context",
+            "gss_pipe_downcall"
+        )
+    if filepath == "kernel-results/IPVS_SYNC_WAKEUP_RATE/1.output.txt":
+        # Function inlining
+        content = content.replace(
+            "sb_queue_tail",
+            "ip_vs_sync_conn"
+        )
+    if filepath == "kernel-results/IPVS_SYNC_WAKEUP_RATE/2.output.txt":
+        # Multiline predicate
+        # https://elixir.bootlin.com/linux/v6.14/source/net/netfilter/ipvs/ip_vs_sync.c#L1627
+        content = content.replace(
+            "%12 = icmp ult i32 %11, 8, <net/netfilter/ipvs/ip_vs_sync.c:1628:27>",
+            "%12 = icmp ult i32 %11, 8, <net/netfilter/ipvs/ip_vs_sync.c:1627:27>"
+        )
+    if filepath == "kernel-results/MAX_MKSPC_RETRIES/1.output.txt" or \
+       filepath == "kernel-results/NR_TO_WRITE/1.output.txt":
+        # Function inlining
+        content = content.replace(
+            "make_free_space",
+            "ubifs_budget_space"
+        )
+    if filepath == "kernel-results/DEF_PRIORITY/7.output.txt":
+        # Multiline predicate
+        # https://elixir.bootlin.com/linux/v6.14/source/mm/vmscan.c#L5824
+        content = content.replace(
+            "<mm/vmscan.c:5826:18>",
+            "<mm/vmscan.c:5825:18>"
+        )
+        content = content.replace(
+            "<mm/vmscan.c:5824:56>",
+            "<mm/vmscan.c:5825:56>"
+        )
+    if filepath == "kernel-results/NFS_JUKEBOX_RETRY_TIME/18.output.txt":
+        # FIXME inlined in multiple places...
+        content = content.replace(
+            "nfs3_do_create",
+            # "nfs3_proc_create"
+            # "nfs3_proc_symlink"
+            # "nfs3_proc_mkdir"
+            "nfs3_proc_mknod"
+        )
+        # Inlined <- macro <- inline in multiple places...
+        # https://elixir.bootlin.com/linux/v6.14/source/fs/nfs/nfs3proc.c#L320
+        content = content.replace(
+            "<fs/nfs/nfs3proc.c:40:",
+            "<fs/nfs/nfs3proc.c:320:"
+        )
+    if filepath == "kernel-results/MAX_NR_FOLIOS_PER_FREE/2.output.txt":
+        # This time IR inlines more aggressively?
+        content = content.replace(
+            "tlb_flush_mmu",
+            "__tlb_batch_free_encoded_pages"
+        )
+        # Multiline predicate
+        # https://elixir.bootlin.com/linux/v6.14/source/mm/mmu_gather.c#L126
+        content = content.replace(
+            "<mm/mmu_gather.c:125:",
+            "<mm/mmu_gather.c:126:"
+        )
+    if filepath == "kernel-results/TCP_DELACK_MIN/1.output.txt":
+        # Multiline statement
+        # https://elixir.bootlin.com/linux/v6.14/source/net/dccp/timer.c#L181
+        content = content.replace(
+            "<net/dccp/timer.c:181:",
+            "<net/dccp/timer.c:180:"
+        )
+    elif filepath == "kernel-results/bfq_late_stable_merging/1.output.txt":
+        content = content.replace(
+            "<block/bfq-iosched.c:2951:",
+            "<block/bfq-iosched.c:2950:"
+        )
+    elif filepath == "kernel-results/bfq_late_stable_merging/2.output.txt":
+        # Reordered
+        content = content.replace(
+            "<block/bfq-iosched.c:2952:",
+            "<block/bfq-iosched.c:2950:"
+        )
+        content = content.replace(
+            "<block/bfq-iosched.c:2951:",
+            "<block/bfq-iosched.c:2952:"
+        )
+    elif filepath == "kernel-results/bfq_stats_min_budgets/4.output.txt":
+        # Crazy inlining
+        content = content.replace(
+            "bfq_add_request",
+            "bfq_insert_requests"
+        )
+        # bfq_min_budget -> bfq_bfqq_expire
+        #                -> bfq_insert_requests
+    elif filepath == "kernel-results/max_service_from_wr/1.output.txt":
+        content = content.replace(
+            "<block/bfq-iosched.c:5095:",
+            "<block/bfq-iosched.c:5094:"
+        )
+    elif filepath == "kernel-results/TCP_THIN_LINEAR_RETRIES/1.output.txt":
+        content = content.replace(
+            "<net/ipv4/tcp_timer.c:664:",
+            "<net/ipv4/tcp_timer.c:663:"
+        )
+    elif filepath == "kernel-results/TCP_MAX_WSCALE/2.output.txt":
+        content = content.replace(
+            "<net/core/filter.c:12019:",
+            "<net/core/filter.c:12018:"
+        )
 
     # Check if "Number of max-level functions:" is 1
     match = re.search(r'Number of max-level functions:\s*(\d+)', content)
