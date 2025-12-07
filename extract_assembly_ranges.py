@@ -476,6 +476,42 @@ def normalize_path(path):
     return path
 
 
+def find_best_base_address_below_span(nm_output, min_addr):
+    """
+    Find the function with the highest address that is still below min_addr.
+    Returns tuple: (base_address, symbol_name) or (None, None) if not found.
+    """
+    try:
+        min_addr_int = int(min_addr, 16)
+        best_addr = None
+        best_symbol = None
+
+        # Parse all function addresses from nm output
+        for line in nm_output.splitlines():
+            parts = line.split()
+            if len(parts) >= 3:
+                addr = parts[0]
+                symbol_type = parts[1]
+                symbol_name = parts[2]
+
+                # Only consider text symbols (T/t for functions)
+                if symbol_type in ['T', 't']:
+                    try:
+                        addr_int = int(addr, 16)
+                        # Check if this address is below our span and higher than current best
+                        if addr_int < min_addr_int:
+                            if best_addr is None or addr_int > int(best_addr, 16):
+                                best_addr = addr
+                                best_symbol = symbol_name
+                    except ValueError:
+                        continue
+
+        return best_addr, best_symbol
+    except Exception as e:
+        print(f"Error finding best base address: {e}", file=sys.stderr)
+        return None, None
+
+
 def find_address_for_line_using_readelf(readelf_output, source_file, line_number):
     """
     Use readelf output to search debug line information for a specific source line.
@@ -847,6 +883,81 @@ def process_single_file(output_file, vmlinux_path, nm_output, readelf_output, ve
         earliest_offset = hex(int(earliest_addr, 16) - int(earliest_base, 16))
     if latest_addr and latest_base:
         latest_offset = hex(int(latest_addr, 16) - int(latest_base, 16))
+
+    # Check if we need to relocate due to negative offsets (only for readelf fallback cases)
+    # This happens when the base address was None (readelf fallback)
+    if earliest_addr and latest_addr:
+        earliest_int = int(earliest_addr, 16)
+        latest_int = int(latest_addr, 16)
+        min_addr = min(earliest_int, latest_int)
+
+        # Check if either offset is negative or if base was None (readelf fallback)
+        needs_relocation = False
+        if earliest_offset and int(earliest_offset, 16) < 0:
+            needs_relocation = True
+        if latest_offset and int(latest_offset, 16) < 0:
+            needs_relocation = True
+        if (earliest_addr and not earliest_base) or (latest_addr and not latest_base):
+            needs_relocation = True
+
+        if needs_relocation:
+            print(f"Negative offset or missing base detected, relocating to best base address...", file=sys.stderr)
+
+            # Determine which nm output to use (check if function is in a module)
+            actual_nm = nm_output
+            if symbol_to_module and module_nm_cache and result.get('function'):
+                module_binary, binary_type, module_name = find_symbol_binary(result['function'], symbol_to_module)
+                if binary_type == 'module' and module_name:
+                    actual_nm = module_nm_cache.get(module_name, nm_output)
+                    print(f"Using module {module_name} nm output for relocation", file=sys.stderr)
+
+            # Find the best base address below the span
+            min_addr_hex = hex(min_addr)[2:]
+            new_base, new_symbol = find_best_base_address_below_span(actual_nm, min_addr_hex)
+
+            if new_base:
+                print(f"Relocated to function {new_symbol} at 0x{new_base}", file=sys.stderr)
+                # Update base addresses and symbols
+                earliest_base = new_base
+                latest_base = new_base
+                earliest_symbol = new_symbol
+                latest_symbol = new_symbol
+
+                # Recalculate offsets
+                earliest_offset = hex(int(earliest_addr, 16) - int(new_base, 16))
+                latest_offset = hex(int(latest_addr, 16) - int(new_base, 16))
+            else:
+                print(f"Warning: Could not find suitable base address for relocation", file=sys.stderr)
+    elif earliest_addr and not earliest_base:
+        # Only have earliest_addr, try to find base
+        print(f"Missing base address for earliest, attempting relocation...", file=sys.stderr)
+        actual_nm = nm_output
+        if symbol_to_module and module_nm_cache and result.get('function'):
+            module_binary, binary_type, module_name = find_symbol_binary(result['function'], symbol_to_module)
+            if binary_type == 'module' and module_name:
+                actual_nm = module_nm_cache.get(module_name, nm_output)
+
+        new_base, new_symbol = find_best_base_address_below_span(actual_nm, earliest_addr)
+        if new_base:
+            print(f"Relocated to function {new_symbol} at 0x{new_base}", file=sys.stderr)
+            earliest_base = new_base
+            earliest_symbol = new_symbol
+            earliest_offset = hex(int(earliest_addr, 16) - int(new_base, 16))
+    elif latest_addr and not latest_base:
+        # Only have latest_addr, try to find base
+        print(f"Missing base address for latest, attempting relocation...", file=sys.stderr)
+        actual_nm = nm_output
+        if symbol_to_module and module_nm_cache and result.get('function'):
+            module_binary, binary_type, module_name = find_symbol_binary(result['function'], symbol_to_module)
+            if binary_type == 'module' and module_name:
+                actual_nm = module_nm_cache.get(module_name, nm_output)
+
+        new_base, new_symbol = find_best_base_address_below_span(actual_nm, latest_addr)
+        if new_base:
+            print(f"Relocated to function {new_symbol} at 0x{new_base}", file=sys.stderr)
+            latest_base = new_base
+            latest_symbol = new_symbol
+            latest_offset = hex(int(latest_addr, 16) - int(new_base, 16))
 
     if verbose:
         if earliest_addr and latest_addr:
