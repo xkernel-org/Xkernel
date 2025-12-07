@@ -1,7 +1,7 @@
 ID,directory,file,function,offset,source start,source end
 1,DFR_MAX,kernel-results/DFR_MAX/1.output.txt,cache_check_rcu,0x297 - 0x2a1,net/sunrpc/cache.c:684,net/sunrpc/cache.c:684
 1,DFR_MAX,kernel-results/DFR_MAX/2.output.txt,cache_check_rcu,0x2b3 - 0x2bd,net/sunrpc/cache.c:690,net/sunrpc/cache.c:690
-2,GSSD_MIN_TIMEOUT,kernel-results/GSSD_MIN_TIMEOUT/1.output.txt,,,,
+2,GSSD_MIN_TIMEOUT,kernel-results/GSSD_MIN_TIMEOUT/1.output.txt,gss_pipe_downcall,0x293 - 0x56c,net/sunrpc/auth_gss/auth_gss.c:193,net/sunrpc/auth_gss/auth_gss.c:246
 3,SMC_TX_WORK_DELAY,kernel-results/SMC_TX_WORK_DELAY/1.output.txt,smc_tx_sndbuf_nonempty,0x2bf - 0x2cd,./include/linux/workqueue.h:692,./include/linux/workqueue.h:692
 3,SMC_TX_WORK_DELAY,kernel-results/SMC_TX_WORK_DELAY/2.output.txt,smc_tx_consumer_update,0x163 - 0x171,./include/linux/workqueue.h:677,./include/linux/workqueue.h:677
 4,SMC_LGR_NUM_INCR,kernel-results/SMC_LGR_NUM_INCR/1.output.txt,smc_conn_create,0x592 - 0x5d4,net/smc/smc_core.c:919,net/smc/smc_core.c:920
@@ -32,7 +32,7 @@ ID,directory,file,function,offset,source start,source end
 12,TCP_MAX_WSCALE,kernel-results/TCP_MAX_WSCALE/15.output.txt,nf_conntrack_tcp_packet,0x1522 - 0x1544,net/netfilter/nf_conntrack_proto_tcp.c:1090,net/netfilter/nf_conntrack_proto_tcp.c:1095
 12,TCP_MAX_WSCALE,kernel-results/TCP_MAX_WSCALE/16.output.txt,,,,
 12,TCP_MAX_WSCALE,kernel-results/TCP_MAX_WSCALE/1.output.txt,bpf_sk_assign_tcp_reqsk,0xe3 - 0xf1,net/core/filter.c:12018,net/core/filter.c:12018
-12,TCP_MAX_WSCALE,kernel-results/TCP_MAX_WSCALE/2.output.txt,,,,
+12,TCP_MAX_WSCALE,kernel-results/TCP_MAX_WSCALE/2.output.txt,bpf_sk_assign_tcp_reqsk,0xe3 - 0xf1,net/core/filter.c:12018,net/core/filter.c:12018
 12,TCP_MAX_WSCALE,kernel-results/TCP_MAX_WSCALE/3.output.txt,,,net/ipv4/tcp.c:3482,net/ipv4/tcp.c:3482
 12,TCP_MAX_WSCALE,kernel-results/TCP_MAX_WSCALE/4.output.txt,,,net/ipv4/tcp.c:3482,net/ipv4/tcp.c:3482
 12,TCP_MAX_WSCALE,kernel-results/TCP_MAX_WSCALE/5.output.txt,,,,
@@ -46,7 +46,7 @@ ID,directory,file,function,offset,source start,source end
 13,TCP_DELACK_MAX,kernel-results/TCP_DELACK_MAX/4.output.txt,tcp_init_sock,0x70 - 0x77,net/ipv4/tcp.c:437,net/ipv4/tcp.c:437
 13,TCP_DELACK_MAX,kernel-results/TCP_DELACK_MAX/5.output.txt,tcp_disconnect,0x169 - 0x170,net/ipv4/tcp.c:3343,net/ipv4/tcp.c:3343
 13,TCP_DELACK_MAX,kernel-results/TCP_DELACK_MAX/6.output.txt,,,,
-14,TCP_DELACK_MIN,kernel-results/TCP_DELACK_MIN/1.output.txt,,,,
+14,TCP_DELACK_MIN,kernel-results/TCP_DELACK_MIN/1.output.txt,dccp_delack_timer,0x120 - 0x140,net/dccp/timer.c:180,net/dccp/timer.c:180
 14,TCP_DELACK_MIN,kernel-results/TCP_DELACK_MIN/2.output.txt,tcp_send_delayed_ack,0x19 - 0x1d,net/ipv4/tcp_output.c:4189,net/ipv4/tcp_output.c:4189
 14,TCP_DELACK_MIN,kernel-results/TCP_DELACK_MIN/3.output.txt,tcp_send_delayed_ack,0xeb - 0xac,net/ipv4/tcp_output.c:4207,net/ipv4/tcp_output.c:4233
 15,TCP_ATO_MIN,kernel-results/TCP_ATO_MIN/10.output.txt,tcp_send_dupack,0x9f - 0x895c,net/ipv4/tcp_input.c:324,net/ipv4/tcp_input.c:324
@@ -71,7 +71,7 @@ ID,directory,file,function,offset,source start,source end
 18,MAX_GRO_SKBS,kernel-results/MAX_GRO_SKBS/1.output.txt,dev_gro_receive,0x52c - 0x53b,net/core/gro.c:539,net/core/gro.c:539
 19,BLK_MQ_CPU_WORK_BATCH,kernel-results/BLK_MQ_CPU_WORK_BATCH/1.output.txt,blk_mq_map_swqueue,0x413 - 0x41e,block/blk-mq.c:4199,block/blk-mq.c:4199
 19,BLK_MQ_CPU_WORK_BATCH,kernel-results/BLK_MQ_CPU_WORK_BATCH/2.output.txt,,,,
-20,TCP_THIN_LINEAR_RETRIES,kernel-results/TCP_THIN_LINEAR_RETRIES/1.output.txt,,,,
+20,TCP_THIN_LINEAR_RETRIES,kernel-results/TCP_THIN_LINEAR_RETRIES/1.output.txt,tcp_retransmit_timer,0x93c - 0x943,net/ipv4/tcp_timer.c:663,net/ipv4/tcp_timer.c:663
 21,TCP_INIT_CWND,kernel-results/TCP_INIT_CWND/10.output.txt,,,,
 21,TCP_INIT_CWND,kernel-results/TCP_INIT_CWND/11.output.txt,,,net/ipv4/tcp_input.c:445,net/ipv4/tcp_input.c:455
 21,TCP_INIT_CWND,kernel-results/TCP_INIT_CWND/12.output.txt,tcp_init_transfer,0x1d0 - 0x1eb,net/ipv4/tcp_input.c:595,net/ipv4/tcp_input.c:595
@@ -95,8 +95,8 @@ ID,directory,file,function,offset,source start,source end
 26,AMT_MAX_REQ_COUNT,kernel-results/AMT_MAX_REQ_COUNT/1.output.txt,amt_event_work,0x230 - 0x239,drivers/net/amt.c:958,drivers/net/amt.c:958
 27,AMT_SECRET_TIMEOUT,kernel-results/AMT_SECRET_TIMEOUT/1.output.txt,amt_secret_work,0x37 - 0x5de7,./include/linux/workqueue.h:692,./include/linux/workqueue.h:692
 27,AMT_SECRET_TIMEOUT,kernel-results/AMT_SECRET_TIMEOUT/2.output.txt,,,,
-28,IPVS_SYNC_WAKEUP_RATE,kernel-results/IPVS_SYNC_WAKEUP_RATE/1.output.txt,,,,
-28,IPVS_SYNC_WAKEUP_RATE,kernel-results/IPVS_SYNC_WAKEUP_RATE/2.output.txt,,,,
+28,IPVS_SYNC_WAKEUP_RATE,kernel-results/IPVS_SYNC_WAKEUP_RATE/1.output.txt,ip_vs_sync_conn,0x591 - 0x872,net/netfilter/ipvs/ip_vs_sync.c:375,net/netfilter/ipvs/ip_vs_sync.c:375
+28,IPVS_SYNC_WAKEUP_RATE,kernel-results/IPVS_SYNC_WAKEUP_RATE/2.output.txt,master_wakeup_work_handler,0x24 - 0x2f,net/netfilter/ipvs/ip_vs_sync.c:1627,net/netfilter/ipvs/ip_vs_sync.c:1627
 28,IPVS_SYNC_WAKEUP_RATE,kernel-results/IPVS_SYNC_WAKEUP_RATE/3.output.txt,master_wakeup_work_handler,0x55 - 0x55,net/netfilter/ipvs/ip_vs_sync.c:1631,net/netfilter/ipvs/ip_vs_sync.c:1631
 29,IPVS_SYNC_SEND_DELAY,kernel-results/IPVS_SYNC_SEND_DELAY/1.output.txt,,,./include/linux/workqueue.h:677,./include/linux/workqueue.h:677
 30,IPVS_SYNC_CHECK_PERIOD,kernel-results/IPVS_SYNC_CHECK_PERIOD/1.output.txt,sync_thread_master,0x3a0 - 0x3a5,net/netfilter/ipvs/ip_vs_sync.c:1667,net/netfilter/ipvs/ip_vs_sync.c:1667
@@ -129,9 +129,9 @@ ID,directory,file,function,offset,source start,source end
 36,NFS_JUKEBOX_RETRY_TIME,kernel-results/NFS_JUKEBOX_RETRY_TIME/15.output.txt,nfs3_write_done,0x7c - 0x85,fs/nfs/nfs3proc.c:56,fs/nfs/nfs3proc.c:56
 36,NFS_JUKEBOX_RETRY_TIME,kernel-results/NFS_JUKEBOX_RETRY_TIME/16.output.txt,nfs3_commit_done,0x7a - 0x135,fs/nfs/nfs3proc.c:56,fs/nfs/nfs3proc.c:56
 36,NFS_JUKEBOX_RETRY_TIME,kernel-results/NFS_JUKEBOX_RETRY_TIME/17.output.txt,,,fs/nfs/nfs3proc.c:40,fs/nfs/nfs3proc.c:40
-36,NFS_JUKEBOX_RETRY_TIME,kernel-results/NFS_JUKEBOX_RETRY_TIME/18.output.txt,,,,
+36,NFS_JUKEBOX_RETRY_TIME,kernel-results/NFS_JUKEBOX_RETRY_TIME/18.output.txt,nfs3_proc_mknod,0xe7 - 0x5d9,fs/nfs/nfs3proc.c:320,fs/nfs/nfs3proc.c:320
 36,NFS_JUKEBOX_RETRY_TIME,kernel-results/NFS_JUKEBOX_RETRY_TIME/19.output.txt,,,fs/nfs/nfs3proc.c:40,fs/nfs/nfs3proc.c:40
-36,NFS_JUKEBOX_RETRY_TIME,kernel-results/NFS_JUKEBOX_RETRY_TIME/1.output.txt,,,,
+36,NFS_JUKEBOX_RETRY_TIME,kernel-results/NFS_JUKEBOX_RETRY_TIME/1.output.txt,ff_layout_async_handle_error.isra.0,0xf5 - 0xfd,fs/nfs/flexfilelayout/flexfilelayout.c:1214,fs/nfs/flexfilelayout/flexfilelayout.c:1214
 36,NFS_JUKEBOX_RETRY_TIME,kernel-results/NFS_JUKEBOX_RETRY_TIME/20.output.txt,,,fs/nfs/nfs3proc.c:40,fs/nfs/nfs3proc.c:40
 36,NFS_JUKEBOX_RETRY_TIME,kernel-results/NFS_JUKEBOX_RETRY_TIME/21.output.txt,,,fs/nfs/nfs3proc.c:40,fs/nfs/nfs3proc.c:40
 36,NFS_JUKEBOX_RETRY_TIME,kernel-results/NFS_JUKEBOX_RETRY_TIME/22.output.txt,,,fs/nfs/nfs3proc.c:40,fs/nfs/nfs3proc.c:40
@@ -144,7 +144,7 @@ ID,directory,file,function,offset,source start,source end
 36,NFS_JUKEBOX_RETRY_TIME,kernel-results/NFS_JUKEBOX_RETRY_TIME/8.output.txt,nfs3_proc_rename_done,0x74 - 0xc35,fs/nfs/nfs3proc.c:56,fs/nfs/nfs3proc.c:56
 36,NFS_JUKEBOX_RETRY_TIME,kernel-results/NFS_JUKEBOX_RETRY_TIME/9.output.txt,,,fs/nfs/nfs3proc.c:40,fs/nfs/nfs3proc.c:40
 37,MAX_NR_FOLIOS_PER_FREE,kernel-results/MAX_NR_FOLIOS_PER_FREE/1.output.txt,,,./include/asm-generic/tlb.h:557,./include/asm-generic/tlb.h:398
-37,MAX_NR_FOLIOS_PER_FREE,kernel-results/MAX_NR_FOLIOS_PER_FREE/2.output.txt,,,,
+37,MAX_NR_FOLIOS_PER_FREE,kernel-results/MAX_NR_FOLIOS_PER_FREE/2.output.txt,__tlb_batch_free_encoded_pages,0x81 - 0x8a,mm/mmu_gather.c:126,mm/mmu_gather.c:126
 38,PCPU_SLOT_FAIL_THRESHOLD,kernel-results/PCPU_SLOT_FAIL_THRESHOLD/1.output.txt,,,,
 39,NR_MAX_MIGRATE_PAGES_RETRY,kernel-results/NR_MAX_MIGRATE_PAGES_RETRY/1.output.txt,migrate_pages,0xb1 - 0x658,mm/migrate.c:1612,mm/migrate.c:1612
 39,NR_MAX_MIGRATE_PAGES_RETRY,kernel-results/NR_MAX_MIGRATE_PAGES_RETRY/2.output.txt,,,,
@@ -222,17 +222,17 @@ ID,directory,file,function,offset,source start,source end
 69,DEF_PRIORITY,kernel-results/DEF_PRIORITY/4.output.txt,,,,
 69,DEF_PRIORITY,kernel-results/DEF_PRIORITY/5.output.txt,,,mm/vmscan.c:6984,mm/vmscan.c:6984
 69,DEF_PRIORITY,kernel-results/DEF_PRIORITY/6.output.txt,,,,
-69,DEF_PRIORITY,kernel-results/DEF_PRIORITY/7.output.txt,,,,
+69,DEF_PRIORITY,kernel-results/DEF_PRIORITY/7.output.txt,shrink_node,0x670 - 0x679,mm/vmscan.c:5825,mm/vmscan.c:5825
 69,DEF_PRIORITY,kernel-results/DEF_PRIORITY/8.output.txt,try_to_free_pages,0xc - 0xa1,mm/vmscan.c:6518,mm/vmscan.c:6518
 69,DEF_PRIORITY,kernel-results/DEF_PRIORITY/9.output.txt,do_try_to_free_pages,0x16c - 0x172,mm/vmscan.c:6311,mm/vmscan.c:6311
-70,BLK_PLUG_FLUSH_SIZE,kernel-results/BLK_PLUG_FLUSH_SIZE/1.output.txt,,,,
+70,BLK_PLUG_FLUSH_SIZE,kernel-results/BLK_PLUG_FLUSH_SIZE/1.output.txt,blk_add_rq_to_plug,0xd7 - 0xef,block/blk-mq.c:1382,block/blk-mq.c:1382
 71,BOOST_GC_MULTIPLE,kernel-results/BOOST_GC_MULTIPLE/1.output.txt,,,,
 72,BTRFS_MAX_BIO_SECTORS,kernel-results/BTRFS_MAX_BIO_SECTORS/1.output.txt,,,,
 73,RBIO_CACHE_SIZE,kernel-results/RBIO_CACHE_SIZE/1.output.txt,unlock_stripe,0x27a - 0x282,fs/btrfs/raid56.c:567,fs/btrfs/raid56.c:567
 74,SEND_MAX_EXTENT_REFS,kernel-results/SEND_MAX_EXTENT_REFS/1.output.txt,,,,
 75,BTRFS_DELAYED_WRITEBACK,kernel-results/BTRFS_DELAYED_WRITEBACK/1.output.txt,btrfs_balance_delayed_items,0x78 - 0x7d,fs/btrfs/delayed-inode.c:1422,fs/btrfs/delayed-inode.c:1422
 75,BTRFS_DELAYED_WRITEBACK,kernel-results/BTRFS_DELAYED_WRITEBACK/2.output.txt,,,,
-76,BTRFS_DELAYED_BACKGROUND,kernel-results/BTRFS_DELAYED_BACKGROUND/1.output.txt,,,,
+76,BTRFS_DELAYED_BACKGROUND,kernel-results/BTRFS_DELAYED_BACKGROUND/1.output.txt,,,fs/btrfs/delayed-inode.c:413,fs/btrfs/delayed-inode.c:414
 76,BTRFS_DELAYED_BACKGROUND,kernel-results/BTRFS_DELAYED_BACKGROUND/2.output.txt,,,fs/btrfs/delayed-inode.c:413,fs/btrfs/delayed-inode.c:414
 76,BTRFS_DELAYED_BACKGROUND,kernel-results/BTRFS_DELAYED_BACKGROUND/3.output.txt,,,fs/btrfs/delayed-inode.c:413,fs/btrfs/delayed-inode.c:414
 76,BTRFS_DELAYED_BACKGROUND,kernel-results/BTRFS_DELAYED_BACKGROUND/4.output.txt,btrfs_balance_delayed_items,0x2f - 0x71,fs/btrfs/delayed-inode.c:1418,fs/btrfs/delayed-inode.c:1418
@@ -257,8 +257,8 @@ ID,directory,file,function,offset,source start,source end
 79,RC_EXPIRE,kernel-results/RC_EXPIRE/1.output.txt,nfsd_prune_bucket_locked,0x16 - 0x73,fs/nfsd/nfscache.c:267,fs/nfsd/nfscache.c:282
 80,NFSD_LAUNDRETTE_DELAY,kernel-results/NFSD_LAUNDRETTE_DELAY/1.output.txt,nfsd_file_put,0x141 - 0x2c38b,./include/linux/workqueue.h:677,./include/linux/workqueue.h:677
 80,NFSD_LAUNDRETTE_DELAY,kernel-results/NFSD_LAUNDRETTE_DELAY/2.output.txt,nfsd_file_gc_worker,0x27e - 0x2d46b,./include/linux/workqueue.h:677,./include/linux/workqueue.h:677
-81,MAX_MKSPC_RETRIES,kernel-results/MAX_MKSPC_RETRIES/1.output.txt,,,,
-82,NR_TO_WRITE,kernel-results/NR_TO_WRITE/1.output.txt,,,,
+81,MAX_MKSPC_RETRIES,kernel-results/MAX_MKSPC_RETRIES/1.output.txt,ubifs_budget_space,0x4a2 - 0x4b0,fs/ubifs/budget.c:151,fs/ubifs/budget.c:151
+82,NR_TO_WRITE,kernel-results/NR_TO_WRITE/1.output.txt,ubifs_budget_space,0x3c1 - 0x3cf,fs/ubifs/budget.c:54,fs/ubifs/budget.c:54
 83,NFS4_POLL_RETRY_MIN,kernel-results/NFS4_POLL_RETRY_MIN/1.output.txt,pnfs_update_layout,0x1153 - 0x1157,fs/nfs/pnfs.c:2304,fs/nfs/pnfs.c:2304
 83,NFS4_POLL_RETRY_MIN,kernel-results/NFS4_POLL_RETRY_MIN/2.output.txt,pnfs_update_layout,0x1153 - 0x1157,fs/nfs/pnfs.c:2304,fs/nfs/pnfs.c:2304
 83,NFS4_POLL_RETRY_MIN,kernel-results/NFS4_POLL_RETRY_MIN/3.output.txt,,,,
@@ -383,7 +383,7 @@ ID,directory,file,function,offset,source start,source end
 133,bfq_stats_min_budgets,kernel-results/bfq_stats_min_budgets/1.output.txt,bfq_bfqq_expire,0x218 - 0x6569,block/bfq-iosched.c:1485,block/bfq-iosched.c:1485
 133,bfq_stats_min_budgets,kernel-results/bfq_stats_min_budgets/2.output.txt,bfq_bfqq_expire,0x218 - 0x6569,block/bfq-iosched.c:1485,block/bfq-iosched.c:1485
 133,bfq_stats_min_budgets,kernel-results/bfq_stats_min_budgets/3.output.txt,bfq_bfqq_expire,0x472 - 0x487,block/bfq-iosched.c:4110,block/bfq-iosched.c:4110
-133,bfq_stats_min_budgets,kernel-results/bfq_stats_min_budgets/4.output.txt,,,,
+133,bfq_stats_min_budgets,kernel-results/bfq_stats_min_budgets/4.output.txt,bfq_insert_requests,0x182b - 0x1839,block/bfq-iosched.c:1485,block/bfq-iosched.c:1485
 133,bfq_stats_min_budgets,kernel-results/bfq_stats_min_budgets/5.output.txt,bfq_init_bfqq,0x11f - 0x12d,block/bfq-iosched.c:1473,block/bfq-iosched.c:1473
 134,bfq_default_max_budget,kernel-results/bfq_default_max_budget/1.output.txt,bfq_init_queue,0x24c - 0x253,block/bfq-iosched.c:7335,block/bfq-iosched.c:7335
 134,bfq_default_max_budget,kernel-results/bfq_default_max_budget/2.output.txt,,,,
@@ -392,10 +392,10 @@ ID,directory,file,function,offset,source start,source end
 134,bfq_default_max_budget,kernel-results/bfq_default_max_budget/5.output.txt,bfq_init_queue,0xc5 - 0x3fb,block/bfq-iosched.c:7265,block/bfq-iosched.c:7396
 135,BFQ_RATE_MIN_SAMPLES,kernel-results/BFQ_RATE_MIN_SAMPLES/1.output.txt,bfq_update_rate_reset,0x14 - 0x2c,block/bfq-iosched.c:3475,block/bfq-iosched.c:3475
 136,BFQ_RATE_MIN_INTERVAL,kernel-results/BFQ_RATE_MIN_INTERVAL/1.output.txt,bfq_update_rate_reset,0x1f - 0x14,block/bfq-iosched.c:3476,block/bfq-iosched.c:3475
-137,max_service_from_wr,kernel-results/max_service_from_wr/1.output.txt,,,,
+137,max_service_from_wr,kernel-results/max_service_from_wr/1.output.txt,bfq_dispatch_request,0x105f - 0x107d,block/bfq-iosched.c:5094,block/bfq-iosched.c:5094
 138,bfq_activation_stable_merging,kernel-results/bfq_activation_stable_merging/1.output.txt,bfq_get_queue,0x2f1 - 0x30f,block/bfq-iosched.c:5800,block/bfq-iosched.c:5802
-139,bfq_late_stable_merging,kernel-results/bfq_late_stable_merging/1.output.txt,,,,
-139,bfq_late_stable_merging,kernel-results/bfq_late_stable_merging/2.output.txt,,,,
+139,bfq_late_stable_merging,kernel-results/bfq_late_stable_merging/1.output.txt,bfq_setup_cooperator,0xcf - 0xf1,block/bfq-iosched.c:2950,block/bfq-iosched.c:2950
+139,bfq_late_stable_merging,kernel-results/bfq_late_stable_merging/2.output.txt,bfq_setup_cooperator,0xcf - 0x352,block/bfq-iosched.c:2950,block/bfq-iosched.c:2952
 140,BLK_MQ_BUDGET_DELAY,kernel-results/BLK_MQ_BUDGET_DELAY/1.output.txt,__blk_mq_sched_dispatch_requests,0x577 - 0x57f,block/blk-mq-sched.c:156,block/blk-mq-sched.c:156
 140,BLK_MQ_BUDGET_DELAY,kernel-results/BLK_MQ_BUDGET_DELAY/2.output.txt,__blk_mq_sched_dispatch_requests,0x5c4 - 0x5cc,block/blk-mq-sched.c:248,block/blk-mq-sched.c:248
 999,Try_KLP_bad_case,kernel-results/Try_KLP_bad_case/1.output.txt,tcp_sendmsg_locked,0x409 - 0x40d,net/ipv4/tcp.c:1162,net/ipv4/tcp.c:1162
