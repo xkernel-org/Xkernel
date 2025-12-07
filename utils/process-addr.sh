@@ -1,3 +1,3 @@
-grep -e 'kernel-results/' -e '^  ->' addr.log > addr.clean.log
+grep -e 'kernel-results/' -e '^  ->' find-binary-addresses/addr.log > find-binary-addresses/addr.clean.log
 
-python utils/process-addr.py | sort -n > addr.csv
+python utils/process-addr.py | sort -n > find-binary-addresses/addr.csv

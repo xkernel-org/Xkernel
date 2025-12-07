@@ -898,7 +898,7 @@ def batch_process(directory, vmlinux_path, nm_output, readelf_output, max_worker
     print_lock = threading.Lock()
 
     # Open output file for writing results
-    output_log_path = "addr.log"
+    output_log_path = "find-binary-addresses/addr.log"
     output_file = open(output_log_path, 'w')
     print(f"Saving results to {output_log_path}", file=sys.stderr)
     print()
@@ -990,11 +990,15 @@ def batch_process(directory, vmlinux_path, nm_output, readelf_output, max_worker
 
 
 def main():
-    vmlinux_path = "./xkernel.vmlinux"
-    modules_path = "../mods/modules/6.14.0-xkernel"
+    vmlinux_path = "../linux-6.14.0-xkernel/vmlinux"
+    modules_path = "../linux-6.14.0-xkernel/mods/lib/modules/6.14.0-xkernel"
 
     if not os.path.exists(vmlinux_path):
         print(f"Error: vmlinux file {vmlinux_path} not found")
+        sys.exit(1)
+
+    if not os.path.exists(modules_path):
+        print(f"Error: modules directory {modules_path} not found")
         sys.exit(1)
 
     if len(sys.argv) < 2:
