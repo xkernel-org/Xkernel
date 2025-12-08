@@ -376,14 +376,14 @@ def parse_dataflow_analysis_output_file(filepath):
 
     # Extract earliest instruction with L=N
     earliest_match = re.search(
-        r'Earliest instruction with L=\d+:\s*\n\s*.*?<([^>]+)>\s+FUNC=(\S+)',
+        r'Earliest instruction with L=\d+:\s*\n\s*.*?<([^>]+)>\s+(?:\(approx\)\s+)?FUNC=(\S+)',
         content,
         re.MULTILINE
     )
 
     # Extract latest instruction with L=N
     latest_match = re.search(
-        r'Latest instruction with L=\d+:\s*\n\s*.*?<([^>]+)>\s+FUNC=(\S+)',
+        r'Latest instruction with L=\d+:\s*\n\s*.*?<([^>]+)>\s+(?:\(approx\)\s+)?FUNC=(\S+)',
         content,
         re.MULTILINE
     )
@@ -394,7 +394,7 @@ def parse_dataflow_analysis_output_file(filepath):
     if not earliest_match:
         # IR instruction without source code location
         earliest_match = re.search(
-            r'Earliest instruction with L=\d+:\s*\n\s*(.*?)\s+FUNC=(\S+)',
+            r'Earliest instruction with L=\d+:\s*\n\s*(.*?)\s+(?:\(approx\)\s+)?FUNC=(\S+)',
             content,
             re.MULTILINE
         )
@@ -421,7 +421,7 @@ def parse_dataflow_analysis_output_file(filepath):
         if not latest_match:
             # IR instruction without source code location
             latest_match = re.search(
-                r'Latest instruction with L=\d+:\s*\n\s*(.*?)\s+FUNC=(\S+)',
+                r'Latest instruction with L=\d+:\s*\n\s*(.*?)\s+(?:\(approx\)\s+)?FUNC=(\S+)',
                 content,
                 re.MULTILINE
             )
