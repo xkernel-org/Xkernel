@@ -1,0 +1,1 @@
+  alloc_pipe_info: BB10:I0 -> BB16:I1

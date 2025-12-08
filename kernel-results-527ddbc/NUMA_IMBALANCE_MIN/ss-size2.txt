@@ -1,0 +1,5 @@
+sched_balance_find_dst_cpu: BB88:I8 -> BB88:I15 => 8 instructions
+sched_balance_rq: BB159:I8 -> BB268:I3 => 637 instructions
+task_numa_find_cpu: BB1:I11 -> BB1:I15 => 5 instructions
+
+Total: 650 instructions

@@ -1,0 +1,45 @@
+=== Taint Tracker Configuration ===
+Function: bfq_add_request
+Opcode: phi
+Constant: 1024
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant 1024)
+
+[SOURCE] Tainting:   %675 = phi i32 [ %673, %669 ], [ 1024, %661 ], <block/bfq-iosched.c:1707:25> (approx) FUNC=bfq_add_request L=0
+[USE] Source instruction in data flow <block/bfq-iosched.c:1707:25> (approx) FUNC=bfq_add_request L=0
+[USE] Processing uses of:   %675 = phi i32 [ %673, %669 ], [ 1024, %661 ],
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %676 = call i32 @llvm.umin.i32(i32 %665, i32 %675), !dbg !18659133 <block/bfq-iosched.c:1707:25>
+  [USE] Taint flows to:   %676 = call i32 @llvm.umin.i32(i32 %665, i32 %675), <block/bfq-iosched.c:1707:25> FUNC=bfq_add_request L=0
+[USE] Processing uses of:   %676 = call i32 @llvm.umin.i32(i32 %665, i32 %675),
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #0 (ptr %0) <block/bfq-iosched.c:1707:23>
+[POINTER PARAMETER] Call to bfq_add_request passes through pointer parameter 1 of bfq_insert_requests <block/bfq-iosched.c:6208:2> FUNC=bfq_insert_requests L=1
+[UPWARD-INTERPROC] No callers found for bfq_insert_requests (function taints pointer parameter #1)
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 2
+
+Earliest instruction with L=0:
+    %675 = phi i32 [ %673, %669 ], [ 1024, %661 ], <block/bfq-iosched.c:1707:25> (approx) FUNC=bfq_add_request L=0
+
+Latest instruction with L=0:
+    %676 = call i32 @llvm.umin.i32(i32 %665, i32 %675), <block/bfq-iosched.c:1707:25> FUNC=bfq_add_request L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 2 instructions
+Other visited functions (total): 0 instructions
+Total: 2 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+bfq_add_request, 139, 0, 139, 1
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/block/bfq-iosched.ll
+../linux-wllvm-defconfig/block/bfq-iosched.c

@@ -1,0 +1,207 @@
+=== Taint Tracker Configuration ===
+Function: nfs4_async_handle_exception
+Opcode: call
+Constant: 15000
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant 15000)
+
+[SOURCE] Tainting:   %28 = tail call i64 @llvm.umin.i64(i64 %26, i64 15000), <fs/nfs/nfs4proc.c:433:15> FUNC=nfs4_async_handle_exception L=0
+[USE] Source instruction in data flow <fs/nfs/nfs4proc.c:433:15> FUNC=nfs4_async_handle_exception L=0
+[CHILD FUNCTION] Constant used in call to llvm.umin.i64 at argument 1 <fs/nfs/nfs4proc.c:433:15> FUNC=nfs4_async_handle_exception L=0
+[USE] Processing uses of:   %28 = tail call i64 @llvm.umin.i64(i64 %26, i64 15000),
+  [USE] Taint flows to:   %29 = select i1 %27, i64 100, i64 %28, <fs/nfs/nfs4proc.c:433:15> FUNC=nfs4_async_handle_exception L=0
+[USE] Processing uses of:   %29 = select i1 %27, i64 100, i64 %28,
+  [USE] Taint flows to:   %30 = shl nuw nsw i64 %29, 1, <fs/nfs/nfs4proc.c:438:11> FUNC=nfs4_async_handle_exception L=0
+  [CHILD FUNCTION] Tainted value used in call to rpc_delay at argument 1:   tail call void @rpc_delay(ptr noundef %0, i64 noundef %29) #279, <fs/nfs/nfs4proc.c:674:3> FUNC=nfs4_async_handle_exception L=0
+  [USE] Taint flows to:   tail call void @rpc_delay(ptr noundef %0, i64 noundef %29) #279, <fs/nfs/nfs4proc.c:674:3> FUNC=nfs4_async_handle_exception L=0
+[NO USE] No uses of:   tail call void @rpc_delay(ptr noundef %0, i64 noundef %29) #279,
+[USE] Processing uses of:   %30 = shl nuw nsw i64 %29, 1,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #3 (ptr %3) <fs/nfs/nfs4proc.c:438:11>
+[UPWARD-INTERPROC] Call to nfs4_async_handle_exception taints argument 3 (local variable) <fs/nfs/nfs4proc.c:7119:22> FUNC=nfs4_locku_done L=1
+  [STORE DESTINATION] Marking pointer as tainted via call:   %4 = alloca %struct.nfs4_exception, align 8, !DIAssignID !18658052 FUNC=nfs4_locku_done L=1
+[UPWARD-INTERPROC] Call to nfs4_async_handle_exception taints argument 3 (local variable) <fs/nfs/nfs4proc.c:713:20> FUNC=nfs41_free_stateid_done L=1
+  [STORE DESTINATION] Marking pointer as tainted via call:   %3 = alloca %struct.nfs4_exception, align 8, !DIAssignID !18658041 FUNC=nfs41_free_stateid_done L=1
+[UPWARD-INTERPROC] Call to nfs4_async_handle_exception taints argument 3 (local variable) <fs/nfs/nfs4proc.c:713:20> FUNC=nfs4_release_lockowner_done L=1
+  [STORE DESTINATION] Marking pointer as tainted via call:   %3 = alloca %struct.nfs4_exception, align 8, !DIAssignID !18658043 FUNC=nfs4_release_lockowner_done L=1
+[UPWARD-INTERPROC] Call to nfs4_async_handle_exception taints argument 3 (local variable) <fs/nfs/nfs4proc.c:713:20> FUNC=nfs4_proc_unlink_done L=1
+  [STORE DESTINATION] Marking pointer as tainted via call:   %3 = alloca %struct.nfs4_exception, align 8, !DIAssignID !18658029 FUNC=nfs4_proc_unlink_done L=1
+[UPWARD-INTERPROC] Call to nfs4_async_handle_exception taints argument 3 (local variable) <fs/nfs/nfs4proc.c:713:20> FUNC=nfs4_proc_rename_done L=1
+  [STORE DESTINATION] Marking pointer as tainted via call:   %4 = alloca %struct.nfs4_exception, align 8, !DIAssignID !18658030 FUNC=nfs4_proc_rename_done L=1
+[UPWARD-INTERPROC] Call to nfs4_async_handle_exception taints argument 3 (local variable) <fs/nfs/nfs4proc.c:713:20> FUNC=nfs4_commit_done_cb L=1
+  [STORE DESTINATION] Marking pointer as tainted via call:   %3 = alloca %struct.nfs4_exception, align 8, !DIAssignID !18658027 FUNC=nfs4_commit_done_cb L=1
+[UPWARD-INTERPROC] Call to nfs4_async_handle_exception taints argument 3 (local variable) <fs/nfs/nfs4proc.c:5666:21> FUNC=nfs4_write_done_cb L=1
+  [STORE DESTINATION] Marking pointer as tainted via call:   %3 = alloca %struct.nfs4_exception, align 8, !DIAssignID !18658030 FUNC=nfs4_write_done_cb L=1
+[UPWARD-INTERPROC] Call to nfs4_async_handle_exception taints argument 3 (local variable) <fs/nfs/nfs4proc.c:5550:21> FUNC=nfs4_read_done_cb L=1
+  [STORE DESTINATION] Marking pointer as tainted via call:   %3 = alloca %struct.nfs4_exception, align 8, !DIAssignID !18658030 FUNC=nfs4_read_done_cb L=1
+[UPWARD-INTERPROC] Call to nfs4_async_handle_exception taints argument 3 (local variable) <fs/nfs/nfs4proc.c:713:20> FUNC=nfs4_async_handle_error L=1
+  [STORE DESTINATION] Marking pointer as tainted via call:   %5 = alloca %struct.nfs4_exception, align 8, !DIAssignID !18658031 FUNC=nfs4_async_handle_error L=1
+[UPWARD-INTERPROC] Call to nfs4_async_handle_exception taints argument 3 (local variable) <fs/nfs/nfs4proc.c:3690:22> FUNC=nfs4_close_done L=1
+  [STORE DESTINATION] Marking pointer as tainted via call:   %4 = alloca %struct.nfs4_exception, align 8, !DIAssignID !18658051 FUNC=nfs4_close_done L=1
+[UPWARD-INTERPROC] Call to nfs4_async_handle_exception taints argument 3 (local variable) <fs/nfs/nfs4proc.c:6763:21> FUNC=nfs4_delegreturn_done L=1
+  [STORE DESTINATION] Marking pointer as tainted via call:   %4 = alloca %struct.nfs4_exception, align 8, !DIAssignID !18658050 FUNC=nfs4_delegreturn_done L=1
+[UPWARD-INTERPROC] Call to nfs4_async_handle_exception taints argument 3 (local variable) <fs/nfs/nfs4proc.c:713:20> FUNC=nfs4_layoutreturn_done L=1
+  [STORE DESTINATION] Marking pointer as tainted via call:   %3 = alloca %struct.nfs4_exception, align 8, !DIAssignID !18658039 FUNC=nfs4_layoutreturn_done L=1
+[UPWARD-INTERPROC] Call to nfs4_async_handle_exception taints argument 3 (local variable) <fs/nfs/nfs4proc.c:713:20> FUNC=nfs4_layoutcommit_done L=1
+  [STORE DESTINATION] Marking pointer as tainted via call:   %3 = alloca %struct.nfs4_exception, align 8, !DIAssignID !18658028 FUNC=nfs4_layoutcommit_done L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %125 = load i8, ptr %15, align 2, (base:   %4 = alloca %struct.nfs4_exception, align 8, !DIAssignID !18658052)  <fs/nfs/nfs4proc.c:7122:18> FUNC=nfs4_locku_done L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %19 = load i8, ptr %18, align 2, (base:   %3 = alloca %struct.nfs4_exception, align 8, !DIAssignID !18658041)  <fs/nfs/nfs4proc.c:716:16> FUNC=nfs41_free_stateid_done L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %38 = load i8, ptr %37, align 2, (base:   %3 = alloca %struct.nfs4_exception, align 8, !DIAssignID !18658043)  <fs/nfs/nfs4proc.c:716:16> FUNC=nfs4_release_lockowner_done L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %21 = load i8, ptr %20, align 2, (base:   %3 = alloca %struct.nfs4_exception, align 8, !DIAssignID !18658029)  <fs/nfs/nfs4proc.c:716:16> FUNC=nfs4_proc_unlink_done L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %25 = load i64, ptr %18, align 8, (base:   %3 = alloca %struct.nfs4_exception, align 8, !DIAssignID !18658029)  <fs/nfs/nfs4proc.c:717:24> FUNC=nfs4_proc_unlink_done L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %22 = load i8, ptr %21, align 2, (base:   %4 = alloca %struct.nfs4_exception, align 8, !DIAssignID !18658030)  <fs/nfs/nfs4proc.c:716:16> FUNC=nfs4_proc_rename_done L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %26 = load i64, ptr %19, align 8, (base:   %4 = alloca %struct.nfs4_exception, align 8, !DIAssignID !18658030)  <fs/nfs/nfs4proc.c:717:24> FUNC=nfs4_proc_rename_done L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %38 = load i8, ptr %37, align 2, (base:   %3 = alloca %struct.nfs4_exception, align 8, !DIAssignID !18658027)  <fs/nfs/nfs4proc.c:716:16> FUNC=nfs4_commit_done_cb L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %46 = load i8, ptr %40, align 2, (base:   %3 = alloca %struct.nfs4_exception, align 8, !DIAssignID !18658030)  <fs/nfs/nfs4proc.c:5669:17> FUNC=nfs4_write_done_cb L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %46 = load i8, ptr %44, align 2, (base:   %3 = alloca %struct.nfs4_exception, align 8, !DIAssignID !18658030)  <fs/nfs/nfs4proc.c:5552:17> FUNC=nfs4_read_done_cb L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %18 = load i8, ptr %17, align 2, (base:   %5 = alloca %struct.nfs4_exception, align 8, !DIAssignID !18658031)  <fs/nfs/nfs4proc.c:716:16> FUNC=nfs4_async_handle_error L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %24 = load i64, ptr %23, align 8, (base:   %5 = alloca %struct.nfs4_exception, align 8, !DIAssignID !18658031)  <fs/nfs/nfs4proc.c:717:24> FUNC=nfs4_async_handle_error L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %95 = load i8, ptr %16, align 2, (base:   %4 = alloca %struct.nfs4_exception, align 8, !DIAssignID !18658051)  <fs/nfs/nfs4proc.c:3692:18> FUNC=nfs4_close_done L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %129 = load i8, ptr %12, align 2, (base:   %4 = alloca %struct.nfs4_exception, align 8, !DIAssignID !18658050)  <fs/nfs/nfs4proc.c:6766:17> FUNC=nfs4_delegreturn_done L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %44 = load i8, ptr %43, align 2, (base:   %3 = alloca %struct.nfs4_exception, align 8, !DIAssignID !18658039)  <fs/nfs/nfs4proc.c:716:16> FUNC=nfs4_layoutreturn_done L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %26 = load i8, ptr %25, align 2, (base:   %3 = alloca %struct.nfs4_exception, align 8, !DIAssignID !18658028)  <fs/nfs/nfs4proc.c:716:16> FUNC=nfs4_layoutcommit_done L=1
+  [USE] Taint flows to:   %27 = and i8 %26, 8, <fs/nfs/nfs4proc.c:718:6> FUNC=nfs4_layoutcommit_done L=1
+  [USE] Taint flows to:   %28 = icmp eq i8 %27, 0, <fs/nfs/nfs4proc.c:718:6> FUNC=nfs4_layoutcommit_done L=1
+  [USE] Taint flows to:   br i1 %28, label %29, label %30, <UNKNOWN> FUNC=nfs4_layoutcommit_done L=1
+  [USE] Taint flows to:   %45 = and i8 %44, 8, <fs/nfs/nfs4proc.c:718:6> FUNC=nfs4_layoutreturn_done L=1
+  [USE] Taint flows to:   %46 = icmp eq i8 %45, 0, <fs/nfs/nfs4proc.c:718:6> FUNC=nfs4_layoutreturn_done L=1
+  [USE] Taint flows to:   br i1 %46, label %47, label %49, <fs/nfs/nfs4proc.c:10045:57> FUNC=nfs4_layoutreturn_done L=1
+  [USE] Taint flows to:   %130 = and i8 %129, 8, <fs/nfs/nfs4proc.c:6766:7> FUNC=nfs4_delegreturn_done L=1
+  [USE] Taint flows to:   %131 = icmp eq i8 %130, 0, <fs/nfs/nfs4proc.c:6766:7> FUNC=nfs4_delegreturn_done L=1
+  [USE] Taint flows to:   br i1 %131, label %132, label %138, <fs/nfs/nfs4proc.c:6766:7> FUNC=nfs4_delegreturn_done L=1
+  [USE] Taint flows to:   %96 = and i8 %95, 8, <fs/nfs/nfs4proc.c:3692:8> FUNC=nfs4_close_done L=1
+  [USE] Taint flows to:   %97 = icmp eq i8 %96, 0, <fs/nfs/nfs4proc.c:3692:8> FUNC=nfs4_close_done L=1
+  [USE] Taint flows to:   br i1 %97, label %98, label %217, <fs/nfs/nfs4proc.c:3692:8> FUNC=nfs4_close_done L=1
+  [USE] Taint flows to:   store i64 %24, ptr %3, align 8, <fs/nfs/nfs4proc.c:717:12> FUNC=nfs4_async_handle_error L=1
+  [STORE DESTINATION] Marking pointer as tainted: ptr %3 <fs/nfs/nfs4proc.c:717:12> FUNC=nfs4_async_handle_error L=1
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #3 (ptr %3) <fs/nfs/nfs4proc.c:717:12> FUNC=nfs4_async_handle_error L=1
+  [USE] Taint flows to:   %19 = and i8 %18, 2, <fs/nfs/nfs4proc.c:716:6> FUNC=nfs4_async_handle_error L=1
+  [USE] Taint flows to:   %26 = and i8 %18, 8, <fs/nfs/nfs4proc.c:718:6> FUNC=nfs4_async_handle_error L=1
+  [USE] Taint flows to:   %27 = icmp eq i8 %26, 0, <fs/nfs/nfs4proc.c:718:6> FUNC=nfs4_async_handle_error L=1
+  [USE] Taint flows to:   %28 = select i1 %27, i32 0, i32 -11, <UNKNOWN> FUNC=nfs4_async_handle_error L=1
+  [USE] Taint flows to:   %30 = phi i32 [ 0, %4 ], [ %28, %25 ], <fs/nfs/nfs4proc.c:721:1> (approx) FUNC=nfs4_async_handle_error L=1
+  [USE] Taint flows to:   ret i32 %30, <fs/nfs/nfs4proc.c:721:1> FUNC=nfs4_async_handle_error L=1
+  [RETURN] Tainted value is returned <fs/nfs/nfs4proc.c:721:1> FUNC=nfs4_async_handle_error L=1
+  [USE] Taint flows to:   %20 = icmp ne i8 %19, 0, <fs/nfs/nfs4proc.c:716:6> FUNC=nfs4_async_handle_error L=1
+  [USE] Taint flows to:   %21 = and i1 %11, %20, <fs/nfs/nfs4proc.c:716:22> FUNC=nfs4_async_handle_error L=1
+  [USE] Taint flows to:   br i1 %21, label %22, label %25, <fs/nfs/nfs4proc.c:716:22> FUNC=nfs4_async_handle_error L=1
+  [USE] Taint flows to:   %47 = and i8 %46, 8, <fs/nfs/nfs4proc.c:5552:7> FUNC=nfs4_read_done_cb L=1
+  [USE] Taint flows to:   %48 = icmp eq i8 %47, 0, <fs/nfs/nfs4proc.c:5552:7> FUNC=nfs4_read_done_cb L=1
+  [USE] Taint flows to:   br i1 %48, label %51, label %49, <fs/nfs/nfs4proc.c:5552:7> FUNC=nfs4_read_done_cb L=1
+  [USE] Taint flows to:   %47 = and i8 %46, 8, <fs/nfs/nfs4proc.c:5669:7> FUNC=nfs4_write_done_cb L=1
+  [USE] Taint flows to:   %48 = icmp eq i8 %47, 0, <fs/nfs/nfs4proc.c:5669:7> FUNC=nfs4_write_done_cb L=1
+  [USE] Taint flows to:   br i1 %48, label %51, label %49, <fs/nfs/nfs4proc.c:5669:7> FUNC=nfs4_write_done_cb L=1
+  [USE] Taint flows to:   %39 = and i8 %38, 8, <fs/nfs/nfs4proc.c:718:6> FUNC=nfs4_commit_done_cb L=1
+  [USE] Taint flows to:   %40 = icmp eq i8 %39, 0, <fs/nfs/nfs4proc.c:718:6> FUNC=nfs4_commit_done_cb L=1
+  [USE] Taint flows to:   br i1 %40, label %41, label %42, <UNKNOWN> FUNC=nfs4_commit_done_cb L=1
+  [USE] Taint flows to:   store i64 %26, ptr %13, align 8, <fs/nfs/nfs4proc.c:717:12> FUNC=nfs4_proc_rename_done L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %13 = getelementptr inbounds nuw i8, ptr %6, i64 872, <fs/nfs/nfs4proc.c:717:12> FUNC=nfs4_proc_rename_done L=1
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #0 (ptr %0) <fs/nfs/nfs4proc.c:717:12> FUNC=nfs4_proc_rename_done L=1
+  [USE] Taint flows to:   %23 = and i8 %22, 2, <fs/nfs/nfs4proc.c:716:6> FUNC=nfs4_proc_rename_done L=1
+  [USE] Taint flows to:   %28 = and i8 %22, 8, <fs/nfs/nfs4proc.c:718:6> FUNC=nfs4_proc_rename_done L=1
+  [USE] Taint flows to:   %29 = icmp eq i8 %28, 0, <fs/nfs/nfs4proc.c:718:6> FUNC=nfs4_proc_rename_done L=1
+  [USE] Taint flows to:   br i1 %29, label %30, label %32, <UNKNOWN> FUNC=nfs4_proc_rename_done L=1
+  [USE] Taint flows to:   %24 = icmp eq i8 %23, 0, <fs/nfs/nfs4proc.c:716:6> FUNC=nfs4_proc_rename_done L=1
+  [USE] Taint flows to:   br i1 %24, label %27, label %25, <fs/nfs/nfs4proc.c:716:22> FUNC=nfs4_proc_rename_done L=1
+  [USE] Taint flows to:   store i64 %25, ptr %12, align 8, <fs/nfs/nfs4proc.c:717:12> FUNC=nfs4_proc_unlink_done L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %12 = getelementptr inbounds nuw i8, ptr %5, i64 376, <fs/nfs/nfs4proc.c:717:12> FUNC=nfs4_proc_unlink_done L=1
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #0 (ptr %0) <fs/nfs/nfs4proc.c:717:12> FUNC=nfs4_proc_unlink_done L=1
+  [USE] Taint flows to:   %22 = and i8 %21, 2, <fs/nfs/nfs4proc.c:716:6> FUNC=nfs4_proc_unlink_done L=1
+  [USE] Taint flows to:   %27 = and i8 %21, 8, <fs/nfs/nfs4proc.c:718:6> FUNC=nfs4_proc_unlink_done L=1
+  [USE] Taint flows to:   %28 = icmp eq i8 %27, 0, <fs/nfs/nfs4proc.c:718:6> FUNC=nfs4_proc_unlink_done L=1
+  [USE] Taint flows to:   br i1 %28, label %29, label %31, <UNKNOWN> FUNC=nfs4_proc_unlink_done L=1
+  [USE] Taint flows to:   %23 = icmp eq i8 %22, 0, <fs/nfs/nfs4proc.c:716:6> FUNC=nfs4_proc_unlink_done L=1
+  [USE] Taint flows to:   br i1 %23, label %26, label %24, <fs/nfs/nfs4proc.c:716:22> FUNC=nfs4_proc_unlink_done L=1
+  [USE] Taint flows to:   %39 = and i8 %38, 8, <fs/nfs/nfs4proc.c:718:6> FUNC=nfs4_release_lockowner_done L=1
+  [USE] Taint flows to:   %40 = icmp eq i8 %39, 0, <fs/nfs/nfs4proc.c:718:6> FUNC=nfs4_release_lockowner_done L=1
+  [USE] Taint flows to:   br i1 %40, label %43, label %41, <fs/nfs/nfs4proc.c:7859:22> FUNC=nfs4_release_lockowner_done L=1
+  [USE] Taint flows to:   %20 = and i8 %19, 8, <fs/nfs/nfs4proc.c:718:6> FUNC=nfs41_free_stateid_done L=1
+  [USE] Taint flows to:   %21 = icmp eq i8 %20, 0, <fs/nfs/nfs4proc.c:718:6> FUNC=nfs41_free_stateid_done L=1
+  [USE] Taint flows to:   br i1 %21, label %24, label %22, <fs/nfs/nfs4proc.c:10542:63> FUNC=nfs41_free_stateid_done L=1
+  [USE] Taint flows to:   %126 = and i8 %125, 8, <fs/nfs/nfs4proc.c:7122:8> FUNC=nfs4_locku_done L=1
+  [USE] Taint flows to:   %127 = icmp eq i8 %126, 0, <fs/nfs/nfs4proc.c:7122:8> FUNC=nfs4_locku_done L=1
+  [USE] Taint flows to:   br i1 %127, label %130, label %128, <fs/nfs/nfs4proc.c:7122:8> FUNC=nfs4_locku_done L=1
+[LOAD] Tainted load from tracked pointer:   %13 = load i64, ptr %3, align 8, (ptr %3)  <fs/nfs/nfs4proc.c:712:23> FUNC=nfs4_async_handle_error L=1
+[LOAD] Tainted load from tracked pointer:   %17 = load i64, ptr %12, align 8, (  %12 = getelementptr inbounds nuw i8, ptr %5, i64 376, !dbg !18658038)  <fs/nfs/nfs4proc.c:712:23> FUNC=nfs4_proc_unlink_done L=1
+[LOAD] Tainted load from tracked pointer:   %18 = load i64, ptr %13, align 8, (  %13 = getelementptr inbounds nuw i8, ptr %6, i64 872, !dbg !18658039)  <fs/nfs/nfs4proc.c:712:23> FUNC=nfs4_proc_rename_done L=1
+  [USE] Taint flows to:   store i64 %18, ptr %19, align 8, <fs/nfs/nfs4proc.c:712:21> FUNC=nfs4_proc_rename_done L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %19 = getelementptr inbounds nuw i8, ptr %4, i64 24, <fs/nfs/nfs4proc.c:712:21> FUNC=nfs4_proc_rename_done L=1
+  %19 = getelementptr inbounds nuw i8, ptr %4, i64 24,
+  → base pointer:
+          %4 = alloca %struct.nfs4_exception, align 8, !DIAssignID !18658030
+      → no parameter connection
+  → Result: No parameter connection found
+  [USE] Taint flows to:   store i64 %17, ptr %18, align 8, <fs/nfs/nfs4proc.c:712:21> FUNC=nfs4_proc_unlink_done L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %18 = getelementptr inbounds nuw i8, ptr %3, i64 24, <fs/nfs/nfs4proc.c:712:21> FUNC=nfs4_proc_unlink_done L=1
+  %18 = getelementptr inbounds nuw i8, ptr %3, i64 24,
+  → base pointer:
+          %3 = alloca %struct.nfs4_exception, align 8, !DIAssignID !18658029
+      → no parameter connection
+  → Result: No parameter connection found
+  [USE] Taint flows to:   store i64 %13, ptr %14, align 8, <fs/nfs/nfs4proc.c:712:21> FUNC=nfs4_async_handle_error L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %14 = getelementptr inbounds nuw i8, ptr %5, i64 24, <fs/nfs/nfs4proc.c:712:21> FUNC=nfs4_async_handle_error L=1
+  %14 = getelementptr inbounds nuw i8, ptr %5, i64 24,
+  → base pointer:
+          %5 = alloca %struct.nfs4_exception, align 8, !DIAssignID !18658031
+      → no parameter connection
+  → Result: No parameter connection found
+[UPWARD-INTERPROC] No callers found for nfs4_async_handle_error (function returns tainted value)
+[UPWARD-INTERPROC] No callers found for nfs4_proc_unlink_done (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for nfs4_proc_rename_done (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for nfs4_async_handle_error (function taints pointer parameter #3)
+
+=== Maximum Level Statistics ===
+Largest L value: 1
+Number of instructions with L=1: 76
+
+Per-function breakdown:
+  nfs41_free_stateid_done: 4 value(s)
+  nfs4_async_handle_error: 14 value(s)
+  nfs4_close_done: 4 value(s)
+  nfs4_commit_done_cb: 4 value(s)
+  nfs4_delegreturn_done: 4 value(s)
+  nfs4_layoutcommit_done: 4 value(s)
+  nfs4_layoutreturn_done: 4 value(s)
+  nfs4_locku_done: 4 value(s)
+  nfs4_proc_rename_done: 11 value(s)
+  nfs4_proc_unlink_done: 11 value(s)
+  nfs4_read_done_cb: 4 value(s)
+  nfs4_release_lockowner_done: 4 value(s)
+  nfs4_write_done_cb: 4 value(s)
+
+Earliest instruction with L=1:
+    %125 = load i8, ptr %15, align 2, <fs/nfs/nfs4proc.c:7122:18> FUNC=nfs4_locku_done L=1
+
+Latest instruction with L=1:
+    br i1 %28, label %29, label %30, <UNKNOWN> FUNC=nfs4_layoutcommit_done L=1
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 98 instructions
+Other visited functions (total): 65 instructions
+Total: 163 instructions
+Number of max-level functions: 13
+Number of other visited functions: 1
+
+=== Data Flow Span Details ===
+nfs41_free_stateid_done, 4, 6, 4, 10
+nfs4_async_handle_error, 2, 0, 6, 2
+nfs4_close_done, 19, 3, 19, 6
+nfs4_commit_done_cb, 7, 3, 7, 6
+nfs4_delegreturn_done, 28, 4, 28, 7
+nfs4_layoutcommit_done, 6, 3, 6, 6
+nfs4_layoutreturn_done, 9, 5, 9, 9
+nfs4_locku_done, 18, 4, 18, 7
+nfs4_proc_rename_done, 2, 0, 4, 2
+nfs4_proc_unlink_done, 2, 0, 4, 2
+nfs4_read_done_cb, 7, 17, 7, 20
+nfs4_release_lockowner_done, 10, 5, 10, 9
+nfs4_write_done_cb, 7, 21, 7, 24
+nfs4_async_handle_exception, full span
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/nfs/nfs4proc.ll
+../linux-wllvm-defconfig/fs/nfs/nfs4proc.c

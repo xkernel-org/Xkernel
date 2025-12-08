@@ -1,0 +1,5 @@
+SOURCE_FILE=fs/f2fs/gc.c
+FUNCTION_NAME=do_garbage_collect
+SOURCE_OP="mul"
+CONSTANT_VALUE=5
+OCCURENCE=1

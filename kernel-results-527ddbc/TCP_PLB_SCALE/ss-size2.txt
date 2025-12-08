@@ -1,0 +1,4 @@
+dctcp_update_alpha: BB3:I0 -> BB4:I2 => 6 instructions
+tcp_sk_init: BB7:I23 -> BB7:I23 => 1 instructions
+
+Total: 7 instructions

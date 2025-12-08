@@ -1,0 +1,5 @@
+bfq_add_request: BB137:I7 -> BB137:I8 => 2 instructions
+bfq_bfqq_expire: [BB40:I9 -> BB40:I10, BB53:I5 -> BB53:I6, BB74:I4 -> BB74:I5] => 6 instructions
+bfq_init_bfqq: BB12:I14 -> BB12:I15 => 2 instructions
+
+Total: 10 instructions

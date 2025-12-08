@@ -1,0 +1,5 @@
+SOURCE_FILE=net/netfilter/ipvs/ip_vs_sync.c
+FUNCTION_NAME=sync_thread_master
+SOURCE_OP="add"
+CONSTANT_VALUE=-2000
+OCCURENCE=1

@@ -1,0 +1,836 @@
+[INFO] Found 400 input files to process
+[INFO] Using 50 parallel jobs
+
+Starting parallel processing at 2025-12-08 01:49:03
+
+[INFO] [17/400] kernel-results/BFQ_HW_QUEUE_THRESHOLD/4.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:49:03
+[SUCCESS] [17/400] Completed kernel-results/BFQ_HW_QUEUE_THRESHOLD/4.input.txt at 2025-12-08 01:52:52
+[INFO] [88/400] kernel-results/BTRFS_DELAYED_BATCH/8.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:52:52
+[SUCCESS] [88/400] Completed kernel-results/BTRFS_DELAYED_BATCH/8.input.txt at 2025-12-08 01:56:14
+[INFO] [116/400] kernel-results/EP_MAX_NESTS/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:56:14
+[SUCCESS] [116/400] Completed kernel-results/EP_MAX_NESTS/2.input.txt at 2025-12-08 01:59:03
+[INFO] [135/400] kernel-results/IO_POLL_REF_BIAS/6.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:59:03
+[SUCCESS] [135/400] Completed kernel-results/IO_POLL_REF_BIAS/6.input.txt at 2025-12-08 02:02:34
+[INFO] [170/400] kernel-results/MAX_SCAN_WINDOW/3.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:02:34
+[SUCCESS] [170/400] Completed kernel-results/MAX_SCAN_WINDOW/3.input.txt at 2025-12-08 02:05:39
+[INFO] [194/400] kernel-results/NFS4_POLL_RETRY_MAX/6.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:05:39
+[SUCCESS] [194/400] Completed kernel-results/NFS4_POLL_RETRY_MAX/6.input.txt at 2025-12-08 02:08:20
+[INFO] [210/400] kernel-results/NFS_JUKEBOX_RETRY_TIME/16.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:08:20
+[SUCCESS] [210/400] Completed kernel-results/NFS_JUKEBOX_RETRY_TIME/16.input.txt at 2025-12-08 02:11:40
+[INFO] [244/400] kernel-results/PEEK_MAX_IMPORT/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:11:40
+[SUCCESS] [244/400] Completed kernel-results/PEEK_MAX_IMPORT/1.input.txt at 2025-12-08 02:43:22
+[INFO] [372/400] kernel-results/bfq_late_stable_merging/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:43:22
+[SUCCESS] [372/400] Completed kernel-results/bfq_late_stable_merging/1.input.txt at 2025-12-08 02:46:50
+[INFO] [379/400] kernel-results/ca__delay_min/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:46:50
+[SUCCESS] [379/400] Completed kernel-results/ca__delay_min/1.input.txt at 2025-12-08 02:50:39
+[INFO] [391/400] kernel-results/fits_capacity/5.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:50:39
+[SUCCESS] [391/400] Completed kernel-results/fits_capacity/5.input.txt at 2025-12-08 02:53:47
+[INFO] [48/400] kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/16.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:49:03
+[SUCCESS] [48/400] Completed kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/16.input.txt at 2025-12-08 01:52:12
+[INFO] [65/400] kernel-results/BLK_ZONE_WPLUG_DEFAULT_POOL_SIZE/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:52:12
+[SUCCESS] [65/400] Completed kernel-results/BLK_ZONE_WPLUG_DEFAULT_POOL_SIZE/1.input.txt at 2025-12-08 01:59:42
+[INFO] [149/400] kernel-results/KFREE_DRAIN_JIFFIES/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:59:42
+[SUCCESS] [149/400] Completed kernel-results/KFREE_DRAIN_JIFFIES/2.input.txt at 2025-12-08 02:02:30
+[INFO] [168/400] kernel-results/MAX_SCAN_WINDOW/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:02:30
+[SUCCESS] [168/400] Completed kernel-results/MAX_SCAN_WINDOW/1.input.txt at 2025-12-08 02:05:52
+[INFO] [196/400] kernel-results/NFS4_POLL_RETRY_MIN/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:05:52
+[SUCCESS] [196/400] Completed kernel-results/NFS4_POLL_RETRY_MIN/1.input.txt at 2025-12-08 02:33:08
+[INFO] [348/400] kernel-results/TCP_THIN_LINEAR_RETRIES/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:33:08
+[SUCCESS] [348/400] Completed kernel-results/TCP_THIN_LINEAR_RETRIES/1.input.txt at 2025-12-08 02:36:14
+[INFO] [357/400] kernel-results/UTIL_EST_MARGIN/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:36:14
+[SUCCESS] [357/400] Completed kernel-results/UTIL_EST_MARGIN/2.input.txt at 2025-12-08 02:39:25
+[INFO] [363/400] kernel-results/XFS_ICOUNT_BATCH/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:39:25
+[SUCCESS] [363/400] Completed kernel-results/XFS_ICOUNT_BATCH/1.input.txt at 2025-12-08 02:42:24
+[INFO] [371/400] kernel-results/bfq_default_max_budget/5.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:42:24
+[SUCCESS] [371/400] Completed kernel-results/bfq_default_max_budget/5.input.txt at 2025-12-08 02:50:33
+[INFO] [390/400] kernel-results/fits_capacity/4.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:50:33
+[SUCCESS] [390/400] Completed kernel-results/fits_capacity/4.input.txt at 2025-12-08 02:53:50
+[INFO] [32/400] kernel-results/BLK_MIN_SG_TIMEOUT/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:49:03
+[SUCCESS] [32/400] Completed kernel-results/BLK_MIN_SG_TIMEOUT/2.input.txt at 2025-12-08 01:52:29
+[INFO] [80/400] kernel-results/BTRFS_DELAYED_BATCH/11.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:52:29
+[SUCCESS] [80/400] Completed kernel-results/BTRFS_DELAYED_BATCH/11.input.txt at 2025-12-08 01:55:57
+[INFO] [112/400] kernel-results/DEF_RECLAIM_PREFREE_SEGMENTS/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:55:57
+[SUCCESS] [112/400] Completed kernel-results/DEF_RECLAIM_PREFREE_SEGMENTS/1.input.txt at 2025-12-08 01:59:54
+[INFO] [150/400] kernel-results/KFREE_DRAIN_JIFFIES/3.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:59:54
+[SUCCESS] [150/400] Completed kernel-results/KFREE_DRAIN_JIFFIES/3.input.txt at 2025-12-08 02:03:46
+[INFO] [179/400] kernel-results/MAX_SLACK/5.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:03:46
+[SUCCESS] [179/400] Completed kernel-results/MAX_SLACK/5.input.txt at 2025-12-08 02:09:24
+[INFO] [222/400] kernel-results/NFS_JUKEBOX_RETRY_TIME/7.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:09:24
+[SUCCESS] [222/400] Completed kernel-results/NFS_JUKEBOX_RETRY_TIME/7.input.txt at 2025-12-08 02:12:51
+[INFO] [256/400] kernel-results/RCU_JIFFIES_FQS_DIV/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:12:51
+[SUCCESS] [256/400] Completed kernel-results/RCU_JIFFIES_FQS_DIV/2.input.txt at 2025-12-08 02:16:57
+[INFO] [279/400] kernel-results/SMALLIMP/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:16:57
+[SUCCESS] [279/400] Completed kernel-results/SMALLIMP/1.input.txt at 2025-12-08 02:20:02
+[INFO] [299/400] kernel-results/TCP_DELACK_MAX/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:20:02
+[SUCCESS] [299/400] Completed kernel-results/TCP_DELACK_MAX/1.input.txt at 2025-12-08 02:23:19
+[INFO] [318/400] kernel-results/TCP_INIT_CWND/6.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:23:19
+[SUCCESS] [318/400] Completed kernel-results/TCP_INIT_CWND/6.input.txt at 2025-12-08 02:27:22
+[INFO] [334/400] kernel-results/TCP_MAX_WSCALE/16.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:27:22
+[SUCCESS] [334/400] Completed kernel-results/TCP_MAX_WSCALE/16.input.txt at 2025-12-08 02:40:55
+[INFO] [364/400] kernel-results/bfq_activation_stable_merging/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:40:55
+[SUCCESS] [364/400] Completed kernel-results/bfq_activation_stable_merging/1.input.txt at 2025-12-08 02:44:21
+[INFO] [374/400] kernel-results/bfq_stats_min_budgets/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:44:21
+[SUCCESS] [374/400] Completed kernel-results/bfq_stats_min_budgets/1.input.txt at 2025-12-08 02:47:47
+[INFO] [383/400] kernel-results/capacity_greater/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:47:47
+[SUCCESS] [383/400] Completed kernel-results/capacity_greater/2.input.txt at 2025-12-08 02:50:57
+[INFO] [392/400] kernel-results/fits_capacity/6.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:50:57
+[SUCCESS] [392/400] Completed kernel-results/fits_capacity/6.input.txt at 2025-12-08 02:54:07
+[INFO] [14/400] kernel-results/BFQ_HW_QUEUE_THRESHOLD/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:49:03
+[SUCCESS] [14/400] Completed kernel-results/BFQ_HW_QUEUE_THRESHOLD/1.input.txt at 2025-12-08 01:52:14
+[INFO] [67/400] kernel-results/BOOST_GC_MULTIPLE/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:52:14
+[SUCCESS] [67/400] Completed kernel-results/BOOST_GC_MULTIPLE/1.input.txt at 2025-12-08 01:58:21
+[INFO] [128/400] kernel-results/IO_LOCAL_TW_DEFAULT_MAX/3.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:58:21
+[SUCCESS] [128/400] Completed kernel-results/IO_LOCAL_TW_DEFAULT_MAX/3.input.txt at 2025-12-08 02:01:39
+[INFO] [157/400] kernel-results/MAX_MKSPC_RETRIES/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:01:39
+[SUCCESS] [157/400] Completed kernel-results/MAX_MKSPC_RETRIES/1.input.txt at 2025-12-08 02:05:15
+[INFO] [189/400] kernel-results/NFS4_POLL_RETRY_MAX/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:05:15
+[SUCCESS] [189/400] Completed kernel-results/NFS4_POLL_RETRY_MAX/1.input.txt at 2025-12-08 02:08:50
+[INFO] [219/400] kernel-results/NFS_JUKEBOX_RETRY_TIME/4.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:08:50
+[SUCCESS] [219/400] Completed kernel-results/NFS_JUKEBOX_RETRY_TIME/4.input.txt at 2025-12-08 02:11:51
+[INFO] [250/400] kernel-results/PIPE_MIN_DEF_BUFFERS/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:11:51
+[SUCCESS] [250/400] Completed kernel-results/PIPE_MIN_DEF_BUFFERS/2.input.txt at 2025-12-08 02:17:33
+[INFO] [286/400] kernel-results/TCP_ATO_MIN/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:17:33
+[SUCCESS] [286/400] Completed kernel-results/TCP_ATO_MIN/1.input.txt at 2025-12-08 02:22:09
+[INFO] [315/400] kernel-results/TCP_INIT_CWND/3.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:22:09
+[SUCCESS] [315/400] Completed kernel-results/TCP_INIT_CWND/3.input.txt at 2025-12-08 02:26:12
+[INFO] [330/400] kernel-results/TCP_MAX_WSCALE/12.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:26:12
+[SUCCESS] [330/400] Completed kernel-results/TCP_MAX_WSCALE/12.input.txt at 2025-12-08 02:37:50
+[INFO] [360/400] kernel-results/WORKER_INIT_LIMIT/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:37:50
+[SUCCESS] [360/400] Completed kernel-results/WORKER_INIT_LIMIT/1.input.txt at 2025-12-08 02:41:15
+[INFO] [366/400] kernel-results/bfq_back_penalty/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:41:15
+[SUCCESS] [366/400] Completed kernel-results/bfq_back_penalty/1.input.txt at 2025-12-08 02:44:34
+[INFO] [376/400] kernel-results/bfq_stats_min_budgets/3.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:44:34
+[SUCCESS] [376/400] Completed kernel-results/bfq_stats_min_budgets/3.input.txt at 2025-12-08 02:47:35
+[INFO] [381/400] kernel-results/ca__delay_min/3.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:47:35
+[SUCCESS] [381/400] Completed kernel-results/ca__delay_min/3.input.txt at 2025-12-08 02:51:04
+[INFO] [393/400] kernel-results/fits_capacity/7.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:51:04
+[SUCCESS] [393/400] Completed kernel-results/fits_capacity/7.input.txt at 2025-12-08 02:54:13
+[INFO] [1/400] kernel-results/AIO_PLUG_THRESHOLD/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:49:03
+[SUCCESS] [1/400] Completed kernel-results/AIO_PLUG_THRESHOLD/1.input.txt at 2025-12-08 01:52:08
+[INFO] [61/400] kernel-results/BLK_MQ_MAX_DEPTH/5.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:52:08
+[SUCCESS] [61/400] Completed kernel-results/BLK_MQ_MAX_DEPTH/5.input.txt at 2025-12-08 01:55:20
+[INFO] [98/400] kernel-results/DEF_DISCARD_URGENT_UTIL/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:55:20
+[SUCCESS] [98/400] Completed kernel-results/DEF_DISCARD_URGENT_UTIL/1.input.txt at 2025-12-08 01:58:33
+[INFO] [129/400] kernel-results/IO_LOCAL_TW_DEFAULT_MAX/4.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:58:33
+[SUCCESS] [129/400] Completed kernel-results/IO_LOCAL_TW_DEFAULT_MAX/4.input.txt at 2025-12-08 02:01:44
+[INFO] [158/400] kernel-results/MAX_NR_FOLIOS_PER_FREE/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:01:44
+[SUCCESS] [158/400] Completed kernel-results/MAX_NR_FOLIOS_PER_FREE/1.input.txt at 2025-12-08 02:27:54
+[INFO] [336/400] kernel-results/TCP_MAX_WSCALE/3.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:27:54
+[SUCCESS] [336/400] Completed kernel-results/TCP_MAX_WSCALE/3.input.txt at 2025-12-08 02:31:43
+[INFO] [340/400] kernel-results/TCP_MAX_WSCALE/7.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:31:43
+[SUCCESS] [340/400] Completed kernel-results/TCP_MAX_WSCALE/7.input.txt at 2025-12-08 02:34:13
+[INFO] [350/400] kernel-results/TCP_TIMEOUT_MIN/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:34:13
+[SUCCESS] [350/400] Completed kernel-results/TCP_TIMEOUT_MIN/2.input.txt at 2025-12-08 02:37:15
+[INFO] [359/400] kernel-results/VMA_PID_RESET_PERIOD/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:37:15
+[SUCCESS] [359/400] Completed kernel-results/VMA_PID_RESET_PERIOD/2.input.txt at 2025-12-08 02:41:35
+[INFO] [367/400] kernel-results/bfq_default_max_budget/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:41:35
+[SUCCESS] [367/400] Completed kernel-results/bfq_default_max_budget/1.input.txt at 2025-12-08 02:44:31
+[INFO] [375/400] kernel-results/bfq_stats_min_budgets/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:44:31
+[SUCCESS] [375/400] Completed kernel-results/bfq_stats_min_budgets/2.input.txt at 2025-12-08 02:47:41
+[INFO] [382/400] kernel-results/capacity_greater/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:47:41
+[SUCCESS] [382/400] Completed kernel-results/capacity_greater/1.input.txt at 2025-12-08 02:51:27
+[INFO] [396/400] kernel-results/max_service_from_wr/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:51:27
+[SUCCESS] [396/400] Completed kernel-results/max_service_from_wr/1.input.txt at 2025-12-08 02:54:20
+[INFO] [4/400] kernel-results/ALLOC_CACHE_THRESHOLD/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:49:03
+[SUCCESS] [4/400] Completed kernel-results/ALLOC_CACHE_THRESHOLD/1.input.txt at 2025-12-08 01:52:14
+[INFO] [69/400] kernel-results/BTRFS_DELAYED_BACKGROUND/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:52:14
+[SUCCESS] [69/400] Completed kernel-results/BTRFS_DELAYED_BACKGROUND/1.input.txt at 2025-12-08 01:55:36
+[INFO] [104/400] kernel-results/DEF_PRIORITY/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:55:36
+[SUCCESS] [104/400] Completed kernel-results/DEF_PRIORITY/2.input.txt at 2025-12-08 01:59:05
+[INFO] [136/400] kernel-results/IO_POLL_REF_BIAS/7.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:59:05
+[SUCCESS] [136/400] Completed kernel-results/IO_POLL_REF_BIAS/7.input.txt at 2025-12-08 02:02:08
+[INFO] [165/400] kernel-results/MAX_PARTIAL_TO_SCAN/5.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:02:08
+[SUCCESS] [165/400] Completed kernel-results/MAX_PARTIAL_TO_SCAN/5.input.txt at 2025-12-08 02:10:38
+[INFO] [231/400] kernel-results/NUMA_IMBALANCE_MIN/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:10:38
+[SUCCESS] [231/400] Completed kernel-results/NUMA_IMBALANCE_MIN/1.input.txt at 2025-12-08 02:14:48
+[INFO] [264/400] kernel-results/SBQ_WAKE_BATCH/5.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:14:48
+[SUCCESS] [264/400] Completed kernel-results/SBQ_WAKE_BATCH/5.input.txt at 2025-12-08 02:18:27
+[INFO] [287/400] kernel-results/TCP_ATO_MIN/10.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:18:27
+[SUCCESS] [287/400] Completed kernel-results/TCP_ATO_MIN/10.input.txt at 2025-12-08 02:47:53
+[INFO] [384/400] kernel-results/capacity_greater/3.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:47:53
+[SUCCESS] [384/400] Completed kernel-results/capacity_greater/3.input.txt at 2025-12-08 02:51:12
+[INFO] [394/400] kernel-results/fits_capacity/8.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:51:12
+[SUCCESS] [394/400] Completed kernel-results/fits_capacity/8.input.txt at 2025-12-08 02:54:27
+[INFO] [30/400] kernel-results/BLK_MAX_REQUEST_COUNT/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:49:03
+[SUCCESS] [30/400] Completed kernel-results/BLK_MAX_REQUEST_COUNT/2.input.txt at 2025-12-08 01:52:27
+[INFO] [78/400] kernel-results/BTRFS_DELAYED_BATCH/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:52:27
+[SUCCESS] [78/400] Completed kernel-results/BTRFS_DELAYED_BATCH/1.input.txt at 2025-12-08 01:55:24
+[INFO] [101/400] kernel-results/DEF_MAX_RECLAIM_PREFREE_SEGMENTS/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:55:24
+[SUCCESS] [101/400] Completed kernel-results/DEF_MAX_RECLAIM_PREFREE_SEGMENTS/2.input.txt at 2025-12-08 01:58:55
+[INFO] [133/400] kernel-results/IO_POLL_REF_BIAS/4.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:58:55
+[SUCCESS] [133/400] Completed kernel-results/IO_POLL_REF_BIAS/4.input.txt at 2025-12-08 02:02:05
+[INFO] [164/400] kernel-results/MAX_PARTIAL_TO_SCAN/4.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:02:05
+[SUCCESS] [164/400] Completed kernel-results/MAX_PARTIAL_TO_SCAN/4.input.txt at 2025-12-08 02:05:42
+[INFO] [195/400] kernel-results/NFS4_POLL_RETRY_MAX/7.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:05:42
+[SUCCESS] [195/400] Completed kernel-results/NFS4_POLL_RETRY_MAX/7.input.txt at 2025-12-08 02:09:37
+[INFO] [223/400] kernel-results/NFS_JUKEBOX_RETRY_TIME/8.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:09:37
+[SUCCESS] [223/400] Completed kernel-results/NFS_JUKEBOX_RETRY_TIME/8.input.txt at 2025-12-08 02:12:33
+[INFO] [253/400] kernel-results/QUEUE_THRESHOLD/3.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:12:33
+[SUCCESS] [253/400] Completed kernel-results/QUEUE_THRESHOLD/3.input.txt at 2025-12-08 02:16:05
+[INFO] [276/400] kernel-results/SHRINK_BATCH/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:16:05
+[SUCCESS] [276/400] Completed kernel-results/SHRINK_BATCH/2.input.txt at 2025-12-08 02:19:25
+[INFO] [290/400] kernel-results/TCP_ATO_MIN/13.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:19:25
+[SUCCESS] [290/400] Completed kernel-results/TCP_ATO_MIN/13.input.txt at 2025-12-08 02:47:23
+[INFO] [380/400] kernel-results/ca__delay_min/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:47:23
+[SUCCESS] [380/400] Completed kernel-results/ca__delay_min/2.input.txt at 2025-12-08 02:51:14
+[INFO] [395/400] kernel-results/group_faults/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:51:14
+[SUCCESS] [395/400] Completed kernel-results/group_faults/1.input.txt at 2025-12-08 02:54:40
+[INFO] [25/400] kernel-results/BH_WORKER_RESTARTS/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:49:03
+[SUCCESS] [25/400] Completed kernel-results/BH_WORKER_RESTARTS/1.input.txt at 2025-12-08 01:52:22
+[INFO] [72/400] kernel-results/BTRFS_DELAYED_BACKGROUND/4.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:52:22
+[SUCCESS] [72/400] Completed kernel-results/BTRFS_DELAYED_BACKGROUND/4.input.txt at 2025-12-08 01:55:33
+[INFO] [103/400] kernel-results/DEF_PRIORITY/10.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:55:33
+[SUCCESS] [103/400] Completed kernel-results/DEF_PRIORITY/10.input.txt at 2025-12-08 01:58:58
+[INFO] [134/400] kernel-results/IO_POLL_REF_BIAS/5.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:58:58
+[SUCCESS] [134/400] Completed kernel-results/IO_POLL_REF_BIAS/5.input.txt at 2025-12-08 02:02:34
+[INFO] [169/400] kernel-results/MAX_SCAN_WINDOW/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:02:34
+[SUCCESS] [169/400] Completed kernel-results/MAX_SCAN_WINDOW/2.input.txt at 2025-12-08 02:11:38
+[INFO] [243/400] kernel-results/PCPU_SLOT_FAIL_THRESHOLD/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:11:38
+[SUCCESS] [243/400] Completed kernel-results/PCPU_SLOT_FAIL_THRESHOLD/1.input.txt at 2025-12-08 02:15:24
+[INFO] [268/400] kernel-results/SCHED_NR_MIGRATE_BREAK/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:15:24
+[SUCCESS] [268/400] Completed kernel-results/SCHED_NR_MIGRATE_BREAK/1.input.txt at 2025-12-08 02:20:24
+[INFO] [307/400] kernel-results/TCP_DELACK_MIN/3.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:20:24
+[SUCCESS] [307/400] Completed kernel-results/TCP_DELACK_MIN/3.input.txt at 2025-12-08 02:54:43
+[INFO] [16/400] kernel-results/BFQ_HW_QUEUE_THRESHOLD/3.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:49:03
+[SUCCESS] [16/400] Completed kernel-results/BFQ_HW_QUEUE_THRESHOLD/3.input.txt at 2025-12-08 01:52:33
+[INFO] [82/400] kernel-results/BTRFS_DELAYED_BATCH/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:52:33
+[SUCCESS] [82/400] Completed kernel-results/BTRFS_DELAYED_BATCH/2.input.txt at 2025-12-08 01:55:54
+[INFO] [110/400] kernel-results/DEF_PRIORITY/8.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:55:54
+[SUCCESS] [110/400] Completed kernel-results/DEF_PRIORITY/8.input.txt at 2025-12-08 01:59:08
+[INFO] [137/400] kernel-results/IO_TCTX_REFS_CACHE_NR/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:59:08
+[SUCCESS] [137/400] Completed kernel-results/IO_TCTX_REFS_CACHE_NR/1.input.txt at 2025-12-08 02:04:41
+[INFO] [184/400] kernel-results/MAX_SOFTIRQ_RESTART/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:04:41
+[SUCCESS] [184/400] Completed kernel-results/MAX_SOFTIRQ_RESTART/1.input.txt at 2025-12-08 02:08:29
+[INFO] [212/400] kernel-results/NFS_JUKEBOX_RETRY_TIME/18.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:08:29
+[SUCCESS] [212/400] Completed kernel-results/NFS_JUKEBOX_RETRY_TIME/18.input.txt at 2025-12-08 02:11:38
+[INFO] [241/400] kernel-results/OOM_REAPER_DELAY/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:11:38
+[SUCCESS] [241/400] Completed kernel-results/OOM_REAPER_DELAY/2.input.txt at 2025-12-08 02:15:10
+[INFO] [266/400] kernel-results/SBQ_WAKE_BATCH/7.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:15:10
+[SUCCESS] [266/400] Completed kernel-results/SBQ_WAKE_BATCH/7.input.txt at 2025-12-08 02:19:32
+[INFO] [292/400] kernel-results/TCP_ATO_MIN/3.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:19:32
+[SUCCESS] [292/400] Completed kernel-results/TCP_ATO_MIN/3.input.txt at 2025-12-08 02:52:50
+[INFO] [399/400] kernel-results/numa_scan_seq/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:52:50
+[SUCCESS] [399/400] Completed kernel-results/numa_scan_seq/1.input.txt at 2025-12-08 02:55:36
+[INFO] [5/400] kernel-results/AMT_DISCOVERY_TIMEOUT/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:49:03
+[SUCCESS] [5/400] Completed kernel-results/AMT_DISCOVERY_TIMEOUT/1.input.txt at 2025-12-08 01:52:18
+[INFO] [71/400] kernel-results/BTRFS_DELAYED_BACKGROUND/3.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:52:18
+[SUCCESS] [71/400] Completed kernel-results/BTRFS_DELAYED_BACKGROUND/3.input.txt at 2025-12-08 01:55:57
+[INFO] [113/400] kernel-results/DFR_MAX/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:55:57
+[SUCCESS] [113/400] Completed kernel-results/DFR_MAX/1.input.txt at 2025-12-08 01:58:54
+[INFO] [131/400] kernel-results/IO_POLL_REF_BIAS/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:58:54
+[SUCCESS] [131/400] Completed kernel-results/IO_POLL_REF_BIAS/2.input.txt at 2025-12-08 02:02:01
+[INFO] [161/400] kernel-results/MAX_PARTIAL_TO_SCAN/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:02:01
+[SUCCESS] [161/400] Completed kernel-results/MAX_PARTIAL_TO_SCAN/1.input.txt at 2025-12-08 02:05:07
+[INFO] [187/400] kernel-results/MLD_MAX_SKBS/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:05:07
+[SUCCESS] [187/400] Completed kernel-results/MLD_MAX_SKBS/2.input.txt at 2025-12-08 02:08:35
+[INFO] [216/400] kernel-results/NFS_JUKEBOX_RETRY_TIME/21.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:08:35
+[SUCCESS] [216/400] Completed kernel-results/NFS_JUKEBOX_RETRY_TIME/21.input.txt at 2025-12-08 02:11:43
+[INFO] [246/400] kernel-results/PIE_SCALE/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:11:43
+[SUCCESS] [246/400] Completed kernel-results/PIE_SCALE/1.input.txt at 2025-12-08 02:15:39
+[INFO] [270/400] kernel-results/SCHED_NR_MIGRATE_BREAK/3.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:15:39
+[SUCCESS] [270/400] Completed kernel-results/SCHED_NR_MIGRATE_BREAK/3.input.txt at 2025-12-08 02:20:17
+[INFO] [304/400] kernel-results/TCP_DELACK_MAX/6.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:20:17
+[SUCCESS] [304/400] Completed kernel-results/TCP_DELACK_MAX/6.input.txt at 2025-12-08 02:56:31
+[INFO] [31/400] kernel-results/BLK_MIN_SG_TIMEOUT/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:49:03
+[SUCCESS] [31/400] Completed kernel-results/BLK_MIN_SG_TIMEOUT/1.input.txt at 2025-12-08 01:53:10
+[INFO] [91/400] kernel-results/BTRFS_DELAYED_WRITEBACK/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:53:10
+[SUCCESS] [91/400] Completed kernel-results/BTRFS_DELAYED_WRITEBACK/2.input.txt at 2025-12-08 01:56:34
+[INFO] [119/400] kernel-results/GET_PAGE_MAX_RETRY_NUM/3.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:56:34
+[SUCCESS] [119/400] Completed kernel-results/GET_PAGE_MAX_RETRY_NUM/3.input.txt at 2025-12-08 01:59:38
+[INFO] [146/400] kernel-results/IWALK_MAX_INODE_PREFETCH/3.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:59:38
+[SUCCESS] [146/400] Completed kernel-results/IWALK_MAX_INODE_PREFETCH/3.input.txt at 2025-12-08 02:04:47
+[INFO] [185/400] kernel-results/MAX_SOFTIRQ_TIME/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:04:47
+[SUCCESS] [185/400] Completed kernel-results/MAX_SOFTIRQ_TIME/1.input.txt at 2025-12-08 02:07:49
+[INFO] [208/400] kernel-results/NFS_JUKEBOX_RETRY_TIME/14.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:07:49
+[SUCCESS] [208/400] Completed kernel-results/NFS_JUKEBOX_RETRY_TIME/14.input.txt at 2025-12-08 02:10:58
+[INFO] [235/400] kernel-results/NUMA_PERIOD_THRESHOLD/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:10:58
+[SUCCESS] [235/400] Completed kernel-results/NUMA_PERIOD_THRESHOLD/1.input.txt at 2025-12-08 02:13:46
+[INFO] [260/400] kernel-results/SBQ_WAKE_BATCH/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:13:46
+[SUCCESS] [260/400] Completed kernel-results/SBQ_WAKE_BATCH/1.input.txt at 2025-12-08 02:19:42
+[INFO] [295/400] kernel-results/TCP_ATO_MIN/6.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:19:42
+[SUCCESS] [295/400] Completed kernel-results/TCP_ATO_MIN/6.input.txt at 2025-12-08 02:22:54
+[INFO] [317/400] kernel-results/TCP_INIT_CWND/5.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:22:54
+[SUCCESS] [317/400] Completed kernel-results/TCP_INIT_CWND/5.input.txt at 2025-12-08 02:26:43
+[INFO] [331/400] kernel-results/TCP_MAX_WSCALE/13.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:26:43
+[SUCCESS] [331/400] Completed kernel-results/TCP_MAX_WSCALE/13.input.txt at 2025-12-08 02:35:37
+[INFO] [355/400] kernel-results/Try_KLP_bad_case/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:35:37
+[SUCCESS] [355/400] Completed kernel-results/Try_KLP_bad_case/1.input.txt at 2025-12-08 02:38:55
+[INFO] [362/400] kernel-results/XFS_DISCARD_MAX_EXAMINE/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:38:55
+[SUCCESS] [362/400] Completed kernel-results/XFS_DISCARD_MAX_EXAMINE/1.input.txt at 2025-12-08 02:42:12
+[INFO] [370/400] kernel-results/bfq_default_max_budget/4.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:42:12
+[SUCCESS] [370/400] Completed kernel-results/bfq_default_max_budget/4.input.txt at 2025-12-08 02:45:51
+[INFO] [378/400] kernel-results/bfq_stats_min_budgets/5.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:45:51
+[SUCCESS] [378/400] Completed kernel-results/bfq_stats_min_budgets/5.input.txt at 2025-12-08 02:48:49
+[INFO] [388/400] kernel-results/fits_capacity/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:48:49
+[SUCCESS] [388/400] Completed kernel-results/fits_capacity/2.input.txt at 2025-12-08 02:51:47
+[INFO] [397/400] kernel-results/node_stamp__2__TICK_NSEC/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:51:47
+[SUCCESS] [397/400] Completed kernel-results/node_stamp__2__TICK_NSEC/1.input.txt at 2025-12-08 02:56:10
+[INFO] [27/400] kernel-results/BLKDEV_DEFAULT_RQ/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:49:03
+[SUCCESS] [27/400] Completed kernel-results/BLKDEV_DEFAULT_RQ/2.input.txt at 2025-12-08 01:53:07
+[INFO] [90/400] kernel-results/BTRFS_DELAYED_WRITEBACK/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:53:07
+[SUCCESS] [90/400] Completed kernel-results/BTRFS_DELAYED_WRITEBACK/1.input.txt at 2025-12-08 01:56:16
+[INFO] [117/400] kernel-results/GET_PAGE_MAX_RETRY_NUM/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:56:16
+[SUCCESS] [117/400] Completed kernel-results/GET_PAGE_MAX_RETRY_NUM/1.input.txt at 2025-12-08 01:59:32
+[INFO] [143/400] kernel-results/IPVS_SYNC_WAKEUP_RATE/3.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:59:32
+[SUCCESS] [143/400] Completed kernel-results/IPVS_SYNC_WAKEUP_RATE/3.input.txt at 2025-12-08 02:03:13
+[INFO] [177/400] kernel-results/MAX_SLACK/3.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:03:13
+[SUCCESS] [177/400] Completed kernel-results/MAX_SLACK/3.input.txt at 2025-12-08 02:07:38
+[INFO] [206/400] kernel-results/NFS_JUKEBOX_RETRY_TIME/12.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:07:38
+[SUCCESS] [206/400] Completed kernel-results/NFS_JUKEBOX_RETRY_TIME/12.input.txt at 2025-12-08 02:10:53
+[INFO] [234/400] kernel-results/NUMA_MIGRATION_ADJUST_STEPS/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:10:53
+[SUCCESS] [234/400] Completed kernel-results/NUMA_MIGRATION_ADJUST_STEPS/1.input.txt at 2025-12-08 02:16:24
+[INFO] [277/400] kernel-results/SHRINK_BATCH/3.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:16:24
+[SUCCESS] [277/400] Completed kernel-results/SHRINK_BATCH/3.input.txt at 2025-12-08 02:19:32
+[INFO] [293/400] kernel-results/TCP_ATO_MIN/4.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:19:32
+[SUCCESS] [293/400] Completed kernel-results/TCP_ATO_MIN/4.input.txt at 2025-12-08 02:48:20
+[INFO] [386/400] kernel-results/delta__freeable__2/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:48:20
+[SUCCESS] [386/400] Completed kernel-results/delta__freeable__2/1.input.txt at 2025-12-08 02:56:57
+[INFO] [8/400] kernel-results/AMT_MAX_REQ_COUNT/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:49:03
+[SUCCESS] [8/400] Completed kernel-results/AMT_MAX_REQ_COUNT/1.input.txt at 2025-12-08 01:52:15
+[INFO] [70/400] kernel-results/BTRFS_DELAYED_BACKGROUND/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:52:15
+[SUCCESS] [70/400] Completed kernel-results/BTRFS_DELAYED_BACKGROUND/2.input.txt at 2025-12-08 01:55:14
+[INFO] [95/400] kernel-results/BUSY_POLL_BUDGET/3.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:55:14
+[SUCCESS] [95/400] Completed kernel-results/BUSY_POLL_BUDGET/3.input.txt at 2025-12-08 01:58:04
+[INFO] [125/400] kernel-results/IORING_MAX_ENTRIES/4.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:58:04
+[SUCCESS] [125/400] Completed kernel-results/IORING_MAX_ENTRIES/4.input.txt at 2025-12-08 02:15:29
+[INFO] [269/400] kernel-results/SCHED_NR_MIGRATE_BREAK/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:15:29
+[SUCCESS] [269/400] Completed kernel-results/SCHED_NR_MIGRATE_BREAK/2.input.txt at 2025-12-08 02:19:54
+[INFO] [297/400] kernel-results/TCP_ATO_MIN/8.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:19:54
+[SUCCESS] [297/400] Completed kernel-results/TCP_ATO_MIN/8.input.txt at 2025-12-08 02:57:02
+[INFO] [24/400] kernel-results/BH_WORKER_JIFFIES/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:49:03
+[SUCCESS] [24/400] Completed kernel-results/BH_WORKER_JIFFIES/1.input.txt at 2025-12-08 01:52:29
+[INFO] [81/400] kernel-results/BTRFS_DELAYED_BATCH/12.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:52:29
+[SUCCESS] [81/400] Completed kernel-results/BTRFS_DELAYED_BATCH/12.input.txt at 2025-12-08 01:55:55
+[INFO] [111/400] kernel-results/DEF_PRIORITY/9.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:55:55
+[SUCCESS] [111/400] Completed kernel-results/DEF_PRIORITY/9.input.txt at 2025-12-08 01:59:12
+[INFO] [139/400] kernel-results/IPVS_SYNC_FLUSH_TIME/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:59:12
+[SUCCESS] [139/400] Completed kernel-results/IPVS_SYNC_FLUSH_TIME/1.input.txt at 2025-12-08 02:02:20
+[INFO] [167/400] kernel-results/MAX_RA_NODE/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:02:20
+[SUCCESS] [167/400] Completed kernel-results/MAX_RA_NODE/1.input.txt at 2025-12-08 02:05:14
+[INFO] [188/400] kernel-results/MULTISHOT_MAX_RETRY/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:05:14
+[SUCCESS] [188/400] Completed kernel-results/MULTISHOT_MAX_RETRY/1.input.txt at 2025-12-08 02:08:34
+[INFO] [215/400] kernel-results/NFS_JUKEBOX_RETRY_TIME/20.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:08:34
+[SUCCESS] [215/400] Completed kernel-results/NFS_JUKEBOX_RETRY_TIME/20.input.txt at 2025-12-08 02:11:41
+[INFO] [245/400] kernel-results/PEEK_MAX_IMPORT/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:11:41
+[SUCCESS] [245/400] Completed kernel-results/PEEK_MAX_IMPORT/2.input.txt at 2025-12-08 02:42:08
+[INFO] [369/400] kernel-results/bfq_default_max_budget/3.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:42:08
+[SUCCESS] [369/400] Completed kernel-results/bfq_default_max_budget/3.input.txt at 2025-12-08 02:45:15
+[INFO] [377/400] kernel-results/bfq_stats_min_budgets/4.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:45:15
+[SUCCESS] [377/400] Completed kernel-results/bfq_stats_min_budgets/4.input.txt at 2025-12-08 02:48:37
+[INFO] [387/400] kernel-results/fits_capacity/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:48:37
+[SUCCESS] [387/400] Completed kernel-results/fits_capacity/1.input.txt at 2025-12-08 02:52:02
+[INFO] [398/400] kernel-results/node_stamp__32__diff/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:52:02
+[SUCCESS] [398/400] Completed kernel-results/node_stamp__32__diff/1.input.txt at 2025-12-08 02:56:43
+[INFO] [3/400] kernel-results/ALLOC_CACHE_MAX/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:49:03
+[SUCCESS] [3/400] Completed kernel-results/ALLOC_CACHE_MAX/1.input.txt at 2025-12-08 01:52:02
+[INFO] [60/400] kernel-results/BLK_MQ_MAX_DEPTH/4.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:52:02
+[SUCCESS] [60/400] Completed kernel-results/BLK_MQ_MAX_DEPTH/4.input.txt at 2025-12-08 02:33:08
+[INFO] [349/400] kernel-results/TCP_TIMEOUT_MIN/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:33:08
+[SUCCESS] [349/400] Completed kernel-results/TCP_TIMEOUT_MIN/1.input.txt at 2025-12-08 02:36:36
+[INFO] [358/400] kernel-results/VMA_PID_RESET_PERIOD/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:36:36
+[SUCCESS] [358/400] Completed kernel-results/VMA_PID_RESET_PERIOD/1.input.txt at 2025-12-08 02:41:03
+[INFO] [365/400] kernel-results/bfq_back_max/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:41:03
+[SUCCESS] [365/400] Completed kernel-results/bfq_back_max/1.input.txt at 2025-12-08 02:44:14
+[INFO] [373/400] kernel-results/bfq_late_stable_merging/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:44:14
+[SUCCESS] [373/400] Completed kernel-results/bfq_late_stable_merging/2.input.txt at 2025-12-08 02:47:54
+[INFO] [385/400] kernel-results/delta__4/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:47:54
+[SUCCESS] [385/400] Completed kernel-results/delta__4/1.input.txt at 2025-12-08 02:57:04
+[INFO] [28/400] kernel-results/BLKDEV_DEFAULT_RQ/3.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:49:03
+[SUCCESS] [28/400] Completed kernel-results/BLKDEV_DEFAULT_RQ/3.input.txt at 2025-12-08 01:53:12
+[INFO] [92/400] kernel-results/BTRFS_MAX_BIO_SECTORS/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:53:12
+[SUCCESS] [92/400] Completed kernel-results/BTRFS_MAX_BIO_SECTORS/1.input.txt at 2025-12-08 02:19:49
+[INFO] [296/400] kernel-results/TCP_ATO_MIN/7.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:19:49
+[SUCCESS] [296/400] Completed kernel-results/TCP_ATO_MIN/7.input.txt at 2025-12-08 02:57:04
+[INFO] [33/400] kernel-results/BLK_MIN_SG_TIMEOUT/3.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:49:03
+[SUCCESS] [33/400] Completed kernel-results/BLK_MIN_SG_TIMEOUT/3.input.txt at 2025-12-08 01:52:43
+[INFO] [84/400] kernel-results/BTRFS_DELAYED_BATCH/4.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:52:43
+[SUCCESS] [84/400] Completed kernel-results/BTRFS_DELAYED_BATCH/4.input.txt at 2025-12-08 01:56:52
+[INFO] [120/400] kernel-results/GSSD_MIN_TIMEOUT/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:56:52
+[SUCCESS] [120/400] Completed kernel-results/GSSD_MIN_TIMEOUT/1.input.txt at 2025-12-08 02:01:02
+[INFO] [154/400] kernel-results/MAX_GRO_SKBS/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:01:02
+[SUCCESS] [154/400] Completed kernel-results/MAX_GRO_SKBS/1.input.txt at 2025-12-08 02:04:15
+[INFO] [182/400] kernel-results/MAX_SLACK/8.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:04:15
+[SUCCESS] [182/400] Completed kernel-results/MAX_SLACK/8.input.txt at 2025-12-08 02:09:54
+[INFO] [226/400] kernel-results/NR_MAX_BATCHED_MIGRATION/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:09:54
+[SUCCESS] [226/400] Completed kernel-results/NR_MAX_BATCHED_MIGRATION/2.input.txt at 2025-12-08 02:12:56
+[INFO] [257/400] kernel-results/RCU_JIFFIES_FQS_DIV/3.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:12:56
+[SUCCESS] [257/400] Completed kernel-results/RCU_JIFFIES_FQS_DIV/3.input.txt at 2025-12-08 02:17:14
+[INFO] [285/400] kernel-results/SYNC_SHRINK_BATCH/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:17:14
+[SUCCESS] [285/400] Completed kernel-results/SYNC_SHRINK_BATCH/1.input.txt at 2025-12-08 02:20:24
+[INFO] [306/400] kernel-results/TCP_DELACK_MIN/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:20:24
+[SUCCESS] [306/400] Completed kernel-results/TCP_DELACK_MIN/2.input.txt at 2025-12-08 02:23:50
+[INFO] [324/400] kernel-results/TCP_MAX_QUICKACKS/3.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:23:50
+[SUCCESS] [324/400] Completed kernel-results/TCP_MAX_QUICKACKS/3.input.txt at 2025-12-08 02:57:53
+[INFO] [38/400] kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_FACTOR/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:49:03
+[SUCCESS] [38/400] Completed kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_FACTOR/1.input.txt at 2025-12-08 02:06:11
+[INFO] [199/400] kernel-results/NFS4_POLL_RETRY_MIN/4.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:06:11
+[SUCCESS] [199/400] Completed kernel-results/NFS4_POLL_RETRY_MIN/4.input.txt at 2025-12-08 02:09:13
+[INFO] [221/400] kernel-results/NFS_JUKEBOX_RETRY_TIME/6.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:09:13
+[SUCCESS] [221/400] Completed kernel-results/NFS_JUKEBOX_RETRY_TIME/6.input.txt at 2025-12-08 02:12:18
+[INFO] [252/400] kernel-results/QUEUE_THRESHOLD/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:12:18
+[SUCCESS] [252/400] Completed kernel-results/QUEUE_THRESHOLD/2.input.txt at 2025-12-08 02:15:56
+[INFO] [273/400] kernel-results/SHMEM_MAX_DQ_TIME/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:15:56
+[SUCCESS] [273/400] Completed kernel-results/SHMEM_MAX_DQ_TIME/1.input.txt at 2025-12-08 02:19:39
+[INFO] [294/400] kernel-results/TCP_ATO_MIN/5.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:19:39
+[SUCCESS] [294/400] Completed kernel-results/TCP_ATO_MIN/5.input.txt at 2025-12-08 02:58:29
+[INFO] [50/400] kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/3.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:49:03
+[SUCCESS] [50/400] Completed kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/3.input.txt at 2025-12-08 02:07:10
+[INFO] [203/400] kernel-results/NFS_JUKEBOX_RETRY_TIME/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:07:10
+[SUCCESS] [203/400] Completed kernel-results/NFS_JUKEBOX_RETRY_TIME/1.input.txt at 2025-12-08 02:10:04
+[INFO] [227/400] kernel-results/NR_MAX_MIGRATE_PAGES_RETRY/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:10:04
+[SUCCESS] [227/400] Completed kernel-results/NR_MAX_MIGRATE_PAGES_RETRY/1.input.txt at 2025-12-08 02:13:36
+[INFO] [258/400] kernel-results/RC_EXPIRE/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:13:36
+[SUCCESS] [258/400] Completed kernel-results/RC_EXPIRE/1.input.txt at 2025-12-08 02:17:01
+[INFO] [281/400] kernel-results/SMC_TX_WORK_DELAY/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:17:01
+[SUCCESS] [281/400] Completed kernel-results/SMC_TX_WORK_DELAY/1.input.txt at 2025-12-08 02:20:00
+[INFO] [298/400] kernel-results/TCP_ATO_MIN/9.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:20:00
+[SUCCESS] [298/400] Completed kernel-results/TCP_ATO_MIN/9.input.txt at 2025-12-08 03:00:45
+[INFO] [34/400] kernel-results/BLK_MQ_BUDGET_DELAY/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:49:03
+[SUCCESS] [34/400] Completed kernel-results/BLK_MQ_BUDGET_DELAY/1.input.txt at 2025-12-08 01:51:58
+[INFO] [57/400] kernel-results/BLK_MQ_MAX_DEPTH/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:51:58
+[SUCCESS] [57/400] Completed kernel-results/BLK_MQ_MAX_DEPTH/1.input.txt at 2025-12-08 01:55:06
+[INFO] [94/400] kernel-results/BUSY_POLL_BUDGET/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:55:06
+[SUCCESS] [94/400] Completed kernel-results/BUSY_POLL_BUDGET/2.input.txt at 2025-12-08 01:57:42
+[INFO] [122/400] kernel-results/IORING_MAX_ENTRIES/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:57:42
+[SUCCESS] [122/400] Completed kernel-results/IORING_MAX_ENTRIES/1.input.txt at 2025-12-08 02:00:52
+[INFO] [153/400] kernel-results/LAST_INO_BATCH/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:00:52
+[SUCCESS] [153/400] Completed kernel-results/LAST_INO_BATCH/2.input.txt at 2025-12-08 02:20:47
+[INFO] [311/400] kernel-results/TCP_INIT_CWND/12.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:20:47
+[SUCCESS] [311/400] Completed kernel-results/TCP_INIT_CWND/12.input.txt at 2025-12-08 03:00:55
+[INFO] [22/400] kernel-results/BFQ_RATE_MIN_INTERVAL/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:49:03
+[SUCCESS] [22/400] Completed kernel-results/BFQ_RATE_MIN_INTERVAL/1.input.txt at 2025-12-08 01:52:23
+[INFO] [75/400] kernel-results/BTRFS_DELAYED_BACKGROUND/7.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:52:23
+[SUCCESS] [75/400] Completed kernel-results/BTRFS_DELAYED_BACKGROUND/7.input.txt at 2025-12-08 01:55:46
+[INFO] [107/400] kernel-results/DEF_PRIORITY/5.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:55:46
+[SUCCESS] [107/400] Completed kernel-results/DEF_PRIORITY/5.input.txt at 2025-12-08 01:59:18
+[INFO] [141/400] kernel-results/IPVS_SYNC_WAKEUP_RATE/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:59:18
+[SUCCESS] [141/400] Completed kernel-results/IPVS_SYNC_WAKEUP_RATE/1.input.txt at 2025-12-08 02:02:05
+[INFO] [163/400] kernel-results/MAX_PARTIAL_TO_SCAN/3.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:02:05
+[SUCCESS] [163/400] Completed kernel-results/MAX_PARTIAL_TO_SCAN/3.input.txt at 2025-12-08 02:11:38
+[INFO] [242/400] kernel-results/OOM_REAPER_DELAY/3.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:11:38
+[SUCCESS] [242/400] Completed kernel-results/OOM_REAPER_DELAY/3.input.txt at 2025-12-08 02:14:57
+[INFO] [265/400] kernel-results/SBQ_WAKE_BATCH/6.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:14:57
+[SUCCESS] [265/400] Completed kernel-results/SBQ_WAKE_BATCH/6.input.txt at 2025-12-08 02:18:44
+[INFO] [288/400] kernel-results/TCP_ATO_MIN/11.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:18:44
+[SUCCESS] [288/400] Completed kernel-results/TCP_ATO_MIN/11.input.txt at 2025-12-08 03:01:39
+[INFO] [35/400] kernel-results/BLK_MQ_BUDGET_DELAY/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:49:03
+[SUCCESS] [35/400] Completed kernel-results/BLK_MQ_BUDGET_DELAY/2.input.txt at 2025-12-08 01:51:34
+[INFO] [51/400] kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/4.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:51:34
+[SUCCESS] [51/400] Completed kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/4.input.txt at 2025-12-08 02:08:46
+[INFO] [218/400] kernel-results/NFS_JUKEBOX_RETRY_TIME/3.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:08:46
+[SUCCESS] [218/400] Completed kernel-results/NFS_JUKEBOX_RETRY_TIME/3.input.txt at 2025-12-08 02:11:47
+[INFO] [249/400] kernel-results/PIPE_MIN_DEF_BUFFERS/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:11:47
+[SUCCESS] [249/400] Completed kernel-results/PIPE_MIN_DEF_BUFFERS/1.input.txt at 2025-12-08 02:16:01
+[INFO] [275/400] kernel-results/SHRINK_BATCH/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:16:01
+[SUCCESS] [275/400] Completed kernel-results/SHRINK_BATCH/1.input.txt at 2025-12-08 02:24:04
+[INFO] [325/400] kernel-results/TCP_MAX_QUICKACKS/4.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:24:04
+[SUCCESS] [325/400] Completed kernel-results/TCP_MAX_QUICKACKS/4.input.txt at 2025-12-08 03:03:06
+[INFO] [13/400] kernel-results/BFQ_HW_QUEUE_SAMPLES/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:49:03
+[SUCCESS] [13/400] Completed kernel-results/BFQ_HW_QUEUE_SAMPLES/1.input.txt at 2025-12-08 01:52:10
+[INFO] [63/400] kernel-results/BLK_MQ_RESOURCE_DELAY/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:52:10
+[SUCCESS] [63/400] Completed kernel-results/BLK_MQ_RESOURCE_DELAY/1.input.txt at 2025-12-08 01:55:24
+[INFO] [100/400] kernel-results/DEF_MAX_RECLAIM_PREFREE_SEGMENTS/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:55:24
+[SUCCESS] [100/400] Completed kernel-results/DEF_MAX_RECLAIM_PREFREE_SEGMENTS/1.input.txt at 2025-12-08 01:58:54
+[INFO] [132/400] kernel-results/IO_POLL_REF_BIAS/3.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:58:54
+[SUCCESS] [132/400] Completed kernel-results/IO_POLL_REF_BIAS/3.input.txt at 2025-12-08 02:02:09
+[INFO] [166/400] kernel-results/MAX_PINNED_INTERVAL/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:02:09
+[SUCCESS] [166/400] Completed kernel-results/MAX_PINNED_INTERVAL/1.input.txt at 2025-12-08 02:05:30
+[INFO] [193/400] kernel-results/NFS4_POLL_RETRY_MAX/5.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:05:30
+[SUCCESS] [193/400] Completed kernel-results/NFS4_POLL_RETRY_MAX/5.input.txt at 2025-12-08 02:20:11
+[INFO] [302/400] kernel-results/TCP_DELACK_MAX/4.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:20:11
+[SUCCESS] [302/400] Completed kernel-results/TCP_DELACK_MAX/4.input.txt at 2025-12-08 02:23:47
+[INFO] [322/400] kernel-results/TCP_MAX_QUICKACKS/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:23:47
+[SUCCESS] [322/400] Completed kernel-results/TCP_MAX_QUICKACKS/1.input.txt at 2025-12-08 03:05:34
+[INFO] [2/400] kernel-results/AIO_PLUG_THRESHOLD/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:49:03
+[SUCCESS] [2/400] Completed kernel-results/AIO_PLUG_THRESHOLD/2.input.txt at 2025-12-08 01:52:13
+[INFO] [66/400] kernel-results/BLK_ZONE_WPLUG_DEFAULT_POOL_SIZE/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:52:13
+[SUCCESS] [66/400] Completed kernel-results/BLK_ZONE_WPLUG_DEFAULT_POOL_SIZE/2.input.txt at 2025-12-08 01:58:14
+[INFO] [126/400] kernel-results/IO_LOCAL_TW_DEFAULT_MAX/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:58:14
+[SUCCESS] [126/400] Completed kernel-results/IO_LOCAL_TW_DEFAULT_MAX/1.input.txt at 2025-12-08 02:01:28
+[INFO] [156/400] kernel-results/MAX_INOBT_WALK_PREFETCH/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:01:28
+[SUCCESS] [156/400] Completed kernel-results/MAX_INOBT_WALK_PREFETCH/2.input.txt at 2025-12-08 02:04:32
+[INFO] [183/400] kernel-results/MAX_SLACK/9.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:04:32
+[SUCCESS] [183/400] Completed kernel-results/MAX_SLACK/9.input.txt at 2025-12-08 02:10:21
+[INFO] [230/400] kernel-results/NR_TO_WRITE/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:10:21
+[SUCCESS] [230/400] Completed kernel-results/NR_TO_WRITE/1.input.txt at 2025-12-08 02:13:46
+[INFO] [259/400] kernel-results/RDS_IB_RECYCLE_BATCH_COUNT/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:13:46
+[SUCCESS] [259/400] Completed kernel-results/RDS_IB_RECYCLE_BATCH_COUNT/1.input.txt at 2025-12-08 02:17:00
+[INFO] [280/400] kernel-results/SMC_LGR_NUM_INCR/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:17:00
+[SUCCESS] [280/400] Completed kernel-results/SMC_LGR_NUM_INCR/1.input.txt at 2025-12-08 02:20:37
+[INFO] [310/400] kernel-results/TCP_INIT_CWND/11.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:20:37
+[SUCCESS] [310/400] Completed kernel-results/TCP_INIT_CWND/11.input.txt at 2025-12-08 03:03:06
+[INFO] [19/400] kernel-results/BFQ_MIN_TT/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:49:03
+[SUCCESS] [19/400] Completed kernel-results/BFQ_MIN_TT/2.input.txt at 2025-12-08 01:51:45
+[INFO] [53/400] kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/6.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:51:45
+[SUCCESS] [53/400] Completed kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/6.input.txt at 2025-12-08 02:07:47
+[INFO] [207/400] kernel-results/NFS_JUKEBOX_RETRY_TIME/13.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:07:47
+[SUCCESS] [207/400] Completed kernel-results/NFS_JUKEBOX_RETRY_TIME/13.input.txt at 2025-12-08 02:11:09
+[INFO] [236/400] kernel-results/NUMA_PERIOD_THRESHOLD/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:11:09
+[SUCCESS] [236/400] Completed kernel-results/NUMA_PERIOD_THRESHOLD/2.input.txt at 2025-12-08 02:17:08
+[INFO] [284/400] kernel-results/SOFT_LEBS_LIMIT/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:17:08
+[SUCCESS] [284/400] Completed kernel-results/SOFT_LEBS_LIMIT/2.input.txt at 2025-12-08 02:20:33
+[INFO] [309/400] kernel-results/TCP_INIT_CWND/10.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:20:33
+[SUCCESS] [309/400] Completed kernel-results/TCP_INIT_CWND/10.input.txt at 2025-12-08 03:08:07
+[INFO] [12/400] kernel-results/APOLL_MAX_RETRY/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:49:03
+[SUCCESS] [12/400] Completed kernel-results/APOLL_MAX_RETRY/1.input.txt at 2025-12-08 01:59:14
+[INFO] [140/400] kernel-results/IPVS_SYNC_SEND_DELAY/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:59:14
+[SUCCESS] [140/400] Completed kernel-results/IPVS_SYNC_SEND_DELAY/1.input.txt at 2025-12-08 02:02:35
+[INFO] [171/400] kernel-results/MAX_SCAN_WINDOW/4.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:02:35
+[SUCCESS] [171/400] Completed kernel-results/MAX_SCAN_WINDOW/4.input.txt at 2025-12-08 02:08:21
+[INFO] [211/400] kernel-results/NFS_JUKEBOX_RETRY_TIME/17.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:08:21
+[SUCCESS] [211/400] Completed kernel-results/NFS_JUKEBOX_RETRY_TIME/17.input.txt at 2025-12-08 02:12:02
+[INFO] [251/400] kernel-results/QUEUE_THRESHOLD/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:12:02
+[SUCCESS] [251/400] Completed kernel-results/QUEUE_THRESHOLD/1.input.txt at 2025-12-08 02:15:22
+[INFO] [267/400] kernel-results/SBQ_WAKE_BATCH/8.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:15:22
+[SUCCESS] [267/400] Completed kernel-results/SBQ_WAKE_BATCH/8.input.txt at 2025-12-08 02:20:14
+[INFO] [303/400] kernel-results/TCP_DELACK_MAX/5.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:20:14
+[SUCCESS] [303/400] Completed kernel-results/TCP_DELACK_MAX/5.input.txt at 2025-12-08 02:23:48
+[INFO] [323/400] kernel-results/TCP_MAX_QUICKACKS/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:23:48
+[SUCCESS] [323/400] Completed kernel-results/TCP_MAX_QUICKACKS/2.input.txt at 2025-12-08 03:05:41
+[INFO] [15/400] kernel-results/BFQ_HW_QUEUE_THRESHOLD/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:49:03
+[SUCCESS] [15/400] Completed kernel-results/BFQ_HW_QUEUE_THRESHOLD/2.input.txt at 2025-12-08 01:52:45
+[INFO] [86/400] kernel-results/BTRFS_DELAYED_BATCH/6.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:52:45
+[SUCCESS] [86/400] Completed kernel-results/BTRFS_DELAYED_BATCH/6.input.txt at 2025-12-08 01:55:49
+[INFO] [108/400] kernel-results/DEF_PRIORITY/6.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:55:49
+[SUCCESS] [108/400] Completed kernel-results/DEF_PRIORITY/6.input.txt at 2025-12-08 01:59:39
+[INFO] [147/400] kernel-results/IWALK_MAX_INODE_PREFETCH/4.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:59:39
+[SUCCESS] [147/400] Completed kernel-results/IWALK_MAX_INODE_PREFETCH/4.input.txt at 2025-12-08 02:03:04
+[INFO] [176/400] kernel-results/MAX_SLACK/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:03:04
+[SUCCESS] [176/400] Completed kernel-results/MAX_SLACK/2.input.txt at 2025-12-08 02:08:08
+[INFO] [209/400] kernel-results/NFS_JUKEBOX_RETRY_TIME/15.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:08:08
+[SUCCESS] [209/400] Completed kernel-results/NFS_JUKEBOX_RETRY_TIME/15.input.txt at 2025-12-08 02:11:10
+[INFO] [237/400] kernel-results/NUMA_PERIOD_THRESHOLD/3.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:11:10
+[SUCCESS] [237/400] Completed kernel-results/NUMA_PERIOD_THRESHOLD/3.input.txt at 2025-12-08 02:14:20
+[INFO] [261/400] kernel-results/SBQ_WAKE_BATCH/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:14:20
+[SUCCESS] [261/400] Completed kernel-results/SBQ_WAKE_BATCH/2.input.txt at 2025-12-08 02:20:02
+[INFO] [300/400] kernel-results/TCP_DELACK_MAX/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:20:02
+[SUCCESS] [300/400] Completed kernel-results/TCP_DELACK_MAX/2.input.txt at 2025-12-08 02:23:44
+[INFO] [321/400] kernel-results/TCP_INIT_CWND/9.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:23:44
+[SUCCESS] [321/400] Completed kernel-results/TCP_INIT_CWND/9.input.txt at 2025-12-08 03:15:35
+[INFO] [43/400] kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/11.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:49:03
+[SUCCESS] [43/400] Completed kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/11.input.txt at 2025-12-08 01:52:25
+[INFO] [77/400] kernel-results/BTRFS_DELAYED_BACKGROUND/9.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:52:25
+[SUCCESS] [77/400] Completed kernel-results/BTRFS_DELAYED_BACKGROUND/9.input.txt at 2025-12-08 01:55:29
+[INFO] [102/400] kernel-results/DEF_PRIORITY/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:55:29
+[SUCCESS] [102/400] Completed kernel-results/DEF_PRIORITY/1.input.txt at 2025-12-08 02:00:08
+[INFO] [151/400] kernel-results/KFREE_DRAIN_JIFFIES/4.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:00:08
+[SUCCESS] [151/400] Completed kernel-results/KFREE_DRAIN_JIFFIES/4.input.txt at 2025-12-08 02:02:51
+[INFO] [173/400] kernel-results/MAX_SCAN_WINDOW/6.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:02:51
+[SUCCESS] [173/400] Completed kernel-results/MAX_SCAN_WINDOW/6.input.txt at 2025-12-08 02:11:27
+[INFO] [238/400] kernel-results/NUMA_PERIOD_THRESHOLD/4.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:11:27
+[SUCCESS] [238/400] Completed kernel-results/NUMA_PERIOD_THRESHOLD/4.input.txt at 2025-12-08 02:17:06
+[INFO] [283/400] kernel-results/SOFT_LEBS_LIMIT/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:17:06
+[SUCCESS] [283/400] Completed kernel-results/SOFT_LEBS_LIMIT/1.input.txt at 2025-12-08 02:20:32
+[INFO] [308/400] kernel-results/TCP_INIT_CWND/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:20:32
+[SUCCESS] [308/400] Completed kernel-results/TCP_INIT_CWND/1.input.txt at 2025-12-08 02:24:11
+[INFO] [326/400] kernel-results/TCP_MAX_QUICKACKS/5.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:24:11
+[SUCCESS] [326/400] Completed kernel-results/TCP_MAX_QUICKACKS/5.input.txt at 2025-12-08 03:11:43
+[INFO] [6/400] kernel-results/AMT_DISCOVERY_TIMEOUT/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:49:03
+[SUCCESS] [6/400] Completed kernel-results/AMT_DISCOVERY_TIMEOUT/2.input.txt at 2025-12-08 01:52:01
+[INFO] [58/400] kernel-results/BLK_MQ_MAX_DEPTH/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:52:01
+[SUCCESS] [58/400] Completed kernel-results/BLK_MQ_MAX_DEPTH/2.input.txt at 2025-12-08 01:54:54
+[INFO] [93/400] kernel-results/BUSY_POLL_BUDGET/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:54:54
+[SUCCESS] [93/400] Completed kernel-results/BUSY_POLL_BUDGET/1.input.txt at 2025-12-08 01:57:54
+[INFO] [123/400] kernel-results/IORING_MAX_ENTRIES/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:57:54
+[SUCCESS] [123/400] Completed kernel-results/IORING_MAX_ENTRIES/2.input.txt at 2025-12-08 02:15:46
+[INFO] [272/400] kernel-results/SEND_MAX_EXTENT_REFS/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:15:46
+[SUCCESS] [272/400] Completed kernel-results/SEND_MAX_EXTENT_REFS/1.input.txt at 2025-12-08 02:19:20
+[INFO] [289/400] kernel-results/TCP_ATO_MIN/12.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:19:20
+[SUCCESS] [289/400] Completed kernel-results/TCP_ATO_MIN/12.input.txt at 2025-12-08 03:10:21
+[INFO] [47/400] kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/15.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:49:03
+[SUCCESS] [47/400] Completed kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/15.input.txt at 2025-12-08 01:52:44
+[INFO] [85/400] kernel-results/BTRFS_DELAYED_BATCH/5.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:52:44
+[SUCCESS] [85/400] Completed kernel-results/BTRFS_DELAYED_BATCH/5.input.txt at 2025-12-08 01:56:18
+[INFO] [118/400] kernel-results/GET_PAGE_MAX_RETRY_NUM/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:56:18
+[SUCCESS] [118/400] Completed kernel-results/GET_PAGE_MAX_RETRY_NUM/2.input.txt at 2025-12-08 01:59:41
+[INFO] [148/400] kernel-results/KFREE_DRAIN_JIFFIES/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:59:41
+[SUCCESS] [148/400] Completed kernel-results/KFREE_DRAIN_JIFFIES/1.input.txt at 2025-12-08 02:03:40
+[INFO] [178/400] kernel-results/MAX_SLACK/4.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:03:40
+[SUCCESS] [178/400] Completed kernel-results/MAX_SLACK/4.input.txt at 2025-12-08 02:06:55
+[INFO] [202/400] kernel-results/NFSD_LAUNDRETTE_DELAY/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:06:55
+[SUCCESS] [202/400] Completed kernel-results/NFSD_LAUNDRETTE_DELAY/2.input.txt at 2025-12-08 02:09:49
+[INFO] [225/400] kernel-results/NR_MAX_BATCHED_MIGRATION/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:09:49
+[SUCCESS] [225/400] Completed kernel-results/NR_MAX_BATCHED_MIGRATION/1.input.txt at 2025-12-08 02:12:47
+[INFO] [255/400] kernel-results/RCU_JIFFIES_FQS_DIV/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:12:47
+[SUCCESS] [255/400] Completed kernel-results/RCU_JIFFIES_FQS_DIV/1.input.txt at 2025-12-08 02:16:50
+[INFO] [278/400] kernel-results/SHRINK_DIVISOR/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:16:50
+[SUCCESS] [278/400] Completed kernel-results/SHRINK_DIVISOR/1.input.txt at 2025-12-08 02:20:19
+[INFO] [305/400] kernel-results/TCP_DELACK_MIN/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:20:19
+[SUCCESS] [305/400] Completed kernel-results/TCP_DELACK_MIN/1.input.txt at 2025-12-08 02:23:28
+[INFO] [320/400] kernel-results/TCP_INIT_CWND/8.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:23:28
+[SUCCESS] [320/400] Completed kernel-results/TCP_INIT_CWND/8.input.txt at 2025-12-08 02:26:52
+[INFO] [333/400] kernel-results/TCP_MAX_WSCALE/15.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:26:52
+[SUCCESS] [333/400] Completed kernel-results/TCP_MAX_WSCALE/15.input.txt at 2025-12-08 02:31:03
+[INFO] [339/400] kernel-results/TCP_MAX_WSCALE/6.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:31:03
+[SUCCESS] [339/400] Completed kernel-results/TCP_MAX_WSCALE/6.input.txt at 2025-12-08 02:34:30
+[INFO] [353/400] kernel-results/TCP_TIMEOUT_MIN_US/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:34:30
+[SUCCESS] [353/400] Completed kernel-results/TCP_TIMEOUT_MIN_US/1.input.txt at 2025-12-08 03:18:08
+[INFO] [44/400] kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/12.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:49:03
+[SUCCESS] [44/400] Completed kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/12.input.txt at 2025-12-08 01:52:08
+[INFO] [62/400] kernel-results/BLK_MQ_MAX_DEPTH/6.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:52:08
+[SUCCESS] [62/400] Completed kernel-results/BLK_MQ_MAX_DEPTH/6.input.txt at 2025-12-08 02:08:52
+[INFO] [220/400] kernel-results/NFS_JUKEBOX_RETRY_TIME/5.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:08:52
+[SUCCESS] [220/400] Completed kernel-results/NFS_JUKEBOX_RETRY_TIME/5.input.txt at 2025-12-08 02:11:44
+[INFO] [248/400] kernel-results/PIE_SCALE/3.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:11:44
+[SUCCESS] [248/400] Completed kernel-results/PIE_SCALE/3.input.txt at 2025-12-08 02:15:57
+[INFO] [274/400] kernel-results/SHMEM_MAX_IQ_TIME/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:15:57
+[SUCCESS] [274/400] Completed kernel-results/SHMEM_MAX_IQ_TIME/1.input.txt at 2025-12-08 02:19:31
+[INFO] [291/400] kernel-results/TCP_ATO_MIN/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:19:31
+[SUCCESS] [291/400] Completed kernel-results/TCP_ATO_MIN/2.input.txt at 2025-12-08 02:22:36
+[INFO] [316/400] kernel-results/TCP_INIT_CWND/4.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:22:36
+[SUCCESS] [316/400] Completed kernel-results/TCP_INIT_CWND/4.input.txt at 2025-12-08 02:26:45
+[INFO] [332/400] kernel-results/TCP_MAX_WSCALE/14.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:26:45
+[SUCCESS] [332/400] Completed kernel-results/TCP_MAX_WSCALE/14.input.txt at 2025-12-08 02:34:14
+[INFO] [351/400] kernel-results/TCP_TIMEOUT_MIN/3.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:34:14
+[SUCCESS] [351/400] Completed kernel-results/TCP_TIMEOUT_MIN/3.input.txt at 2025-12-08 03:18:25
+[INFO] [10/400] kernel-results/AMT_SECRET_TIMEOUT/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:49:03
+[SUCCESS] [10/400] Completed kernel-results/AMT_SECRET_TIMEOUT/1.input.txt at 2025-12-08 01:52:01
+[INFO] [59/400] kernel-results/BLK_MQ_MAX_DEPTH/3.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:52:01
+[SUCCESS] [59/400] Completed kernel-results/BLK_MQ_MAX_DEPTH/3.input.txt at 2025-12-08 02:32:34
+[INFO] [345/400] kernel-results/TCP_RACK_RECOVERY_THRESH/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:32:34
+[SUCCESS] [345/400] Completed kernel-results/TCP_RACK_RECOVERY_THRESH/1.input.txt at 2025-12-08 03:19:38
+[INFO] [7/400] kernel-results/AMT_INIT_REQ_TIMEOUT/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:49:03
+[SUCCESS] [7/400] Completed kernel-results/AMT_INIT_REQ_TIMEOUT/1.input.txt at 2025-12-08 01:52:36
+[INFO] [83/400] kernel-results/BTRFS_DELAYED_BATCH/3.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:52:36
+[SUCCESS] [83/400] Completed kernel-results/BTRFS_DELAYED_BATCH/3.input.txt at 2025-12-08 01:55:40
+[INFO] [105/400] kernel-results/DEF_PRIORITY/3.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:55:40
+[SUCCESS] [105/400] Completed kernel-results/DEF_PRIORITY/3.input.txt at 2025-12-08 02:02:52
+[INFO] [174/400] kernel-results/MAX_SKIP_GC_COUNT/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:02:52
+[SUCCESS] [174/400] Completed kernel-results/MAX_SKIP_GC_COUNT/1.input.txt at 2025-12-08 02:06:27
+[INFO] [201/400] kernel-results/NFSD_LAUNDRETTE_DELAY/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:06:27
+[SUCCESS] [201/400] Completed kernel-results/NFSD_LAUNDRETTE_DELAY/1.input.txt at 2025-12-08 02:10:10
+[INFO] [228/400] kernel-results/NR_MAX_MIGRATE_PAGES_RETRY/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:10:10
+[SUCCESS] [228/400] Completed kernel-results/NR_MAX_MIGRATE_PAGES_RETRY/2.input.txt at 2025-12-08 02:32:53
+[INFO] [347/400] kernel-results/TCP_RACK_RECOVERY_THRESH/3.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:32:53
+[SUCCESS] [347/400] Completed kernel-results/TCP_RACK_RECOVERY_THRESH/3.input.txt at 2025-12-08 03:20:25
+[INFO] [21/400] kernel-results/BFQ_MIN_TT/4.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:49:03
+[SUCCESS] [21/400] Completed kernel-results/BFQ_MIN_TT/4.input.txt at 2025-12-08 01:52:28
+[INFO] [79/400] kernel-results/BTRFS_DELAYED_BATCH/10.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:52:28
+[SUCCESS] [79/400] Completed kernel-results/BTRFS_DELAYED_BATCH/10.input.txt at 2025-12-08 01:55:49
+[INFO] [109/400] kernel-results/DEF_PRIORITY/7.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:55:49
+[SUCCESS] [109/400] Completed kernel-results/DEF_PRIORITY/7.input.txt at 2025-12-08 01:59:09
+[INFO] [138/400] kernel-results/IPVS_SYNC_CHECK_PERIOD/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:59:09
+[SUCCESS] [138/400] Completed kernel-results/IPVS_SYNC_CHECK_PERIOD/1.input.txt at 2025-12-08 02:01:53
+[INFO] [160/400] kernel-results/MAX_OOM_REAP_RETRIES/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:01:53
+[SUCCESS] [160/400] Completed kernel-results/MAX_OOM_REAP_RETRIES/1.input.txt at 2025-12-08 02:05:03
+[INFO] [186/400] kernel-results/MLD_MAX_SKBS/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:05:03
+[SUCCESS] [186/400] Completed kernel-results/MLD_MAX_SKBS/1.input.txt at 2025-12-08 02:08:30
+[INFO] [213/400] kernel-results/NFS_JUKEBOX_RETRY_TIME/19.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:08:30
+[SUCCESS] [213/400] Completed kernel-results/NFS_JUKEBOX_RETRY_TIME/19.input.txt at 2025-12-08 02:11:44
+[INFO] [247/400] kernel-results/PIE_SCALE/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:11:44
+[SUCCESS] [247/400] Completed kernel-results/PIE_SCALE/2.input.txt at 2025-12-08 02:21:00
+[INFO] [314/400] kernel-results/TCP_INIT_CWND/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:21:00
+[SUCCESS] [314/400] Completed kernel-results/TCP_INIT_CWND/2.input.txt at 2025-12-08 02:24:42
+[INFO] [329/400] kernel-results/TCP_MAX_WSCALE/11.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:24:42
+[SUCCESS] [329/400] Completed kernel-results/TCP_MAX_WSCALE/11.input.txt at 2025-12-08 03:20:38
+[INFO] [20/400] kernel-results/BFQ_MIN_TT/3.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:49:03
+[SUCCESS] [20/400] Completed kernel-results/BFQ_MIN_TT/3.input.txt at 2025-12-08 01:52:54
+[INFO] [89/400] kernel-results/BTRFS_DELAYED_BATCH/9.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:52:54
+[SUCCESS] [89/400] Completed kernel-results/BTRFS_DELAYED_BATCH/9.input.txt at 2025-12-08 01:56:06
+[INFO] [114/400] kernel-results/DFR_MAX/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:56:06
+[SUCCESS] [114/400] Completed kernel-results/DFR_MAX/2.input.txt at 2025-12-08 01:59:37
+[INFO] [145/400] kernel-results/IWALK_MAX_INODE_PREFETCH/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:59:37
+[SUCCESS] [145/400] Completed kernel-results/IWALK_MAX_INODE_PREFETCH/2.input.txt at 2025-12-08 02:02:52
+[INFO] [175/400] kernel-results/MAX_SLACK/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:02:52
+[SUCCESS] [175/400] Completed kernel-results/MAX_SLACK/1.input.txt at 2025-12-08 02:06:12
+[INFO] [200/400] kernel-results/NFS4_POLL_RETRY_MIN/5.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:06:12
+[SUCCESS] [200/400] Completed kernel-results/NFS4_POLL_RETRY_MIN/5.input.txt at 2025-12-08 02:10:21
+[INFO] [229/400] kernel-results/NR_MAX_MIGRATE_PAGES_RETRY/3.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:10:21
+[SUCCESS] [229/400] Completed kernel-results/NR_MAX_MIGRATE_PAGES_RETRY/3.input.txt at 2025-12-08 02:32:37
+[INFO] [346/400] kernel-results/TCP_RACK_RECOVERY_THRESH/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:32:37
+[SUCCESS] [346/400] Completed kernel-results/TCP_RACK_RECOVERY_THRESH/2.input.txt at 2025-12-08 03:20:24
+[INFO] [23/400] kernel-results/BFQ_RATE_MIN_SAMPLES/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:49:03
+[SUCCESS] [23/400] Completed kernel-results/BFQ_RATE_MIN_SAMPLES/1.input.txt at 2025-12-08 01:52:12
+[INFO] [64/400] kernel-results/BLK_PLUG_FLUSH_SIZE/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:52:12
+[SUCCESS] [64/400] Completed kernel-results/BLK_PLUG_FLUSH_SIZE/1.input.txt at 2025-12-08 01:55:23
+[INFO] [99/400] kernel-results/DEF_GC_THREAD_URGENT_SLEEP_TIME/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:55:23
+[SUCCESS] [99/400] Completed kernel-results/DEF_GC_THREAD_URGENT_SLEEP_TIME/1.input.txt at 2025-12-08 01:58:39
+[INFO] [130/400] kernel-results/IO_POLL_REF_BIAS/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:58:39
+[SUCCESS] [130/400] Completed kernel-results/IO_POLL_REF_BIAS/1.input.txt at 2025-12-08 02:02:04
+[INFO] [162/400] kernel-results/MAX_PARTIAL_TO_SCAN/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:02:04
+[SUCCESS] [162/400] Completed kernel-results/MAX_PARTIAL_TO_SCAN/2.input.txt at 2025-12-08 02:05:29
+[INFO] [192/400] kernel-results/NFS4_POLL_RETRY_MAX/4.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:05:29
+[SUCCESS] [192/400] Completed kernel-results/NFS4_POLL_RETRY_MAX/4.input.txt at 2025-12-08 02:32:34
+[INFO] [344/400] kernel-results/TCP_PLB_SCALE/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:32:34
+[SUCCESS] [344/400] Completed kernel-results/TCP_PLB_SCALE/2.input.txt at 2025-12-08 02:35:36
+[INFO] [354/400] kernel-results/TCP_TIMEOUT_MIN_US/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:35:36
+[SUCCESS] [354/400] Completed kernel-results/TCP_TIMEOUT_MIN_US/2.input.txt at 2025-12-08 03:24:26
+[INFO] [45/400] kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/13.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:49:03
+[SUCCESS] [45/400] Completed kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/13.input.txt at 2025-12-08 01:52:23
+[INFO] [73/400] kernel-results/BTRFS_DELAYED_BACKGROUND/5.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:52:23
+[SUCCESS] [73/400] Completed kernel-results/BTRFS_DELAYED_BACKGROUND/5.input.txt at 2025-12-08 01:56:09
+[INFO] [115/400] kernel-results/EP_MAX_NESTS/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:56:09
+[SUCCESS] [115/400] Completed kernel-results/EP_MAX_NESTS/1.input.txt at 2025-12-08 01:59:32
+[INFO] [144/400] kernel-results/IWALK_MAX_INODE_PREFETCH/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:59:32
+[SUCCESS] [144/400] Completed kernel-results/IWALK_MAX_INODE_PREFETCH/1.input.txt at 2025-12-08 02:04:02
+[INFO] [180/400] kernel-results/MAX_SLACK/6.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:04:02
+[SUCCESS] [180/400] Completed kernel-results/MAX_SLACK/6.input.txt at 2025-12-08 02:09:45
+[INFO] [224/400] kernel-results/NFS_JUKEBOX_RETRY_TIME/9.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:09:45
+[SUCCESS] [224/400] Completed kernel-results/NFS_JUKEBOX_RETRY_TIME/9.input.txt at 2025-12-08 02:12:37
+[INFO] [254/400] kernel-results/RBIO_CACHE_SIZE/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:12:37
+[SUCCESS] [254/400] Completed kernel-results/RBIO_CACHE_SIZE/1.input.txt at 2025-12-08 02:15:45
+[INFO] [271/400] kernel-results/SCHED_NR_MIGRATE_BREAK/4.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:15:45
+[SUCCESS] [271/400] Completed kernel-results/SCHED_NR_MIGRATE_BREAK/4.input.txt at 2025-12-08 02:20:57
+[INFO] [313/400] kernel-results/TCP_INIT_CWND/14.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:20:57
+[SUCCESS] [313/400] Completed kernel-results/TCP_INIT_CWND/14.input.txt at 2025-12-08 02:24:17
+[INFO] [327/400] kernel-results/TCP_MAX_WSCALE/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:24:17
+[SUCCESS] [327/400] Completed kernel-results/TCP_MAX_WSCALE/1.input.txt at 2025-12-08 02:27:24
+[INFO] [335/400] kernel-results/TCP_MAX_WSCALE/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:27:24
+[SUCCESS] [335/400] Completed kernel-results/TCP_MAX_WSCALE/2.input.txt at 2025-12-08 02:30:50
+[INFO] [338/400] kernel-results/TCP_MAX_WSCALE/5.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:30:50
+[SUCCESS] [338/400] Completed kernel-results/TCP_MAX_WSCALE/5.input.txt at 2025-12-08 02:34:19
+[INFO] [352/400] kernel-results/TCP_TIMEOUT_MIN/4.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:34:19
+[SUCCESS] [352/400] Completed kernel-results/TCP_TIMEOUT_MIN/4.input.txt at 2025-12-08 03:24:45
+[INFO] [46/400] kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/14.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:49:03
+[SUCCESS] [46/400] Completed kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/14.input.txt at 2025-12-08 01:51:42
+[INFO] [52/400] kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/5.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:51:42
+[SUCCESS] [52/400] Completed kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/5.input.txt at 2025-12-08 02:08:39
+[INFO] [217/400] kernel-results/NFS_JUKEBOX_RETRY_TIME/22.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:08:39
+[SUCCESS] [217/400] Completed kernel-results/NFS_JUKEBOX_RETRY_TIME/22.input.txt at 2025-12-08 02:11:29
+[INFO] [239/400] kernel-results/NUMA_PERIOD_THRESHOLD/5.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:11:29
+[SUCCESS] [239/400] Completed kernel-results/NUMA_PERIOD_THRESHOLD/5.input.txt at 2025-12-08 02:17:03
+[INFO] [282/400] kernel-results/SMC_TX_WORK_DELAY/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:17:03
+[SUCCESS] [282/400] Completed kernel-results/SMC_TX_WORK_DELAY/2.input.txt at 2025-12-08 02:20:03
+[INFO] [301/400] kernel-results/TCP_DELACK_MAX/3.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:20:03
+[SUCCESS] [301/400] Completed kernel-results/TCP_DELACK_MAX/3.input.txt at 2025-12-08 02:24:37
+[INFO] [328/400] kernel-results/TCP_MAX_WSCALE/10.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:24:37
+[SUCCESS] [328/400] Completed kernel-results/TCP_MAX_WSCALE/10.input.txt at 2025-12-08 03:25:31
+[INFO] [40/400] kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_FACTOR/3.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:49:03
+[SUCCESS] [40/400] Completed kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_FACTOR/3.input.txt at 2025-12-08 01:52:25
+[INFO] [76/400] kernel-results/BTRFS_DELAYED_BACKGROUND/8.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:52:25
+[SUCCESS] [76/400] Completed kernel-results/BTRFS_DELAYED_BACKGROUND/8.input.txt at 2025-12-08 01:55:44
+[INFO] [106/400] kernel-results/DEF_PRIORITY/4.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:55:44
+[SUCCESS] [106/400] Completed kernel-results/DEF_PRIORITY/4.input.txt at 2025-12-08 01:59:23
+[INFO] [142/400] kernel-results/IPVS_SYNC_WAKEUP_RATE/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:59:23
+[SUCCESS] [142/400] Completed kernel-results/IPVS_SYNC_WAKEUP_RATE/2.input.txt at 2025-12-08 02:02:44
+[INFO] [172/400] kernel-results/MAX_SCAN_WINDOW/5.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:02:44
+[SUCCESS] [172/400] Completed kernel-results/MAX_SCAN_WINDOW/5.input.txt at 2025-12-08 02:06:06
+[INFO] [198/400] kernel-results/NFS4_POLL_RETRY_MIN/3.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:06:06
+[SUCCESS] [198/400] Completed kernel-results/NFS4_POLL_RETRY_MIN/3.input.txt at 2025-12-08 02:20:54
+[INFO] [312/400] kernel-results/TCP_INIT_CWND/13.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:20:54
+[SUCCESS] [312/400] Completed kernel-results/TCP_INIT_CWND/13.input.txt at 2025-12-08 03:25:14
+[INFO] [41/400] kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:49:03
+[SUCCESS] [41/400] Completed kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/1.input.txt at 2025-12-08 02:07:37
+[INFO] [205/400] kernel-results/NFS_JUKEBOX_RETRY_TIME/11.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:07:37
+[SUCCESS] [205/400] Completed kernel-results/NFS_JUKEBOX_RETRY_TIME/11.input.txt at 2025-12-08 02:10:38
+[INFO] [232/400] kernel-results/NUMA_IMBALANCE_MIN/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:10:38
+[SUCCESS] [232/400] Completed kernel-results/NUMA_IMBALANCE_MIN/2.input.txt at 2025-12-08 02:23:26
+[INFO] [319/400] kernel-results/TCP_INIT_CWND/7.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:23:26
+[SUCCESS] [319/400] Completed kernel-results/TCP_INIT_CWND/7.input.txt at 2025-12-08 02:29:20
+[INFO] [337/400] kernel-results/TCP_MAX_WSCALE/4.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:29:20
+[SUCCESS] [337/400] Completed kernel-results/TCP_MAX_WSCALE/4.input.txt at 2025-12-08 02:32:15
+[INFO] [342/400] kernel-results/TCP_MAX_WSCALE/9.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:32:15
+[SUCCESS] [342/400] Completed kernel-results/TCP_MAX_WSCALE/9.input.txt at 2025-12-08 03:37:06
+[INFO] [11/400] kernel-results/AMT_SECRET_TIMEOUT/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:49:03
+[SUCCESS] [11/400] Completed kernel-results/AMT_SECRET_TIMEOUT/2.input.txt at 2025-12-08 01:52:23
+[INFO] [74/400] kernel-results/BTRFS_DELAYED_BACKGROUND/6.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:52:23
+[SUCCESS] [74/400] Completed kernel-results/BTRFS_DELAYED_BACKGROUND/6.input.txt at 2025-12-08 01:55:20
+[INFO] [97/400] kernel-results/BUSY_POLL_BUDGET/5.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:55:20
+[SUCCESS] [97/400] Completed kernel-results/BUSY_POLL_BUDGET/5.input.txt at 2025-12-08 01:58:20
+[INFO] [127/400] kernel-results/IO_LOCAL_TW_DEFAULT_MAX/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:58:20
+[SUCCESS] [127/400] Completed kernel-results/IO_LOCAL_TW_DEFAULT_MAX/2.input.txt at 2025-12-08 02:01:53
+[INFO] [159/400] kernel-results/MAX_NR_FOLIOS_PER_FREE/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:01:53
+[SUCCESS] [159/400] Completed kernel-results/MAX_NR_FOLIOS_PER_FREE/2.input.txt at 2025-12-08 02:05:27
+[INFO] [191/400] kernel-results/NFS4_POLL_RETRY_MAX/3.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:05:27
+[SUCCESS] [191/400] Completed kernel-results/NFS4_POLL_RETRY_MAX/3.input.txt at 2025-12-08 02:32:11
+[INFO] [341/400] kernel-results/TCP_MAX_WSCALE/8.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:32:11
+[SUCCESS] [341/400] Completed kernel-results/TCP_MAX_WSCALE/8.input.txt at 2025-12-08 03:49:17
+[INFO] [39/400] kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_FACTOR/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:49:03
+[SUCCESS] [39/400] Completed kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_FACTOR/2.input.txt at 2025-12-08 03:49:32
+[INFO] [42/400] kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/10.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:49:03
+[SUCCESS] [42/400] Completed kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/10.input.txt at 2025-12-08 03:49:49
+[INFO] [49/400] kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:49:03
+[SUCCESS] [49/400] Completed kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/2.input.txt at 2025-12-08 02:05:53
+[INFO] [197/400] kernel-results/NFS4_POLL_RETRY_MIN/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:05:53
+[SUCCESS] [197/400] Completed kernel-results/NFS4_POLL_RETRY_MIN/2.input.txt at 2025-12-08 02:32:28
+[INFO] [343/400] kernel-results/TCP_PLB_SCALE/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:32:28
+[SUCCESS] [343/400] Completed kernel-results/TCP_PLB_SCALE/1.input.txt at 2025-12-08 02:35:55
+[INFO] [356/400] kernel-results/UTIL_EST_MARGIN/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:35:55
+[SUCCESS] [356/400] Completed kernel-results/UTIL_EST_MARGIN/1.input.txt at 2025-12-08 02:38:53
+[INFO] [361/400] kernel-results/WORKER_INIT_LIMIT/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:38:53
+[SUCCESS] [361/400] Completed kernel-results/WORKER_INIT_LIMIT/2.input.txt at 2025-12-08 02:41:36
+[INFO] [368/400] kernel-results/bfq_default_max_budget/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:41:36
+[SUCCESS] [368/400] Completed kernel-results/bfq_default_max_budget/2.input.txt at 2025-12-08 02:49:58
+[INFO] [389/400] kernel-results/fits_capacity/3.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:49:58
+[SUCCESS] [389/400] Completed kernel-results/fits_capacity/3.input.txt at 2025-12-08 02:52:57
+[INFO] [400/400] kernel-results/tcp_min_rtt/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:52:57
+[SUCCESS] [400/400] Completed kernel-results/tcp_min_rtt/1.input.txt at 2025-12-08 03:50:49
+[INFO] [36/400] kernel-results/BLK_MQ_CPU_WORK_BATCH/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:49:03
+[SUCCESS] [36/400] Completed kernel-results/BLK_MQ_CPU_WORK_BATCH/1.input.txt at 2025-12-08 01:51:54
+[INFO] [56/400] kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/9.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:51:54
+[SUCCESS] [56/400] Completed kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/9.input.txt at 2025-12-08 03:51:01
+[INFO] [37/400] kernel-results/BLK_MQ_CPU_WORK_BATCH/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:49:03
+[SUCCESS] [37/400] Completed kernel-results/BLK_MQ_CPU_WORK_BATCH/2.input.txt at 2025-12-08 03:51:10
+[INFO] [9/400] kernel-results/AMT_MAX_REQ_TIMEOUT/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:49:03
+[SUCCESS] [9/400] Completed kernel-results/AMT_MAX_REQ_TIMEOUT/1.input.txt at 2025-12-08 01:52:46
+[INFO] [87/400] kernel-results/BTRFS_DELAYED_BATCH/7.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:52:46
+[SUCCESS] [87/400] Completed kernel-results/BTRFS_DELAYED_BATCH/7.input.txt at 2025-12-08 01:57:23
+[INFO] [121/400] kernel-results/HARD_LEBS_LIMIT/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:57:23
+[SUCCESS] [121/400] Completed kernel-results/HARD_LEBS_LIMIT/1.input.txt at 2025-12-08 02:00:51
+[INFO] [152/400] kernel-results/LAST_INO_BATCH/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:00:51
+[SUCCESS] [152/400] Completed kernel-results/LAST_INO_BATCH/1.input.txt at 2025-12-08 02:04:10
+[INFO] [181/400] kernel-results/MAX_SLACK/7.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:04:10
+[SUCCESS] [181/400] Completed kernel-results/MAX_SLACK/7.input.txt at 2025-12-08 02:07:28
+[INFO] [204/400] kernel-results/NFS_JUKEBOX_RETRY_TIME/10.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:07:28
+[SUCCESS] [204/400] Completed kernel-results/NFS_JUKEBOX_RETRY_TIME/10.input.txt at 2025-12-08 02:10:40
+[INFO] [233/400] kernel-results/NUMA_IMBALANCE_MIN/3.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:10:40
+[SUCCESS] [233/400] Completed kernel-results/NUMA_IMBALANCE_MIN/3.input.txt at 2025-12-08 02:14:46
+[INFO] [263/400] kernel-results/SBQ_WAKE_BATCH/4.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:14:46
+[SUCCESS] [263/400] Completed kernel-results/SBQ_WAKE_BATCH/4.input.txt at 2025-12-08 04:12:24
+[INFO] [18/400] kernel-results/BFQ_MIN_TT/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:49:03
+[SUCCESS] [18/400] Completed kernel-results/BFQ_MIN_TT/1.input.txt at 2025-12-08 01:52:14
+[INFO] [68/400] kernel-results/BTRFS_DEFRAG_BATCH/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:52:14
+[SUCCESS] [68/400] Completed kernel-results/BTRFS_DEFRAG_BATCH/1.input.txt at 2025-12-08 01:55:16
+[INFO] [96/400] kernel-results/BUSY_POLL_BUDGET/4.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:55:16
+[SUCCESS] [96/400] Completed kernel-results/BUSY_POLL_BUDGET/4.input.txt at 2025-12-08 01:58:02
+[INFO] [124/400] kernel-results/IORING_MAX_ENTRIES/3.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:58:02
+[SUCCESS] [124/400] Completed kernel-results/IORING_MAX_ENTRIES/3.input.txt at 2025-12-08 02:01:12
+[INFO] [155/400] kernel-results/MAX_INOBT_WALK_PREFETCH/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:01:12
+[SUCCESS] [155/400] Completed kernel-results/MAX_INOBT_WALK_PREFETCH/1.input.txt at 2025-12-08 02:05:18
+[INFO] [190/400] kernel-results/NFS4_POLL_RETRY_MAX/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:05:18
+[SUCCESS] [190/400] Completed kernel-results/NFS4_POLL_RETRY_MAX/2.input.txt at 2025-12-08 02:08:32
+[INFO] [214/400] kernel-results/NFS_JUKEBOX_RETRY_TIME/2.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:08:32
+[SUCCESS] [214/400] Completed kernel-results/NFS_JUKEBOX_RETRY_TIME/2.input.txt at 2025-12-08 02:11:31
+[INFO] [240/400] kernel-results/OOM_REAPER_DELAY/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:11:31
+[SUCCESS] [240/400] Completed kernel-results/OOM_REAPER_DELAY/1.input.txt at 2025-12-08 02:14:43
+[INFO] [262/400] kernel-results/SBQ_WAKE_BATCH/3.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 02:14:43
+[SUCCESS] [262/400] Completed kernel-results/SBQ_WAKE_BATCH/3.input.txt at 2025-12-08 04:14:10
+[INFO] [26/400] kernel-results/BLKDEV_DEFAULT_RQ/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:49:03
+[SUCCESS] [26/400] Completed kernel-results/BLKDEV_DEFAULT_RQ/1.input.txt at 2025-12-08 01:51:49
+[INFO] [55/400] kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/8.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:51:49
+[SUCCESS] [55/400] Completed kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/8.input.txt at 2025-12-08 03:51:58
+[INFO] [29/400] kernel-results/BLK_MAX_REQUEST_COUNT/1.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:49:03
+[SUCCESS] [29/400] Completed kernel-results/BLK_MAX_REQUEST_COUNT/1.input.txt at 2025-12-08 01:51:48
+[INFO] [54/400] kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/7.input.txt, 2025-12-08 01:49:03 -> 2025-12-08 01:51:48
+[SUCCESS] [54/400] Completed kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/7.input.txt at 2025-12-08 03:52:38
+
+================================================================================
+All jobs completed!
+Started:  2025-12-08 01:49:03
+Finished: 2025-12-08 04:14:10
+
+
+Summary: 400 succeeded, 0 failed out of 400 total
+================================================================================
+Started:
+400
+Completed:
+400
+
+Average time: 10:52
+Median time: 3:28
+Min time: 2:30
+Max time: 2:02:07
+Max memory: 7488720 kB
+Min memory: 7481600 kB
+
+39,kernel-results/BUSY_POLL_BUDGET/1.output.txt
+39,kernel-results/BLK_MQ_MAX_DEPTH/2.output.txt
+39,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/16.output.txt
+39,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/14.output.txt
+39,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/12.output.txt
+39,kernel-results/BLK_MQ_BUDGET_DELAY/2.output.txt
+39,kernel-results/BLK_MQ_BUDGET_DELAY/1.output.txt
+39,kernel-results/AMT_SECRET_TIMEOUT/1.output.txt
+39,kernel-results/AMT_DISCOVERY_TIMEOUT/2.output.txt
+39,kernel-results/AMT_DISCOVERY_TIMEOUT/1.output.txt

@@ -1,0 +1,43 @@
+=== Taint Tracker Configuration ===
+Function: tlb_flush_mmu
+Opcode: icmp
+Constant: 512
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant 512)
+
+[SOURCE] Tainting:   %109 = icmp ult i32 %106, 512, <mm/mmu_gather.c:126:24> FUNC=tlb_flush_mmu L=0
+[USE] Source instruction in data flow <mm/mmu_gather.c:126:24> FUNC=tlb_flush_mmu L=0
+[USE] Processing uses of:   %109 = icmp ult i32 %106, 512,
+  [USE] Taint flows to:   %110 = select i1 %108, i1 %109, i1 false, <mm/mmu_gather.c:126:24> FUNC=tlb_flush_mmu L=0
+[USE] Processing uses of:   %110 = select i1 %108, i1 %109, i1 false,
+  [USE] Taint flows to:   br i1 %110, label %86, label %111, <mm/mmu_gather.c:125:4> FUNC=tlb_flush_mmu L=0
+[NO USE] No uses of:   br i1 %110, label %86, label %111,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 3
+
+Earliest instruction with L=0:
+    %109 = icmp ult i32 %106, 512, <mm/mmu_gather.c:126:24> FUNC=tlb_flush_mmu L=0
+
+Latest instruction with L=0:
+    br i1 %110, label %86, label %111, <mm/mmu_gather.c:125:4> FUNC=tlb_flush_mmu L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 3 instructions
+Other visited functions (total): 0 instructions
+Total: 3 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+tlb_flush_mmu, 19, 5, 19, 7
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/mm/mmu_gather.ll
+../linux-wllvm-defconfig/mm/mmu_gather.c

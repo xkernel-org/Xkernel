@@ -1,0 +1,5 @@
+SOURCE_FILE=mm/mmu_gather.c
+FUNCTION_NAME=tlb_flush_mmu
+SOURCE_OP="icmp"
+CONSTANT_VALUE=512
+OCCURENCE=1

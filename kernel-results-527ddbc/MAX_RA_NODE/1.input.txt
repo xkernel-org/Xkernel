@@ -1,0 +1,5 @@
+SOURCE_FILE=fs/f2fs/node.c
+FUNCTION_NAME=__get_node_page
+SOURCE_OP="call"
+CONSTANT_VALUE=128
+OCCURENCE=1

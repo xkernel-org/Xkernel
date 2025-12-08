@@ -1,0 +1,45 @@
+=== Taint Tracker Configuration ===
+Function: select_estimate_accuracy
+Opcode: udiv
+Constant: 100000000
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant 100000000)
+
+[SOURCE] Tainting:   %30 = udiv i32 100000000, %29, <fs/select.c:64:29> FUNC=select_estimate_accuracy L=0
+[USE] Source instruction in data flow <fs/select.c:64:29> FUNC=select_estimate_accuracy L=0
+[USE] Processing uses of:   %30 = udiv i32 100000000, %29,
+  [USE] Taint flows to:   %31 = zext nneg i32 %30 to i64, <fs/select.c:64:29> FUNC=select_estimate_accuracy L=0
+[USE] Processing uses of:   %31 = zext nneg i32 %30 to i64,
+  [USE] Taint flows to:   %32 = icmp samesign ugt i64 %18, %31, <fs/select.c:64:17> FUNC=select_estimate_accuracy L=0
+[USE] Processing uses of:   %32 = icmp samesign ugt i64 %18, %31,
+  [USE] Taint flows to:   br i1 %32, label %39, label %33, <fs/select.c:64:17> FUNC=select_estimate_accuracy L=0
+[NO USE] No uses of:   br i1 %32, label %39, label %33,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 4
+
+Earliest instruction with L=0:
+    %30 = udiv i32 100000000, %29, <fs/select.c:64:29> FUNC=select_estimate_accuracy L=0
+
+Latest instruction with L=0:
+    br i1 %32, label %39, label %33, <fs/select.c:64:17> FUNC=select_estimate_accuracy L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 4 instructions
+Other visited functions (total): 0 instructions
+Total: 4 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+select_estimate_accuracy, 2, 7, 2, 10
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/select.ll
+../linux-wllvm-defconfig/fs/select.c

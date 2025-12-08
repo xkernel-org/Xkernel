@@ -1,0 +1,45 @@
+=== Taint Tracker Configuration ===
+Function: bfq_get_queue
+Opcode: add
+Constant: 600
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant 600)
+
+[SOURCE] Tainting:   %216 = add i64 %215, 600, <block/bfq-iosched.c:5800:6> FUNC=bfq_get_queue L=0
+[USE] Source instruction in data flow <block/bfq-iosched.c:5800:6> FUNC=bfq_get_queue L=0
+[USE] Processing uses of:   %216 = add i64 %215, 600,
+  [USE] Taint flows to:   %219 = sub i64 %216, %218, <block/bfq-iosched.c:5800:6> FUNC=bfq_get_queue L=0
+[USE] Processing uses of:   %219 = sub i64 %216, %218,
+  [USE] Taint flows to:   %220 = icmp slt i64 %219, 0, <block/bfq-iosched.c:5800:6> FUNC=bfq_get_queue L=0
+[USE] Processing uses of:   %220 = icmp slt i64 %219, 0,
+  [USE] Taint flows to:   br i1 %220, label %243, label %221, <block/bfq-iosched.c:5802:25> FUNC=bfq_get_queue L=0
+[NO USE] No uses of:   br i1 %220, label %243, label %221,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 4
+
+Earliest instruction with L=0:
+    %216 = add i64 %215, 600, <block/bfq-iosched.c:5800:6> FUNC=bfq_get_queue L=0
+
+Latest instruction with L=0:
+    br i1 %220, label %243, label %221, <block/bfq-iosched.c:5802:25> FUNC=bfq_get_queue L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 6 instructions
+Other visited functions (total): 0 instructions
+Total: 6 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+bfq_get_queue, 48, 2, 48, 7
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/block/bfq-iosched.ll
+../linux-wllvm-defconfig/block/bfq-iosched.c

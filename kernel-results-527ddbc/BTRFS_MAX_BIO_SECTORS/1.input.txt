@@ -1,0 +1,5 @@
+SOURCE_FILE=fs/btrfs/direct-io.c
+FUNCTION_NAME=btrfs_dio_iomap_begin
+SOURCE_OP="shl"
+CONSTANT_VALUE=8
+OCCURENCE=1

@@ -1,0 +1,1 @@
+  make_free_space: BB6:I1 -> BB6:I2

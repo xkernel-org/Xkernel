@@ -1,0 +1,43 @@
+=== Taint Tracker Configuration ===
+Function: __se_sys_io_uring_enter
+Opcode: call
+Constant: 20
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 2 (of constant 20)
+
+[SOURCE] Tainting:   %348 = call i32 @llvm.smax.i32(i32 %327, i32 20), <io_uring/io_uring.c:2525:7> FUNC=__se_sys_io_uring_enter L=0
+[USE] Source instruction in data flow <io_uring/io_uring.c:2525:7> FUNC=__se_sys_io_uring_enter L=0
+[CHILD FUNCTION] Constant used in call to llvm.smax.i32 at argument 1 <io_uring/io_uring.c:2525:7> FUNC=__se_sys_io_uring_enter L=0
+[USE] Processing uses of:   %348 = call i32 @llvm.smax.i32(i32 %327, i32 20),
+  [CHILD FUNCTION] Tainted value used in call to __io_run_local_work at argument 3:   %350 = call fastcc i32 @__io_run_local_work(ptr noundef %46, ptr noundef nonnull %7, i32 noundef %327, i32 noundef %348) #281, <io_uring/io_uring.c:1354:8> FUNC=__se_sys_io_uring_enter L=0
+  [USE] Taint flows to:   %350 = call fastcc i32 @__io_run_local_work(ptr noundef %46, ptr noundef nonnull %7, i32 noundef %327, i32 noundef %348) #281, <io_uring/io_uring.c:1354:8> FUNC=__se_sys_io_uring_enter L=0
+[NO USE] No uses of:   %350 = call fastcc i32 @__io_run_local_work(ptr noundef %46, ptr noundef nonnull %7, i32 noundef %327, i32 noundef %348) #281,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 2
+
+Earliest instruction with L=0:
+    %348 = call i32 @llvm.smax.i32(i32 %327, i32 20), <io_uring/io_uring.c:2525:7> FUNC=__se_sys_io_uring_enter L=0
+
+Latest instruction with L=0:
+    %350 = call fastcc i32 @__io_run_local_work(ptr noundef %46, ptr noundef nonnull %7, i32 noundef %327, i32 noundef %348) #281, <io_uring/io_uring.c:1354:8> FUNC=__se_sys_io_uring_enter L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 5 instructions
+Other visited functions (total): 0 instructions
+Total: 5 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+__se_sys_io_uring_enter, 82, 0, 82, 4
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/io_uring/io_uring.ll
+../linux-wllvm-defconfig/io_uring/io_uring.c

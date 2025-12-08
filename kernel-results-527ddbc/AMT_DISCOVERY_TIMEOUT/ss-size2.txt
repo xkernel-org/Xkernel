@@ -1,0 +1,4 @@
+amt_discovery_work: BB2:I2 -> BB2:I2 => 1 instructions
+amt_event_work: BB72:I1 -> BB72:I1 => 1 instructions
+
+Total: 2 instructions

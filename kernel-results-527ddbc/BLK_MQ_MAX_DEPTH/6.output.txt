@@ -1,0 +1,255 @@
+=== Taint Tracker Configuration ===
+Function: nvme_alloc_io_tag_set
+Opcode: call
+Constant: 10239
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant 10239)
+
+[SOURCE] Tainting:   %10 = tail call i16 @llvm.umin.i16(i16 %9, i16 10239), <drivers/nvme/host/core.c:4666:21> FUNC=nvme_alloc_io_tag_set L=0
+[USE] Source instruction in data flow <drivers/nvme/host/core.c:4666:21> FUNC=nvme_alloc_io_tag_set L=0
+[CHILD FUNCTION] Constant used in call to llvm.umin.i16 at argument 1 <drivers/nvme/host/core.c:4666:21> FUNC=nvme_alloc_io_tag_set L=0
+[USE] Processing uses of:   %10 = tail call i16 @llvm.umin.i16(i16 %9, i16 10239),
+  [USE] Taint flows to:   %11 = zext nneg i16 %10 to i32, <drivers/nvme/host/core.c:4666:21> FUNC=nvme_alloc_io_tag_set L=0
+[USE] Processing uses of:   %11 = zext nneg i16 %10 to i32,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #1 (ptr %1) <drivers/nvme/host/core.c:4666:19>
+[UPWARD-INTERPROC] Call to nvme_alloc_io_tag_set taints argument 1 (local variable) <drivers/nvme/host/pci.c:3311:3> FUNC=nvme_probe L=1
+  [STORE DESTINATION] Marking pointer as tainted via call:   %151 = phi ptr [ %149, %147 ], [ %9, %135 ], FUNC=nvme_probe L=1
+[POINTER PARAMETER] Call to nvme_alloc_io_tag_set passes through pointer parameter 0 of nvme_reset_work <drivers/nvme/host/pci.c:2661:3> FUNC=nvme_reset_work L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %163 = load ptr, ptr %162, align 8, (base:   %151 = phi ptr [ %149, %147 ], [ %9, %135 ],)  <drivers/nvme/host/pci.c:3089:25> FUNC=nvme_probe L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %170 = load i64, ptr %169, align 8, (base:   %151 = phi ptr [ %149, %147 ], [ %9, %135 ],)  <drivers/nvme/host/pci.c:1847:19> FUNC=nvme_probe L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %173 = load ptr, ptr %162, align 8, (base:   %151 = phi ptr [ %149, %147 ], [ %9, %135 ],)  <drivers/nvme/host/pci.c:1845:25> FUNC=nvme_probe L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %185 = load ptr, ptr %184, align 8, (base:   %151 = phi ptr [ %149, %147 ], [ %9, %135 ],)  <drivers/nvme/host/pci.c:1851:11> FUNC=nvme_probe L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %198 = load ptr, ptr %162, align 8, (base:   %151 = phi ptr [ %149, %147 ], [ %9, %135 ],)  <drivers/nvme/host/pci.c:2847:61> FUNC=nvme_probe L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %204 = load i64, ptr %203, align 8, (base:   %151 = phi ptr [ %149, %147 ], [ %9, %135 ],)  <drivers/nvme/host/pci.c:2853:16> FUNC=nvme_probe L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %208 = load ptr, ptr %162, align 8, (base:   %151 = phi ptr [ %149, %147 ], [ %9, %135 ],)  <drivers/nvme/host/pci.c:2857:61> FUNC=nvme_probe L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %213 = load ptr, ptr %162, align 8, (base:   %151 = phi ptr [ %149, %147 ], [ %9, %135 ],)  <drivers/nvme/host/pci.c:2877:21> FUNC=nvme_probe L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %220 = load ptr, ptr %162, align 8, (base:   %151 = phi ptr [ %149, %147 ], [ %9, %135 ],)  <drivers/nvme/host/pci.c:2884:26> FUNC=nvme_probe L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %228 = load ptr, ptr %227, align 8, (base:   %151 = phi ptr [ %149, %147 ], [ %9, %135 ],)  <drivers/nvme/host/pci.c:3269:2> FUNC=nvme_probe L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %249 = load ptr, ptr %248, align 8, (base:   %151 = phi ptr [ %149, %147 ], [ %9, %135 ],)  <drivers/nvme/host/nvme.h:1137:12> FUNC=nvme_probe L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %256 = load i32, ptr %255, align 8, (base:   %151 = phi ptr [ %149, %147 ], [ %9, %135 ],)  <drivers/nvme/host/nvme.h:1139:15> FUNC=nvme_probe L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %270 = load i32, ptr %269, align 8, (base:   %151 = phi ptr [ %149, %147 ], [ %9, %135 ],)  <drivers/nvme/host/pci.c:3310:11> FUNC=nvme_probe L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %275 = load i32, ptr %274, align 8, (base:   %151 = phi ptr [ %149, %147 ], [ %9, %135 ],)  <drivers/nvme/host/pci.c:2651:6> FUNC=nvme_probe L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %279 = load i32, ptr %278, align 4, (base:   %151 = phi ptr [ %149, %147 ], [ %9, %135 ],)  <drivers/nvme/host/pci.c:2653:6> FUNC=nvme_probe L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %287 = load ptr, ptr %286, align 8, (base:   %151 = phi ptr [ %149, %147 ], [ %9, %135 ],)  <drivers/nvme/host/pci.c:3316:17> FUNC=nvme_probe L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %290 = load ptr, ptr %227, align 8, (base:   %151 = phi ptr [ %149, %147 ], [ %9, %135 ],)  <drivers/nvme/host/pci.c:3317:3> FUNC=nvme_probe L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %295 = load ptr, ptr %227, align 8, (base:   %151 = phi ptr [ %149, %147 ], [ %9, %135 ],)  <drivers/nvme/host/nvme.h:745:19> FUNC=nvme_probe L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %301 = load ptr, ptr %227, align 8, (base:   %151 = phi ptr [ %149, %147 ], [ %9, %135 ],)  <drivers/nvme/host/pci.c:3334:2> (approx) FUNC=nvme_probe L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %307 = load ptr, ptr %217, align 8, (base:   %151 = phi ptr [ %149, %147 ], [ %9, %135 ],)  <drivers/nvme/host/pci.c:3341:23> FUNC=nvme_probe L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %314 = load ptr, ptr %200, align 8, (base:   %151 = phi ptr [ %149, %147 ], [ %9, %135 ],)  <drivers/nvme/host/pci.c:2868:24> FUNC=nvme_probe L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %322 = load ptr, ptr %321, align 8, (base:   %151 = phi ptr [ %149, %147 ], [ %9, %135 ],)  <drivers/nvme/host/pci.c:2767:11> FUNC=nvme_probe L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %326 = load ptr, ptr %162, align 8, (base:   %151 = phi ptr [ %149, %147 ], [ %9, %135 ],)  <drivers/nvme/host/pci.c:2769:26> FUNC=nvme_probe L=1
+[LOAD] Tainted load from tracked pointer (struct field):   %337 = load ptr, ptr %336, align 8, (base:   %151 = phi ptr [ %149, %147 ], [ %9, %135 ],)  <drivers/nvme/host/nvme.h:745:19> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   tail call void @put_device(ptr noundef %337) #279, <drivers/nvme/host/nvme.h:745:2> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   %327 = getelementptr i8, ptr %326, i64 -192, <drivers/nvme/host/pci.c:2769:26> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   %329 = phi ptr [ %327, %325 ], [ %164, %193 ], [ %164, %178 ], [ %164, %172 ] <drivers/nvme/host/pci.c:3348:2> (approx) FUNC=nvme_probe L=1
+  [USE] Taint flows to:   %331 = tail call i32 @pci_select_bars(ptr noundef %329, i64 noundef 512) #279, <drivers/nvme/host/pci.c:3348:2> (approx) FUNC=nvme_probe L=1
+  [USE] Taint flows to:   tail call void @pci_release_selected_regions(ptr noundef %329, i32 noundef %331) #279, <drivers/nvme/host/pci.c:3348:2> (approx) FUNC=nvme_probe L=1
+  [USE] Taint flows to:   %323 = icmp eq ptr %322, null, <drivers/nvme/host/pci.c:2767:6> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   tail call void @iounmap(ptr noundef nonnull %322) #279, <drivers/nvme/host/pci.c:2768:3> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   br i1 %323, label %325, label %324, <drivers/nvme/host/pci.c:2767:6> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   tail call void @dma_pool_destroy(ptr noundef %314) #279, <drivers/nvme/host/pci.c:2868:2> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   tail call void @mempool_destroy(ptr noundef %307) #279, <drivers/nvme/host/pci.c:3341:2> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   tail call void (ptr, ptr, ...) @_dev_warn(ptr noundef %301, ptr noundef nonnull %299) #282, <drivers/nvme/host/pci.c:3334:2> (approx) FUNC=nvme_probe L=1
+  [USE] Taint flows to:   tail call void @put_device(ptr noundef %295) #279, <drivers/nvme/host/nvme.h:745:2> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   tail call void (ptr, ptr, ...) @_dev_warn(ptr noundef %290, ptr noundef nonnull @.str.9.72920) #282, <drivers/nvme/host/pci.c:3317:3> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   %288 = icmp eq ptr %287, null, <drivers/nvme/host/pci.c:3316:7> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   br i1 %288, label %289, label %291, <drivers/nvme/host/pci.c:3316:6> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   %280 = icmp eq i32 %279, 0, <drivers/nvme/host/pci.c:2653:6> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   %281 = select i1 %280, i32 1, i32 2, <UNKNOWN> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   %283 = phi i32 [ 3, %272 ], [ %281, %277 ], <drivers/nvme/host/pci.c:3311:3> (approx) FUNC=nvme_probe L=1
+  [USE] Taint flows to:   %284 = tail call i32 @nvme_alloc_io_tag_set(ptr noundef nonnull %158, ptr noundef nonnull %273, ptr noundef nonnull @nvme_mq_ops, i32 noundef %283, i32 noundef 200) #279, <drivers/nvme/host/pci.c:3311:3> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   %276 = icmp eq i32 %275, 0, <drivers/nvme/host/pci.c:2651:6> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   br i1 %276, label %277, label %282, <drivers/nvme/host/pci.c:2651:6> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   %271 = icmp ugt i32 %270, 1, <drivers/nvme/host/pci.c:3310:25> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   br i1 %271, label %272, label %285, <drivers/nvme/host/pci.c:3310:25> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   %257 = and i32 %256, 524288, <drivers/nvme/host/nvme.h:1139:20> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   %258 = icmp eq i32 %257, 0, <drivers/nvme/host/nvme.h:1139:9> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   %259 = select i1 %258, i32 1, i32 15, <drivers/nvme/host/pci.c:3295:6> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   %261 = phi i32 [ 15, %247 ], [ %259, %254 ] <drivers/nvme/host/pci.c:3300:2> (approx) FUNC=nvme_probe L=1
+  [USE] Taint flows to:   store i32 %261, ptr %262, align 8, <drivers/nvme/host/pci.c:3300:2> (approx) FUNC=nvme_probe L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %262 = getelementptr inbounds nuw i8, ptr %151, i64 1664, <drivers/nvme/host/pci.c:3300:2> (approx) FUNC=nvme_probe L=1
+  %262 = getelementptr inbounds nuw i8, ptr %151, i64 1664,
+  → base pointer:
+          %151 = phi ptr [ %149, %147 ], [ %9, %135 ],
+      PHI with 2 paths:
+      Path 0 (from %):
+                  %149 = inttoptr i64 %148 to ptr,
+          → no parameter connection
+        → no parameter connection
+      Path 1 (from %):
+                  %9 = tail call noalias align 8 dereferenceable_or_null(3368) ptr @__kmalloc_cache_node_noprof(ptr noundef %8, i32 noundef 3520, i32 noundef %7, i64 noundef 3368) #278,
+          → call to __kmalloc_cache_node_noprof (no parameter)
+        → no parameter connection
+  → Result: No parameter connection found
+  [USE] Taint flows to:   %250 = getelementptr inbounds nuw i8, ptr %249, i64 16, <drivers/nvme/host/nvme.h:1137:17> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   %251 = load i32, ptr %250, align 8, <drivers/nvme/host/nvme.h:1137:17> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   %252 = and i32 %251, 1, <drivers/nvme/host/nvme.h:1137:23> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   %253 = icmp eq i32 %252, 0, <drivers/nvme/host/nvme.h:1137:23> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   br i1 %253, label %254, label %260, <drivers/nvme/host/nvme.h:1137:23> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   tail call void (ptr, ptr, ...) @_dev_info(ptr noundef %228, ptr noundef nonnull @.str.7.72919, ptr noundef %235) #282, <drivers/nvme/host/pci.c:3269:2> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   %221 = getelementptr inbounds nuw i8, ptr %220, i64 632, <./include/linux/device.h:922:14> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   %222 = load i32, ptr %221, align 8, <./include/linux/device.h:922:14> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   %223 = tail call ptr @mempool_create_node_noprof(i32 noundef 1, ptr noundef nonnull @mempool_kmalloc, ptr noundef nonnull @mempool_kfree, ptr noundef nonnull inttoptr (i64 512 to ptr), i32 noundef 3264, i32 noundef %222) #279, <drivers/nvme/host/pci.c:2884:26> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   store ptr %223, ptr %224, align 8, <drivers/nvme/host/pci.c:2884:24> FUNC=nvme_probe L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %224 = getelementptr inbounds nuw i8, ptr %151, i64 3272, <drivers/nvme/host/pci.c:2884:24> FUNC=nvme_probe L=1
+  %224 = getelementptr inbounds nuw i8, ptr %151, i64 3272,
+  → base pointer:
+          %151 = phi ptr [ %149, %147 ], [ %9, %135 ],
+      PHI with 2 paths:
+      Path 0 (from %):
+                  %149 = inttoptr i64 %148 to ptr,
+          → no parameter connection
+        → no parameter connection
+      Path 1 (from %):
+                  %9 = tail call noalias align 8 dereferenceable_or_null(3368) ptr @__kmalloc_cache_node_noprof(ptr noundef %8, i32 noundef 3520, i32 noundef %7, i64 noundef 3368) #278,
+          → call to __kmalloc_cache_node_noprof (no parameter)
+        → no parameter connection
+  → Result: No parameter connection found
+  [USE] Taint flows to:   %225 = icmp eq ptr %223, null, <drivers/nvme/host/pci.c:2888:7> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   br i1 %225, label %308, label %226, <drivers/nvme/host/pci.c:2888:6> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   %214 = getelementptr inbounds nuw i8, ptr %213, i64 632, <./include/linux/device.h:922:14> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   %215 = load i32, ptr %214, align 8, <./include/linux/device.h:922:14> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   %216 = tail call ptr @mempool_create_node_noprof(i32 noundef 1, ptr noundef nonnull @mempool_kmalloc, ptr noundef nonnull @mempool_kfree, ptr noundef nonnull inttoptr (i64 4096 to ptr), i32 noundef 3264, i32 noundef %215) #279, <drivers/nvme/host/pci.c:2877:21> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   store ptr %216, ptr %217, align 8, <drivers/nvme/host/pci.c:2877:19> FUNC=nvme_probe L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %217 = getelementptr inbounds nuw i8, ptr %151, i64 3264, <drivers/nvme/host/pci.c:2877:19> FUNC=nvme_probe L=1
+  %217 = getelementptr inbounds nuw i8, ptr %151, i64 3264,
+  → base pointer:
+          %151 = phi ptr [ %149, %147 ], [ %9, %135 ],
+      PHI with 2 paths:
+      Path 0 (from %):
+                  %149 = inttoptr i64 %148 to ptr,
+          → no parameter connection
+        → no parameter connection
+      Path 1 (from %):
+                  %9 = tail call noalias align 8 dereferenceable_or_null(3368) ptr @__kmalloc_cache_node_noprof(ptr noundef %8, i32 noundef 3520, i32 noundef %7, i64 noundef 3368) #278,
+          → call to __kmalloc_cache_node_noprof (no parameter)
+        → no parameter connection
+  → Result: No parameter connection found
+  [USE] Taint flows to:   %218 = icmp eq ptr %216, null, <drivers/nvme/host/pci.c:2881:7> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   br i1 %218, label %312, label %219, <drivers/nvme/host/pci.c:2881:6> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   %209 = tail call ptr @dma_pool_create(ptr noundef nonnull @.str.54.72918, ptr noundef %208, i64 noundef 256, i64 noundef %207, i64 noundef 0) #279, <drivers/nvme/host/pci.c:2857:24> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   store ptr %209, ptr %210, align 8, <drivers/nvme/host/pci.c:2857:22> FUNC=nvme_probe L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %210 = getelementptr inbounds nuw i8, ptr %151, i64 368, <drivers/nvme/host/pci.c:2857:22> FUNC=nvme_probe L=1
+  %210 = getelementptr inbounds nuw i8, ptr %151, i64 368,
+  → base pointer:
+          %151 = phi ptr [ %149, %147 ], [ %9, %135 ],
+      PHI with 2 paths:
+      Path 0 (from %):
+                  %149 = inttoptr i64 %148 to ptr,
+          → no parameter connection
+        → no parameter connection
+      Path 1 (from %):
+                  %9 = tail call noalias align 8 dereferenceable_or_null(3368) ptr @__kmalloc_cache_node_noprof(ptr noundef %8, i32 noundef 3520, i32 noundef %7, i64 noundef 3368) #278,
+          → call to __kmalloc_cache_node_noprof (no parameter)
+        → no parameter connection
+  → Result: No parameter connection found
+  [USE] Taint flows to:   %211 = icmp eq ptr %209, null, <drivers/nvme/host/pci.c:2859:7> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   br i1 %211, label %315, label %212, <drivers/nvme/host/pci.c:2859:6> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   %205 = and i64 %204, 4194304, <drivers/nvme/host/pci.c:2853:23> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   %206 = icmp eq i64 %205, 0, <drivers/nvme/host/pci.c:2853:23> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   %207 = select i1 %206, i64 256, i64 512, <drivers/nvme/host/pci.c:2853:23> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   %199 = tail call ptr @dma_pool_create(ptr noundef nonnull @.str.53.72917, ptr noundef %198, i64 noundef 4096, i64 noundef 4096, i64 noundef 0) #279, <drivers/nvme/host/pci.c:2847:23> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   store ptr %199, ptr %200, align 8, <drivers/nvme/host/pci.c:2847:21> FUNC=nvme_probe L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %200 = getelementptr inbounds nuw i8, ptr %151, i64 360, <drivers/nvme/host/pci.c:2847:21> FUNC=nvme_probe L=1
+  %200 = getelementptr inbounds nuw i8, ptr %151, i64 360,
+  → base pointer:
+          %151 = phi ptr [ %149, %147 ], [ %9, %135 ],
+      PHI with 2 paths:
+      Path 0 (from %):
+                  %149 = inttoptr i64 %148 to ptr,
+          → no parameter connection
+        → no parameter connection
+      Path 1 (from %):
+                  %9 = tail call noalias align 8 dereferenceable_or_null(3368) ptr @__kmalloc_cache_node_noprof(ptr noundef %8, i32 noundef 3520, i32 noundef %7, i64 noundef 3368) #278,
+          → call to __kmalloc_cache_node_noprof (no parameter)
+        → no parameter connection
+  → Result: No parameter connection found
+  [USE] Taint flows to:   %201 = icmp eq ptr %199, null, <drivers/nvme/host/pci.c:2850:7> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   br i1 %201, label %319, label %202, <drivers/nvme/host/pci.c:2850:6> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   %186 = icmp eq ptr %185, null, <drivers/nvme/host/pci.c:1851:6> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   tail call void @iounmap(ptr noundef nonnull %185) #279, <drivers/nvme/host/pci.c:1852:3> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   br i1 %186, label %189, label %187, <drivers/nvme/host/pci.c:1851:6> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   %174 = getelementptr i8, ptr %173, i64 728, <drivers/nvme/host/pci.c:1849:13> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   %175 = getelementptr i8, ptr %173, i64 736, <drivers/nvme/host/pci.c:1849:13> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   %176 = load i64, ptr %175, align 8, <drivers/nvme/host/pci.c:1849:13> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   %177 = icmp eq i64 %176, 0, <drivers/nvme/host/pci.c:1849:13> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   %180 = add i64 %176, 1, <./include/linux/ioport.h:286:18> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   %181 = sub i64 %180, %179, <./include/linux/ioport.h:286:31> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   %182 = icmp ult i64 %181, 8192, <drivers/nvme/host/pci.c:1849:11> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   br i1 %182, label %328, label %183, <drivers/nvme/host/pci.c:1849:11> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   br i1 %177, label %328, label %178, <drivers/nvme/host/pci.c:1849:13> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   %179 = load i64, ptr %174, align 8, <./include/linux/ioport.h:286:25> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   %188 = load i64, ptr %174, align 8, <drivers/nvme/host/pci.c:1853:21> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   %190 = phi i64 [ %188, %187 ], [ %179, %183 ], <drivers/nvme/host/pci.c:1853:21> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   %191 = tail call ptr @ioremap(i64 noundef %190, i64 noundef 8192) #279, <drivers/nvme/host/pci.c:1853:13> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   store ptr %191, ptr %184, align 8, <drivers/nvme/host/pci.c:1853:11> FUNC=nvme_probe L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %184 = getelementptr inbounds nuw i8, ptr %151, i64 416, <drivers/nvme/host/pci.c:1853:11> FUNC=nvme_probe L=1
+  %184 = getelementptr inbounds nuw i8, ptr %151, i64 416,
+  → base pointer:
+          %151 = phi ptr [ %149, %147 ], [ %9, %135 ],
+      PHI with 2 paths:
+      Path 0 (from %):
+                  %149 = inttoptr i64 %148 to ptr,
+          → no parameter connection
+        → no parameter connection
+      Path 1 (from %):
+                  %9 = tail call noalias align 8 dereferenceable_or_null(3368) ptr @__kmalloc_cache_node_noprof(ptr noundef %8, i32 noundef 3520, i32 noundef %7, i64 noundef 3368) #278,
+          → call to __kmalloc_cache_node_noprof (no parameter)
+        → no parameter connection
+  → Result: No parameter connection found
+  [USE] Taint flows to:   %192 = icmp eq ptr %191, null, <drivers/nvme/host/pci.c:1854:7> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   %195 = getelementptr i8, ptr %191, i64 4096, <drivers/nvme/host/pci.c:1859:22> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   store ptr %195, ptr %196, align 8, <drivers/nvme/host/pci.c:1859:11> FUNC=nvme_probe L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %196 = getelementptr inbounds nuw i8, ptr %151, i64 344, <drivers/nvme/host/pci.c:1859:11> FUNC=nvme_probe L=1
+  %196 = getelementptr inbounds nuw i8, ptr %151, i64 344,
+  → base pointer:
+          %151 = phi ptr [ %149, %147 ], [ %9, %135 ],
+      PHI with 2 paths:
+      Path 0 (from %):
+                  %149 = inttoptr i64 %148 to ptr,
+          → no parameter connection
+        → no parameter connection
+      Path 1 (from %):
+                  %9 = tail call noalias align 8 dereferenceable_or_null(3368) ptr @__kmalloc_cache_node_noprof(ptr noundef %8, i32 noundef 3520, i32 noundef %7, i64 noundef 3368) #278,
+          → call to __kmalloc_cache_node_noprof (no parameter)
+        → no parameter connection
+  → Result: No parameter connection found
+  [USE] Taint flows to:   br i1 %192, label %193, label %194, <drivers/nvme/host/pci.c:1854:6> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   %171 = icmp ult i64 %170, 8192, <drivers/nvme/host/pci.c:1847:11> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   br i1 %171, label %172, label %197, <drivers/nvme/host/pci.c:1847:11> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   %164 = getelementptr i8, ptr %163, i64 -192, <drivers/nvme/host/pci.c:3089:25> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   %165 = tail call i32 @pci_select_bars(ptr noundef %164, i64 noundef 512) #279, <./include/linux/pci.h:1937:8> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   %166 = tail call i32 @pci_request_selected_regions(ptr noundef %164, i32 noundef %165, ptr noundef nonnull @.str.1.72879) #279, <./include/linux/pci.h:1936:9> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   %167 = icmp eq i32 %166, 0, <drivers/nvme/host/pci.c:3091:6> FUNC=nvme_probe L=1
+  [USE] Taint flows to:   br i1 %167, label %168, label %332, <drivers/nvme/host/pci.c:3091:6> FUNC=nvme_probe L=1
+[UPWARD-INTERPROC] No callers found for nvme_reset_work (function taints pointer parameter #0)
+
+=== Maximum Level Statistics ===
+Largest L value: 1
+Number of instructions with L=1: 109
+
+Earliest instruction with L=1:
+    %163 = load ptr, ptr %162, align 8, <drivers/nvme/host/pci.c:3089:25> FUNC=nvme_probe L=1
+
+Latest instruction with L=1:
+    tail call void @put_device(ptr noundef %337) #279, <drivers/nvme/host/nvme.h:745:2> FUNC=nvme_probe L=1
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 206 instructions
+Other visited functions (total): 85 instructions
+Total: 291 instructions
+Number of max-level functions: 1
+Number of other visited functions: 1
+
+=== Data Flow Span Details ===
+nvme_probe, 47, 1, 89, 3
+nvme_alloc_io_tag_set, full span
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/drivers/nvme/host/core.ll
+../linux-wllvm-defconfig/drivers/nvme/host/core.c

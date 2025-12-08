@@ -1,0 +1,7 @@
+io_buffers_peek: full span => 70 instructions
+io_buffers_select: full span => 122 instructions
+io_recv: BB0:I9 -> BB55:I3 => 260 instructions
+io_ring_buffers_peek: full span => 145 instructions
+io_send: BB4:I2 -> BB45:I1 => 219 instructions
+
+Total: 816 instructions

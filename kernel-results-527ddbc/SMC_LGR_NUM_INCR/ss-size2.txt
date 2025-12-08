@@ -1,0 +1,3 @@
+smc_conn_create: BB56:I155 -> BB56:I157 => 3 instructions
+
+Total: 3 instructions

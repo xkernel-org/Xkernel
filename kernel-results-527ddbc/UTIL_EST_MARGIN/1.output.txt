@@ -1,0 +1,41 @@
+=== Taint Tracker Configuration ===
+Function: dequeue_task_fair
+Opcode: icmp
+Constant: 10
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant 10)
+
+[SOURCE] Tainting:   %57 = icmp samesign ult i32 %56, 10, <kernel/sched/fair.c:4918:21> FUNC=dequeue_task_fair L=0
+[USE] Source instruction in data flow <kernel/sched/fair.c:4918:21> FUNC=dequeue_task_fair L=0
+[USE] Processing uses of:   %57 = icmp samesign ult i32 %56, 10,
+  [USE] Taint flows to:   br i1 %57, label %75, label %58, <kernel/sched/fair.c:4918:21> FUNC=dequeue_task_fair L=0
+[NO USE] No uses of:   br i1 %57, label %75, label %58,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 2
+
+Earliest instruction with L=0:
+    %57 = icmp samesign ult i32 %56, 10, <kernel/sched/fair.c:4918:21> FUNC=dequeue_task_fair L=0
+
+Latest instruction with L=0:
+    br i1 %57, label %75, label %58, <kernel/sched/fair.c:4918:21> FUNC=dequeue_task_fair L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 2 instructions
+Other visited functions (total): 0 instructions
+Total: 2 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+dequeue_task_fair, 11, 1, 11, 2
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/kernel/sched/fair.ll
+../linux-wllvm-defconfig/kernel/sched/fair.c

@@ -1,0 +1,42 @@
+=== Taint Tracker Configuration ===
+Function: amt_dev_open
+Opcode: phi
+Constant: 0
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant 0)
+
+[SOURCE] Tainting:   %46 = phi i64 [ 0, %40 ], [ 60000, %32 ] <./include/linux/workqueue.h:692:9> (approx) FUNC=amt_dev_open L=0
+[USE] Source instruction in data flow <./include/linux/workqueue.h:692:9> (approx) FUNC=amt_dev_open L=0
+[USE] Processing uses of:   %46 = phi i64 [ 0, %40 ], [ 60000, %32 ]
+  [CHILD FUNCTION] Tainted value used in call to mod_delayed_work_on at argument 3:   %49 = call zeroext i1 @mod_delayed_work_on(i32 noundef 64, ptr noundef %47, ptr noundef nonnull %48, i64 noundef %46) #279, <./include/linux/workqueue.h:692:9> FUNC=amt_dev_open L=0
+  [USE] Taint flows to:   %49 = call zeroext i1 @mod_delayed_work_on(i32 noundef 64, ptr noundef %47, ptr noundef nonnull %48, i64 noundef %46) #279, <./include/linux/workqueue.h:692:9> FUNC=amt_dev_open L=0
+[NO USE] No uses of:   %49 = call zeroext i1 @mod_delayed_work_on(i32 noundef 64, ptr noundef %47, ptr noundef nonnull %48, i64 noundef %46) #279,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 2
+
+Earliest instruction with L=0:
+    %46 = phi i64 [ 0, %40 ], [ 60000, %32 ] <./include/linux/workqueue.h:692:9> (approx) FUNC=amt_dev_open L=0
+
+Latest instruction with L=0:
+    %49 = call zeroext i1 @mod_delayed_work_on(i32 noundef 64, ptr noundef %47, ptr noundef nonnull %48, i64 noundef %46) #279, <./include/linux/workqueue.h:692:9> FUNC=amt_dev_open L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 4 instructions
+Other visited functions (total): 0 instructions
+Total: 4 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+amt_dev_open, 5, 1, 5, 4
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/drivers/net/amt.ll
+../linux-wllvm-defconfig/drivers/net/amt.c

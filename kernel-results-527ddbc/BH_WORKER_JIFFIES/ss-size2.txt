@@ -1,0 +1,3 @@
+bh_worker: BB23:I2 -> BB23:I4 => 3 instructions
+
+Total: 3 instructions

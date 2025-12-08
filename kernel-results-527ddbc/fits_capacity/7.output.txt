@@ -1,0 +1,43 @@
+=== Taint Tracker Configuration ===
+Function: sched_balance_find_dst_cpu
+Opcode: shl
+Constant: 10
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant 10)
+
+[SOURCE] Tainting:   %346 = shl i64 %344, 10, <kernel/sched/fair.c:4983:9> FUNC=sched_balance_find_dst_cpu L=0
+[USE] Source instruction in data flow <kernel/sched/fair.c:4983:9> FUNC=sched_balance_find_dst_cpu L=0
+[USE] Processing uses of:   %346 = shl i64 %344, 10,
+  [USE] Taint flows to:   %347 = icmp ult i64 %345, %346, <kernel/sched/fair.c:4983:9> FUNC=sched_balance_find_dst_cpu L=0
+[USE] Processing uses of:   %347 = icmp ult i64 %345, %346,
+  [USE] Taint flows to:   br i1 %347, label %348, label %349, <kernel/sched/fair.c:10683:35> FUNC=sched_balance_find_dst_cpu L=0
+[NO USE] No uses of:   br i1 %347, label %348, label %349,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 3
+
+Earliest instruction with L=0:
+    %346 = shl i64 %344, 10, <kernel/sched/fair.c:4983:9> FUNC=sched_balance_find_dst_cpu L=0
+
+Latest instruction with L=0:
+    br i1 %347, label %348, label %349, <kernel/sched/fair.c:10683:35> FUNC=sched_balance_find_dst_cpu L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 3 instructions
+Other visited functions (total): 0 instructions
+Total: 3 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+sched_balance_find_dst_cpu, 48, 11, 48, 13
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/kernel/sched/fair.ll
+../linux-wllvm-defconfig/kernel/sched/fair.c

@@ -1,0 +1,1 @@
+  ubifs_garbage_collect: [BB10:I2 -> BB10:I3, BB24:I0 -> BB24:I1]

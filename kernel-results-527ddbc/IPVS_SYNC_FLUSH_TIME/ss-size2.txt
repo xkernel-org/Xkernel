@@ -1,0 +1,3 @@
+sync_thread_master: BB7:I3 -> BB7:I6 => 4 instructions
+
+Total: 4 instructions

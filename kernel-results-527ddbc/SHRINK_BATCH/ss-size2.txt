@@ -1,0 +1,4 @@
+do_sync_mmap_readahead: [BB6:I2 -> BB6:I3, BB7:I2 -> BB7:I3] => 4 instructions
+shrink_slab: BB8:I4 -> BB29:I2 => 136 instructions
+
+Total: 140 instructions

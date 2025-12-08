@@ -1,0 +1,4 @@
+mpol_misplaced: BB36:I2 -> BB36:I3 => 2 instructions
+should_numa_migrate_memory: full span => 258 instructions
+
+Total: 260 instructions

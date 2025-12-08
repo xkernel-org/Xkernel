@@ -1,0 +1,43 @@
+=== Taint Tracker Configuration ===
+Function: f2fs_gc
+Opcode: icmp
+Constant: 17
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant 17)
+
+[SOURCE] Tainting:   %255 = icmp ult i32 %253, 17, <fs/f2fs/gc.c:1957:21> FUNC=f2fs_gc L=0
+[USE] Source instruction in data flow <fs/f2fs/gc.c:1957:21> FUNC=f2fs_gc L=0
+[USE] Processing uses of:   %255 = icmp ult i32 %253, 17,
+  [USE] Taint flows to:   %258 = select i1 %255, i1 true, i1 %257, <fs/f2fs/gc.c:1957:41> FUNC=f2fs_gc L=0
+[USE] Processing uses of:   %258 = select i1 %255, i1 true, i1 %257,
+  [USE] Taint flows to:   br i1 %258, label %291, label %259, <fs/f2fs/gc.c:1957:41> FUNC=f2fs_gc L=0
+[NO USE] No uses of:   br i1 %258, label %291, label %259,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 3
+
+Earliest instruction with L=0:
+    %255 = icmp ult i32 %253, 17, <fs/f2fs/gc.c:1957:21> FUNC=f2fs_gc L=0
+
+Latest instruction with L=0:
+    br i1 %258, label %291, label %259, <fs/f2fs/gc.c:1957:41> FUNC=f2fs_gc L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 5 instructions
+Other visited functions (total): 0 instructions
+Total: 5 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+f2fs_gc, 39, 5, 39, 9
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/f2fs/gc.ll
+../linux-wllvm-defconfig/fs/f2fs/gc.c

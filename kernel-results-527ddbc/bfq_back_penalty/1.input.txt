@@ -1,0 +1,5 @@
+SOURCE_FILE=block/bfq-iosched.c
+FUNCTION_NAME=bfq_init_queue
+SOURCE_OP="store"
+CONSTANT_VALUE=2
+OCCURENCE=2

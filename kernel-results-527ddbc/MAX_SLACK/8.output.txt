@@ -1,0 +1,70 @@
+=== Taint Tracker Configuration ===
+Function: do_sys_poll
+Opcode: call
+Constant: 100000000
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant 100000000)
+
+[SOURCE] Tainting:   %98 = call i64 @llvm.smin.i64(i64 %97, i64 100000000), <UNKNOWN> FUNC=do_sys_poll L=0
+[USE] Source instruction in data flow <UNKNOWN> FUNC=do_sys_poll L=0
+[CHILD FUNCTION] Constant used in call to llvm.smin.i64 at argument 1 <UNKNOWN> FUNC=do_sys_poll L=0
+[USE] Processing uses of:   %98 = call i64 @llvm.smin.i64(i64 %97, i64 100000000),
+  [USE] Taint flows to:   %100 = phi i64 [ 0, %69 ], [ 100000000, %82 ], [ %98, %93 ], <UNKNOWN> FUNC=do_sys_poll L=0
+[USE] Processing uses of:   %100 = phi i64 [ 0, %69 ], [ 100000000, %82 ], [ %98, %93 ],
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %101 = call i64 @llvm.umax.i64(i64 %100, i64 %67), !dbg !18658321 <UNKNOWN>
+  [USE] Taint flows to:   %101 = call i64 @llvm.umax.i64(i64 %100, i64 %67), <UNKNOWN> FUNC=do_sys_poll L=0
+[USE] Processing uses of:   %101 = call i64 @llvm.umax.i64(i64 %100, i64 %67),
+  [USE] Taint flows to:   %103 = phi i64 [ 0, %65 ], [ %101, %99 ], <fs/select.c:91:1> (approx) FUNC=do_sys_poll L=0
+[USE] Processing uses of:   %103 = phi i64 [ 0, %65 ], [ %101, %99 ],
+  [USE] Taint flows to:   %106 = phi i64 [ %103, %102 ], [ 0, %46 ], [ 0, %64 ], <fs/select.c:895:2> (approx) FUNC=do_sys_poll L=0
+[USE] Processing uses of:   %106 = phi i64 [ %103, %102 ], [ 0, %46 ], [ 0, %64 ],
+  [CHILD FUNCTION] Tainted value used in call to schedule_hrtimeout_range at argument 1:   %243 = call i32 @schedule_hrtimeout_range(ptr noundef %234, i64 noundef %106, i32 noundef 0) #280, <fs/select.c:241:8> FUNC=do_sys_poll L=0
+  [USE] Taint flows to:   %243 = call i32 @schedule_hrtimeout_range(ptr noundef %234, i64 noundef %106, i32 noundef 0) #280, <fs/select.c:241:8> FUNC=do_sys_poll L=0
+[USE] Processing uses of:   %243 = call i32 @schedule_hrtimeout_range(ptr noundef %234, i64 noundef %106, i32 noundef 0) #280,
+  [USE] Taint flows to:   %245 = freeze i32 %243, <fs/select.c:958:8> FUNC=do_sys_poll L=0
+[USE] Processing uses of:   %245 = freeze i32 %243,
+  [USE] Taint flows to:   %246 = icmp eq i32 %245, 0, <fs/select.c:958:8> FUNC=do_sys_poll L=0
+[USE] Processing uses of:   %246 = icmp eq i32 %245, 0,
+  [USE] Taint flows to:   %247 = zext i1 %246 to i32, <fs/select.c:958:7> FUNC=do_sys_poll L=0
+[USE] Processing uses of:   %247 = zext i1 %246 to i32,
+  [USE] Taint flows to:   %241 = phi i32 [ %247, %242 ], [ 0, %238 ] <fs/select.c:899:3> (approx) FUNC=do_sys_poll L=0
+[USE] Processing uses of:   %241 = phi i32 [ %247, %242 ], [ 0, %238 ]
+  [USE] Taint flows to:   %116 = phi i32 [ %110, %109 ], [ %241, %240 ] <fs/select.c:899:3> (approx) FUNC=do_sys_poll L=0
+[USE] Processing uses of:   %116 = phi i32 [ %110, %109 ], [ %241, %240 ]
+  [USE] Taint flows to:   %120 = phi i32 [ 0, %217 ], [ %116, %115 ], <fs/select.c:881:6> FUNC=do_sys_poll L=0
+[USE] Processing uses of:   %120 = phi i32 [ 0, %217 ], [ %116, %115 ],
+  [USE] Taint flows to:   %203 = or i32 %193, %120, <fs/select.c:934:13> FUNC=do_sys_poll L=0
+[USE] Processing uses of:   %203 = or i32 %193, %120,
+  [USE] Taint flows to:   %204 = icmp eq i32 %203, 0, <fs/select.c:934:13> FUNC=do_sys_poll L=0
+[USE] Processing uses of:   %204 = icmp eq i32 %203, 0,
+  [USE] Taint flows to:   br i1 %204, label %205, label %248, <fs/select.c:934:13> FUNC=do_sys_poll L=0
+[NO USE] No uses of:   br i1 %204, label %205, label %248,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 15
+
+Earliest instruction with L=0:
+    %98 = call i64 @llvm.smin.i64(i64 %97, i64 100000000), <UNKNOWN> FUNC=do_sys_poll L=0
+
+Latest instruction with L=0:
+    %247 = zext i1 %246 to i32, <fs/select.c:958:7> FUNC=do_sys_poll L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 161 instructions
+Other visited functions (total): 0 instructions
+Total: 161 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+do_sys_poll, 13, 4, 48, 5
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/select.ll
+../linux-wllvm-defconfig/fs/select.c

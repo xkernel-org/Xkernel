@@ -1,0 +1,5 @@
+SOURCE_FILE=mm/oom_kill.c
+FUNCTION_NAME=oom_reaper
+SOURCE_OP="icmp"
+CONSTANT_VALUE=11
+OCCURENCE=1

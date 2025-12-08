@@ -1,0 +1,48 @@
+  __blk_mq_sched_dispatch_requests: full span
+  __nvme_submit_sync_cmd: full span
+  blk_mq_alloc_request_hctx: full span
+  blk_mq_dispatch_rq_list: full span
+  blk_mq_flush_plug_list: full span
+  blk_mq_request_issue_directly: full span
+  blk_mq_sched_dispatch_requests: full span
+  blk_mq_try_issue_directly: BB19:I3 -> BB19:I4
+  hmb_store: BB3:I0 -> BB3:I0
+  nuse_show: full span
+  nvme_clear_changed_ns_log: full span
+  nvme_configure_apst: full span
+  nvme_dbbuf_set: full span
+  nvme_fw_act_work: full span
+  nvme_get_effects_log: full span
+  nvme_get_features: full span
+  nvme_get_log: full span
+  nvme_identify_ns: full span
+  nvme_init_ctrl_finish: full span
+  nvme_ns_report_zones: full span
+  nvme_pr_clear: full span
+  nvme_pr_preempt: full span
+  nvme_pr_read_keys: BB1:I1 -> BB9:I2
+  nvme_pr_read_reservation: BB0:I5 -> BB24:I3
+  nvme_pr_register: full span
+  nvme_pr_release: full span
+  nvme_pr_reserve: full span
+  nvme_pr_resv_report: full span
+  nvme_probe: BB68:I4 -> BB69:I2
+  nvme_query_zone_info: full span
+  nvme_report_zones: BB0:I2 -> BB0:I3
+  nvme_reset_work: BB10:I4 -> BB11:I2
+  nvme_resume: BB3:I0 -> BB3:I2
+  nvme_scan_ns: BB64:I0 -> BB143:I10
+  nvme_scan_ns_sequential: full span
+  nvme_scan_work: full span
+  nvme_set_features: full span
+  nvme_set_host_mem: full span
+  nvme_set_latency_tolerance: full span
+  nvme_set_queue_count: full span
+  nvme_setup_host_mem: full span
+  nvme_setup_io_queues: full span
+  nvme_start_ctrl: full span
+  nvme_submit_sync_cmd: full span
+  nvme_suspend: BB8:I0 -> BB8:I2
+  nvme_update_ns_info: full span
+  nvme_update_ns_info_block: BB13:I0 -> BB13:I2
+  virtblk_poll: BB2:I5 -> BB25:I0

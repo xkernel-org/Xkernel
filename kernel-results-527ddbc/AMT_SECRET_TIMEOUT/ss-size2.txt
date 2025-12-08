@@ -1,0 +1,4 @@
+amt_dev_open: BB5:I1 -> BB5:I4 => 4 instructions
+amt_secret_work: BB0:I6 -> BB0:I6 => 1 instructions
+
+Total: 5 instructions

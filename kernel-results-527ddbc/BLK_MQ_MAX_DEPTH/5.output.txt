@@ -1,0 +1,41 @@
+=== Taint Tracker Configuration ===
+Function: dm_mq_init_request_queue
+Opcode: call
+Constant: 2048
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant 2048)
+
+[SOURCE] Tainting:   %10 = tail call i32 @__dm_get_module_param(ptr noundef nonnull @dm_mq_queue_depth, i32 noundef 2048, i32 noundef 10240) #279, <drivers/md/dm-rq.c:55:9> FUNC=dm_mq_init_request_queue L=0
+[USE] Source instruction in data flow <drivers/md/dm-rq.c:55:9> FUNC=dm_mq_init_request_queue L=0
+[CHILD FUNCTION] Constant used in call to __dm_get_module_param at argument 1 <drivers/md/dm-rq.c:55:9> FUNC=dm_mq_init_request_queue L=0
+[USE] Processing uses of:   %10 = tail call i32 @__dm_get_module_param(ptr noundef nonnull @dm_mq_queue_depth, i32 noundef 2048, i32 noundef 10240) #279,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #0 (ptr %0) <drivers/md/dm-rq.c:548:27>
+[POINTER PARAMETER] Call to dm_mq_init_request_queue passes through pointer parameter 0 of dm_setup_md_queue <drivers/md/dm.c:2555:7> FUNC=dm_setup_md_queue L=1
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 1
+
+Earliest instruction with L=0:
+    %10 = tail call i32 @__dm_get_module_param(ptr noundef nonnull @dm_mq_queue_depth, i32 noundef 2048, i32 noundef 10240) #279, <drivers/md/dm-rq.c:55:9> FUNC=dm_mq_init_request_queue L=0
+
+(Earliest and latest are the same instruction)
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 1 instructions
+Other visited functions (total): 0 instructions
+Total: 1 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+dm_mq_init_request_queue, 1, 1, 1, 1
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/drivers/md/dm-rq.ll
+../linux-wllvm-defconfig/drivers/md/dm-rq.c

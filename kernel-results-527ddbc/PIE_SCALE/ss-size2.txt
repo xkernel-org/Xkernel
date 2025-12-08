@@ -1,0 +1,5 @@
+pie_calculate_probability: BB2:I0 -> BB18:I11 => 94 instructions
+pie_dump_stats: BB1:I4 -> BB1:I6 => 3 instructions
+pie_process_dequeue: BB10:I1 -> BB10:I10 => 10 instructions
+
+Total: 107 instructions

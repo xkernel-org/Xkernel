@@ -1,0 +1,45 @@
+=== Taint Tracker Configuration ===
+Function: xfs_trim_gather_extents
+Opcode: phi
+Constant: 100
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant 100)
+
+[SOURCE] Tainting:   %68 = phi i32 [ %73, %64 ], [ 100, %56 ] <fs/xfs/xfs_discard.c:241:7> (approx) FUNC=xfs_trim_gather_extents L=0
+[USE] Source instruction in data flow <fs/xfs/xfs_discard.c:241:7> (approx) FUNC=xfs_trim_gather_extents L=0
+[USE] Processing uses of:   %68 = phi i32 [ %73, %64 ], [ 100, %56 ]
+  [USE] Taint flows to:   %73 = add nsw i32 %68, -1, <fs/xfs/xfs_discard.c:247:7> FUNC=xfs_trim_gather_extents L=0
+[USE] Processing uses of:   %73 = add nsw i32 %68, -1,
+  [USE] Taint flows to:   %74 = icmp eq i32 %73, 0, <fs/xfs/xfs_discard.c:247:15> FUNC=xfs_trim_gather_extents L=0
+[USE] Processing uses of:   %74 = icmp eq i32 %73, 0,
+  [USE] Taint flows to:   br i1 %74, label %76, label %78, <fs/xfs/xfs_discard.c:247:15> FUNC=xfs_trim_gather_extents L=0
+[NO USE] No uses of:   br i1 %74, label %76, label %78,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 4
+
+Earliest instruction with L=0:
+    %68 = phi i32 [ %73, %64 ], [ 100, %56 ] <fs/xfs/xfs_discard.c:241:7> (approx) FUNC=xfs_trim_gather_extents L=0
+
+Latest instruction with L=0:
+    br i1 %74, label %76, label %78, <fs/xfs/xfs_discard.c:247:15> FUNC=xfs_trim_gather_extents L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 12 instructions
+Other visited functions (total): 0 instructions
+Total: 12 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+xfs_trim_gather_extents, 13, 0, 15, 3
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/xfs/xfs_discard.ll
+../linux-wllvm-defconfig/fs/xfs/xfs_discard.c

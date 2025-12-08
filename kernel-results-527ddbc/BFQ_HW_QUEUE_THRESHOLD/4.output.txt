@@ -1,0 +1,49 @@
+=== Taint Tracker Configuration ===
+Function: bfq_finish_requeue_request
+Opcode: icmp
+Constant: 3
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 3 (of constant 3)
+
+[SOURCE] Tainting:   %149 = icmp sgt i32 %115, 3, <block/bfq-iosched.c:6355:40> FUNC=bfq_finish_requeue_request L=0
+[USE] Source instruction in data flow <block/bfq-iosched.c:6355:40> FUNC=bfq_finish_requeue_request L=0
+[USE] Processing uses of:   %149 = icmp sgt i32 %115, 3,
+  [USE] Taint flows to:   %150 = zext i1 %149 to i32, <block/bfq-iosched.c:6355:40> FUNC=bfq_finish_requeue_request L=0
+  [USE] Taint flows to:   %156 = select i1 %155, i1 %149, i1 false, <block/bfq-iosched.c:6360:33> FUNC=bfq_finish_requeue_request L=0
+[USE] Processing uses of:   %156 = select i1 %155, i1 %149, i1 false,
+  [USE] Taint flows to:   %157 = zext i1 %156 to i8, <block/bfq-iosched.c:6360:33> FUNC=bfq_finish_requeue_request L=0
+[USE] Processing uses of:   %157 = zext i1 %156 to i8,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #0 (ptr %0) <block/bfq-iosched.c:6359:29>
+[USE] Processing uses of:   %150 = zext i1 %149 to i32,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #0 (ptr %0) <block/bfq-iosched.c:6355:15>
+[POINTER PARAMETER] Call to bfq_finish_requeue_request passes through pointer parameter 0 of bfq_finish_request <block/bfq-iosched.c:6719:2> FUNC=bfq_finish_request L=1
+[UPWARD-INTERPROC] No callers found for bfq_finish_request (function taints pointer parameter #0)
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 4
+
+Earliest instruction with L=0:
+    %149 = icmp sgt i32 %115, 3, <block/bfq-iosched.c:6355:40> FUNC=bfq_finish_requeue_request L=0
+
+Latest instruction with L=0:
+    %157 = zext i1 %156 to i8, <block/bfq-iosched.c:6360:33> FUNC=bfq_finish_requeue_request L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 12 instructions
+Other visited functions (total): 0 instructions
+Total: 12 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+bfq_finish_requeue_request, 30, 0, 30, 11
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/block/bfq-iosched.ll
+../linux-wllvm-defconfig/block/bfq-iosched.c

@@ -1,0 +1,49 @@
+=== Taint Tracker Configuration ===
+Function: schedule_delayed_monitor_work
+Opcode: select
+Constant: 1
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant 1)
+
+[SOURCE] Tainting:   %13 = select i1 %12, i64 1, i64 5000, <mm/slab_common.c:1633:10> FUNC=schedule_delayed_monitor_work L=0
+[USE] Source instruction in data flow <mm/slab_common.c:1633:10> FUNC=schedule_delayed_monitor_work L=0
+[USE] Processing uses of:   %13 = select i1 %12, i64 1, i64 5000,
+  [USE] Taint flows to:   %23 = icmp slt i64 %13, %22, <mm/slab_common.c:1636:13> FUNC=schedule_delayed_monitor_work L=0
+  [CHILD FUNCTION] Tainted value used in call to mod_delayed_work_on at argument 3:   %26 = tail call zeroext i1 @mod_delayed_work_on(i32 noundef 64, ptr noundef %25, ptr noundef nonnull %14, i64 noundef range(i64 1, 5001) %13) #278, <./include/linux/workqueue.h:692:9> FUNC=schedule_delayed_monitor_work L=0
+  [USE] Taint flows to:   %26 = tail call zeroext i1 @mod_delayed_work_on(i32 noundef 64, ptr noundef %25, ptr noundef nonnull %14, i64 noundef range(i64 1, 5001) %13) #278, <./include/linux/workqueue.h:692:9> FUNC=schedule_delayed_monitor_work L=0
+  [CHILD FUNCTION] Tainted value used in call to queue_delayed_work_on at argument 3:   %29 = tail call zeroext i1 @queue_delayed_work_on(i32 noundef 64, ptr noundef %28, ptr noundef nonnull %14, i64 noundef %13) #278, <./include/linux/workqueue.h:677:9> FUNC=schedule_delayed_monitor_work L=0
+  [USE] Taint flows to:   %29 = tail call zeroext i1 @queue_delayed_work_on(i32 noundef 64, ptr noundef %28, ptr noundef nonnull %14, i64 noundef %13) #278, <./include/linux/workqueue.h:677:9> FUNC=schedule_delayed_monitor_work L=0
+[NO USE] No uses of:   %29 = tail call zeroext i1 @queue_delayed_work_on(i32 noundef 64, ptr noundef %28, ptr noundef nonnull %14, i64 noundef %13) #278,
+[NO USE] No uses of:   %26 = tail call zeroext i1 @mod_delayed_work_on(i32 noundef 64, ptr noundef %25, ptr noundef nonnull %14, i64 noundef range(i64 1, 5001) %13) #278,
+[USE] Processing uses of:   %23 = icmp slt i64 %13, %22,
+  [USE] Taint flows to:   br i1 %23, label %24, label %30, <mm/slab_common.c:1636:13> FUNC=schedule_delayed_monitor_work L=0
+[NO USE] No uses of:   br i1 %23, label %24, label %30,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 5
+
+Earliest instruction with L=0:
+    %13 = select i1 %12, i64 1, i64 5000, <mm/slab_common.c:1633:10> FUNC=schedule_delayed_monitor_work L=0
+
+Latest instruction with L=0:
+    %29 = tail call zeroext i1 @queue_delayed_work_on(i32 noundef 64, ptr noundef %28, ptr noundef nonnull %14, i64 noundef %13) #278, <./include/linux/workqueue.h:677:9> FUNC=schedule_delayed_monitor_work L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 17 instructions
+Other visited functions (total): 0 instructions
+Total: 17 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+schedule_delayed_monitor_work, 0, 11, 3, 1
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/mm/slab_common.ll
+../linux-wllvm-defconfig/mm/slab_common.c

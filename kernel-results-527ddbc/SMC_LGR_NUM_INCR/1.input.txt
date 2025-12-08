@@ -1,0 +1,5 @@
+SOURCE_FILE=net/smc/smc_core.c
+FUNCTION_NAME=smc_conn_create
+SOURCE_OP=add
+CONSTANT_VALUE=256
+OCCURENCE=1
