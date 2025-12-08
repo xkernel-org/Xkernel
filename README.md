@@ -202,6 +202,18 @@ different order, difference like the below:
 < [LOAD] Tainted load from tracked pointer (struct field):   %732 = load i32, ptr %728, align 4, !dbg !17355667 (base:   %385 = getelementptr [2 x %struct.intel_cdclk_config], ptr %80, i64 0, i64 %105, !dbg !17355327)  <net/netfilter/nf_conntrack_proto_tcp.c:685:14> FUNC=nf_conntrack_tcp_packet L=1
 ```
 
+```shell
+# Save logs
+mv run-kernel-parallel.log kernel-results
+bash utils/mon.sh >> kernel-results/run-kernel-parallel.log
+bash utils/overhead.sh
+
+# Get SS sizes
+bash utils/union-ss-spans.sh
+bash vmlinux-func-bb-sizes.sh
+bash utils/character-ss-size-from-spans.sh
+```
+
 ## Development
 
 Steps of adding more kernel cases:
