@@ -64,7 +64,7 @@ params_line = {
 plt.rcParams.update(params_line)
 
 def save_fig(output_dir, fig_name, p=1):
-    plt.savefig(f"{output_dir}/{fig_name}.pdf")
+    plt.savefig(f"{output_dir}/{fig_name}.pdf", metadata={'CreationDate': None})
     PYTHON_INTERPRETER = sys.executable
     python_interpreter = os.path.expanduser(PYTHON_INTERPRETER)
     python_interpreter_bin = os.path.dirname(python_interpreter)
