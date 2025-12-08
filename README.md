@@ -214,6 +214,16 @@ bash vmlinux-func-bb-sizes.sh
 bash utils/character-ss-size-from-spans.sh
 ```
 
+Obtain Xkernel-compatible binary offsets
+
+```shell
+# c6420: 41min 29s
+/usr/bin/time -v python extract_assembly_ranges.py \
+    --batch kernel-results \
+    --workers 24 |& tee find-binary-addresses/addr.all.log
+bash utils/process-addr.sh
+```
+
 ## Development
 
 Steps of adding more kernel cases:
