@@ -1,0 +1,42 @@
+=== Taint Tracker Configuration ===
+Function: blk_mq_dispatch_rq_list
+Opcode: phi
+Constant: 3
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant 3)
+
+[SOURCE] Tainting:   %326 = phi i64 [ 0, %316 ], [ 0, %314 ], [ 3, %323 ] <block/blk-mq.c:1983:15> (approx) FUNC=blk_mq_dispatch_rq_list L=0
+[USE] Source instruction in data flow <block/blk-mq.c:1983:15> (approx) FUNC=blk_mq_dispatch_rq_list L=0
+[USE] Processing uses of:   %326 = phi i64 [ 0, %316 ], [ 0, %314 ], [ 3, %323 ]
+  [CHILD FUNCTION] Tainted value used in call to blk_mq_delay_run_hw_queue at argument 1:   call void @blk_mq_delay_run_hw_queue(ptr noundef %0, i64 noundef %326) #280, <block/blk-mq.c:1983:15> (approx) FUNC=blk_mq_dispatch_rq_list L=0
+  [USE] Taint flows to:   call void @blk_mq_delay_run_hw_queue(ptr noundef %0, i64 noundef %326) #280, <block/blk-mq.c:1983:15> (approx) FUNC=blk_mq_dispatch_rq_list L=0
+[NO USE] No uses of:   call void @blk_mq_delay_run_hw_queue(ptr noundef %0, i64 noundef %326) #280,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 2
+
+Earliest instruction with L=0:
+    %326 = phi i64 [ 0, %316 ], [ 0, %314 ], [ 3, %323 ] <block/blk-mq.c:1983:15> (approx) FUNC=blk_mq_dispatch_rq_list L=0
+
+Latest instruction with L=0:
+    call void @blk_mq_delay_run_hw_queue(ptr noundef %0, i64 noundef %326) #280, <block/blk-mq.c:1983:15> (approx) FUNC=blk_mq_dispatch_rq_list L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 2 instructions
+Other visited functions (total): 0 instructions
+Total: 2 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+blk_mq_dispatch_rq_list, 76, 0, 76, 1
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/block/blk-mq.ll
+../linux-wllvm-defconfig/block/blk-mq.c

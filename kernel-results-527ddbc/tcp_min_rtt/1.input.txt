@@ -1,0 +1,5 @@
+SOURCE_FILE=net/ipv4/tcp_recovery.c
+FUNCTION_NAME=tcp_rack_detect_loss
+SOURCE_OP="lshr"
+CONSTANT_VALUE=2
+OCCURENCE=1

@@ -1,0 +1,4 @@
+kvfree_call_rcu: BB20:I9 -> BB23:I1 => 17 instructions
+schedule_delayed_monitor_work: BB0:I11 -> BB3:I1 => 17 instructions
+
+Total: 34 instructions

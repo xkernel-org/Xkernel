@@ -1,0 +1,5 @@
+SOURCE_FILE=io_uring/napi.c
+FUNCTION_NAME=__io_napi_busy_loop
+SOURCE_OP="call"
+CONSTANT_VALUE=8
+OCCURENCE=2

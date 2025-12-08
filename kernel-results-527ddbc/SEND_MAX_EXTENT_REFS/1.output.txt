@@ -1,0 +1,45 @@
+=== Taint Tracker Configuration ===
+Function: check_extent_item
+Opcode: icmp
+Constant: 1024
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant 1024)
+
+[SOURCE] Tainting:   %22 = icmp ugt i64 %5, 1024, <fs/btrfs/send.c:1547:11> FUNC=check_extent_item L=0
+[USE] Source instruction in data flow <fs/btrfs/send.c:1547:11> FUNC=check_extent_item L=0
+[USE] Processing uses of:   %22 = icmp ugt i64 %5, 1024,
+  [USE] Taint flows to:   %23 = select i1 %22, i32 -2, i32 0, <UNKNOWN> FUNC=check_extent_item L=0
+[USE] Processing uses of:   %23 = select i1 %22, i32 -2, i32 0,
+  [USE] Taint flows to:   %25 = phi i32 [ %23, %21 ], [ -2, %17 ], [ -117, %14 ], <fs/btrfs/send.c:1551:1> (approx) FUNC=check_extent_item L=0
+[USE] Processing uses of:   %25 = phi i32 [ %23, %21 ], [ -2, %17 ], [ -117, %14 ],
+  [RETURN] Stop: Tainted value is returned:   ret i32 %25, <fs/btrfs/send.c:1551:1>
+[UPWARD-INTERPROC] No callers found for check_extent_item (function returns tainted value)
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 3
+
+Earliest instruction with L=0:
+    %22 = icmp ugt i64 %5, 1024, <fs/btrfs/send.c:1547:11> FUNC=check_extent_item L=0
+
+Latest instruction with L=0:
+    %25 = phi i32 [ %23, %21 ], [ -2, %17 ], [ -117, %14 ], <fs/btrfs/send.c:1551:1> (approx) FUNC=check_extent_item L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 4 instructions
+Other visited functions (total): 0 instructions
+Total: 4 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+check_extent_item, 5, 0, 6, 0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/btrfs/send.ll
+../linux-wllvm-defconfig/fs/btrfs/send.c

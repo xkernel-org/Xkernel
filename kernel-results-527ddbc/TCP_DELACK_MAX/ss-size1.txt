@@ -1,0 +1,5 @@
+  bpf_sol_tcp_setsockopt: BB7:I1 -> BB7:I3
+  dccp_send_ack: BB2:I14 -> BB2:I18
+  tcp_disconnect: BB29:I44 -> BB29:I44
+  tcp_init_sock: BB0:I24 -> BB0:I24
+  tcp_rcv_state_process: BB45:I12 -> BB45:I16

@@ -1,0 +1,80 @@
+=== Taint Tracker Configuration ===
+Function: bbr_main
+Opcode: phi
+Constant: 11
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 5 (of constant 11)
+
+[SOURCE] Tainting:   %753 = phi i32 [ %751, %742 ], [ 11, %739 ], <net/ipv4/tcp_bbr.c:461:27> (approx) FUNC=bbr_main L=0
+[USE] Source instruction in data flow <net/ipv4/tcp_bbr.c:461:27> (approx) FUNC=bbr_main L=0
+[USE] Processing uses of:   %753 = phi i32 [ %751, %742 ], [ 11, %739 ],
+  [USE] Taint flows to:   %786 = add i32 %771, %753, <net/ipv4/tcp_bbr.c:400:7> FUNC=bbr_main L=0
+[USE] Processing uses of:   %786 = add i32 %771, %753,
+  [USE] Taint flows to:   %787 = add i32 %786, %785, <net/ipv4/tcp_bbr.c:403:15> FUNC=bbr_main L=0
+[USE] Processing uses of:   %787 = add i32 %786, %785,
+  [USE] Taint flows to:   %788 = and i32 %787, -2, <net/ipv4/tcp_bbr.c:403:20> FUNC=bbr_main L=0
+[USE] Processing uses of:   %788 = and i32 %787, -2,
+  [USE] Taint flows to:   %795 = add i32 %788, 2, <net/ipv4/tcp_bbr.c:406:32> FUNC=bbr_main L=0
+  [USE] Taint flows to:   %797 = select i1 %796, i32 %795, i32 %788, <net/ipv4/tcp_bbr.c:406:32> FUNC=bbr_main L=0
+[USE] Processing uses of:   %797 = select i1 %796, i32 %795, i32 %788,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %802 = tail call i32 @llvm.umin.i32(i32 %801, i32 %797), !dbg !18659186 <net/ipv4/tcp_bbr.c:542:10>
+  [USE] Taint flows to:   %802 = tail call i32 @llvm.umin.i32(i32 %801, i32 %797), <net/ipv4/tcp_bbr.c:542:10> FUNC=bbr_main L=0
+  [USE] Taint flows to:   %804 = icmp ult i32 %717, %797, <net/ipv4/tcp_bbr.c:543:16> FUNC=bbr_main L=0
+[USE] Processing uses of:   %804 = icmp ult i32 %717, %797,
+  [USE] Taint flows to:   br i1 %804, label %809, label %805, <net/ipv4/tcp_bbr.c:543:30> FUNC=bbr_main L=0
+[NO USE] No uses of:   br i1 %804, label %809, label %805,
+[USE] Processing uses of:   %802 = tail call i32 @llvm.umin.i32(i32 %801, i32 %797),
+  [USE] Taint flows to:   %812 = phi i32 [ %802, %800 ], [ %810, %809 ], [ %717, %805 ], <net/ipv4/tcp_bbr.c:545:9> (approx) FUNC=bbr_main L=0
+[USE] Processing uses of:   %812 = phi i32 [ %802, %800 ], [ %810, %809 ], [ %717, %805 ],
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %813 = tail call i32 @llvm.umax.i32(i32 %812, i32 4), !dbg !18659197 <net/ipv4/tcp_bbr.c:545:9>
+  [USE] Taint flows to:   %813 = tail call i32 @llvm.umax.i32(i32 %812, i32 4), <net/ipv4/tcp_bbr.c:545:9> FUNC=bbr_main L=0
+[USE] Processing uses of:   %813 = tail call i32 @llvm.umax.i32(i32 %812, i32 4),
+  [USE] Taint flows to:   %815 = phi i32 [ %671, %666 ], [ %813, %811 ], [ %738, %725 ], <net/ipv4/tcp_bbr.c:548:23> (approx) FUNC=bbr_main L=0
+[USE] Processing uses of:   %815 = phi i32 [ %671, %666 ], [ %813, %811 ], [ %738, %725 ],
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %818 = tail call i32 @llvm.umin.i32(i32 %815, i32 %817), !dbg !18659201 <net/ipv4/tcp_bbr.c:548:23>
+  [USE] Taint flows to:   %818 = tail call i32 @llvm.umin.i32(i32 %815, i32 %817), <net/ipv4/tcp_bbr.c:548:23> FUNC=bbr_main L=0
+[USE] Processing uses of:   %818 = tail call i32 @llvm.umin.i32(i32 %815, i32 %817),
+  [USE] Taint flows to:   %819 = icmp slt i32 %818, 1, <./include/net/tcp.h:1336:2> FUNC=bbr_main L=0
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #0 (ptr %0) <./include/net/tcp.h:1337:15>
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %826 = tail call i32 @llvm.umin.i32(i32 %818, i32 4), !dbg !18659235 <net/ipv4/tcp_bbr.c:550:24>
+  [USE] Taint flows to:   %826 = tail call i32 @llvm.umin.i32(i32 %818, i32 4), <net/ipv4/tcp_bbr.c:550:24> FUNC=bbr_main L=0
+  [USE] Taint flows to:   %827 = icmp eq i32 %818, 0, <./include/net/tcp.h:1336:2> FUNC=bbr_main L=0
+[USE] Processing uses of:   %827 = icmp eq i32 %818, 0,
+  [USE] Taint flows to:   br i1 %827, label %828, label %829, <./include/net/tcp.h:1336:2> FUNC=bbr_main L=0
+[NO USE] No uses of:   br i1 %827, label %828, label %829,
+[USE] Processing uses of:   %826 = tail call i32 @llvm.umin.i32(i32 %818, i32 4),
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #0 (ptr %0) <./include/net/tcp.h:1337:15>
+[USE] Processing uses of:   %819 = icmp slt i32 %818, 1,
+  [USE] Taint flows to:   br i1 %819, label %820, label %821, <./include/net/tcp.h:1336:2> FUNC=bbr_main L=0
+[NO USE] No uses of:   br i1 %819, label %820, label %821,
+[USE] Processing uses of:   %795 = add i32 %788, 2,
+[UPWARD-INTERPROC] No callers found for bbr_main (function taints pointer parameter #0)
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 18
+
+Earliest instruction with L=0:
+    %753 = phi i32 [ %751, %742 ], [ 11, %739 ], <net/ipv4/tcp_bbr.c:461:27> (approx) FUNC=bbr_main L=0
+
+Latest instruction with L=0:
+    br i1 %827, label %828, label %829, <./include/net/tcp.h:1336:2> FUNC=bbr_main L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 80 instructions
+Other visited functions (total): 0 instructions
+Total: 80 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+bbr_main, 103, 0, 114, 2
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/ipv4/tcp_bbr.ll
+../linux-wllvm-defconfig/net/ipv4/tcp_bbr.c

@@ -1,0 +1,3 @@
+btrfs_run_defrag_inodes: BB30:I1 -> BB35:I2 => 32 instructions
+
+Total: 32 instructions

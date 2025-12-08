@@ -1,0 +1,5 @@
+SOURCE_FILE=lib/sbitmap.c
+FUNCTION_NAME=sbitmap_queue_resize
+SOURCE_OP="select"
+CONSTANT_VALUE=8
+OCCURENCE=1

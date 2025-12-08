@@ -1,0 +1,39 @@
+=== Taint Tracker Configuration ===
+Function: nfs3_proc_rmdir
+Opcode: call
+Constant: 5000
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant 5000)
+
+[SOURCE] Tainting:   %33 = call i64 @schedule_timeout(i64 noundef 5000) #279, <fs/nfs/nfs3proc.c:40:3> FUNC=nfs3_proc_rmdir L=0
+[USE] Source instruction in data flow <fs/nfs/nfs3proc.c:40:3> FUNC=nfs3_proc_rmdir L=0
+[CHILD FUNCTION] Constant used in call to schedule_timeout at argument 0 <fs/nfs/nfs3proc.c:40:3> FUNC=nfs3_proc_rmdir L=0
+[NO USE] No uses of:   %33 = call i64 @schedule_timeout(i64 noundef 5000) #279,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 1
+
+Earliest instruction with L=0:
+    %33 = call i64 @schedule_timeout(i64 noundef 5000) #279, <fs/nfs/nfs3proc.c:40:3> FUNC=nfs3_proc_rmdir L=0
+
+(Earliest and latest are the same instruction)
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 1 instructions
+Other visited functions (total): 0 instructions
+Total: 1 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+nfs3_proc_rmdir, 3, 1, 3, 1
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/nfs/nfs3proc.ll
+../linux-wllvm-defconfig/fs/nfs/nfs3proc.c

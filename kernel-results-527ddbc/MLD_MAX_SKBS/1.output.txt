@@ -1,0 +1,41 @@
+=== Taint Tracker Configuration ===
+Function: igmp6_event_query
+Opcode: icmp
+Constant: 32
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant 32)
+
+[SOURCE] Tainting:   %15 = icmp ult i32 %14, 32, <net/ipv6/mcast.c:1426:43> FUNC=igmp6_event_query L=0
+[USE] Source instruction in data flow <net/ipv6/mcast.c:1426:43> FUNC=igmp6_event_query L=0
+[USE] Processing uses of:   %15 = icmp ult i32 %14, 32,
+  [USE] Taint flows to:   br i1 %15, label %16, label %36, <net/ipv6/mcast.c:1426:43> FUNC=igmp6_event_query L=0
+[NO USE] No uses of:   br i1 %15, label %16, label %36,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 2
+
+Earliest instruction with L=0:
+    %15 = icmp ult i32 %14, 32, <net/ipv6/mcast.c:1426:43> FUNC=igmp6_event_query L=0
+
+Latest instruction with L=0:
+    br i1 %15, label %16, label %36, <net/ipv6/mcast.c:1426:43> FUNC=igmp6_event_query L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 2 instructions
+Other visited functions (total): 0 instructions
+Total: 2 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+igmp6_event_query, 2, 4, 2, 5
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/ipv6/mcast.ll
+../linux-wllvm-defconfig/net/ipv6/mcast.c

@@ -1,0 +1,5 @@
+SOURCE_FILE=net/ipv4/tcp_output.c
+FUNCTION_NAME=__tcp_transmit_skb
+SOURCE_OP="or"
+CONSTANT_VALUE=40
+OCCURENCE=1

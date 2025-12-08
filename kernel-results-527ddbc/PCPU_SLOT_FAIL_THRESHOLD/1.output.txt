@@ -1,0 +1,43 @@
+=== Taint Tracker Configuration ===
+Function: pcpu_alloc_noprof
+Opcode: icmp
+Constant: 2
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant 2)
+
+[SOURCE] Tainting:   %101 = icmp sgt i32 %95, 2 <mm/percpu.c:1811:3> (approx) FUNC=pcpu_alloc_noprof L=0
+[USE] Source instruction in data flow <mm/percpu.c:1811:3> (approx) FUNC=pcpu_alloc_noprof L=0
+[USE] Processing uses of:   %101 = icmp sgt i32 %95, 2
+  [USE] Taint flows to:   %110 = select i1 %101, i1 true, i1 %109, <mm/percpu.c:1816:14> FUNC=pcpu_alloc_noprof L=0
+[USE] Processing uses of:   %110 = select i1 %101, i1 true, i1 %109,
+  [USE] Taint flows to:   br i1 %110, label %169, label %111, <mm/percpu.c:1816:14> FUNC=pcpu_alloc_noprof L=0
+[NO USE] No uses of:   br i1 %110, label %169, label %111,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 3
+
+Earliest instruction with L=0:
+    %101 = icmp sgt i32 %95, 2 <mm/percpu.c:1811:3> (approx) FUNC=pcpu_alloc_noprof L=0
+
+Latest instruction with L=0:
+    br i1 %110, label %169, label %111, <mm/percpu.c:1816:14> FUNC=pcpu_alloc_noprof L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 11 instructions
+Other visited functions (total): 0 instructions
+Total: 11 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+pcpu_alloc_noprof, 24, 0, 26, 3
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/mm/percpu.ll
+../linux-wllvm-defconfig/mm/percpu.c

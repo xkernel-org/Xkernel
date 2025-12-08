@@ -1,0 +1,55 @@
+  nfs41_find_root_sec: full span
+  nfs41_free_stateid_done: BB4:I6 -> BB4:I10
+  nfs41_test_and_free_expired_stateid: full span
+  nfs4_async_handle_error: BB2:I0 -> BB6:I2
+  nfs4_async_handle_exception: full span
+  nfs4_close_done: BB19:I3 -> BB19:I6
+  nfs4_commit_done_cb: BB7:I3 -> BB7:I6
+  nfs4_delegreturn_done: BB28:I4 -> BB28:I7
+  nfs4_discover_trunking: full span
+  nfs4_do_fsinfo: full span
+  nfs4_do_open: full span
+  nfs4_do_setattr: full span
+  nfs4_get_lease_time_done: BB2:I0 -> BB2:I0
+  nfs4_handle_exception: full span
+  nfs4_layoutcommit_done: BB6:I3 -> BB6:I6
+  nfs4_layoutreturn_done: BB9:I5 -> BB9:I9
+  nfs4_lock_expired: full span
+  nfs4_lock_reclaim: full span
+  nfs4_locku_done: BB18:I4 -> BB18:I7
+  nfs4_lookup_root: full span
+  nfs4_open_expired: full span
+  nfs4_open_reclaim: full span
+  nfs4_proc_access: full span
+  nfs4_proc_commit: full span
+  nfs4_proc_delegreturn: full span
+  nfs4_proc_fs_locations: full span
+  nfs4_proc_fsid_present: full span
+  nfs4_proc_get_acl: full span
+  nfs4_proc_get_locations: full span
+  nfs4_proc_getattr: full span
+  nfs4_proc_getdeviceinfo: full span
+  nfs4_proc_layoutget: full span
+  nfs4_proc_link: full span
+  nfs4_proc_lock: full span
+  nfs4_proc_lookup_common: full span
+  nfs4_proc_lookupp: full span
+  nfs4_proc_mkdir: full span
+  nfs4_proc_mknod: full span
+  nfs4_proc_pathconf: full span
+  nfs4_proc_readdir: full span
+  nfs4_proc_readlink: full span
+  nfs4_proc_remove: full span
+  nfs4_proc_rename_done: BB2:I0 -> BB4:I2
+  nfs4_proc_rmdir: full span
+  nfs4_proc_secinfo: full span
+  nfs4_proc_set_acl: full span
+  nfs4_proc_setlk: full span
+  nfs4_proc_statfs: full span
+  nfs4_proc_symlink: full span
+  nfs4_proc_unlink_done: BB2:I0 -> BB4:I2
+  nfs4_read_done_cb: BB7:I17 -> BB7:I20
+  nfs4_release_lockowner_done: BB10:I5 -> BB10:I9
+  nfs4_server_capabilities: full span
+  nfs4_write_done_cb: BB7:I21 -> BB7:I24
+  pnfs_update_layout: BB131:I0 -> BB131:I3

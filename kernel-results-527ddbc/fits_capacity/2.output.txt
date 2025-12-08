@@ -1,0 +1,43 @@
+=== Taint Tracker Configuration ===
+Function: select_task_rq_fair
+Opcode: shl
+Constant: 10
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 2 (of constant 10)
+
+[SOURCE] Tainting:   %431 = shl i64 %430, 10, <kernel/sched/fair.c:4983:9> FUNC=select_task_rq_fair L=0
+[USE] Source instruction in data flow <kernel/sched/fair.c:4983:9> FUNC=select_task_rq_fair L=0
+[USE] Processing uses of:   %431 = shl i64 %430, 10,
+  [USE] Taint flows to:   %432 = icmp ult i64 %375, %431, <kernel/sched/fair.c:4983:9> FUNC=select_task_rq_fair L=0
+[USE] Processing uses of:   %432 = icmp ult i64 %375, %431,
+  [USE] Taint flows to:   br i1 %432, label %433, label %436, <kernel/sched/fair.c:7847:57> FUNC=select_task_rq_fair L=0
+[NO USE] No uses of:   br i1 %432, label %433, label %436,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 3
+
+Earliest instruction with L=0:
+    %431 = shl i64 %430, 10, <kernel/sched/fair.c:4983:9> FUNC=select_task_rq_fair L=0
+
+Latest instruction with L=0:
+    br i1 %432, label %433, label %436, <kernel/sched/fair.c:7847:57> FUNC=select_task_rq_fair L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 3 instructions
+Other visited functions (total): 0 instructions
+Total: 3 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+select_task_rq_fair, 67, 7, 67, 9
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/kernel/sched/fair.ll
+../linux-wllvm-defconfig/kernel/sched/fair.c

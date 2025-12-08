@@ -1,0 +1,9 @@
+init_numa_balancing: BB8:I2 -> BB8:I9 => 8 instructions
+migrate_task_rq_fair: BB15:I0 -> BB15:I2 => 3 instructions
+task_numa_fault: BB42:I1 -> BB116:I32 => 547 instructions
+task_numa_work: BB4:I1 -> BB6:I8 => 18 instructions
+task_scan_max: full span => 128 instructions
+task_scan_start: full span => 111 instructions
+task_tick_fair: BB14:I3 -> BB17:I2 => 19 instructions
+
+Total: 834 instructions

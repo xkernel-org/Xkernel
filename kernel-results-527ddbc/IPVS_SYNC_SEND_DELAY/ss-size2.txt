@@ -1,0 +1,3 @@
+sb_queue_tail: BB3:I2 -> BB3:I2 => 1 instructions
+
+Total: 1 instructions

@@ -1,0 +1,5 @@
+SOURCE_FILE=mm/slab_common.c
+FUNCTION_NAME=kvfree_call_rcu
+SOURCE_OP="select"
+CONSTANT_VALUE=1
+OCCURENCE=1

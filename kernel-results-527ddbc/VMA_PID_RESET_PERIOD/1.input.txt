@@ -1,0 +1,5 @@
+SOURCE_FILE=kernel/sched/fair.c
+FUNCTION_NAME=task_numa_work
+SOURCE_OP="shl"
+CONSTANT_VALUE=2
+OCCURENCE=1

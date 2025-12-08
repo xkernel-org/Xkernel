@@ -1,0 +1,41 @@
+=== Taint Tracker Configuration ===
+Function: bpf_sol_tcp_setsockopt
+Opcode: icmp
+Constant: -199
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant -199)
+
+[SOURCE] Tainting:   %29 = icmp ult i64 %28, -199, <net/core/filter.c:5289:32> FUNC=bpf_sol_tcp_setsockopt L=0
+[USE] Source instruction in data flow <net/core/filter.c:5289:32> FUNC=bpf_sol_tcp_setsockopt L=0
+[USE] Processing uses of:   %29 = icmp ult i64 %28, -199,
+  [USE] Taint flows to:   br i1 %29, label %45, label %30, <net/core/filter.c:5289:32> FUNC=bpf_sol_tcp_setsockopt L=0
+[NO USE] No uses of:   br i1 %29, label %45, label %30,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 2
+
+Earliest instruction with L=0:
+    %29 = icmp ult i64 %28, -199, <net/core/filter.c:5289:32> FUNC=bpf_sol_tcp_setsockopt L=0
+
+Latest instruction with L=0:
+    br i1 %29, label %45, label %30, <net/core/filter.c:5289:32> FUNC=bpf_sol_tcp_setsockopt L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 2 instructions
+Other visited functions (total): 0 instructions
+Total: 2 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+bpf_sol_tcp_setsockopt, 7, 2, 7, 3
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/core/filter.ll
+../linux-wllvm-defconfig/net/core/filter.c

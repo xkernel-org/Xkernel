@@ -1,0 +1,5 @@
+SOURCE_FILE=net/ipv4/tcp_ipv4.c
+FUNCTION_NAME=tcp_sk_init
+SOURCE_OP="store"
+CONSTANT_VALUE=128
+OCCURENCE=1

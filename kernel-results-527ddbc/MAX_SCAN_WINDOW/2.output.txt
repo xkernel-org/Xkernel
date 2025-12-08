@@ -1,0 +1,118 @@
+=== Taint Tracker Configuration ===
+Function: task_scan_start
+Opcode: udiv
+Constant: 2560
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant 2560)
+
+[SOURCE] Tainting:   %6 = udiv i16 2560, %5, <kernel/sched/fair.c:1520:29> FUNC=task_scan_start L=0
+[USE] Source instruction in data flow <kernel/sched/fair.c:1520:29> FUNC=task_scan_start L=0
+[USE] Processing uses of:   %6 = udiv i16 2560, %5,
+  [USE] Taint flows to:   %8 = phi i16 [ %6, %4 ], [ 1, %1 ], <kernel/sched/fair.c:1521:15> (approx) FUNC=task_scan_start L=0
+[USE] Processing uses of:   %8 = phi i16 [ %6, %4 ], [ 1, %1 ],
+  [USE] Taint flows to:   %9 = udiv i16 1000, %8, <kernel/sched/fair.c:1521:15> FUNC=task_scan_start L=0
+[USE] Processing uses of:   %9 = udiv i16 1000, %8,
+  [USE] Taint flows to:   %10 = zext nneg i16 %9 to i32, <kernel/sched/fair.c:1521:15> FUNC=task_scan_start L=0
+[USE] Processing uses of:   %10 = zext nneg i16 %9 to i32,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %36 = tail call i32 @llvm.umax.i32(i32 %10, i32 %35), !dbg !18658116 <kernel/sched/fair.c:1524:9>
+  [USE] Taint flows to:   %36 = tail call i32 @llvm.umax.i32(i32 %10, i32 %35), <kernel/sched/fair.c:1524:9> FUNC=task_scan_start L=0
+[USE] Processing uses of:   %36 = tail call i32 @llvm.umax.i32(i32 %10, i32 %35),
+  [USE] Taint flows to:   %37 = zext i32 %36 to i64, <kernel/sched/fair.c:1529:23> FUNC=task_scan_start L=0
+[USE] Processing uses of:   %37 = zext i32 %36 to i64,
+  [USE] Taint flows to:   %102 = mul i64 %101, %37, <kernel/sched/fair.c:1540:10> FUNC=task_scan_start L=0
+  [USE] Taint flows to:   %107 = phi i64 [ %105, %96 ], [ %37, %7 ], <./include/linux/rcupdate.h:882:2> (approx) FUNC=task_scan_start L=0
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %108 = tail call i64 @llvm.umax.i64(i64 %107, i64 %37), !dbg !18658311 <kernel/sched/fair.c:1546:9>
+  [USE] Taint flows to:   %108 = tail call i64 @llvm.umax.i64(i64 %107, i64 %37), <kernel/sched/fair.c:1546:9> FUNC=task_scan_start L=0
+[USE] Processing uses of:   %108 = tail call i64 @llvm.umax.i64(i64 %107, i64 %37),
+  [USE] Taint flows to:   %109 = trunc i64 %108 to i32, <kernel/sched/fair.c:1546:9> FUNC=task_scan_start L=0
+[USE] Processing uses of:   %109 = trunc i64 %108 to i32,
+  [RETURN] Stop: Tainted value is returned:   ret i32 %109, <kernel/sched/fair.c:1546:2>
+[USE] Processing uses of:   %107 = phi i64 [ %105, %96 ], [ %37, %7 ],
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %108 = tail call i64 @llvm.umax.i64(i64 %107, i64 %37), !dbg !18658311 <kernel/sched/fair.c:1546:9>
+[USE] Processing uses of:   %102 = mul i64 %101, %37,
+  [USE] Taint flows to:   %103 = mul i64 %102, %100, <kernel/sched/fair.c:1541:10> FUNC=task_scan_start L=0
+[USE] Processing uses of:   %103 = mul i64 %102, %100,
+  [USE] Taint flows to:   %105 = udiv i64 %103, %104, <kernel/sched/fair.c:1542:10> FUNC=task_scan_start L=0
+[USE] Processing uses of:   %105 = udiv i64 %103, %104,
+[UPWARD-INTERPROC] Call to task_scan_start returns tainted value <kernel/sched/fair.c:3649:24> FUNC=migrate_task_rq_fair L=1
+[UPWARD-INTERPROC] Call to task_scan_start returns tainted value <kernel/sched/fair.c:3610:29> FUNC=task_tick_fair L=1
+[UPWARD-INTERPROC] Call to task_scan_start returns tainted value <kernel/sched/fair.c:3332:25> FUNC=task_numa_work L=1
+  [USE] Taint flows to:   store i32 %34, ptr %28, align 4, <kernel/sched/fair.c:3332:23> FUNC=task_numa_work L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %28 = getelementptr inbounds nuw i8, ptr %6, i64 2556, <kernel/sched/fair.c:3332:23> FUNC=task_numa_work L=1
+  %28 = getelementptr inbounds nuw i8, ptr %6, i64 2556,
+  → base pointer:
+          %6 = inttoptr i64 %5 to ptr,
+      → no parameter connection
+  → Result: No parameter connection found
+  [USE] Taint flows to:   %36 = phi i32 [ %34, %31 ], [ %29, %27 ], <kernel/sched/fair.c:3335:40> FUNC=task_numa_work L=1
+  [USE] Taint flows to:   %37 = tail call i64 @__msecs_to_jiffies(i32 noundef %36) #280, <./include/linux/jiffies.h:525:10> FUNC=task_numa_work L=1
+  [USE] Taint flows to:   %38 = add i64 %37, %4, <kernel/sched/fair.c:3335:18> FUNC=task_numa_work L=1
+  [USE] Taint flows to:   %39 = tail call { i8, i64 } asm sideeffect ".pushsection .smp_locks,\22a\22\0A.balign 4\0A.long 671f - .\0A.popsection\0A671:\0A\09lock; cmpxchgq $3, $1\0A\09/* output condition code z*/\0A", "={@ccz},=*m,={ax},r,*m,2,~{memory},~{dirflag},~{fpsr},~{flags}"(ptr nonnull elementtype(i64) %16, i64 %38, ptr nonnull elementtype(i64) %16, i64 %24) #279, <kernel/sched/fair.c:3336:7> FUNC=task_numa_work L=1
+  [USE] Taint flows to:   %40 = extractvalue { i8, i64 } %39, 0, <kernel/sched/fair.c:3336:7> FUNC=task_numa_work L=1
+  [USE] Taint flows to:   %41 = icmp ult i8 %40, 2, <kernel/sched/fair.c:3336:7> FUNC=task_numa_work L=1
+  [USE] Taint flows to:   %42 = trunc nuw i8 %40 to i1, <kernel/sched/fair.c:3336:7> FUNC=task_numa_work L=1
+  [USE] Taint flows to:   br i1 %42, label %43, label %438, <kernel/sched/fair.c:3336:7> FUNC=task_numa_work L=1
+  [USE] Taint flows to:   tail call void @llvm.assume(i1 %41), <kernel/sched/fair.c:3336:7> FUNC=task_numa_work L=1
+  [USE] Taint flows to:   store i32 %81, ptr %70, align 4, <kernel/sched/fair.c:3610:27> FUNC=task_tick_fair L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %70 = getelementptr inbounds nuw i8, ptr %1, i64 2556, <kernel/sched/fair.c:3610:27> FUNC=task_tick_fair L=1
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #1 (ptr %1) <kernel/sched/fair.c:3610:27> FUNC=task_tick_fair L=1
+  [USE] Taint flows to:   store i32 %115, ptr %116, align 4, <kernel/sched/fair.c:3649:22> FUNC=migrate_task_rq_fair L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %116 = getelementptr inbounds nuw i8, ptr %0, i64 2556, <kernel/sched/fair.c:3649:22> FUNC=migrate_task_rq_fair L=1
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #0 (ptr %0) <kernel/sched/fair.c:3649:22> FUNC=migrate_task_rq_fair L=1
+[LOAD] Tainted load from tracked pointer:   %71 = load i32, ptr %70, align 4, (  %70 = getelementptr inbounds nuw i8, ptr %1, i64 2556, !dbg !18658221)  <kernel/sched/fair.c:3606:22> FUNC=task_tick_fair L=1
+[LOAD] Tainted load from tracked pointer:   %29 = load i32, ptr %28, align 4, (  %28 = getelementptr inbounds nuw i8, ptr %6, i64 2556, !dbg !18658182)  <kernel/sched/fair.c:3330:9> FUNC=task_numa_work L=1
+  [USE] Taint flows to:   %30 = icmp eq i32 %29, 0, <kernel/sched/fair.c:3330:26> FUNC=task_numa_work L=1
+  [USE] Taint flows to:   br i1 %30, label %31, label %35, <kernel/sched/fair.c:3330:26> FUNC=task_numa_work L=1
+  [USE] Taint flows to:   %72 = zext i32 %71 to i64, <kernel/sched/fair.c:3606:11> FUNC=task_tick_fair L=1
+  [USE] Taint flows to:   %73 = mul nuw nsw i64 %72, 1000000, <kernel/sched/fair.c:3606:39> FUNC=task_tick_fair L=1
+  [USE] Taint flows to:   %76 = add i64 %73, %75, <kernel/sched/fair.c:3608:29> FUNC=task_tick_fair L=1
+  [USE] Taint flows to:   %84 = add i64 %82, %73, <kernel/sched/fair.c:3611:20> FUNC=task_tick_fair L=1
+  [USE] Taint flows to:   %86 = phi i64 [ %84, %80 ], [ %76, %78 ], <kernel/sched/fair.c:3611:20> FUNC=task_tick_fair L=1
+  [USE] Taint flows to:   store i64 %86, ptr %74, align 16, <kernel/sched/fair.c:3611:20> FUNC=task_tick_fair L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %74 = getelementptr inbounds nuw i8, ptr %1, i64 2576, <kernel/sched/fair.c:3611:20> FUNC=task_tick_fair L=1
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #1 (ptr %1) <kernel/sched/fair.c:3611:20> FUNC=task_tick_fair L=1
+  [USE] Taint flows to:   %77 = icmp ugt i64 %69, %76, <kernel/sched/fair.c:3608:10> FUNC=task_tick_fair L=1
+  [USE] Taint flows to:   br i1 %77, label %78, label %95, <kernel/sched/fair.c:3608:10> FUNC=task_tick_fair L=1
+[LOAD] Tainted load from tracked pointer:   %75 = load i64, ptr %74, align 16, (  %74 = getelementptr inbounds nuw i8, ptr %1, i64 2576, !dbg !18658224)  <kernel/sched/fair.c:3608:18> FUNC=task_tick_fair L=1
+[LOAD] Tainted load from tracked pointer:   %82 = load i64, ptr %74, align 16, (  %74 = getelementptr inbounds nuw i8, ptr %1, i64 2576, !dbg !18658224)  <kernel/sched/fair.c:3611:20> FUNC=task_tick_fair L=1
+  [USE] Taint flows to:   %79 = icmp eq i64 %75, 0, <kernel/sched/fair.c:3609:8> FUNC=task_tick_fair L=1
+  [USE] Taint flows to:   br i1 %79, label %80, label %85, <kernel/sched/fair.c:3609:7> FUNC=task_tick_fair L=1
+[UPWARD-INTERPROC] No callers found for migrate_task_rq_fair (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for task_tick_fair (function taints pointer parameter #1)
+
+=== Maximum Level Statistics ===
+Largest L value: 1
+Number of instructions with L=1: 31
+
+Per-function breakdown:
+  migrate_task_rq_fair: 2 value(s)
+  task_numa_work: 14 value(s)
+  task_tick_fair: 15 value(s)
+
+Earliest instruction with L=1:
+    %115 = tail call fastcc i32 @task_scan_start(ptr noundef %0) #280, <kernel/sched/fair.c:3649:24> FUNC=migrate_task_rq_fair L=1
+
+Latest instruction with L=1:
+    br i1 %42, label %43, label %438, <kernel/sched/fair.c:3336:7> FUNC=task_numa_work L=1
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 40 instructions
+Other visited functions (total): 111 instructions
+Total: 151 instructions
+Number of max-level functions: 3
+Number of other visited functions: 1
+
+=== Data Flow Span Details ===
+migrate_task_rq_fair, 15, 0, 15, 2
+task_numa_work, 4, 1, 6, 8
+task_tick_fair, 14, 3, 17, 2
+task_scan_start, full span
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/kernel/sched/fair.ll
+../linux-wllvm-defconfig/kernel/sched/fair.c

@@ -1,0 +1,3 @@
+shmem_read_file_info: BB1:I5 -> BB1:I5 => 1 instructions
+
+Total: 1 instructions

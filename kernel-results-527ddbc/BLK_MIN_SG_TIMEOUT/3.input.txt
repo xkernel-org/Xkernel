@@ -1,0 +1,5 @@
+SOURCE_FILE=drivers/scsi/scsi_ioctl.c
+FUNCTION_NAME=sg_io
+SOURCE_OP="phi"
+CONSTANT_VALUE=60000
+OCCURENCE=1

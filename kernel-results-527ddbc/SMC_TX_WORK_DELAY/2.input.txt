@@ -1,0 +1,5 @@
+SOURCE_FILE=net/smc/smc_tx.c
+FUNCTION_NAME=smc_tx_consumer_update
+SOURCE_OP=call
+CONSTANT_VALUE=0
+OCCURENCE=3 # <--- the combination of "call" and "0" is too common, double

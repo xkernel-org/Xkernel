@@ -1,0 +1,49 @@
+=== Taint Tracker Configuration ===
+Function: gss_fill_context
+Opcode: select
+Constant: 3600
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant 3600)
+
+[SOURCE] Tainting:   %15 = select i1 %14, i32 3600, i32 %13, <net/sunrpc/auth_gss/auth_gss.c:193:14> FUNC=gss_fill_context L=0
+[USE] Source instruction in data flow <net/sunrpc/auth_gss/auth_gss.c:193:14> FUNC=gss_fill_context L=0
+[USE] Processing uses of:   %15 = select i1 %14, i32 3600, i32 %13,
+  [USE] Taint flows to:   %16 = zext i32 %15 to i64, <net/sunrpc/auth_gss/auth_gss.c:195:26> FUNC=gss_fill_context L=0
+  [CHILD FUNCTION] Tainted value used in call to trace_rpcgss_context at argument 3:   tail call fastcc void @trace_rpcgss_context(i32 noundef %25, i64 noundef %97, i64 noundef %5, i32 noundef %15, i32 noundef %99, ptr noundef %101) #280, <net/sunrpc/auth_gss/auth_gss.c:246:2> FUNC=gss_fill_context L=0
+  [USE] Taint flows to:   tail call fastcc void @trace_rpcgss_context(i32 noundef %25, i64 noundef %97, i64 noundef %5, i32 noundef %15, i32 noundef %99, ptr noundef %101) #280, <net/sunrpc/auth_gss/auth_gss.c:246:2> FUNC=gss_fill_context L=0
+[NO USE] No uses of:   tail call fastcc void @trace_rpcgss_context(i32 noundef %25, i64 noundef %97, i64 noundef %5, i32 noundef %15, i32 noundef %99, ptr noundef %101) #280,
+[USE] Processing uses of:   %16 = zext i32 %15 to i64,
+  [USE] Taint flows to:   %17 = mul nuw nsw i64 %16, 1000, <net/sunrpc/auth_gss/auth_gss.c:195:49> FUNC=gss_fill_context L=0
+[USE] Processing uses of:   %17 = mul nuw nsw i64 %16, 1000,
+  [USE] Taint flows to:   %18 = add i64 %17, %5, <net/sunrpc/auth_gss/auth_gss.c:195:23> FUNC=gss_fill_context L=0
+[USE] Processing uses of:   %18 = add i64 %17, %5,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #2 (ptr %2) <net/sunrpc/auth_gss/auth_gss.c:195:17>
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 5
+
+Earliest instruction with L=0:
+    %15 = select i1 %14, i32 3600, i32 %13, <net/sunrpc/auth_gss/auth_gss.c:193:14> FUNC=gss_fill_context L=0
+
+Latest instruction with L=0:
+    tail call fastcc void @trace_rpcgss_context(i32 noundef %25, i64 noundef %97, i64 noundef %5, i32 noundef %15, i32 noundef %99, ptr noundef %101) #280, <net/sunrpc/auth_gss/auth_gss.c:246:2> FUNC=gss_fill_context L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 94 instructions
+Other visited functions (total): 0 instructions
+Total: 94 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+gss_fill_context, 2, 2, 23, 6
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/sunrpc/auth_gss/auth_gss.ll
+../linux-wllvm-defconfig/net/sunrpc/auth_gss/auth_gss.c

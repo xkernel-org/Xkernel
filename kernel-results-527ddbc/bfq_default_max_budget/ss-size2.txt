@@ -1,0 +1,6 @@
+bfq_add_request: BB139:I0 -> BB139:I1 => 2 instructions
+bfq_bfqq_expire: BB42:I0 -> BB95:I3 => 259 instructions
+bfq_init_bfqq: full span => 111 instructions
+bfq_init_queue: BB3:I9 -> BB13:I14 => 182 instructions
+
+Total: 554 instructions

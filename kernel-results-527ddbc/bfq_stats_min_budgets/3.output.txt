@@ -1,0 +1,41 @@
+=== Taint Tracker Configuration ===
+Function: bfq_bfqq_expire
+Opcode: icmp
+Constant: 193
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant 193)
+
+[SOURCE] Tainting:   %360 = icmp sgt i32 %359, 193, <block/bfq-iosched.c:4110:29> FUNC=bfq_bfqq_expire L=0
+[USE] Source instruction in data flow <block/bfq-iosched.c:4110:29> FUNC=bfq_bfqq_expire L=0
+[USE] Processing uses of:   %360 = icmp sgt i32 %359, 193,
+  [USE] Taint flows to:   br i1 %360, label %361, label %369, <block/bfq-iosched.c:4110:54> FUNC=bfq_bfqq_expire L=0
+[NO USE] No uses of:   br i1 %360, label %361, label %369,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 2
+
+Earliest instruction with L=0:
+    %360 = icmp sgt i32 %359, 193, <block/bfq-iosched.c:4110:29> FUNC=bfq_bfqq_expire L=0
+
+Latest instruction with L=0:
+    br i1 %360, label %361, label %369, <block/bfq-iosched.c:4110:54> FUNC=bfq_bfqq_expire L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 2 instructions
+Other visited functions (total): 0 instructions
+Total: 2 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+bfq_bfqq_expire, 74, 4, 74, 5
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/block/bfq-iosched.ll
+../linux-wllvm-defconfig/block/bfq-iosched.c

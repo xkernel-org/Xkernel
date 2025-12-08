@@ -1,0 +1,41 @@
+=== Taint Tracker Configuration ===
+Function: tcp_retransmit_timer
+Opcode: icmp
+Constant: 7
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant 7)
+
+[SOURCE] Tainting:   %572 = icmp ult i8 %571, 7, <net/ipv4/tcp_timer.c:664:29> FUNC=tcp_retransmit_timer L=0
+[USE] Source instruction in data flow <net/ipv4/tcp_timer.c:664:29> FUNC=tcp_retransmit_timer L=0
+[USE] Processing uses of:   %572 = icmp ult i8 %571, 7,
+  [USE] Taint flows to:   br i1 %572, label %573, label %588, <net/ipv4/tcp_timer.c:663:29> FUNC=tcp_retransmit_timer L=0
+[NO USE] No uses of:   br i1 %572, label %573, label %588,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 2
+
+Earliest instruction with L=0:
+    %572 = icmp ult i8 %571, 7, <net/ipv4/tcp_timer.c:664:29> FUNC=tcp_retransmit_timer L=0
+
+Latest instruction with L=0:
+    br i1 %572, label %573, label %588, <net/ipv4/tcp_timer.c:663:29> FUNC=tcp_retransmit_timer L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 2 instructions
+Other visited functions (total): 0 instructions
+Total: 2 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+tcp_retransmit_timer, 102, 2, 102, 3
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/ipv4/tcp_timer.ll
+../linux-wllvm-defconfig/net/ipv4/tcp_timer.c

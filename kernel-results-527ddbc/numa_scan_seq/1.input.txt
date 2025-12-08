@@ -1,0 +1,5 @@
+SOURCE_FILE=kernel/sched/fair.c
+FUNCTION_NAME=should_numa_migrate_memory
+SOURCE_OP="icmp"
+CONSTANT_VALUE=5
+OCCURENCE=1

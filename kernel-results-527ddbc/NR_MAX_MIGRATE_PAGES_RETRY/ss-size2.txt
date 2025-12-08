@@ -1,0 +1,36 @@
+__do_fast_syscall_32: full span => 69 instructions
+__ia32_sys_madvise: full span => 16 instructions
+__ia32_sys_mbind: full span => 20 instructions
+__ia32_sys_migrate_pages: full span => 14 instructions
+__ia32_sys_move_pages: full span => 20 instructions
+__ia32_sys_process_madvise: full span => 17 instructions
+__se_sys_mbind: full span => 312 instructions
+__se_sys_migrate_pages: full span => 83 instructions
+__se_sys_move_pages: full span => 584 instructions
+__se_sys_process_madvise: full span => 124 instructions
+__x64_sys_madvise: full span => 14 instructions
+__x64_sys_mbind: full span => 14 instructions
+__x64_sys_migrate_pages: full span => 10 instructions
+__x64_sys_move_pages: full span => 14 instructions
+__x64_sys_process_madvise: full span => 12 instructions
+alloc_contig_pages_noprof: full span => 214 instructions
+alloc_contig_range_noprof: full span => 307 instructions
+check_and_migrate_movable_pages_or_folios: full span => 212 instructions
+compact_zone: full span => 1021 instructions
+cpuset_migrate_mm_workfn: full span => 9 instructions
+do_huge_pmd_numa_page: full span => 219 instructions
+do_int80_emulation: full span => 112 instructions
+do_madvise: full span => 142 instructions
+do_migrate_pages: full span => 170 instructions
+do_syscall_64: full span => 116 instructions
+handle_mm_fault: full span => 1897 instructions
+ia32_sys_call: BB441:I0 -> BB441:I0 => 1 instructions
+io_madvise: full span => 22 instructions
+memory_failure_work_func: full span => 40 instructions
+migrate_misplaced_folio: full span => 53 instructions
+migrate_pages: full span => 621 instructions
+shrink_folio_list: full span => 952 instructions
+soft_offline_page: full span => 486 instructions
+x64_sys_call: BB441:I0 -> BB441:I0 => 1 instructions
+
+Total: 7918 instructions

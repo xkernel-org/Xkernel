@@ -1,0 +1,43 @@
+=== Taint Tracker Configuration ===
+Function: ep_loop_check_proc
+Opcode: icmp
+Constant: 4
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant 4)
+
+[SOURCE] Tainting:   %10 = icmp samesign ugt i32 %1, 4 <fs/eventpoll.c:2147:2> (approx) FUNC=ep_loop_check_proc L=0
+[USE] Source instruction in data flow <fs/eventpoll.c:2147:2> (approx) FUNC=ep_loop_check_proc L=0
+[USE] Processing uses of:   %10 = icmp samesign ugt i32 %1, 4
+  [USE] Taint flows to:   %28 = select i1 %27, i1 true, i1 %10, <fs/eventpoll.c:2154:37> FUNC=ep_loop_check_proc L=0
+[USE] Processing uses of:   %28 = select i1 %27, i1 true, i1 %10,
+  [USE] Taint flows to:   br i1 %28, label %44, label %29, <fs/eventpoll.c:2154:37> FUNC=ep_loop_check_proc L=0
+[NO USE] No uses of:   br i1 %28, label %44, label %29,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 3
+
+Earliest instruction with L=0:
+    %10 = icmp samesign ugt i32 %1, 4 <fs/eventpoll.c:2147:2> (approx) FUNC=ep_loop_check_proc L=0
+
+Latest instruction with L=0:
+    br i1 %28, label %44, label %29, <fs/eventpoll.c:2154:37> FUNC=ep_loop_check_proc L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 20 instructions
+Other visited functions (total): 0 instructions
+Total: 20 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+ep_loop_check_proc, 1, 0, 4, 3
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/eventpoll.ll
+../linux-wllvm-defconfig/fs/eventpoll.c

@@ -1,0 +1,4 @@
+btrfs_async_run_delayed_root: BB11:I5 -> BB11:I9 => 5 instructions
+btrfs_balance_delayed_items: BB2:I1 -> BB2:I2 => 2 instructions
+
+Total: 7 instructions

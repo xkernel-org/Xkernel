@@ -1,0 +1,41 @@
+=== Taint Tracker Configuration ===
+Function: master_wakeup_work_handler
+Opcode: icmp
+Constant: 8
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant 8)
+
+[SOURCE] Tainting:   %12 = icmp ult i32 %11, 8, <net/netfilter/ipvs/ip_vs_sync.c:1628:27> FUNC=master_wakeup_work_handler L=0
+[USE] Source instruction in data flow <net/netfilter/ipvs/ip_vs_sync.c:1628:27> FUNC=master_wakeup_work_handler L=0
+[USE] Processing uses of:   %12 = icmp ult i32 %11, 8,
+  [USE] Taint flows to:   br i1 %12, label %13, label %27, <net/netfilter/ipvs/ip_vs_sync.c:1627:25> FUNC=master_wakeup_work_handler L=0
+[NO USE] No uses of:   br i1 %12, label %13, label %27,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 2
+
+Earliest instruction with L=0:
+    %12 = icmp ult i32 %11, 8, <net/netfilter/ipvs/ip_vs_sync.c:1628:27> FUNC=master_wakeup_work_handler L=0
+
+Latest instruction with L=0:
+    br i1 %12, label %13, label %27, <net/netfilter/ipvs/ip_vs_sync.c:1627:25> FUNC=master_wakeup_work_handler L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 2 instructions
+Other visited functions (total): 0 instructions
+Total: 2 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+master_wakeup_work_handler, 1, 2, 1, 3
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/netfilter/ipvs/ip_vs_sync.ll
+../linux-wllvm-defconfig/net/netfilter/ipvs/ip_vs_sync.c

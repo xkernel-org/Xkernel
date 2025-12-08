@@ -1,0 +1,78 @@
+=== Taint Tracker Configuration ===
+Function: blk_revalidate_disk_zones
+Opcode: call
+Constant: 128
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 2 (of constant 128)
+
+[SOURCE] Tainting:   %182 = call i32 @llvm.umin.i32(i32 %163, i32 128), <block/blk-zoned.c:1545:6> FUNC=blk_revalidate_disk_zones L=0
+[USE] Source instruction in data flow <block/blk-zoned.c:1545:6> FUNC=blk_revalidate_disk_zones L=0
+[CHILD FUNCTION] Constant used in call to llvm.umin.i32 at argument 1 <block/blk-zoned.c:1545:6> FUNC=blk_revalidate_disk_zones L=0
+[USE] Processing uses of:   %182 = call i32 @llvm.umin.i32(i32 %163, i32 128),
+  [USE] Taint flows to:   %183 = select i1 %181, i32 %182, i32 %180, <block/blk-zoned.c:1545:6> FUNC=blk_revalidate_disk_zones L=0
+[USE] Processing uses of:   %183 = select i1 %181, i32 %182, i32 %180,
+  [CHILD FUNCTION] Tainted value used in call to mempool_resize at argument 1:   %184 = call i32 @mempool_resize(ptr noundef nonnull %177, i32 noundef %183) #282, <block/blk-zoned.c:1548:2> FUNC=blk_revalidate_disk_zones L=0
+  [USE] Taint flows to:   %184 = call i32 @mempool_resize(ptr noundef nonnull %177, i32 noundef %183) #282, <block/blk-zoned.c:1548:2> FUNC=blk_revalidate_disk_zones L=0
+  [USE] Taint flows to:   %188 = icmp ult i32 %183, %163, <block/blk-zoned.c:1551:17> FUNC=blk_revalidate_disk_zones L=0
+  [USE] Taint flows to:   %189 = select i1 %188, i32 %183, i32 0 <block/blk-zoned.c:1558:9> (approx) FUNC=blk_revalidate_disk_zones L=0
+[USE] Processing uses of:   %189 = select i1 %188, i32 %183, i32 0
+  %164 = getelementptr inbounds nuw i8, ptr %2, i64 152,
+  → base pointer:
+          %2 = alloca %struct.queue_limits, align 8, !DIAssignID !18658050
+      → no parameter connection
+  → Result: No parameter connection found
+  [STORE DESTINATION] Marking pointer as tainted:   %164 = getelementptr inbounds nuw i8, ptr %2, i64 152, <block/blk-zoned.c:1558:9> (approx)
+  [USE] Taint flows to:   store i32 %189, ptr %164, align 8, <block/blk-zoned.c:1558:9> (approx) FUNC=blk_revalidate_disk_zones L=0
+[NO USE] No uses of:   store i32 %189, ptr %164, align 8,
+[USE] Processing uses of:   %188 = icmp ult i32 %183, %163,
+[NO USE] No uses of:   %184 = call i32 @mempool_resize(ptr noundef nonnull %177, i32 noundef %183) #282,
+[KILL] Store overwrites tainted pointer with non-tainted value:   store i32 0, ptr %164, align 8,
+[LOAD] Tainted load from tracked pointer:   %165 = load i32, ptr %164, align 8, (  %164 = getelementptr inbounds nuw i8, ptr %2, i64 152, !dbg !18658531)  <block/blk-zoned.c:1529:10> FUNC=blk_revalidate_disk_zones L=0
+[USE] Processing uses of:   %165 = load i32, ptr %164, align 8,
+  [USE] Taint flows to:   %169 = phi i32 [ 0, %167 ], [ %165, %159 ] <block/blk-zoned.c:1531:10> (approx) FUNC=blk_revalidate_disk_zones L=0
+  [USE] Taint flows to:   %166 = icmp ult i32 %165, %163, <block/blk-zoned.c:1529:25> FUNC=blk_revalidate_disk_zones L=0
+[USE] Processing uses of:   %166 = icmp ult i32 %165, %163,
+  [USE] Taint flows to:   br i1 %166, label %168, label %167, <block/blk-zoned.c:1529:25> FUNC=blk_revalidate_disk_zones L=0
+[NO USE] No uses of:   br i1 %166, label %168, label %167,
+[USE] Processing uses of:   %169 = phi i32 [ 0, %167 ], [ %165, %159 ]
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %180 = call i32 @llvm.umax.i32(i32 %169, i32 %175), !dbg !18658548 <block/blk-zoned.c:1544:14>
+  [USE] Taint flows to:   %180 = call i32 @llvm.umax.i32(i32 %169, i32 %175), <block/blk-zoned.c:1544:14> FUNC=blk_revalidate_disk_zones L=0
+  [USE] Taint flows to:   %185 = or i32 %175, %169, <block/blk-zoned.c:1550:26> FUNC=blk_revalidate_disk_zones L=0
+[USE] Processing uses of:   %185 = or i32 %175, %169,
+  [USE] Taint flows to:   %186 = icmp eq i32 %185, 0, <block/blk-zoned.c:1550:26> FUNC=blk_revalidate_disk_zones L=0
+[USE] Processing uses of:   %186 = icmp eq i32 %185, 0,
+  [USE] Taint flows to:   br i1 %186, label %187, label %194, <block/blk-zoned.c:1550:26> FUNC=blk_revalidate_disk_zones L=0
+[NO USE] No uses of:   br i1 %186, label %187, label %194,
+[USE] Processing uses of:   %180 = call i32 @llvm.umax.i32(i32 %169, i32 %175),
+  [USE] Taint flows to:   %181 = icmp eq i32 %180, 0, <block/blk-zoned.c:1545:7> FUNC=blk_revalidate_disk_zones L=0
+[USE] Processing uses of:   %181 = icmp eq i32 %180, 0,
+[KILL] Store overwrites tainted pointer with non-tainted value:   store i32 0, ptr %164, align 8,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 15
+
+Earliest instruction with L=0:
+    %165 = load i32, ptr %164, align 8, <block/blk-zoned.c:1529:10> FUNC=blk_revalidate_disk_zones L=0
+
+Latest instruction with L=0:
+    store i32 %189, ptr %164, align 8, <block/blk-zoned.c:1558:9> (approx) FUNC=blk_revalidate_disk_zones L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 28 instructions
+Other visited functions (total): 0 instructions
+Total: 28 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+blk_revalidate_disk_zones, 27, 7, 33, 2
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/block/blk-zoned.ll
+../linux-wllvm-defconfig/block/blk-zoned.c

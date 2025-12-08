@@ -1,0 +1,2 @@
+  __ia32_compat_sys_io_submit: BB2:I4 -> BB11:I2
+  __se_sys_io_submit: BB2:I5 -> BB10:I3

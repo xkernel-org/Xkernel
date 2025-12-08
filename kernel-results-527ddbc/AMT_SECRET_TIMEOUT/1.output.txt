@@ -1,0 +1,39 @@
+=== Taint Tracker Configuration ===
+Function: amt_secret_work
+Opcode: call
+Constant: 64
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant 64)
+
+[SOURCE] Tainting:   %5 = tail call zeroext i1 @mod_delayed_work_on(i32 noundef 64, ptr noundef %4, ptr noundef %0, i64 noundef 60000) #278, <./include/linux/workqueue.h:692:9> FUNC=amt_secret_work L=0
+[USE] Source instruction in data flow <./include/linux/workqueue.h:692:9> FUNC=amt_secret_work L=0
+[CHILD FUNCTION] Constant used in call to mod_delayed_work_on at argument 0 <./include/linux/workqueue.h:692:9> FUNC=amt_secret_work L=0
+[NO USE] No uses of:   %5 = tail call zeroext i1 @mod_delayed_work_on(i32 noundef 64, ptr noundef %4, ptr noundef %0, i64 noundef 60000) #278,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 1
+
+Earliest instruction with L=0:
+    %5 = tail call zeroext i1 @mod_delayed_work_on(i32 noundef 64, ptr noundef %4, ptr noundef %0, i64 noundef 60000) #278, <./include/linux/workqueue.h:692:9> FUNC=amt_secret_work L=0
+
+(Earliest and latest are the same instruction)
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 1 instructions
+Other visited functions (total): 0 instructions
+Total: 1 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+amt_secret_work, 0, 6, 0, 6
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/drivers/net/amt.ll
+../linux-wllvm-defconfig/drivers/net/amt.c
