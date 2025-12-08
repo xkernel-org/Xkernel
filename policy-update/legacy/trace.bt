@@ -1,0 +1,175 @@
+#!/usr/bin/env bpftrace
+
+/* 
+ * 0. Kernel List Structure
+ * used to count the batch size
+ */
+struct list_head {
+    struct list_head *next;
+    struct list_head *prev;
+}
+
+/* 
+ * 1. bpf_attr Stub
+ */
+struct bpf_attr_stub {
+    unsigned int prog_type;
+    unsigned int insn_cnt;
+    unsigned long insns;
+    unsigned long license;
+    unsigned int log_level;
+    unsigned int log_size;
+    unsigned long log_buf;
+    unsigned int kern_version;
+    unsigned int prog_flags;
+    char prog_name[16];
+}
+
+/* 
+ * 2. kprobe Stub
+ * Note: struct kretprobe usually has struct kprobe as its first member.
+ */
+struct kprobe_stub {
+    char pad[48];
+    char *symbol_name;
+}
+
+BEGIN {
+    printf("Tracing BPF -> Kprobe/Kretprobe -> Optimize (with Batch Size)...\n");
+    printf("%-8s %-16s %-25s %-20s %s\n", "PID", "EVENT", "TARGET/NAME", "INFO/CALLER", "LATENCY");
+}
+
+/* ======================================================
+ *  Part 1: BPF Check
+ * ====================================================== */
+kprobe:bpf_check
+{
+    $attr = (struct bpf_attr_stub *)arg1;
+    @bpf_start[tid] = nsecs;
+    @bpf_name[tid] = $attr->prog_name;
+    @bpf_insns[tid] = $attr->insn_cnt;
+}
+
+kretprobe:bpf_check
+/@bpf_start[tid]/
+{
+    $dur = (nsecs - @bpf_start[tid]) / 1000;
+    $name = @bpf_name[tid];
+    if ($name == "") { $name = "<unnamed>"; }
+    
+    printf("%-8d %-16s %-25s insns:%-14d %d us\n", 
+           pid, "BPF_CHECK", $name, @bpf_insns[tid], $dur);
+
+    delete(@bpf_start[tid]); delete(@bpf_name[tid]); delete(@bpf_insns[tid]);
+}
+
+/* ======================================================
+ *  Part 2: Register Kprobe
+ * ====================================================== */
+kprobe:register_kprobe
+{
+    $kp = (struct kprobe_stub *)arg0;
+    @kp_start[tid] = nsecs;
+    @kp_symbol[tid] = str($kp->symbol_name);
+}
+
+kretprobe:register_kprobe
+/@kp_start[tid]/
+{
+    $dur = (nsecs - @kp_start[tid]) / 1000;
+    $res = retval == 0 ? "SUCCESS" : "FAIL"; 
+    
+    printf("%-8d %-16s %-25s %-20s %d us\n", 
+           pid, "REG_KPROBE", @kp_symbol[tid], $res, $dur);
+    
+    delete(@kp_start[tid]); delete(@kp_symbol[tid]);
+}
+
+/* ======================================================
+ *  Part 2.1: Register Kretprobe (NEW)
+ *  int register_kretprobe(struct kretprobe *rp);
+ * ====================================================== */
+kprobe:register_kretprobe
+{
+    /* 
+     * struct kretprobe 的第一个成员是 struct kprobe kp;
+     * 所以这里直接转成 kprobe_stub 即可读取 symbol_name
+     */
+    $rp = (struct kprobe_stub *)arg0;
+    @krp_start[tid] = nsecs;
+    @krp_symbol[tid] = str($rp->symbol_name);
+}
+
+kretprobe:register_kretprobe
+/@krp_start[tid]/
+{
+    $dur = (nsecs - @krp_start[tid]) / 1000;
+    $res = retval == 0 ? "SUCCESS" : "FAIL";
+
+    printf("%-8d %-16s %-25s %-20s %d us\n", 
+           pid, "REG_KRETPROBE", @krp_symbol[tid], $res, $dur);
+
+    delete(@krp_start[tid]); delete(@krp_symbol[tid]);
+}
+
+/* ======================================================
+ *  Part 3: Prepare Optimization
+ * ====================================================== */
+kprobe:arch_prepare_optimized_kprobe
+{
+    $kp = (struct kprobe_stub *)arg0;
+    @prep_start[tid] = nsecs;
+    @prep_symbol[tid] = str($kp->symbol_name);
+}
+
+kretprobe:arch_prepare_optimized_kprobe
+/@prep_start[tid]/
+{
+    $dur = (nsecs - @prep_start[tid]) / 1000;
+    $res = retval == 0 ? "CAN_OPTIMIZE" : "CANNOT_OPT";
+    
+    printf("%-8d %-16s %-25s ret:%-16d %d us\n", 
+           pid, "OPT_PREPARE", @prep_symbol[tid], retval, $dur);
+    
+    delete(@prep_start[tid]); delete(@prep_symbol[tid]);
+}
+
+/* ======================================================
+ *  Part 4: Apply Optimization (Calculate Batch Size)
+ *  void arch_optimize_kprobes(struct list_head *oplist)
+ * ====================================================== */
+kprobe:arch_optimize_kprobes
+{
+    @opt_start[tid] = nsecs;
+
+    /* Logic to count list items */
+    $head = (struct list_head *)arg0;
+    $curr = $head->next;
+    $cnt = 0;
+    $i = 0;
+
+    /* 
+     * 遍历链表计算数量。
+     * 为了通过 BPF Verifier，必须限制循环次数 (此处限制为 64)。
+     */
+    while ($i < 64 && $curr != $head) {
+        $cnt++;
+        $curr = $curr->next;
+        $i++;
+    }
+
+    @batch_sz[tid] = $cnt;
+}
+
+kretprobe:arch_optimize_kprobes
+/@opt_start[tid]/
+{
+    $dur = (nsecs - @opt_start[tid]) / 1000;
+    $count = @batch_sz[tid];
+    
+    printf("%-8d %-16s %-25s Batch:%-14d %d us\n", 
+           pid, "OPT_APPLY_BATCH", "ALL_QUEUED", $count, $dur);
+    
+    delete(@opt_start[tid]);
+    delete(@batch_sz[tid]);
+}

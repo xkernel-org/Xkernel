@@ -1,0 +1,4 @@
+Tthreshold 70
+Timing 32
+Batch 16
+SF 22

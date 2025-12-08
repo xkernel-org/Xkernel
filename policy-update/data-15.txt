@@ -1,0 +1,128 @@
+Tracing BPF -> Kprobe -> Optimize (with Batch Size)...
+PID      EVENT            TARGET/NAME               INFO/CALLER          LATENCY
+3090151  BPF_CHECK        io_issue_sqe_0x           insns:61             499 us
+3090151  BPF_CHECK        io_poll_issue             insns:52             266 us
+3090151  BPF_CHECK        io_wq_submit_wo           insns:52             243 us
+3090151  BPF_CHECK        io_uring_cmd_pr           insns:52             286 us
+3090151  BPF_CHECK        io_uring_cmd              insns:52             260 us
+3090151  BPF_CHECK        io_uring_cmd_ma           insns:52             257 us
+3090151  BPF_CHECK        io_uring_try_ca           insns:52             265 us
+3090151  BPF_CHECK        io_req_uring_cl           insns:52             273 us
+3090151  BPF_CHECK        io_poll_task_fu           insns:52             306 us
+3090151  BPF_CHECK        io_poll_wake              insns:52             343 us
+3090151  BPF_CHECK        __io_queue_proc           insns:52             279 us
+3090151  BPF_CHECK        io_poll_queue_p           insns:52             253 us
+3090151  BPF_CHECK        io_poll_add_has           insns:52             291 us
+3090151  BPF_CHECK        __io_arm_poll_h           insns:52             260 us
+3090151  BPF_CHECK        io_async_queue_           insns:52             255 us
+3090151  BPF_CHECK        entry_io_issue_           insns:2              12 us
+3090151  BPF_CHECK        entry_io_poll_i           insns:2              10 us
+3090151  BPF_CHECK        entry_io_wq_sub           insns:2              25 us
+3090151  BPF_CHECK        entry_io_uring_           insns:2              9 us
+3090151  BPF_CHECK        entry_io_uring_           insns:2              10 us
+3090151  BPF_CHECK        entry_io_uring_           insns:2              9 us
+3090151  BPF_CHECK        entry_io_uring_           insns:2              9 us
+3090151  BPF_CHECK        entry_io_req_ur           insns:2              10 us
+3090151  BPF_CHECK        entry_io_poll_t           insns:2              10 us
+3090151  BPF_CHECK        entry_io_poll_w           insns:2              9 us
+3090151  BPF_CHECK        entry__io_queue           insns:2              9 us
+3090151  BPF_CHECK        entry_io_poll_q           insns:2              9 us
+3090151  BPF_CHECK        entry_io_poll_a           insns:2              9 us
+3090151  BPF_CHECK        entry__io_arm_p           insns:2              9 us
+3090151  BPF_CHECK        entry_io_async_           insns:2              9 us
+3090151  BPF_CHECK        ret_io_issue_sq           insns:2              17 us
+3090151  BPF_CHECK        ret_io_poll_iss           insns:2              10 us
+3090151  BPF_CHECK        ret_io_wq_submi           insns:2              9 us
+3090151  BPF_CHECK        ret_io_uring_cm           insns:2              9 us
+3090151  BPF_CHECK        ret_io_uring_cm           insns:2              11 us
+3090151  BPF_CHECK        ret_io_uring_cm           insns:2              9 us
+3090151  BPF_CHECK        ret_io_uring_tr           insns:2              11 us
+3090151  BPF_CHECK        ret_io_req_urin           insns:2              10 us
+3090151  BPF_CHECK        ret_io_poll_tas           insns:2              11 us
+3090151  BPF_CHECK        ret_io_poll_wak           insns:2              11 us
+3090151  BPF_CHECK        ret__io_queue_p           insns:2              10 us
+3090151  BPF_CHECK        ret_io_poll_que           insns:2              10 us
+3090151  BPF_CHECK        ret_io_poll_add           insns:2              10 us
+3090151  BPF_CHECK        ret__io_arm_pol           insns:2              11 us
+3090151  BPF_CHECK        ret_io_async_qu           insns:2              10 us
+3090151  OPT_PREPARE                                ret:0                935 us
+3090151  REG_KPROBE       io_issue_sqe              SUCCESS              1560 us
+3090151  OPT_PREPARE                                ret:0                314 us
+3090151  REG_KPROBE       io_poll_issue             SUCCESS              677 us
+3090151  OPT_PREPARE                                ret:0                563 us
+3090151  REG_KPROBE       io_wq_submit_work         SUCCESS              935 us
+3036478  OPT_APPLY_BATCH  ALL_QUEUED                Batch:3              124 us
+3090151  OPT_PREPARE                                ret:0                513 us
+3090151  REG_KPROBE       io_uring_cmd_prep         SUCCESS              27950 us
+3090151  OPT_PREPARE                                ret:0                486 us
+3090151  REG_KPROBE       io_uring_cmd              SUCCESS              941 us
+3090151  OPT_PREPARE                                ret:0                457 us
+3090151  REG_KPROBE       io_uring_cmd_mark_cancelable SUCCESS              874 us
+3090151  OPT_PREPARE                                ret:0                453 us
+3090151  REG_KPROBE       io_uring_try_cancel_uring_cmd SUCCESS              872 us
+3081941  OPT_APPLY_BATCH  ALL_QUEUED                Batch:3              128 us
+3090151  OPT_PREPARE                                ret:0                486 us
+3090151  REG_KPROBE       io_req_uring_cleanup      SUCCESS              950 us
+3090151  OPT_PREPARE                                ret:0                713 us
+3090151  REG_KPROBE       io_poll_task_func         SUCCESS              1289 us
+3081941  OPT_APPLY_BATCH  ALL_QUEUED                Batch:3              116 us
+3090151  OPT_PREPARE                                ret:0                775 us
+3090151  REG_KPROBE       io_poll_wake              SUCCESS              116352 us
+3090151  OPT_PREPARE                                ret:0                688 us
+3090151  REG_KPROBE       __io_queue_proc           SUCCESS              1357 us
+3090151  OPT_PREPARE                                ret:0                534 us
+3090151  REG_KPROBE       io_poll_queue_proc        SUCCESS              1080 us
+3081941  OPT_APPLY_BATCH  ALL_QUEUED                Batch:2              102 us
+3090151  OPT_PREPARE                                ret:0                734 us
+3090151  REG_KPROBE       io_poll_add_hash          SUCCESS              1439 us
+3081941  OPT_APPLY_BATCH  ALL_QUEUED                Batch:2              102 us
+3090151  OPT_PREPARE                                ret:0                1107 us
+3090151  REG_KPROBE       __io_arm_poll_handler     SUCCESS              120305 us
+3090151  OPT_PREPARE                                ret:0                769 us
+3090151  REG_KPROBE       io_async_queue_proc       SUCCESS              1579 us
+3081941  OPT_APPLY_BATCH  ALL_QUEUED                Batch:2              106 us
+3090151  REG_KPROBE       io_issue_sqe              SUCCESS              226495 us
+3090151  REG_KPROBE       io_poll_issue             SUCCESS              1047 us
+3090151  REG_KPROBE       io_wq_submit_work         SUCCESS              880 us
+3090151  REG_KPROBE       io_uring_cmd_prep         SUCCESS              1216 us
+3090151  REG_KPROBE       io_uring_cmd              SUCCESS              826 us
+3090151  REG_KPROBE       io_uring_cmd_mark_cancelable SUCCESS              780 us
+3090151  REG_KPROBE       io_uring_try_cancel_uring_cmd SUCCESS              629 us
+3090151  REG_KPROBE       io_req_uring_cleanup      SUCCESS              628 us
+3090151  REG_KPROBE       io_poll_task_func         SUCCESS              579 us
+3090151  REG_KPROBE       io_poll_wake              SUCCESS              487 us
+3090151  REG_KPROBE       __io_queue_proc           SUCCESS              506 us
+3090151  REG_KPROBE       io_poll_queue_proc        SUCCESS              430 us
+3090151  REG_KPROBE       io_poll_add_hash          SUCCESS              441 us
+3090151  REG_KPROBE       __io_arm_poll_handler     SUCCESS              415 us
+3090151  REG_KPROBE       io_async_queue_proc       SUCCESS              374 us
+3090151  REG_KPROBE       io_issue_sqe              SUCCESS              358 us
+3090151  REG_KRETPROBE    io_issue_sqe              SUCCESS              417 us
+3090151  REG_KPROBE       io_poll_issue             SUCCESS              378 us
+3090151  REG_KRETPROBE    io_poll_issue             SUCCESS              433 us
+3090151  REG_KPROBE       io_wq_submit_work         SUCCESS              345 us
+3090151  REG_KRETPROBE    io_wq_submit_work         SUCCESS              398 us
+3090151  REG_KPROBE       io_uring_cmd_prep         SUCCESS              366 us
+3090151  REG_KRETPROBE    io_uring_cmd_prep         SUCCESS              417 us
+3090151  REG_KPROBE       io_uring_cmd              SUCCESS              369 us
+3090151  REG_KRETPROBE    io_uring_cmd              SUCCESS              417 us
+3090151  REG_KPROBE       io_uring_cmd_mark_cancelable SUCCESS              413 us
+3090151  REG_KRETPROBE    io_uring_cmd_mark_cancelable SUCCESS              466 us
+3090151  REG_KPROBE       io_uring_try_cancel_uring_cmd SUCCESS              401 us
+3090151  REG_KRETPROBE    io_uring_try_cancel_uring_cmd SUCCESS              479 us
+3090151  REG_KPROBE       io_req_uring_cleanup      SUCCESS              449 us
+3090151  REG_KRETPROBE    io_req_uring_cleanup      SUCCESS              521 us
+3090151  REG_KPROBE       io_poll_task_func         SUCCESS              390 us
+3090151  REG_KRETPROBE    io_poll_task_func         SUCCESS              436 us
+3090151  REG_KPROBE       io_poll_wake              SUCCESS              394 us
+3090151  REG_KRETPROBE    io_poll_wake              SUCCESS              442 us
+3090151  REG_KPROBE       __io_queue_proc           SUCCESS              462 us
+3090151  REG_KRETPROBE    __io_queue_proc           SUCCESS              533 us
+3090151  REG_KPROBE       io_poll_queue_proc        SUCCESS              475 us
+3090151  REG_KRETPROBE    io_poll_queue_proc        SUCCESS              541 us
+3090151  REG_KPROBE       io_poll_add_hash          SUCCESS              309 us
+3090151  REG_KRETPROBE    io_poll_add_hash          SUCCESS              354 us
+3090151  REG_KPROBE       __io_arm_poll_handler     SUCCESS              409 us
+3090151  REG_KRETPROBE    __io_arm_poll_handler     SUCCESS              514 us
+3090151  REG_KPROBE       io_async_queue_proc       SUCCESS              511 us
+3090151  REG_KRETPROBE    io_async_queue_proc       SUCCESS              582 us

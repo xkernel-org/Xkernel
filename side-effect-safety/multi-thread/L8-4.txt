@@ -1,0 +1,3 @@
+[ 8702.289487] Initial refcount: 3
+[ 8702.289507] [Transition] Waiting for transition to be done or failed
+[ 8702.290748] [Transition] Transition done, time: 1199 us, max refcount: 5, op count: 52

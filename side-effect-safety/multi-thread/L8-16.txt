@@ -1,0 +1,4 @@
+
+[ 8645.471085] Initial refcount: 16
+[ 8645.471114] [Transition] Waiting for transition to be done or failed
+[ 8645.521849] [Transition] Transition done, time: 50751 us, max refcount: 17, op count: 4085

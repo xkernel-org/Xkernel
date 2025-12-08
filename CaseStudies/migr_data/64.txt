@@ -1,0 +1,162 @@
+Mapping 2097152 pages (8192.000 MiB), src=1 dst=0, workers=24, migrates=2, batch=8192, hot=20% p=80% rotate=1s, step=full, drain=0, only-src=1, restat=1
+[start] residency: node0=0 node1=2097152
+[end] residency: node0=846824 node1=1250328
+=== Results ===
+Total ops: 589887894
+Query throughput: 19662929.80 ops/s
+Migration calls: 181
+Avg migration latency: 56.001 ms
+Per-successful-page latency: 11.538 us/page
+Pages migrated (succ/fail): 878521 / 330545
+Page migration throughput: 29284.03 pages/s
+QPS window (10 ms): min=13973400.00 p50=19888300.00 p90=20063400.00 p95=20103600.00 p99=20167800.00 max=20227400.00 ops/s (n=2981)
+Probe latency (N=2000 ops): min=336.32 p50=436.37 p90=466.76 p95=476.24 p99=1550.26 max=4896.98 us (n=584)
+Mapping 2097152 pages (8192.000 MiB), src=1 dst=0, workers=24, migrates=2, batch=8192, hot=20% p=80% rotate=1s, step=full, drain=0, only-src=1, restat=1
+[start] residency: node0=0 node1=2097152
+[end] residency: node0=817952 node1=1279200
+=== Results ===
+Total ops: 587197991
+Query throughput: 19573266.37 ops/s
+Migration calls: 179
+Avg migration latency: 55.429 ms
+Per-successful-page latency: 11.576 us/page
+Pages migrated (succ/fail): 857071 / 337914
+Page migration throughput: 28569.03 pages/s
+QPS window (10 ms): min=15182200.00 p50=19788200.00 p90=19957800.00 p95=19992300.00 p99=20058540.00 max=20162300.00 ops/s (n=2981)
+Probe latency (N=2000 ops): min=369.11 p50=437.25 p90=466.47 p95=476.21 p99=3502.25 max=8301.17 us (n=584)
+Mapping 2097152 pages (8192.000 MiB), src=1 dst=0, workers=24, migrates=2, batch=8192, hot=20% p=80% rotate=1s, step=full, drain=0, only-src=1, restat=1
+[start] residency: node0=0 node1=2097152
+[end] residency: node0=867163 node1=1229989
+=== Results ===
+Total ops: 604473081
+Query throughput: 20149102.70 ops/s
+Migration calls: 183
+Avg migration latency: 56.114 ms
+Per-successful-page latency: 11.423 us/page
+Pages migrated (succ/fail): 898955 / 303551
+Page migration throughput: 29965.17 pages/s
+QPS window (10 ms): min=18466800.00 p50=20358400.00 p90=20519500.00 p95=20562300.00 p99=20610320.00 max=20816100.00 ops/s (n=2981)
+Probe latency (N=2000 ops): min=318.93 p50=424.82 p90=448.23 p95=454.46 p99=717.25 max=4746.55 us (n=584)
+Mapping 2097152 pages (8192.000 MiB), src=1 dst=0, workers=24, migrates=2, batch=8192, hot=20% p=80% rotate=1s, step=full, drain=0, only-src=1, restat=1
+[start] residency: node0=0 node1=2097152
+[end] residency: node0=812494 node1=1284658
+=== Results ===
+Total ops: 593128385
+Query throughput: 19770946.17 ops/s
+Migration calls: 190
+Avg migration latency: 49.447 ms
+Per-successful-page latency: 11.046 us/page
+Pages migrated (succ/fail): 850527 / 398662
+Page migration throughput: 28350.90 pages/s
+QPS window (10 ms): min=17129800.00 p50=19951800.00 p90=20073000.00 p95=20108300.00 p99=20157100.00 max=20224600.00 ops/s (n=2981)
+Probe latency (N=2000 ops): min=341.67 p50=434.17 p90=463.99 p95=472.33 p99=983.07 max=8308.77 us (n=584)
+Mapping 2097152 pages (8192.000 MiB), src=1 dst=0, workers=24, migrates=2, batch=8192, hot=20% p=80% rotate=1s, step=full, drain=0, only-src=1, restat=1
+[start] residency: node0=0 node1=2097152
+[end] residency: node0=826776 node1=1270376
+=== Results ===
+Total ops: 601233263
+Query throughput: 20041108.77 ops/s
+Migration calls: 190
+Avg migration latency: 51.330 ms
+Per-successful-page latency: 11.351 us/page
+Pages migrated (succ/fail): 859201 / 381391
+Page migration throughput: 28640.03 pages/s
+QPS window (10 ms): min=17210000.00 p50=20256300.00 p90=20424800.00 p95=20462600.00 p99=20522020.00 max=20599000.00 ops/s (n=2981)
+Probe latency (N=2000 ops): min=315.03 p50=435.85 p90=464.88 p95=478.41 p99=1962.10 max=7260.00 us (n=584)
+Mapping 2097152 pages (8192.000 MiB), src=1 dst=0, workers=24, migrates=2, batch=8192, hot=20% p=80% rotate=1s, step=full, drain=0, only-src=1, restat=1
+[start] residency: node0=0 node1=2097152
+[end] residency: node0=835376 node1=1261776
+=== Results ===
+Total ops: 567053638
+Query throughput: 18901787.93 ops/s
+Migration calls: 193
+Avg migration latency: 49.332 ms
+Per-successful-page latency: 10.864 us/page
+Pages migrated (succ/fail): 876360 / 392389
+Page migration throughput: 29212.00 pages/s
+QPS window (10 ms): min=17070300.00 p50=19071700.00 p90=19192900.00 p95=19221300.00 p99=19271740.00 max=19336600.00 ops/s (n=2981)
+Probe latency (N=2000 ops): min=344.12 p50=428.23 p90=450.12 p95=458.34 p99=1202.87 max=7295.68 us (n=584)
+Mapping 2097152 pages (8192.000 MiB), src=1 dst=0, workers=24, migrates=2, batch=8192, hot=20% p=80% rotate=1s, step=full, drain=0, only-src=1, restat=1
+[start] residency: node0=0 node1=2097152
+[end] residency: node0=814064 node1=1283088
+=== Results ===
+Total ops: 581028508
+Query throughput: 19367616.93 ops/s
+Migration calls: 187
+Avg migration latency: 50.595 ms
+Per-successful-page latency: 11.085 us/page
+Pages migrated (succ/fail): 853500 / 395156
+Page migration throughput: 28450.00 pages/s
+QPS window (10 ms): min=18077100.00 p50=19543200.00 p90=19647300.00 p95=19668200.00 p99=19696920.00 max=19812000.00 ops/s (n=2981)
+Probe latency (N=2000 ops): min=338.83 p50=426.68 p90=450.90 p95=458.73 p99=579.14 max=8089.39 us (n=584)
+Mapping 2097152 pages (8192.000 MiB), src=1 dst=0, workers=24, migrates=2, batch=8192, hot=20% p=80% rotate=1s, step=full, drain=0, only-src=1, restat=1
+[start] residency: node0=0 node1=2097152
+[end] residency: node0=855820 node1=1241332
+=== Results ===
+Total ops: 606460839
+Query throughput: 20215361.30 ops/s
+Migration calls: 186
+Avg migration latency: 53.978 ms
+Per-successful-page latency: 11.371 us/page
+Pages migrated (succ/fail): 882909 / 326508
+Page migration throughput: 29430.30 pages/s
+QPS window (10 ms): min=16991800.00 p50=20426900.00 p90=20587300.00 p95=20626600.00 p99=20694760.00 max=20795400.00 ops/s (n=2981)
+Probe latency (N=2000 ops): min=337.84 p50=424.33 p90=450.21 p95=460.64 p99=576.20 max=8281.36 us (n=584)
+Mapping 2097152 pages (8192.000 MiB), src=1 dst=0, workers=24, migrates=2, batch=8192, hot=20% p=80% rotate=1s, step=full, drain=0, only-src=1, restat=1
+[start] residency: node0=0 node1=2097152
+[end] residency: node0=740985 node1=1356167
+=== Results ===
+Total ops: 621809761
+Query throughput: 20726992.03 ops/s
+Migration calls: 178
+Avg migration latency: 50.721 ms
+Per-successful-page latency: 11.735 us/page
+Pages migrated (succ/fail): 769365 / 381124
+Page migration throughput: 25645.50 pages/s
+QPS window (10 ms): min=7887600.00 p50=20939050.00 p90=21111700.00 p95=21153565.00 p99=21221766.00 max=21333800.00 ops/s (n=2982)
+Probe latency (N=2000 ops): min=308.61 p50=436.33 p90=463.73 p95=475.05 p99=4163.25 max=8248.42 us (n=584)
+Mapping 2097152 pages (8192.000 MiB), src=1 dst=0, workers=24, migrates=2, batch=8192, hot=20% p=80% rotate=1s, step=full, drain=0, only-src=1, restat=1
+[start] residency: node0=0 node1=2097152
+[end] residency: node0=840669 node1=1256483
+=== Results ===
+Total ops: 592799436
+Query throughput: 19759981.20 ops/s
+Migration calls: 200
+Avg migration latency: 48.570 ms
+Per-successful-page latency: 11.103 us/page
+Pages migrated (succ/fail): 874890 / 407014
+Page migration throughput: 29163.00 pages/s
+QPS window (10 ms): min=17443700.00 p50=19938300.00 p90=20063600.00 p95=20090500.00 p99=20134960.00 max=20208500.00 ops/s (n=2981)
+Probe latency (N=2000 ops): min=336.31 p50=437.24 p90=465.50 p95=477.46 p99=2890.39 max=6940.55 us (n=584)
+Done!
+
+************************************
+
+Total ops, 593,406,270  
+Query throughput, 197,802.09 Kops/s  
+Migration calls, 186.7  
+Avg migration latency, 52.15 ms  
+Per-successful-page latency, 11.31 μs/page  
+Pages migrated - succ, 860,110  
+Pages migrated - fail, 365,314  
+Page migration throughput, 28,670.2 pages/s  
+
+************************************
+
+QPS (10ms)  
+min, 157,559,300 ops/s  
+P50, 199,285,000 ops/s  
+P90, 200,856,600 ops/s  
+P95, 201,226,900 ops/s  
+P99, 201,845,600 ops/s  
+max, 203,065,900 ops/s  
+
+************************************
+
+Probe Lantency N=2000 ops  
+min, 336.67 μs  
+P50, 432.63 μs  
+P90, 458.99 μs  
+P95, 468.95 μs  
+P99, 1,705.15 μs  
+max, 7,454.88 μs

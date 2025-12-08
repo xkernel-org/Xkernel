@@ -1,0 +1,9 @@
+/sys/accessibility
+/sys/block
+/sys/bus
+/sys/class
+/sys/devices
+/sys/firmware
+/sys/fs
+/sys/kernel
+/sys/module
