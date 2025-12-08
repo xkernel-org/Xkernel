@@ -25,11 +25,12 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
     bool IndirectCallMode;  // Enable indirect call (function pointer) analysis
     bool UpwardInterprocMode;  // Enable upward interprocedural taint tracking (callee -> caller)
     unsigned OccurrenceIndex;  // Which occurrence to track (1 = first [default], 2 = second, etc., 0 = all)
+    bool ApproxDebugInfo;  // Enable approximate debug info for instructions with line 0 or no debug info
 
     // Constructor with parameters
-    TaintTrackerPass(std::string FuncName, std::string Opcode, int64_t Constant, bool Debug, bool Interproc, bool IndirectCall, bool UpwardInterproc, unsigned Occurrence)
+    TaintTrackerPass(std::string FuncName, std::string Opcode, int64_t Constant, bool Debug, bool Interproc, bool IndirectCall, bool UpwardInterproc, unsigned Occurrence, bool ApproxDebug)
         : FunctionName(std::move(FuncName)), TargetOpcode(std::move(Opcode)),
-          ConstantToTrack(Constant), Verbose(Debug), InterprocMode(Interproc), IndirectCallMode(IndirectCall), UpwardInterprocMode(UpwardInterproc), OccurrenceIndex(Occurrence) {}
+          ConstantToTrack(Constant), Verbose(Debug), InterprocMode(Interproc), IndirectCallMode(IndirectCall), UpwardInterprocMode(UpwardInterproc), OccurrenceIndex(Occurrence), ApproxDebugInfo(ApproxDebug) {}
 
     // Helper to print a value
     std::string getValueName(Value *V) {
@@ -62,19 +63,64 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
 
     // Helper to get debug location information
     std::string getDebugLoc(Instruction *I) {
-        if (!I) return "";
+        if (!I) return " <UNKNOWN>";
 
         const DebugLoc &DL = I->getDebugLoc();
-        if (!DL) return "";
 
-        std::string s;
-        raw_string_ostream os(s);
-        os << " <" << DL->getFilename() << ":" << DL->getLine();
-        if (DL->getColumn() != 0) {
-            os << ":" << DL->getColumn();
+        // Check if we have valid debug info (not null and line != 0)
+        bool hasValidDebugInfo = DL && DL->getLine() != 0;
+
+        if (hasValidDebugInfo) {
+            std::string s;
+            raw_string_ostream os(s);
+            os << " <" << DL->getFilename() << ":" << DL->getLine();
+            if (DL->getColumn() != 0) {
+                os << ":" << DL->getColumn();
+            }
+            os << ">";
+            return os.str();
         }
-        os << ">";
-        return os.str();
+
+        // If approximate debug info is not enabled, return empty string
+        if (!ApproxDebugInfo) {
+            return " <UNKNOWN>";
+        }
+
+        // Try to find approximate debug info from next instructions
+        // Look ahead up to 10 instructions to find one with valid line number
+        BasicBlock *BB = I->getParent();
+        if (!BB) return " <UNKNOWN>";
+
+        // Start from the next instruction after I
+        bool foundCurrent = false;
+        int lookahead = 0;
+        for (Instruction &NextI : *BB) {
+            // Skip until we find the current instruction
+            if (!foundCurrent) {
+                if (&NextI == I) {
+                    foundCurrent = true;
+                }
+                continue;
+            }
+
+            // Look at next up to 10 instructions
+            if (lookahead >= 10) break;
+            lookahead++;
+
+            const DebugLoc &NextDL = NextI.getDebugLoc();
+            if (NextDL && NextDL->getLine() != 0) {
+                std::string s;
+                raw_string_ostream os(s);
+                os << " <" << NextDL->getFilename() << ":" << NextDL->getLine();
+                if (NextDL->getColumn() != 0) {
+                    os << ":" << NextDL->getColumn();
+                }
+                os << "> (approx)";
+                return os.str();
+            }
+        }
+
+        return " <UNKNOWN>";
     }
 
     // Helper to get the level of a value
@@ -651,6 +697,7 @@ struct TaintTrackerPass : public PassInfoMixin<TaintTrackerPass> {
         errs() << "Interproc (downward): " << (InterprocMode ? "ON" : "OFF") << "\n";
         errs() << "Interproc (upward): " << (UpwardInterprocMode ? "ON" : "OFF") << "\n";
         errs() << "IndirectCall: " << (IndirectCallMode ? "ON" : "OFF") << "\n";
+        errs() << "ApproxDebugInfo: " << (ApproxDebugInfo ? "ON" : "OFF") << "\n";
         if (OccurrenceIndex == 0) {
             errs() << "Occurrence: ALL\n\n";
         } else {
@@ -1913,7 +1960,7 @@ llvmGetPassPluginInfo() {
             PB.registerPipelineParsingCallback(
                 [](StringRef Name, ModulePassManager &MPM,
                    ArrayRef<PassBuilder::PipelineElement>) {
-                    // Parse: taint-tracker<function_name;opcode;constant_value;debug;interproc;indirectcall;upward_interproc;occurrence>
+                    // Parse: taint-tracker<function_name;opcode;constant_value;debug;interproc;indirectcall;upward_interproc;occurrence;approx_debug>
                     if (Name.consume_front("taint-tracker")) {
                         std::string FunctionName = "gss_fill_context";  // default
                         std::string Opcode = "";  // default (empty means all opcodes)
@@ -1923,6 +1970,7 @@ llvmGetPassPluginInfo() {
                         bool IndirectCall = false;  // default
                         bool UpwardInterproc = false;  // default (upward: callee -> caller)
                         unsigned Occurrence = 1;  // default (1 = first occurrence, 0 = all occurrences)
+                        bool ApproxDebug = false;  // default (approximate debug info for line 0 or missing debug info)
 
                         if (Name.consume_front("<") && Name.consume_back(">")) {
                             // Parse parameters separated by semicolons
@@ -1967,9 +2015,14 @@ llvmGetPassPluginInfo() {
                                     Occurrence = 1;
                                 }
                             }
+                            if (Params.size() >= 9 && !Params[8].empty()) {
+                                StringRef ApproxDebugStr = Params[8];
+                                ApproxDebug = (ApproxDebugStr == "true" || ApproxDebugStr == "1" ||
+                                              ApproxDebugStr == "TRUE" || ApproxDebugStr == "yes");
+                            }
                         }
 
-                        MPM.addPass(TaintTrackerPass(FunctionName, Opcode, Constant, Debug, Interproc, IndirectCall, UpwardInterproc, Occurrence));
+                        MPM.addPass(TaintTrackerPass(FunctionName, Opcode, Constant, Debug, Interproc, IndirectCall, UpwardInterproc, Occurrence, ApproxDebug));
                         return true;
                     }
                     return false;

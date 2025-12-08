@@ -60,7 +60,7 @@ else
 fi
 
 opt -load-pass-plugin=build/libTaintTrackerPass.so \
-    -passes="taint-tracker<$FUNCTION_NAME;$SOURCE_OP;$CONSTANT_VALUE;false;$INTERPROC;$INDIRECT_CALL;$UPWARD_INTERPROC;$OCCURENCE>" \
+    -passes="taint-tracker<$FUNCTION_NAME;$SOURCE_OP;$CONSTANT_VALUE;false;$INTERPROC;$INDIRECT_CALL;$UPWARD_INTERPROC;$OCCURENCE;true>" \
     -disable-output \
     $INPUT_BC_FILE
 

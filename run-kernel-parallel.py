@@ -134,7 +134,7 @@ def process_input_file(args: Tuple[Path, int, int, str, dict]) -> Tuple[str, boo
         input_bc_file = vmlinux_bc
 
         # Build the opt command
-        pass_args = f"{function_name};{source_op};{constant_value};false;{interproc};{indirect_call};{upward_interproc};{occurrence}"
+        pass_args = f"{function_name};{source_op};{constant_value};false;{interproc};{indirect_call};{upward_interproc};{occurrence};true"
         opt_cmd = [
             '/usr/bin/time', '-o', str(time_statistics), '-v',
             'opt',

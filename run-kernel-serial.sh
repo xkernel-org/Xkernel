@@ -71,7 +71,7 @@ for INPUT_FILE in kernel-results/*/*.input.txt; do
 
     /usr/bin/time -o $TIME_STATISTICS -v \
         opt -load-pass-plugin=build/libTaintTrackerPass.so \
-        -passes="taint-tracker<$FUNCTION_NAME;$SOURCE_OP;$CONSTANT_VALUE;false;$INTERPROC;$INDIRECT_CALL;$UPWARD_INTERPROC;$OCCURENCE>" \
+        -passes="taint-tracker<$FUNCTION_NAME;$SOURCE_OP;$CONSTANT_VALUE;false;$INTERPROC;$INDIRECT_CALL;$UPWARD_INTERPROC;$OCCURENCE;true>" \
         -disable-output \
         $INPUT_BC_FILE |& tee $OUTPUT_FILE
 
