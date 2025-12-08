@@ -10,6 +10,12 @@
 
 set -ex
 
+for f in kernel-results/*/*.output.txt; do
+    grep "Total: [0-9]\+ instructions" $f | awk '{ print $2 }'
+done | tee kernel-results/occurrence-size.txt
+
+python utils/plot_cdf.py kernel-results/occurrence-size.txt
+
 for dir in kernel-results/*; do
     if [[ ! -d $dir ]]; then
         continue
