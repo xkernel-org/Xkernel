@@ -357,6 +357,27 @@ def parse_dataflow_analysis_output_file(filepath):
             "<net/core/filter.c:12018:"
         )
 
+    # Manual tweaks (2)
+    # These instructions don't have meaningful debug info and neither do any
+    # instruction following it until the end of BB
+    if filepath == "kernel-results/MAX_SLACK/5.output.txt" \
+        or filepath == "kernel-results/MAX_SLACK/6.output.txt":
+        content = content.replace(
+            "<UNKNOWN>",
+            "<fs/select.c:509:>"
+        )
+    if filepath == "kernel-results/MAX_SLACK/8.output.txt" \
+        or filepath == "kernel-results/MAX_SLACK/9.output.txt":
+        content = content.replace(
+            "<UNKNOWN>",
+            "<fs/select.c:893:>"
+        )
+    if filepath == "kernel-results/NUMA_IMBALANCE_MIN/1.output.txt":
+        content = content.replace(
+            "<UNKNOWN>",
+            "<kernel/sched/fair.c:1427:>"
+        )
+
     # Check if "Number of max-level functions:" is 1
     match = re.search(r'Number of max-level functions:\s*(\d+)', content)
     if not match:
