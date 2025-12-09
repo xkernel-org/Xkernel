@@ -1,0 +1,1 @@
+  task_numa_work: [BB45:I12 -> BB45:I17, BB55:I1 -> BB55:I6]

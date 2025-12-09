@@ -1,0 +1,3 @@
+bfq_get_queue: BB48:I2 -> BB48:I7 => 6 instructions
+
+Total: 6 instructions

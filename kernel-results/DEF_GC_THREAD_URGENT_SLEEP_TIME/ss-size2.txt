@@ -1,0 +1,3 @@
+f2fs_start_gc_thread: BB1:I1 -> BB1:I1 => 1 instructions
+
+Total: 1 instructions

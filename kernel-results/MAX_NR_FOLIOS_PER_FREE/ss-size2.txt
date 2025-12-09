@@ -1,0 +1,4 @@
+madvise_vma_behavior: BB46:I8 -> BB101:I2 => 408 instructions
+tlb_flush_mmu: full span => 133 instructions
+
+Total: 541 instructions

@@ -1,0 +1,1 @@
+  shrink_slab: BB12:I1 -> BB29:I2

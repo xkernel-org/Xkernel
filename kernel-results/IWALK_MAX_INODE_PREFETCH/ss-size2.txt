@@ -1,0 +1,4 @@
+xfs_iwalk: BB0:I17 -> BB0:I25 => 9 instructions
+xfs_iwalk_threaded: BB1:I3 -> BB4:I14 => 36 instructions
+
+Total: 45 instructions

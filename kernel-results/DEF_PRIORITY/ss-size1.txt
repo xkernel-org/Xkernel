@@ -1,0 +1,7 @@
+  do_try_to_free_pages: BB35:I1 -> BB35:I2
+  kswapd: BB42:I0 -> BB91:I5
+  shrink_all_memory: BB0:I12 -> BB0:I12
+  shrink_node: [BB93:I7 -> BB130:I6, BB169:I1 -> BB169:I4]
+  try_to_free_pages: BB0:I20 -> BB0:I20
+  xfs_inodegc_register_shrinker: BB1:I9 -> BB1:I9
+  xfs_inodegc_shrinker_count: BB6:I0 -> BB6:I0

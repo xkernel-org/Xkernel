@@ -1,0 +1,3 @@
+task_numa_find_cpu: BB64:I0 -> BB64:I1 => 2 instructions
+
+Total: 2 instructions

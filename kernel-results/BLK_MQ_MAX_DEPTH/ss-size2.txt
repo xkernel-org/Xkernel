@@ -1,0 +1,8 @@
+blk_mq_alloc_tag_set: full span => 152 instructions
+dm_mq_init_request_queue: BB1:I1 -> BB1:I1 => 1 instructions
+loop_add: full span => 136 instructions
+nvme_alloc_io_tag_set: full span => 85 instructions
+nvme_probe: BB47:I1 -> BB89:I3 => 206 instructions
+virtblk_probe: full span => 609 instructions
+
+Total: 1189 instructions

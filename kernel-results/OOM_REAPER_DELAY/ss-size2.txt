@@ -1,0 +1,4 @@
+oom_kill_process: [BB5:I3 -> BB5:I3, BB48:I3 -> BB48:I3] => 2 instructions
+out_of_memory: BB9:I3 -> BB9:I5 => 3 instructions
+
+Total: 5 instructions

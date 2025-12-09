@@ -1,0 +1,31 @@
+__create_dir: BB3:I0 -> BB3:I3 => 4 instructions
+__debugfs_create_file: BB7:I0 -> BB7:I3 => 4 instructions
+__rpc_create_common: BB1:I0 -> BB1:I3 => 4 instructions
+__sock_create: BB7:I1 -> BB7:I4 => 4 instructions
+alloc_anon_inode: BB1:I0 -> BB1:I3 => 4 instructions
+autofs_fill_super: BB4:I1 -> BB4:I4 => 4 instructions
+autofs_get_inode: BB3:I1 -> BB3:I4 => 4 instructions
+bm_register_write: BB51:I0 -> BB51:I3 => 4 instructions
+create_pipe_files: BB1:I0 -> BB1:I3 => 4 instructions
+debugfs_create_automount: BB5:I0 -> BB5:I3 => 4 instructions
+debugfs_create_dir: BB5:I0 -> BB5:I3 => 4 instructions
+debugfs_create_symlink: BB5:I0 -> BB5:I3 => 4 instructions
+do_accept: BB3:I1 -> BB3:I4 => 4 instructions
+eventfs_iterate: BB22:I3 -> BB25:I7 => 18 instructions
+eventfs_root_lookup: BB14:I27 -> BB17:I3 => 14 instructions
+get_next_ino: full span => 29 instructions
+hugetlbfs_fill_super: BB4:I0 -> BB4:I3 => 4 instructions
+hugetlbfs_get_inode: BB4:I2 -> BB4:I5 => 4 instructions
+mqueue_fill_super: BB1:I0 -> BB1:I3 => 4 instructions
+mqueue_get_inode: BB1:I0 -> BB1:I3 => 4 instructions
+proc_pid_make_inode: BB1:I1 -> BB1:I4 => 4 instructions
+proc_sys_make_inode: BB1:I0 -> BB1:I3 => 4 instructions
+ramfs_get_inode: BB1:I0 -> BB1:I3 => 4 instructions
+ramfs_symlink: BB1:I0 -> BB1:I3 => 4 instructions
+rpc_fill_super: BB1:I0 -> BB1:I3 => 4 instructions
+sock_alloc: BB1:I1 -> BB1:I4 => 4 instructions
+sock_create_lite: BB2:I1 -> BB2:I4 => 4 instructions
+tracefs_create_file: BB6:I0 -> BB6:I3 => 4 instructions
+tracefs_get_inode: BB1:I0 -> BB1:I3 => 4 instructions
+
+Total: 165 instructions

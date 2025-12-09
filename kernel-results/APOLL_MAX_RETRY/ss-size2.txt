@@ -1,0 +1,4 @@
+__io_run_local_work: BB5:I4 -> BB32:I2 => 93 instructions
+io_arm_poll_handler: full span => 160 instructions
+
+Total: 253 instructions

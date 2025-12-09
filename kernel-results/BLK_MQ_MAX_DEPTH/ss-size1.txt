@@ -1,0 +1,6 @@
+  blk_mq_alloc_tag_set: full span
+  dm_mq_init_request_queue: BB1:I1 -> BB1:I1
+  loop_add: full span
+  nvme_alloc_io_tag_set: full span
+  nvme_probe: BB47:I1 -> BB89:I3
+  virtblk_probe: full span

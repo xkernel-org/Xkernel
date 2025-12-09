@@ -1,0 +1,5 @@
+param_set_first_fqs_jiffies: BB2:I5 -> BB3:I0 => 7 instructions
+param_set_next_fqs_jiffies: BB2:I5 -> BB3:I0 => 7 instructions
+rcu_init_geometry: BB3:I4 -> BB9:I1 => 28 instructions
+
+Total: 42 instructions

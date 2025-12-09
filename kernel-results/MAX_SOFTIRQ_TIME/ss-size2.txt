@@ -1,0 +1,3 @@
+handle_softirqs: BB22:I2 -> BB22:I4 => 3 instructions
+
+Total: 3 instructions

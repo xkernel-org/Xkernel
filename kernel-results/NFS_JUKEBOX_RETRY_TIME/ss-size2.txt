@@ -1,0 +1,22 @@
+__nfs3_proc_lookup: [BB3:I1 -> BB3:I1, BB11:I1 -> BB11:I1] => 2 instructions
+do_proc_fsinfo: BB2:I1 -> BB2:I1 => 1 instructions
+do_proc_get_root: [BB2:I1 -> BB2:I1, BB9:I1 -> BB9:I1] => 2 instructions
+ff_layout_async_handle_error: BB12:I14 -> BB12:I14 => 1 instructions
+nfs3_commit_done: BB3:I10 -> BB3:I10 => 1 instructions
+nfs3_do_create: BB2:I1 -> BB2:I1 => 1 instructions
+nfs3_proc_access: BB3:I1 -> BB3:I1 => 1 instructions
+nfs3_proc_getattr: BB4:I1 -> BB4:I1 => 1 instructions
+nfs3_proc_link: BB3:I1 -> BB3:I1 => 1 instructions
+nfs3_proc_pathconf: BB2:I1 -> BB2:I1 => 1 instructions
+nfs3_proc_readdir: BB7:I1 -> BB7:I1 => 1 instructions
+nfs3_proc_readlink: BB3:I1 -> BB3:I1 => 1 instructions
+nfs3_proc_remove: BB3:I1 -> BB3:I1 => 1 instructions
+nfs3_proc_rename_done: BB1:I10 -> BB1:I10 => 1 instructions
+nfs3_proc_rmdir: BB3:I1 -> BB3:I1 => 1 instructions
+nfs3_proc_setattr: BB7:I1 -> BB7:I1 => 1 instructions
+nfs3_proc_statfs: BB2:I1 -> BB2:I1 => 1 instructions
+nfs3_proc_unlink_done: BB1:I10 -> BB1:I10 => 1 instructions
+nfs3_read_done: BB3:I6 -> BB3:I6 => 1 instructions
+nfs3_write_done: BB3:I10 -> BB3:I10 => 1 instructions
+
+Total: 22 instructions

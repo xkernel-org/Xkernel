@@ -1,0 +1,2 @@
+  mpol_misplaced: BB36:I2 -> BB36:I3
+  should_numa_migrate_memory: full span

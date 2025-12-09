@@ -1,0 +1,3 @@
+sync_thread_master: BB13:I0 -> BB13:I0 => 1 instructions
+
+Total: 1 instructions

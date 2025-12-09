@@ -1,0 +1,3 @@
+bfq_setup_cooperator: [BB6:I2 -> BB6:I6, BB7:I2 -> BB7:I6] => 10 instructions
+
+Total: 10 instructions

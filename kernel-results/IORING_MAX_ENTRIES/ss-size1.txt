@@ -1,0 +1,3 @@
+  __se_sys_io_uring_setup: BB5:I1 -> BB5:I15
+  io_register_resize_rings: full span
+  io_uring_fill_params: full span

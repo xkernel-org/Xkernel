@@ -1,0 +1,22 @@
+Started:
+400
+Completed:
+400
+
+Average time: 10:47
+Median time: 3:30
+Min time: 2:14
+Max time: 2:04:28
+Max memory: 7488436 kB
+Min memory: 7481112 kB
+
+40,kernel-results/BUSY_POLL_BUDGET/1.output.txt
+40,kernel-results/BLK_MQ_MAX_DEPTH/2.output.txt
+40,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/16.output.txt
+40,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/14.output.txt
+40,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/12.output.txt
+40,kernel-results/BLK_MQ_BUDGET_DELAY/2.output.txt
+40,kernel-results/BLK_MQ_BUDGET_DELAY/1.output.txt
+40,kernel-results/AMT_SECRET_TIMEOUT/1.output.txt
+40,kernel-results/AMT_DISCOVERY_TIMEOUT/2.output.txt
+40,kernel-results/AMT_DISCOVERY_TIMEOUT/1.output.txt

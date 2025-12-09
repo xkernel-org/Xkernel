@@ -1,0 +1,3 @@
+migrate_pages: [BB72:I2 -> BB72:I3, BB74:I0 -> BB74:I1] => 4 instructions
+
+Total: 4 instructions

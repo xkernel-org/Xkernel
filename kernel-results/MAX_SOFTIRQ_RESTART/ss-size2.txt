@@ -1,0 +1,3 @@
+handle_softirqs: BB1:I1 -> BB23:I6 => 127 instructions
+
+Total: 127 instructions

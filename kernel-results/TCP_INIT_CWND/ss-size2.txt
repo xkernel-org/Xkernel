@@ -1,0 +1,11 @@
+bbr_main: [BB27:I0 -> BB29:I2, BB33:I0 -> BB35:I2, BB47:I0 -> BB49:I0, BB55:I0 -> BB57:I2, BB103:I0 -> BB114:I2] => 202 instructions
+dctcp_update_alpha: BB3:I0 -> BB4:I2 => 6 instructions
+tcp_check_space: BB9:I21 -> BB12:I4 => 19 instructions
+tcp_cwnd_restart: BB0:I2 -> BB8:I0 => 49 instructions
+tcp_disconnect: BB29:I48 -> BB29:I48 => 1 instructions
+tcp_init_cwnd: full span => 17 instructions
+tcp_init_sock: BB0:I40 -> BB0:I40 => 1 instructions
+tcp_init_transfer: [BB5:I0 -> BB7:I0, BB10:I23 -> BB13:I3, BB22:I13 -> BB22:I15] => 32 instructions
+tcp_write_xmit: BB39:I0 -> BB175:I3 => 841 instructions
+
+Total: 1168 instructions

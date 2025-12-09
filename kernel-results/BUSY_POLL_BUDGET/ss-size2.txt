@@ -1,0 +1,5 @@
+__io_napi_busy_loop: [BB11:I5 -> BB11:I5, BB13:I6 -> BB13:I6] => 2 instructions
+do_epoll_wait: BB46:I5 -> BB50:I0 => 13 instructions
+io_napi_sqpoll_busy_poll: [BB6:I5 -> BB6:I5, BB9:I6 -> BB9:I6] => 2 instructions
+
+Total: 17 instructions

@@ -1,0 +1,2 @@
+  smc_tx_consumer_update: BB13:I5 -> BB13:I5
+  smc_tx_sndbuf_nonempty: BB32:I4 -> BB32:I4
