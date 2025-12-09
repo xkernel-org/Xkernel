@@ -24,13 +24,19 @@ ID,directory,file,function,offset,source start,source end
 11,TCP_MAX_QUICKACKS,kernel-results/TCP_MAX_QUICKACKS/3.output.txt,tcp_event_data_recv,0x252 - 0x243,net/ipv4/tcp_input.c:313,net/ipv4/tcp_input.c:315
 11,TCP_MAX_QUICKACKS,kernel-results/TCP_MAX_QUICKACKS/4.output.txt,tcp_event_data_recv,0x252 - 0x243,net/ipv4/tcp_input.c:313,net/ipv4/tcp_input.c:315
 11,TCP_MAX_QUICKACKS,kernel-results/TCP_MAX_QUICKACKS/5.output.txt,tcp_send_dupack,0x7d - 0x92,net/ipv4/tcp_input.c:313,net/ipv4/tcp_input.c:315
-12,TCP_MAX_WSCALE,kernel-results/TCP_MAX_WSCALE/10.output.txt,,,,
-12,TCP_MAX_WSCALE,kernel-results/TCP_MAX_WSCALE/11.output.txt,,,,
+12,TCP_MAX_WSCALE,kernel-results/TCP_MAX_WSCALE/10.output.txt,cookie_v4_check,0x2f5 - 0x370,net/ipv4/syncookies.c:475,net/ipv4/syncookies.c:483
+12,TCP_MAX_WSCALE,kernel-results/TCP_MAX_WSCALE/10.output.txt,cookie_v6_check,0x201 - 0x4a0,net/ipv6/syncookies.c:235,./include/net/request_sock.h:137
+12,TCP_MAX_WSCALE,kernel-results/TCP_MAX_WSCALE/10.output.txt,tcp_openreq_init_rwin,0x142 - 0x155,net/ipv4/tcp_minisocks.c:458,net/ipv4/tcp_minisocks.c:458
+12,TCP_MAX_WSCALE,kernel-results/TCP_MAX_WSCALE/11.output.txt,cookie_v4_check,0x2f5 - 0x370,net/ipv4/syncookies.c:475,net/ipv4/syncookies.c:483
+12,TCP_MAX_WSCALE,kernel-results/TCP_MAX_WSCALE/11.output.txt,cookie_v6_check,0x201 - 0x4a0,net/ipv6/syncookies.c:235,./include/net/request_sock.h:137
+12,TCP_MAX_WSCALE,kernel-results/TCP_MAX_WSCALE/11.output.txt,tcp_openreq_init_rwin,0x142 - 0x155,net/ipv4/tcp_minisocks.c:458,net/ipv4/tcp_minisocks.c:458
 12,TCP_MAX_WSCALE,kernel-results/TCP_MAX_WSCALE/12.output.txt,tcp_select_initial_window,0x24 - 0x3f8f,net/ipv4/tcp_output.c:216,net/ipv4/tcp_output.c:3926
 12,TCP_MAX_WSCALE,kernel-results/TCP_MAX_WSCALE/13.output.txt,tcp_select_initial_window,0x8b - 0x3f8f,net/ipv4/tcp_output.c:246,net/ipv4/tcp_output.c:3926
 12,TCP_MAX_WSCALE,kernel-results/TCP_MAX_WSCALE/14.output.txt,tcp_select_initial_window,0x8b - 0x3f8f,net/ipv4/tcp_output.c:246,net/ipv4/tcp_output.c:3926
 12,TCP_MAX_WSCALE,kernel-results/TCP_MAX_WSCALE/15.output.txt,nf_conntrack_tcp_packet,0x1522 - 0x1544,net/netfilter/nf_conntrack_proto_tcp.c:1090,net/netfilter/nf_conntrack_proto_tcp.c:1095
-12,TCP_MAX_WSCALE,kernel-results/TCP_MAX_WSCALE/16.output.txt,,,,
+12,TCP_MAX_WSCALE,kernel-results/TCP_MAX_WSCALE/16.output.txt,ipv4_synproxy_hook,0x1cb - 0x565,net/netfilter/nf_synproxy_core.c:711,net/netfilter/nf_synproxy_core.c:738
+12,TCP_MAX_WSCALE,kernel-results/TCP_MAX_WSCALE/16.output.txt,ipv6_synproxy_hook,0x1f6 - 0x51d,net/netfilter/nf_synproxy_core.c:1134,net/netfilter/nf_synproxy_core.c:1161
+12,TCP_MAX_WSCALE,kernel-results/TCP_MAX_WSCALE/16.output.txt,synproxy_tg4,0x16b - 0x182,net/ipv4/netfilter/ipt_SYNPROXY.c:38,net/ipv4/netfilter/ipt_SYNPROXY.c:44
 12,TCP_MAX_WSCALE,kernel-results/TCP_MAX_WSCALE/1.output.txt,bpf_sk_assign_tcp_reqsk,0xe3 - 0xf1,net/core/filter.c:12018,net/core/filter.c:12018
 12,TCP_MAX_WSCALE,kernel-results/TCP_MAX_WSCALE/2.output.txt,bpf_sk_assign_tcp_reqsk,0xe3 - 0xf1,net/core/filter.c:12018,net/core/filter.c:12018
 12,TCP_MAX_WSCALE,kernel-results/TCP_MAX_WSCALE/3.output.txt,do_tcp_setsockopt,0xa98 - 0xa98,net/ipv4/tcp.c:3482,net/ipv4/tcp.c:3482
@@ -38,8 +44,15 @@ ID,directory,file,function,offset,source start,source end
 12,TCP_MAX_WSCALE,kernel-results/TCP_MAX_WSCALE/5.output.txt,do_tcp_setsockopt,0xa98 - 0xa98,net/ipv4/tcp.c:3482,net/ipv4/tcp.c:3482
 12,TCP_MAX_WSCALE,kernel-results/TCP_MAX_WSCALE/6.output.txt,tcp_parse_options,0x2fd - 0x300,net/ipv4/tcp_input.c:4237,net/ipv4/tcp_input.c:4237
 12,TCP_MAX_WSCALE,kernel-results/TCP_MAX_WSCALE/7.output.txt,tcp_parse_options,0x341 - 0x3af,net/ipv4/tcp_input.c:4238,net/ipv4/tcp_input.c:4238
-12,TCP_MAX_WSCALE,kernel-results/TCP_MAX_WSCALE/8.output.txt,,,,
-12,TCP_MAX_WSCALE,kernel-results/TCP_MAX_WSCALE/9.output.txt,,,,
+12,TCP_MAX_WSCALE,kernel-results/TCP_MAX_WSCALE/8.output.txt,cookie_v4_check,0x5e6 - 0x9b6f6,net/ipv4/syncookies.c:378,net/ipv4/syncookies.c:258
+12,TCP_MAX_WSCALE,kernel-results/TCP_MAX_WSCALE/8.output.txt,cookie_v6_check,0x548 - 0x5fc,net/ipv6/syncookies.c:152,net/ipv6/syncookies.c:156
+12,TCP_MAX_WSCALE,kernel-results/TCP_MAX_WSCALE/8.output.txt,tcp_check_req,0x24c - 0x486,net/ipv4/tcp_minisocks.c:675,net/ipv4/tcp_minisocks.c:868
+12,TCP_MAX_WSCALE,kernel-results/TCP_MAX_WSCALE/8.output.txt,tcp_conn_request,0x27a - 0x9c8,net/ipv4/tcp_input.c:7268,net/ipv4/tcp_input.c:7311
+12,TCP_MAX_WSCALE,kernel-results/TCP_MAX_WSCALE/8.output.txt,tcp_rcv_state_process,0xe3a - 0x991,net/ipv4/tcp_input.c:6379,net/ipv4/tcp_input.c:6400
+12,TCP_MAX_WSCALE,kernel-results/TCP_MAX_WSCALE/8.output.txt,tcp_timewait_state_process,0x210 - 0x83,net/ipv4/tcp_minisocks.c:113,net/ipv4/tcp_minisocks.c:237
+12,TCP_MAX_WSCALE,kernel-results/TCP_MAX_WSCALE/9.output.txt,cookie_v4_check,0x2f5 - 0x370,net/ipv4/syncookies.c:475,net/ipv4/syncookies.c:483
+12,TCP_MAX_WSCALE,kernel-results/TCP_MAX_WSCALE/9.output.txt,cookie_v6_check,0x201 - 0x4a0,net/ipv6/syncookies.c:235,./include/net/request_sock.h:137
+12,TCP_MAX_WSCALE,kernel-results/TCP_MAX_WSCALE/9.output.txt,tcp_openreq_init_rwin,0x142 - 0x155,net/ipv4/tcp_minisocks.c:458,net/ipv4/tcp_minisocks.c:458
 13,TCP_DELACK_MAX,kernel-results/TCP_DELACK_MAX/1.output.txt,sol_tcp_sockopt,0x184 - 0x184,net/core/filter.c:5289,net/core/filter.c:5289
 13,TCP_DELACK_MAX,kernel-results/TCP_DELACK_MAX/2.output.txt,sol_tcp_sockopt,0x184 - 0x184,net/core/filter.c:5289,net/core/filter.c:5289
 13,TCP_DELACK_MAX,kernel-results/TCP_DELACK_MAX/3.output.txt,dccp_send_ack.part.0,0xb3 - 0xb3,net/dccp/output.c:594,net/dccp/output.c:594
@@ -66,16 +79,28 @@ ID,directory,file,function,offset,source start,source end
 16,TCP_TIMEOUT_MIN,kernel-results/TCP_TIMEOUT_MIN/2.output.txt,sol_tcp_sockopt,0x302 - 0x302,net/core/filter.c:5296,net/core/filter.c:5296
 16,TCP_TIMEOUT_MIN,kernel-results/TCP_TIMEOUT_MIN/3.output.txt,tcp_rcv_state_process,0x680 - 0x680,net/ipv4/tcp_input.c:6479,net/ipv4/tcp_input.c:6479
 16,TCP_TIMEOUT_MIN,kernel-results/TCP_TIMEOUT_MIN/4.output.txt,,,,
+16,TCP_TIMEOUT_MIN,kernel-results/TCP_TIMEOUT_MIN/4.output.txt,tcp_send_probe0,0x51 - 0x9f,net/ipv4/tcp_output.c:4404,net/ipv4/tcp_output.c:4406
 17,TCP_TIMEOUT_MIN_US,kernel-results/TCP_TIMEOUT_MIN_US/1.output.txt,tcp_schedule_loss_probe.part.0,0x6c7c - 0x145,./include/linux/jiffies.h:587,net/ipv4/tcp_output.c:2915
 17,TCP_TIMEOUT_MIN_US,kernel-results/TCP_TIMEOUT_MIN_US/2.output.txt,tcp_identify_packet_loss,0x50 - 0x50,net/ipv4/tcp_input.c:3047,net/ipv4/tcp_input.c:3047
 18,MAX_GRO_SKBS,kernel-results/MAX_GRO_SKBS/1.output.txt,dev_gro_receive,0x52c - 0x53b,net/core/gro.c:539,net/core/gro.c:539
 19,BLK_MQ_CPU_WORK_BATCH,kernel-results/BLK_MQ_CPU_WORK_BATCH/1.output.txt,blk_mq_map_swqueue,0x413 - 0x41e,block/blk-mq.c:4199,block/blk-mq.c:4199
 19,BLK_MQ_CPU_WORK_BATCH,kernel-results/BLK_MQ_CPU_WORK_BATCH/2.output.txt,,,,
+19,BLK_MQ_CPU_WORK_BATCH,kernel-results/BLK_MQ_CPU_WORK_BATCH/2.output.txt,hmb_store,0xc5 - 0xcd,drivers/nvme/host/pci.c:2309,drivers/nvme/host/pci.c:2309
+19,BLK_MQ_CPU_WORK_BATCH,kernel-results/BLK_MQ_CPU_WORK_BATCH/2.output.txt,nvme_probe,0x83a - 0x858,drivers/nvme/host/pci.c:3302,drivers/nvme/host/pci.c:3307
+19,BLK_MQ_CPU_WORK_BATCH,kernel-results/BLK_MQ_CPU_WORK_BATCH/2.output.txt,nvme_pr_read_keys,0x50 - 0x10b,drivers/nvme/host/pr.c:247,drivers/nvme/host/pr.c:270
+19,BLK_MQ_CPU_WORK_BATCH,kernel-results/BLK_MQ_CPU_WORK_BATCH/2.output.txt,nvme_pr_read_reservation,0x3b - 0x13f,drivers/nvme/host/pr.c:285,drivers/nvme/host/pr.c:332
+19,BLK_MQ_CPU_WORK_BATCH,kernel-results/BLK_MQ_CPU_WORK_BATCH/2.output.txt,nvme_report_zones,0x0 - 0xa,drivers/nvme/host/core.c:2408,drivers/nvme/host/core.c:2408
+19,BLK_MQ_CPU_WORK_BATCH,kernel-results/BLK_MQ_CPU_WORK_BATCH/2.output.txt,nvme_reset_work,0xea - 0x106,drivers/nvme/host/pci.c:2966,drivers/nvme/host/pci.c:2971
+19,BLK_MQ_CPU_WORK_BATCH,kernel-results/BLK_MQ_CPU_WORK_BATCH/2.output.txt,nvme_resume,0x42 - 0x58,drivers/nvme/host/pci.c:3433,drivers/nvme/host/pci.c:3433
+19,BLK_MQ_CPU_WORK_BATCH,kernel-results/BLK_MQ_CPU_WORK_BATCH/2.output.txt,nvme_suspend,0xd9 - 0xe3,drivers/nvme/host/pci.c:3481,drivers/nvme/host/pci.c:3482
+19,BLK_MQ_CPU_WORK_BATCH,kernel-results/BLK_MQ_CPU_WORK_BATCH/2.output.txt,nvme_update_ns_info_block,0xbc - 0x870,drivers/nvme/host/core.c:2188,drivers/nvme/host/core.c:2189
+19,BLK_MQ_CPU_WORK_BATCH,kernel-results/BLK_MQ_CPU_WORK_BATCH/2.output.txt,virtblk_poll,0x7d - 0x10e,drivers/block/virtio_blk.c:331,drivers/block/virtio_blk.c:347
 20,TCP_THIN_LINEAR_RETRIES,kernel-results/TCP_THIN_LINEAR_RETRIES/1.output.txt,tcp_retransmit_timer,0x93c - 0x943,net/ipv4/tcp_timer.c:663,net/ipv4/tcp_timer.c:663
 21,TCP_INIT_CWND,kernel-results/TCP_INIT_CWND/10.output.txt,tcp_init_cwnd,0x23 - 0x6dcc,net/ipv4/tcp_input.c:1011,./include/net/tcp.h:1337
 21,TCP_INIT_CWND,kernel-results/TCP_INIT_CWND/11.output.txt,tcp_sndbuf_expand,0x73 - 0xb1,net/ipv4/tcp_input.c:445,net/ipv4/tcp_input.c:455
 21,TCP_INIT_CWND,kernel-results/TCP_INIT_CWND/12.output.txt,tcp_init_transfer,0x1d0 - 0x1eb,net/ipv4/tcp_input.c:595,net/ipv4/tcp_input.c:595
-21,TCP_INIT_CWND,kernel-results/TCP_INIT_CWND/13.output.txt,,,,
+21,TCP_INIT_CWND,kernel-results/TCP_INIT_CWND/13.output.txt,tcp_cwnd_restart,0x1d - 0xba,net/ipv4/tcp_output.c:147,./include/net/tcp.h:1337
+21,TCP_INIT_CWND,kernel-results/TCP_INIT_CWND/13.output.txt,tcp_write_xmit,0xa0 - 0xa76,net/ipv4/tcp_output.c:2767,net/ipv4/tcp_output.c:2662
 21,TCP_INIT_CWND,kernel-results/TCP_INIT_CWND/14.output.txt,dctcp_update_alpha,0x110 - 0x113,net/ipv4/tcp_dctcp.c:147,net/ipv4/tcp_dctcp.c:148
 21,TCP_INIT_CWND,kernel-results/TCP_INIT_CWND/1.output.txt,tcp_init_sock,0x7a7b - 0x2d2ff,./include/net/tcp.h:1337,./include/net/tcp.h:1337
 21,TCP_INIT_CWND,kernel-results/TCP_INIT_CWND/2.output.txt,tcp_disconnect,0x19b - 0x25a1f,./include/net/tcp.h:1337,./include/net/tcp.h:1337
@@ -107,11 +132,33 @@ ID,directory,file,function,offset,source start,source end
 33,SBQ_WAKE_BATCH,kernel-results/SBQ_WAKE_BATCH/1.output.txt,blk_mq_update_nr_requests,0x141 - 0x14b,block/blk-mq.c:4879,block/blk-mq.c:4885
 33,SBQ_WAKE_BATCH,kernel-results/SBQ_WAKE_BATCH/2.output.txt,blk_mq_update_nr_requests,0x141 - 0x14b,block/blk-mq.c:4879,block/blk-mq.c:4885
 33,SBQ_WAKE_BATCH,kernel-results/SBQ_WAKE_BATCH/3.output.txt,,,,
+33,SBQ_WAKE_BATCH,kernel-results/SBQ_WAKE_BATCH/3.output.txt,hmb_store,0xc5 - 0xcd,drivers/nvme/host/pci.c:2309,drivers/nvme/host/pci.c:2309
+33,SBQ_WAKE_BATCH,kernel-results/SBQ_WAKE_BATCH/3.output.txt,nvme_probe,0x83a - 0x858,drivers/nvme/host/pci.c:3302,drivers/nvme/host/pci.c:3307
+33,SBQ_WAKE_BATCH,kernel-results/SBQ_WAKE_BATCH/3.output.txt,nvme_pr_read_keys,0x50 - 0x10b,drivers/nvme/host/pr.c:247,drivers/nvme/host/pr.c:270
+33,SBQ_WAKE_BATCH,kernel-results/SBQ_WAKE_BATCH/3.output.txt,nvme_pr_read_reservation,0x3b - 0x13f,drivers/nvme/host/pr.c:285,drivers/nvme/host/pr.c:332
+33,SBQ_WAKE_BATCH,kernel-results/SBQ_WAKE_BATCH/3.output.txt,nvme_report_zones,0x0 - 0xa,drivers/nvme/host/core.c:2408,drivers/nvme/host/core.c:2408
+33,SBQ_WAKE_BATCH,kernel-results/SBQ_WAKE_BATCH/3.output.txt,nvme_reset_work,0xea - 0x106,drivers/nvme/host/pci.c:2966,drivers/nvme/host/pci.c:2971
+33,SBQ_WAKE_BATCH,kernel-results/SBQ_WAKE_BATCH/3.output.txt,nvme_resume,0x42 - 0x58,drivers/nvme/host/pci.c:3433,drivers/nvme/host/pci.c:3433
+33,SBQ_WAKE_BATCH,kernel-results/SBQ_WAKE_BATCH/3.output.txt,nvme_suspend,0xd9 - 0xe3,drivers/nvme/host/pci.c:3481,drivers/nvme/host/pci.c:3482
+33,SBQ_WAKE_BATCH,kernel-results/SBQ_WAKE_BATCH/3.output.txt,nvme_update_ns_info_block,0xbc - 0x870,drivers/nvme/host/core.c:2188,drivers/nvme/host/core.c:2189
+33,SBQ_WAKE_BATCH,kernel-results/SBQ_WAKE_BATCH/3.output.txt,virtblk_poll,0x7d - 0x10e,drivers/block/virtio_blk.c:331,drivers/block/virtio_blk.c:347
 33,SBQ_WAKE_BATCH,kernel-results/SBQ_WAKE_BATCH/4.output.txt,,,,
+33,SBQ_WAKE_BATCH,kernel-results/SBQ_WAKE_BATCH/4.output.txt,hmb_store,0xc5 - 0xcd,drivers/nvme/host/pci.c:2309,drivers/nvme/host/pci.c:2309
+33,SBQ_WAKE_BATCH,kernel-results/SBQ_WAKE_BATCH/4.output.txt,nvme_probe,0x83a - 0x858,drivers/nvme/host/pci.c:3302,drivers/nvme/host/pci.c:3307
+33,SBQ_WAKE_BATCH,kernel-results/SBQ_WAKE_BATCH/4.output.txt,nvme_pr_read_keys,0x50 - 0x10b,drivers/nvme/host/pr.c:247,drivers/nvme/host/pr.c:270
+33,SBQ_WAKE_BATCH,kernel-results/SBQ_WAKE_BATCH/4.output.txt,nvme_pr_read_reservation,0x3b - 0x13f,drivers/nvme/host/pr.c:285,drivers/nvme/host/pr.c:332
+33,SBQ_WAKE_BATCH,kernel-results/SBQ_WAKE_BATCH/4.output.txt,nvme_report_zones,0x0 - 0xa,drivers/nvme/host/core.c:2408,drivers/nvme/host/core.c:2408
+33,SBQ_WAKE_BATCH,kernel-results/SBQ_WAKE_BATCH/4.output.txt,nvme_reset_work,0xea - 0x106,drivers/nvme/host/pci.c:2966,drivers/nvme/host/pci.c:2971
+33,SBQ_WAKE_BATCH,kernel-results/SBQ_WAKE_BATCH/4.output.txt,nvme_resume,0x42 - 0x58,drivers/nvme/host/pci.c:3433,drivers/nvme/host/pci.c:3433
+33,SBQ_WAKE_BATCH,kernel-results/SBQ_WAKE_BATCH/4.output.txt,nvme_suspend,0xd9 - 0xe3,drivers/nvme/host/pci.c:3481,drivers/nvme/host/pci.c:3482
+33,SBQ_WAKE_BATCH,kernel-results/SBQ_WAKE_BATCH/4.output.txt,nvme_update_ns_info_block,0xbc - 0x870,drivers/nvme/host/core.c:2188,drivers/nvme/host/core.c:2189
+33,SBQ_WAKE_BATCH,kernel-results/SBQ_WAKE_BATCH/4.output.txt,virtblk_poll,0x7d - 0x10e,drivers/block/virtio_blk.c:331,drivers/block/virtio_blk.c:347
 33,SBQ_WAKE_BATCH,kernel-results/SBQ_WAKE_BATCH/5.output.txt,sbitmap_queue_min_shallow_depth,0x49 - 0x60,lib/sbitmap.c:426,lib/sbitmap.c:469
 33,SBQ_WAKE_BATCH,kernel-results/SBQ_WAKE_BATCH/6.output.txt,sbitmap_queue_min_shallow_depth,0x49 - 0x60,lib/sbitmap.c:426,lib/sbitmap.c:469
-33,SBQ_WAKE_BATCH,kernel-results/SBQ_WAKE_BATCH/7.output.txt,,,,
-33,SBQ_WAKE_BATCH,kernel-results/SBQ_WAKE_BATCH/8.output.txt,,,,
+33,SBQ_WAKE_BATCH,kernel-results/SBQ_WAKE_BATCH/7.output.txt,blk_mq_init_tags,0x108 - 0x11a,./include/linux/sbitmap.h:428,./include/linux/sbitmap.h:188
+33,SBQ_WAKE_BATCH,kernel-results/SBQ_WAKE_BATCH/7.output.txt,kyber_init_sched,0x282 - 0x28d,block/kyber-iosched.c:398,block/kyber-iosched.c:398
+33,SBQ_WAKE_BATCH,kernel-results/SBQ_WAKE_BATCH/8.output.txt,blk_mq_init_tags,0x108 - 0x11a,./include/linux/sbitmap.h:428,./include/linux/sbitmap.h:188
+33,SBQ_WAKE_BATCH,kernel-results/SBQ_WAKE_BATCH/8.output.txt,kyber_init_sched,0x282 - 0x28d,block/kyber-iosched.c:398,block/kyber-iosched.c:398
 34,BLK_MQ_MAX_DEPTH,kernel-results/BLK_MQ_MAX_DEPTH/1.output.txt,blk_mq_alloc_tag_set,0x62 - 0x68,block/blk-mq.c:4738,block/blk-mq.c:4738
 34,BLK_MQ_MAX_DEPTH,kernel-results/BLK_MQ_MAX_DEPTH/2.output.txt,blk_mq_alloc_tag_set,0x3ec - 0x3f8,block/blk-mq.c:4739,block/blk-mq.c:4739
 34,BLK_MQ_MAX_DEPTH,kernel-results/BLK_MQ_MAX_DEPTH/3.output.txt,nvme_probe,0x2a9 - 0x494,drivers/nvme/host/pci.c:3089,drivers/nvme/host/nvme.h:745
@@ -147,8 +194,10 @@ ID,directory,file,function,offset,source start,source end
 37,MAX_NR_FOLIOS_PER_FREE,kernel-results/MAX_NR_FOLIOS_PER_FREE/2.output.txt,__tlb_batch_free_encoded_pages,0x81 - 0x8a,mm/mmu_gather.c:126,mm/mmu_gather.c:126
 38,PCPU_SLOT_FAIL_THRESHOLD,kernel-results/PCPU_SLOT_FAIL_THRESHOLD/1.output.txt,pcpu_alloc_noprof,0x1e8 - 0x250,mm/percpu.c:1811,mm/percpu.c:1816
 39,NR_MAX_MIGRATE_PAGES_RETRY,kernel-results/NR_MAX_MIGRATE_PAGES_RETRY/1.output.txt,migrate_pages,0xb1 - 0x658,mm/migrate.c:1612,mm/migrate.c:1612
-39,NR_MAX_MIGRATE_PAGES_RETRY,kernel-results/NR_MAX_MIGRATE_PAGES_RETRY/2.output.txt,,,,
-39,NR_MAX_MIGRATE_PAGES_RETRY,kernel-results/NR_MAX_MIGRATE_PAGES_RETRY/3.output.txt,,,,
+39,NR_MAX_MIGRATE_PAGES_RETRY,kernel-results/NR_MAX_MIGRATE_PAGES_RETRY/2.output.txt,ia32_sys_call,0x2539 - 0x2539,./arch/x86/include/generated/asm/syscalls_32.h:441,./arch/x86/include/generated/asm/syscalls_32.h:441
+39,NR_MAX_MIGRATE_PAGES_RETRY,kernel-results/NR_MAX_MIGRATE_PAGES_RETRY/2.output.txt,x64_sys_call,0x2121 - 0x2121,./arch/x86/include/generated/asm/syscalls_64.h:441,./arch/x86/include/generated/asm/syscalls_64.h:441
+39,NR_MAX_MIGRATE_PAGES_RETRY,kernel-results/NR_MAX_MIGRATE_PAGES_RETRY/3.output.txt,ia32_sys_call,0x2539 - 0x2539,./arch/x86/include/generated/asm/syscalls_32.h:441,./arch/x86/include/generated/asm/syscalls_32.h:441
+39,NR_MAX_MIGRATE_PAGES_RETRY,kernel-results/NR_MAX_MIGRATE_PAGES_RETRY/3.output.txt,x64_sys_call,0x2121 - 0x2121,./arch/x86/include/generated/asm/syscalls_64.h:441,./arch/x86/include/generated/asm/syscalls_64.h:441
 40,SHRINK_BATCH,kernel-results/SHRINK_BATCH/1.output.txt,__pfx_perf_trace_mm_shrink_slab_end,0x15145 - 0x10,mm/shrinker.c:380,./include/trace/events/vmscan.h:244
 41,MMAP_LOTSAMISS,kernel-results/MMAP_LOTSAMISS/1.output.txt,filemap_fault,0x5b7 - 0x5b7,mm/filemap.c:3243,mm/filemap.c:3243
 41,MMAP_LOTSAMISS,kernel-results/MMAP_LOTSAMISS/2.output.txt,filemap_fault,0x5cc - 0x5cc,mm/filemap.c:3250,mm/filemap.c:3250
@@ -166,8 +215,10 @@ ID,directory,file,function,offset,source start,source end
 48,RCU_JIFFIES_FQS_DIV,kernel-results/RCU_JIFFIES_FQS_DIV/3.output.txt,rcu_init_geometry,0x56 - 0x8b,kernel/rcu/tree.c:4687,kernel/rcu/tree.c:4695
 49,BLK_MAX_REQUEST_COUNT,kernel-results/BLK_MAX_REQUEST_COUNT/1.output.txt,blk_start_plug_nr_ios,0x29 - 0x584,block/blk-core.c:1125,block/blk-core.c:1125
 49,BLK_MAX_REQUEST_COUNT,kernel-results/BLK_MAX_REQUEST_COUNT/2.output.txt,blk_add_rq_to_plug,0xd1 - 0xd5,block/blk-mq.c:1381,block/blk-mq.c:1381
-50,PEEK_MAX_IMPORT,kernel-results/PEEK_MAX_IMPORT/1.output.txt,,,,
-50,PEEK_MAX_IMPORT,kernel-results/PEEK_MAX_IMPORT/2.output.txt,,,,
+50,PEEK_MAX_IMPORT,kernel-results/PEEK_MAX_IMPORT/1.output.txt,io_recv,0x35 - 0x3a2,io_uring/net.c:1144,io_uring/net.c:1212
+50,PEEK_MAX_IMPORT,kernel-results/PEEK_MAX_IMPORT/1.output.txt,io_send,0x72 - 0x214,io_uring/kbuf.h:103,io_uring/net.c:682
+50,PEEK_MAX_IMPORT,kernel-results/PEEK_MAX_IMPORT/2.output.txt,io_recv,0x35 - 0x3a2,io_uring/net.c:1144,io_uring/net.c:1212
+50,PEEK_MAX_IMPORT,kernel-results/PEEK_MAX_IMPORT/2.output.txt,io_send,0x72 - 0x214,io_uring/kbuf.h:103,io_uring/net.c:682
 51,IO_POLL_REF_BIAS,kernel-results/IO_POLL_REF_BIAS/1.output.txt,__io_arm_poll_handler,0x2c6 - 0x1148,io_uring/poll.c:96,io_uring/poll.c:96
 51,IO_POLL_REF_BIAS,kernel-results/IO_POLL_REF_BIAS/2.output.txt,__io_arm_poll_handler,0x2c6 - 0x1148,io_uring/poll.c:96,io_uring/poll.c:96
 51,IO_POLL_REF_BIAS,kernel-results/IO_POLL_REF_BIAS/3.output.txt,io_poll_wake,0x46 - 0xec8,io_uring/poll.c:96,io_uring/poll.c:96
@@ -206,7 +257,34 @@ ID,directory,file,function,offset,source start,source end
 63,AIO_PLUG_THRESHOLD,kernel-results/AIO_PLUG_THRESHOLD/1.output.txt,__ia32_sys_io_submit,0x71 - 0xc4,fs/aio.c:2101,fs/aio.c:2115
 63,AIO_PLUG_THRESHOLD,kernel-results/AIO_PLUG_THRESHOLD/2.output.txt,__ia32_compat_sys_io_submit,0x6a - 0xb9,fs/aio.c:2143,fs/aio.c:2157
 64,LAST_INO_BATCH,kernel-results/LAST_INO_BATCH/1.output.txt,get_next_ino,0x1a - 0x1f,fs/inode.c:1144,fs/inode.c:1144
-64,LAST_INO_BATCH,kernel-results/LAST_INO_BATCH/2.output.txt,,,,
+64,LAST_INO_BATCH,kernel-results/LAST_INO_BATCH/2.output.txt,alloc_anon_inode,0x1e - 0x28,fs/libfs.c:1640,fs/libfs.c:1640
+64,LAST_INO_BATCH,kernel-results/LAST_INO_BATCH/2.output.txt,autofs_get_inode,0x54 - 0x54,fs/autofs/inode.c:442,fs/autofs/inode.c:442
+64,LAST_INO_BATCH,kernel-results/LAST_INO_BATCH/2.output.txt,autofs_get_inode,0x54 - 0x5b,fs/autofs/inode.c:442,fs/autofs/inode.c:442
+64,LAST_INO_BATCH,kernel-results/LAST_INO_BATCH/2.output.txt,bm_register_write,0x656 - 0x660,fs/binfmt_misc.c:623,fs/binfmt_misc.c:623
+64,LAST_INO_BATCH,kernel-results/LAST_INO_BATCH/2.output.txt,bpf_free_inode,0x3a - 0x3a,fs/ramfs/inode.c:63,fs/ramfs/inode.c:63
+64,LAST_INO_BATCH,kernel-results/LAST_INO_BATCH/2.output.txt,__create_dir,0x3f - 0x343,fs/tracefs/inode.c:275,fs/tracefs/inode.c:275
+64,LAST_INO_BATCH,kernel-results/LAST_INO_BATCH/2.output.txt,create_pipe_files,0x38 - 0x3f,fs/pipe.c:885,fs/pipe.c:885
+64,LAST_INO_BATCH,kernel-results/LAST_INO_BATCH/2.output.txt,debugfs_create_automount,0xa8 - 0xb2,fs/debugfs/inode.c:74,fs/debugfs/inode.c:74
+64,LAST_INO_BATCH,kernel-results/LAST_INO_BATCH/2.output.txt,debugfs_create_dir,0x9f - 0x302,fs/debugfs/inode.c:74,fs/debugfs/inode.c:74
+64,LAST_INO_BATCH,kernel-results/LAST_INO_BATCH/2.output.txt,__debugfs_create_file,0xc4 - 0x802,fs/debugfs/inode.c:74,fs/debugfs/inode.c:74
+64,LAST_INO_BATCH,kernel-results/LAST_INO_BATCH/2.output.txt,debugfs_create_symlink,0xa0 - 0x472,fs/debugfs/inode.c:74,fs/debugfs/inode.c:74
+64,LAST_INO_BATCH,kernel-results/LAST_INO_BATCH/2.output.txt,eventfs_iterate,0x2af - 0x2e8,fs/tracefs/event_inode.c:52,fs/tracefs/event_inode.c:662
+64,LAST_INO_BATCH,kernel-results/LAST_INO_BATCH/2.output.txt,eventfs_root_lookup,0xc6 - 0xd2,fs/tracefs/event_inode.c:52,fs/tracefs/event_inode.c:423
+64,LAST_INO_BATCH,kernel-results/LAST_INO_BATCH/2.output.txt,hugetlbfs_fill_super,0x14a - 0x154,fs/hugetlbfs/inode.c:895,fs/hugetlbfs/inode.c:895
+64,LAST_INO_BATCH,kernel-results/LAST_INO_BATCH/2.output.txt,hugetlbfs_get_inode,0x46 - 0x122,fs/hugetlbfs/inode.c:939,fs/hugetlbfs/inode.c:939
+64,LAST_INO_BATCH,kernel-results/LAST_INO_BATCH/2.output.txt,mqueue_get_inode,0x33 - 0x33,ipc/mqueue.c:301,ipc/mqueue.c:301
+64,LAST_INO_BATCH,kernel-results/LAST_INO_BATCH/2.output.txt,mqueue_get_inode,0x33 - 0x4f,ipc/mqueue.c:301,ipc/mqueue.c:301
+64,LAST_INO_BATCH,kernel-results/LAST_INO_BATCH/2.output.txt,proc_pid_make_inode,0x25 - 0x2f,fs/proc/base.c:1957,fs/proc/base.c:1957
+64,LAST_INO_BATCH,kernel-results/LAST_INO_BATCH/2.output.txt,proc_sys_make_inode,0x32 - 0x40,fs/proc/proc_sysctl.c:460,fs/proc/proc_sysctl.c:460
+64,LAST_INO_BATCH,kernel-results/LAST_INO_BATCH/2.output.txt,ramfs_get_inode,0x28 - 0x43,fs/ramfs/inode.c:63,fs/ramfs/inode.c:63
+64,LAST_INO_BATCH,kernel-results/LAST_INO_BATCH/2.output.txt,__rpc_create_common,0x42 - 0x6cb,net/sunrpc/rpc_pipe.c:472,net/sunrpc/rpc_pipe.c:472
+64,LAST_INO_BATCH,kernel-results/LAST_INO_BATCH/2.output.txt,rpc_fill_super,0x91 - 0x9b,net/sunrpc/rpc_pipe.c:472,net/sunrpc/rpc_pipe.c:472
+64,LAST_INO_BATCH,kernel-results/LAST_INO_BATCH/2.output.txt,sock_alloc,0x28 - 0x28,net/socket.c:628,net/socket.c:628
+64,LAST_INO_BATCH,kernel-results/LAST_INO_BATCH/2.output.txt,sock_alloc,0x28 - 0x28,net/socket.c:628,net/socket.c:628
+64,LAST_INO_BATCH,kernel-results/LAST_INO_BATCH/2.output.txt,sock_alloc,0x28 - 0x28,net/socket.c:628,net/socket.c:628
+64,LAST_INO_BATCH,kernel-results/LAST_INO_BATCH/2.output.txt,sock_alloc,0x28 - 0x2f,net/socket.c:628,net/socket.c:628
+64,LAST_INO_BATCH,kernel-results/LAST_INO_BATCH/2.output.txt,tracefs_create_file,0x89 - 0x93,fs/tracefs/inode.c:275,fs/tracefs/inode.c:275
+64,LAST_INO_BATCH,kernel-results/LAST_INO_BATCH/2.output.txt,tracefs_get_inode,0x17 - 0x4d3,fs/tracefs/inode.c:275,fs/tracefs/inode.c:275
 65,IWALK_MAX_INODE_PREFETCH,kernel-results/IWALK_MAX_INODE_PREFETCH/1.output.txt,xfs_iwalk,0x61 - 0x12,fs/xfs/xfs_iwalk.c:509,fs/xfs/xfs_iwalk.c:584
 65,IWALK_MAX_INODE_PREFETCH,kernel-results/IWALK_MAX_INODE_PREFETCH/2.output.txt,xfs_iwalk,0x5c - 0x12,fs/xfs/xfs_iwalk.c:507,fs/xfs/xfs_iwalk.c:584
 65,IWALK_MAX_INODE_PREFETCH,kernel-results/IWALK_MAX_INODE_PREFETCH/3.output.txt,xfs_iwalk_threaded,0xad - 0x18b,fs/xfs/xfs_iwalk.c:661,fs/xfs/xfs_iwalk.c:679
@@ -262,6 +340,18 @@ ID,directory,file,function,offset,source start,source end
 83,NFS4_POLL_RETRY_MIN,kernel-results/NFS4_POLL_RETRY_MIN/1.output.txt,pnfs_update_layout,0x1153 - 0x1157,fs/nfs/pnfs.c:2304,fs/nfs/pnfs.c:2304
 83,NFS4_POLL_RETRY_MIN,kernel-results/NFS4_POLL_RETRY_MIN/2.output.txt,pnfs_update_layout,0x1153 - 0x1157,fs/nfs/pnfs.c:2304,fs/nfs/pnfs.c:2304
 83,NFS4_POLL_RETRY_MIN,kernel-results/NFS4_POLL_RETRY_MIN/3.output.txt,,,,
+83,NFS4_POLL_RETRY_MIN,kernel-results/NFS4_POLL_RETRY_MIN/3.output.txt,,,,
+83,NFS4_POLL_RETRY_MIN,kernel-results/NFS4_POLL_RETRY_MIN/3.output.txt,,,,
+83,NFS4_POLL_RETRY_MIN,kernel-results/NFS4_POLL_RETRY_MIN/3.output.txt,,,,
+83,NFS4_POLL_RETRY_MIN,kernel-results/NFS4_POLL_RETRY_MIN/3.output.txt,,,,
+83,NFS4_POLL_RETRY_MIN,kernel-results/NFS4_POLL_RETRY_MIN/3.output.txt,nfs4_async_handle_error,0x55 - 0x7e,fs/nfs/nfs4proc.c:712,fs/nfs/nfs4proc.c:721
+83,NFS4_POLL_RETRY_MIN,kernel-results/NFS4_POLL_RETRY_MIN/3.output.txt,nfs4_async_handle_error,0x68 - 0x413,fs/nfs/nfs4proc.c:716,fs/nfs/nfs4proc.c:10542
+83,NFS4_POLL_RETRY_MIN,kernel-results/NFS4_POLL_RETRY_MIN/3.output.txt,nfs4_async_handle_error,0x68 - 0x4fa,fs/nfs/nfs4proc.c:716,fs/nfs/nfs4proc.c:10045
+83,NFS4_POLL_RETRY_MIN,kernel-results/NFS4_POLL_RETRY_MIN/3.output.txt,nfs4_close_done,0x2e7 - 0x2eb,fs/nfs/nfs4proc.c:3692,fs/nfs/nfs4proc.c:3692
+83,NFS4_POLL_RETRY_MIN,kernel-results/NFS4_POLL_RETRY_MIN/3.output.txt,nfs4_delegreturn_done,0x332 - 0x33c,fs/nfs/nfs4proc.c:6766,fs/nfs/nfs4proc.c:6766
+83,NFS4_POLL_RETRY_MIN,kernel-results/NFS4_POLL_RETRY_MIN/3.output.txt,nfs4_locku_done,0x22a - 0x234,fs/nfs/nfs4proc.c:7122,fs/nfs/nfs4proc.c:7122
+83,NFS4_POLL_RETRY_MIN,kernel-results/NFS4_POLL_RETRY_MIN/3.output.txt,nfs4_read_done_cb,0xfa - 0xfe,fs/nfs/nfs4proc.c:5552,fs/nfs/nfs4proc.c:5552
+83,NFS4_POLL_RETRY_MIN,kernel-results/NFS4_POLL_RETRY_MIN/3.output.txt,nfs4_write_done_cb,0x127 - 0x12b,fs/nfs/nfs4proc.c:5669,fs/nfs/nfs4proc.c:5669
 83,NFS4_POLL_RETRY_MIN,kernel-results/NFS4_POLL_RETRY_MIN/4.output.txt,nfs4_get_lease_time_done,0x4a - 0x52,fs/nfs/nfs4proc.c:9261,fs/nfs/nfs4proc.c:9261
 83,NFS4_POLL_RETRY_MIN,kernel-results/NFS4_POLL_RETRY_MIN/5.output.txt,pnfs_update_layout,0x1153 - 0x1157,fs/nfs/pnfs.c:2304,fs/nfs/pnfs.c:2304
 84,NFS4_POLL_RETRY_MAX,kernel-results/NFS4_POLL_RETRY_MAX/1.output.txt,nfs41_sequence_call_done,0x120 - 0x128,fs/nfs/nfs4proc.c:9563,fs/nfs/nfs4proc.c:9563
@@ -269,6 +359,18 @@ ID,directory,file,function,offset,source start,source end
 84,NFS4_POLL_RETRY_MAX,kernel-results/NFS4_POLL_RETRY_MAX/3.output.txt,pnfs_update_layout,0x1153 - 0x1157,fs/nfs/pnfs.c:2304,fs/nfs/pnfs.c:2304
 84,NFS4_POLL_RETRY_MAX,kernel-results/NFS4_POLL_RETRY_MAX/4.output.txt,pnfs_update_layout,0x1153 - 0x1157,fs/nfs/pnfs.c:2304,fs/nfs/pnfs.c:2304
 84,NFS4_POLL_RETRY_MAX,kernel-results/NFS4_POLL_RETRY_MAX/5.output.txt,,,,
+84,NFS4_POLL_RETRY_MAX,kernel-results/NFS4_POLL_RETRY_MAX/5.output.txt,,,,
+84,NFS4_POLL_RETRY_MAX,kernel-results/NFS4_POLL_RETRY_MAX/5.output.txt,,,,
+84,NFS4_POLL_RETRY_MAX,kernel-results/NFS4_POLL_RETRY_MAX/5.output.txt,,,,
+84,NFS4_POLL_RETRY_MAX,kernel-results/NFS4_POLL_RETRY_MAX/5.output.txt,,,,
+84,NFS4_POLL_RETRY_MAX,kernel-results/NFS4_POLL_RETRY_MAX/5.output.txt,nfs4_async_handle_error,0x55 - 0x7e,fs/nfs/nfs4proc.c:712,fs/nfs/nfs4proc.c:721
+84,NFS4_POLL_RETRY_MAX,kernel-results/NFS4_POLL_RETRY_MAX/5.output.txt,nfs4_async_handle_error,0x68 - 0x413,fs/nfs/nfs4proc.c:716,fs/nfs/nfs4proc.c:10542
+84,NFS4_POLL_RETRY_MAX,kernel-results/NFS4_POLL_RETRY_MAX/5.output.txt,nfs4_async_handle_error,0x68 - 0x4fa,fs/nfs/nfs4proc.c:716,fs/nfs/nfs4proc.c:10045
+84,NFS4_POLL_RETRY_MAX,kernel-results/NFS4_POLL_RETRY_MAX/5.output.txt,nfs4_close_done,0x2e7 - 0x2eb,fs/nfs/nfs4proc.c:3692,fs/nfs/nfs4proc.c:3692
+84,NFS4_POLL_RETRY_MAX,kernel-results/NFS4_POLL_RETRY_MAX/5.output.txt,nfs4_delegreturn_done,0x332 - 0x33c,fs/nfs/nfs4proc.c:6766,fs/nfs/nfs4proc.c:6766
+84,NFS4_POLL_RETRY_MAX,kernel-results/NFS4_POLL_RETRY_MAX/5.output.txt,nfs4_locku_done,0x22a - 0x234,fs/nfs/nfs4proc.c:7122,fs/nfs/nfs4proc.c:7122
+84,NFS4_POLL_RETRY_MAX,kernel-results/NFS4_POLL_RETRY_MAX/5.output.txt,nfs4_read_done_cb,0xfa - 0xfe,fs/nfs/nfs4proc.c:5552,fs/nfs/nfs4proc.c:5552
+84,NFS4_POLL_RETRY_MAX,kernel-results/NFS4_POLL_RETRY_MAX/5.output.txt,nfs4_write_done_cb,0x127 - 0x12b,fs/nfs/nfs4proc.c:5669,fs/nfs/nfs4proc.c:5669
 84,NFS4_POLL_RETRY_MAX,kernel-results/NFS4_POLL_RETRY_MAX/6.output.txt,nfs4_reclaim_complete_done,0xfa - 0x102,fs/nfs/nfs4proc.c:9717,fs/nfs/nfs4proc.c:9717
 84,NFS4_POLL_RETRY_MAX,kernel-results/NFS4_POLL_RETRY_MAX/7.output.txt,pnfs_update_layout,0x1153 - 0x1157,fs/nfs/pnfs.c:2304,fs/nfs/pnfs.c:2304
 85,SOFT_LEBS_LIMIT,kernel-results/SOFT_LEBS_LIMIT/1.output.txt,ubifs_garbage_collect,0xff - 0x116,fs/ubifs/gc.c:706,fs/ubifs/gc.c:706
@@ -289,11 +391,15 @@ ID,directory,file,function,offset,source start,source end
 98,NUMA_IMBALANCE_MIN,kernel-results/NUMA_IMBALANCE_MIN/2.output.txt,sched_balance_find_dst_group,0xa7c - 0x12758,kernel/sched/fair.c:1420,kernel/sched/fair.c:11855
 98,NUMA_IMBALANCE_MIN,kernel-results/NUMA_IMBALANCE_MIN/3.output.txt,task_numa_find_cpu,0x3a - 0x1a8,kernel/sched/fair.c:1420,kernel/sched/fair.c:2459
 99,MAX_SCAN_WINDOW,kernel-results/MAX_SCAN_WINDOW/1.output.txt,task_scan_start,0x1f - 0xc8d9,kernel/sched/fair.c:1519,kernel/sched/fair.c:1519
-99,MAX_SCAN_WINDOW,kernel-results/MAX_SCAN_WINDOW/2.output.txt,,,,
+99,MAX_SCAN_WINDOW,kernel-results/MAX_SCAN_WINDOW/2.output.txt,migrate_task_rq_fair,0xb2 - 0xba,kernel/sched/fair.c:3649,kernel/sched/fair.c:3649
+99,MAX_SCAN_WINDOW,kernel-results/MAX_SCAN_WINDOW/2.output.txt,task_numa_work,0xbf - 0xdf,kernel/sched/fair.c:3330,kernel/sched/fair.c:3336
+99,MAX_SCAN_WINDOW,kernel-results/MAX_SCAN_WINDOW/2.output.txt,task_tick_fair,0x106 - 0x143,kernel/sched/fair.c:3606,kernel/sched/fair.c:3611
 99,MAX_SCAN_WINDOW,kernel-results/MAX_SCAN_WINDOW/3.output.txt,task_numa_fault,0x83d - 0x849,kernel/sched/fair.c:1519,kernel/sched/fair.c:1519
 99,MAX_SCAN_WINDOW,kernel-results/MAX_SCAN_WINDOW/4.output.txt,task_numa_fault,0x7df - 0x83a,kernel/sched/fair.c:2722,kernel/sched/fair.c:2755
 99,MAX_SCAN_WINDOW,kernel-results/MAX_SCAN_WINDOW/5.output.txt,task_scan_max,0x21 - 0xc529,kernel/sched/fair.c:1519,kernel/sched/fair.c:1519
-99,MAX_SCAN_WINDOW,kernel-results/MAX_SCAN_WINDOW/6.output.txt,,,,
+99,MAX_SCAN_WINDOW,kernel-results/MAX_SCAN_WINDOW/6.output.txt,init_numa_balancing,0xd8 - 0xfe,kernel/sched/fair.c:3578,kernel/sched/fair.c:3581
+99,MAX_SCAN_WINDOW,kernel-results/MAX_SCAN_WINDOW/6.output.txt,task_numa_fault,0x31e - 0x83a,kernel/sched/fair.c:2899,kernel/sched/fair.c:2755
+99,MAX_SCAN_WINDOW,kernel-results/MAX_SCAN_WINDOW/6.output.txt,task_numa_work,0x5c3 - 0x5d5,kernel/sched/fair.c:3331,kernel/sched/fair.c:3331
 100,NUMA_PERIOD_THRESHOLD,kernel-results/NUMA_PERIOD_THRESHOLD/1.output.txt,task_numa_fault,0x823 - 0x826,kernel/sched/fair.c:2726,kernel/sched/fair.c:2726
 100,NUMA_PERIOD_THRESHOLD,kernel-results/NUMA_PERIOD_THRESHOLD/2.output.txt,task_numa_fault,0x7df - 0x83a,kernel/sched/fair.c:2722,kernel/sched/fair.c:2755
 100,NUMA_PERIOD_THRESHOLD,kernel-results/NUMA_PERIOD_THRESHOLD/3.output.txt,task_numa_fault,0x9a5 - 0x9a8,kernel/sched/fair.c:2735,kernel/sched/fair.c:2735
@@ -304,6 +410,16 @@ ID,directory,file,function,offset,source start,source end
 102,SMALLIMP,kernel-results/SMALLIMP/1.output.txt,task_numa_find_cpu,0x3ad - 0x3c6,kernel/sched/fair.c:2371,kernel/sched/fair.c:2371
 103,MAX_PINNED_INTERVAL,kernel-results/MAX_PINNED_INTERVAL/1.output.txt,sched_balance_rq,0x492 - 0x4a1,kernel/sched/fair.c:11984,kernel/sched/fair.c:11984
 104,BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/10.output.txt,,,,
+104,BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/10.output.txt,hmb_store,0xc5 - 0xcd,drivers/nvme/host/pci.c:2309,drivers/nvme/host/pci.c:2309
+104,BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/10.output.txt,nvme_probe,0x83a - 0x858,drivers/nvme/host/pci.c:3302,drivers/nvme/host/pci.c:3307
+104,BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/10.output.txt,nvme_pr_read_keys,0x50 - 0x10b,drivers/nvme/host/pr.c:247,drivers/nvme/host/pr.c:270
+104,BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/10.output.txt,nvme_pr_read_reservation,0x3b - 0x13f,drivers/nvme/host/pr.c:285,drivers/nvme/host/pr.c:332
+104,BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/10.output.txt,nvme_report_zones,0x0 - 0xa,drivers/nvme/host/core.c:2408,drivers/nvme/host/core.c:2408
+104,BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/10.output.txt,nvme_reset_work,0xea - 0x106,drivers/nvme/host/pci.c:2966,drivers/nvme/host/pci.c:2971
+104,BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/10.output.txt,nvme_resume,0x42 - 0x58,drivers/nvme/host/pci.c:3433,drivers/nvme/host/pci.c:3433
+104,BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/10.output.txt,nvme_suspend,0xd9 - 0xe3,drivers/nvme/host/pci.c:3481,drivers/nvme/host/pci.c:3482
+104,BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/10.output.txt,nvme_update_ns_info_block,0xbc - 0x870,drivers/nvme/host/core.c:2188,drivers/nvme/host/core.c:2189
+104,BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/10.output.txt,virtblk_poll,0x7d - 0x10e,drivers/block/virtio_blk.c:331,drivers/block/virtio_blk.c:347
 104,BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/11.output.txt,blk_mq_try_issue_directly,0x473 - 0x47f,block/blk-mq.c:1988,block/blk-mq.c:1991
 104,BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/12.output.txt,blk_mq_try_issue_directly,0x47f - 0x4eb,block/blk-mq.c:1991,block/blk-mq.c:1991
 104,BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/13.output.txt,blk_mq_try_issue_directly,0x473 - 0x47f,block/blk-mq.c:1988,block/blk-mq.c:1991
@@ -317,10 +433,50 @@ ID,directory,file,function,offset,source start,source end
 104,BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/5.output.txt,blk_mq_flush_plug_list,0x9c - 0x17c,./include/linux/list.h:183,block/blk-mq.c:2870
 104,BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/6.output.txt,blk_mq_flush_plug_list,0x9c - 0x17c,./include/linux/list.h:183,block/blk-mq.c:2870
 104,BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/7.output.txt,,,,
+104,BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/7.output.txt,hmb_store,0xc5 - 0xcd,drivers/nvme/host/pci.c:2309,drivers/nvme/host/pci.c:2309
+104,BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/7.output.txt,nvme_probe,0x83a - 0x858,drivers/nvme/host/pci.c:3302,drivers/nvme/host/pci.c:3307
+104,BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/7.output.txt,nvme_pr_read_keys,0x50 - 0x10b,drivers/nvme/host/pr.c:247,drivers/nvme/host/pr.c:270
+104,BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/7.output.txt,nvme_pr_read_reservation,0x3b - 0x13f,drivers/nvme/host/pr.c:285,drivers/nvme/host/pr.c:332
+104,BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/7.output.txt,nvme_report_zones,0x0 - 0xa,drivers/nvme/host/core.c:2408,drivers/nvme/host/core.c:2408
+104,BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/7.output.txt,nvme_reset_work,0xea - 0x106,drivers/nvme/host/pci.c:2966,drivers/nvme/host/pci.c:2971
+104,BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/7.output.txt,nvme_resume,0x42 - 0x58,drivers/nvme/host/pci.c:3433,drivers/nvme/host/pci.c:3433
+104,BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/7.output.txt,nvme_suspend,0xd9 - 0xe3,drivers/nvme/host/pci.c:3481,drivers/nvme/host/pci.c:3482
+104,BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/7.output.txt,nvme_update_ns_info_block,0xbc - 0x870,drivers/nvme/host/core.c:2188,drivers/nvme/host/core.c:2189
+104,BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/7.output.txt,virtblk_poll,0x7d - 0x10e,drivers/block/virtio_blk.c:331,drivers/block/virtio_blk.c:347
 104,BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/8.output.txt,,,,
+104,BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/8.output.txt,hmb_store,0xc5 - 0xcd,drivers/nvme/host/pci.c:2309,drivers/nvme/host/pci.c:2309
+104,BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/8.output.txt,nvme_probe,0x83a - 0x858,drivers/nvme/host/pci.c:3302,drivers/nvme/host/pci.c:3307
+104,BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/8.output.txt,nvme_pr_read_keys,0x50 - 0x10b,drivers/nvme/host/pr.c:247,drivers/nvme/host/pr.c:270
+104,BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/8.output.txt,nvme_pr_read_reservation,0x3b - 0x13f,drivers/nvme/host/pr.c:285,drivers/nvme/host/pr.c:332
+104,BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/8.output.txt,nvme_report_zones,0x0 - 0xa,drivers/nvme/host/core.c:2408,drivers/nvme/host/core.c:2408
+104,BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/8.output.txt,nvme_reset_work,0xea - 0x106,drivers/nvme/host/pci.c:2966,drivers/nvme/host/pci.c:2971
+104,BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/8.output.txt,nvme_resume,0x42 - 0x58,drivers/nvme/host/pci.c:3433,drivers/nvme/host/pci.c:3433
+104,BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/8.output.txt,nvme_suspend,0xd9 - 0xe3,drivers/nvme/host/pci.c:3481,drivers/nvme/host/pci.c:3482
+104,BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/8.output.txt,nvme_update_ns_info_block,0xbc - 0x870,drivers/nvme/host/core.c:2188,drivers/nvme/host/core.c:2189
+104,BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/8.output.txt,virtblk_poll,0x7d - 0x10e,drivers/block/virtio_blk.c:331,drivers/block/virtio_blk.c:347
 104,BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/9.output.txt,,,,
+104,BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/9.output.txt,hmb_store,0xc5 - 0xcd,drivers/nvme/host/pci.c:2309,drivers/nvme/host/pci.c:2309
+104,BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/9.output.txt,nvme_probe,0x83a - 0x858,drivers/nvme/host/pci.c:3302,drivers/nvme/host/pci.c:3307
+104,BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/9.output.txt,nvme_pr_read_keys,0x50 - 0x10b,drivers/nvme/host/pr.c:247,drivers/nvme/host/pr.c:270
+104,BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/9.output.txt,nvme_pr_read_reservation,0x3b - 0x13f,drivers/nvme/host/pr.c:285,drivers/nvme/host/pr.c:332
+104,BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/9.output.txt,nvme_report_zones,0x0 - 0xa,drivers/nvme/host/core.c:2408,drivers/nvme/host/core.c:2408
+104,BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/9.output.txt,nvme_reset_work,0xea - 0x106,drivers/nvme/host/pci.c:2966,drivers/nvme/host/pci.c:2971
+104,BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/9.output.txt,nvme_resume,0x42 - 0x58,drivers/nvme/host/pci.c:3433,drivers/nvme/host/pci.c:3433
+104,BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/9.output.txt,nvme_suspend,0xd9 - 0xe3,drivers/nvme/host/pci.c:3481,drivers/nvme/host/pci.c:3482
+104,BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/9.output.txt,nvme_update_ns_info_block,0xbc - 0x870,drivers/nvme/host/core.c:2188,drivers/nvme/host/core.c:2189
+104,BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_WEIGHT/9.output.txt,virtblk_poll,0x7d - 0x10e,drivers/block/virtio_blk.c:331,drivers/block/virtio_blk.c:347
 105,BLK_MQ_DISPATCH_BUSY_EWMA_FACTOR,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_FACTOR/1.output.txt,blk_mq_flush_plug_list,0x9c - 0x17c,./include/linux/list.h:183,block/blk-mq.c:2870
 105,BLK_MQ_DISPATCH_BUSY_EWMA_FACTOR,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_FACTOR/2.output.txt,,,,
+105,BLK_MQ_DISPATCH_BUSY_EWMA_FACTOR,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_FACTOR/2.output.txt,hmb_store,0xc5 - 0xcd,drivers/nvme/host/pci.c:2309,drivers/nvme/host/pci.c:2309
+105,BLK_MQ_DISPATCH_BUSY_EWMA_FACTOR,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_FACTOR/2.output.txt,nvme_probe,0x83a - 0x858,drivers/nvme/host/pci.c:3302,drivers/nvme/host/pci.c:3307
+105,BLK_MQ_DISPATCH_BUSY_EWMA_FACTOR,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_FACTOR/2.output.txt,nvme_pr_read_keys,0x50 - 0x10b,drivers/nvme/host/pr.c:247,drivers/nvme/host/pr.c:270
+105,BLK_MQ_DISPATCH_BUSY_EWMA_FACTOR,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_FACTOR/2.output.txt,nvme_pr_read_reservation,0x3b - 0x13f,drivers/nvme/host/pr.c:285,drivers/nvme/host/pr.c:332
+105,BLK_MQ_DISPATCH_BUSY_EWMA_FACTOR,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_FACTOR/2.output.txt,nvme_report_zones,0x0 - 0xa,drivers/nvme/host/core.c:2408,drivers/nvme/host/core.c:2408
+105,BLK_MQ_DISPATCH_BUSY_EWMA_FACTOR,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_FACTOR/2.output.txt,nvme_reset_work,0xea - 0x106,drivers/nvme/host/pci.c:2966,drivers/nvme/host/pci.c:2971
+105,BLK_MQ_DISPATCH_BUSY_EWMA_FACTOR,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_FACTOR/2.output.txt,nvme_resume,0x42 - 0x58,drivers/nvme/host/pci.c:3433,drivers/nvme/host/pci.c:3433
+105,BLK_MQ_DISPATCH_BUSY_EWMA_FACTOR,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_FACTOR/2.output.txt,nvme_suspend,0xd9 - 0xe3,drivers/nvme/host/pci.c:3481,drivers/nvme/host/pci.c:3482
+105,BLK_MQ_DISPATCH_BUSY_EWMA_FACTOR,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_FACTOR/2.output.txt,nvme_update_ns_info_block,0xbc - 0x870,drivers/nvme/host/core.c:2188,drivers/nvme/host/core.c:2189
+105,BLK_MQ_DISPATCH_BUSY_EWMA_FACTOR,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_FACTOR/2.output.txt,virtblk_poll,0x7d - 0x10e,drivers/block/virtio_blk.c:331,drivers/block/virtio_blk.c:347
 105,BLK_MQ_DISPATCH_BUSY_EWMA_FACTOR,kernel-results/BLK_MQ_DISPATCH_BUSY_EWMA_FACTOR/3.output.txt,blk_mq_try_issue_directly,0x47f - 0x4eb,block/blk-mq.c:1991,block/blk-mq.c:1991
 106,BLK_MQ_RESOURCE_DELAY,kernel-results/BLK_MQ_RESOURCE_DELAY/1.output.txt,blk_mq_dispatch_rq_list,0x32d - 0x395,block/blk-mq.c:1983,block/blk-mq.c:1983
 107,BLK_ZONE_WPLUG_DEFAULT_POOL_SIZE,kernel-results/BLK_ZONE_WPLUG_DEFAULT_POOL_SIZE/1.output.txt,blk_revalidate_disk_zones,0xec - 0x357,block/blk-zoned.c:1479,block/blk-zoned.c:1367
@@ -339,8 +495,10 @@ ID,directory,file,function,offset,source start,source end
 114,MAX_PARTIAL_TO_SCAN,kernel-results/MAX_PARTIAL_TO_SCAN/1.output.txt,count_partial_free_approx,0x14 - 0x22,mm/slub.c:3488,mm/slub.c:3488
 114,MAX_PARTIAL_TO_SCAN,kernel-results/MAX_PARTIAL_TO_SCAN/2.output.txt,count_partial_free_approx,0x92 - 0xc6,mm/slub.c:3501,mm/slub.c:3501
 114,MAX_PARTIAL_TO_SCAN,kernel-results/MAX_PARTIAL_TO_SCAN/3.output.txt,,,,
+114,MAX_PARTIAL_TO_SCAN,kernel-results/MAX_PARTIAL_TO_SCAN/3.output.txt,dump_unreclaimable_slab,0x90 - 0x99,mm/slab_common.c:1163,mm/slab_common.c:1164
 114,MAX_PARTIAL_TO_SCAN,kernel-results/MAX_PARTIAL_TO_SCAN/4.output.txt,count_partial_free_approx,0xec - 0x125,mm/slub.c:3506,mm/slub.c:3506
 114,MAX_PARTIAL_TO_SCAN,kernel-results/MAX_PARTIAL_TO_SCAN/5.output.txt,,,,
+114,MAX_PARTIAL_TO_SCAN,kernel-results/MAX_PARTIAL_TO_SCAN/5.output.txt,dump_unreclaimable_slab,0x90 - 0x99,mm/slab_common.c:1163,mm/slab_common.c:1164
 115,KFREE_DRAIN_JIFFIES,kernel-results/KFREE_DRAIN_JIFFIES/1.output.txt,__schedule_delayed_monitor_work,0x5 - 0x3126,mm/slab_common.c:1633,./include/linux/workqueue.h:677
 115,KFREE_DRAIN_JIFFIES,kernel-results/KFREE_DRAIN_JIFFIES/2.output.txt,cgroup_pidlist_stop,0x21 - 0x21,./include/linux/workqueue.h:692,./include/linux/workqueue.h:692
 115,KFREE_DRAIN_JIFFIES,kernel-results/KFREE_DRAIN_JIFFIES/3.output.txt,__sysvec_hyperv_reenlightenment,0x3da125 - 0x15,mm/slab_common.c:1633,./include/linux/workqueue.h:677
