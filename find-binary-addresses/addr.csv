@@ -210,8 +210,8 @@ ID,directory,file,function,offset,source start,source end
 45,OOM_REAPER_DELAY,kernel-results/OOM_REAPER_DELAY/3.output.txt,queue_oom_reaper,0x71 - 0x71,mm/oom_kill.c:703,mm/oom_kill.c:703
 46,SHMEM_MAX_IQ_TIME,kernel-results/SHMEM_MAX_IQ_TIME/1.output.txt,shmem_read_file_info,0x91 - 0x91,mm/shmem_quota.c:78,mm/shmem_quota.c:78
 47,SHMEM_MAX_DQ_TIME,kernel-results/SHMEM_MAX_DQ_TIME/1.output.txt,shmem_read_file_info,0x91 - 0xa2,mm/shmem_quota.c:77,mm/shmem_quota.c:77
-48,RCU_JIFFIES_FQS_DIV,kernel-results/RCU_JIFFIES_FQS_DIV/1.output.txt,,,,
-48,RCU_JIFFIES_FQS_DIV,kernel-results/RCU_JIFFIES_FQS_DIV/2.output.txt,,,,
+48,RCU_JIFFIES_FQS_DIV,kernel-results/RCU_JIFFIES_FQS_DIV/1.output.txt,adjust_jiffies_till_sched_qs,0x40 - 0x5f,kernel/rcu/tree.c:455,kernel/rcu/tree.c:458
+48,RCU_JIFFIES_FQS_DIV,kernel-results/RCU_JIFFIES_FQS_DIV/2.output.txt,adjust_jiffies_till_sched_qs,0x40 - 0x5f,kernel/rcu/tree.c:455,kernel/rcu/tree.c:458
 48,RCU_JIFFIES_FQS_DIV,kernel-results/RCU_JIFFIES_FQS_DIV/3.output.txt,rcu_init_geometry,0x56 - 0x8b,kernel/rcu/tree.c:4687,kernel/rcu/tree.c:4695
 49,BLK_MAX_REQUEST_COUNT,kernel-results/BLK_MAX_REQUEST_COUNT/1.output.txt,blk_start_plug_nr_ios,0x29 - 0x584,block/blk-core.c:1125,block/blk-core.c:1125
 49,BLK_MAX_REQUEST_COUNT,kernel-results/BLK_MAX_REQUEST_COUNT/2.output.txt,blk_add_rq_to_plug,0xd1 - 0xd5,block/blk-mq.c:1381,block/blk-mq.c:1381
