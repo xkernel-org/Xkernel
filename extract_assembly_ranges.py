@@ -384,16 +384,24 @@ def parse_dataflow_analysis_output_file(filepath):
         assert False, "Could not find 'Number of max-level functions'"
 
     num_functions = int(match.group(1))
-    if num_functions != 1:
-        # Because the current pass output does not have enough information for
-        # each span...
-        return None, "TODO"
 
-    # Extract function name
-    func_match = re.search(r'Function:\s*(\S+)', content)
-    if not func_match:
-        assert False, "Could not find function name"
-    function_name = func_match.group(1)
+    # Handle single function case
+    if num_functions == 1:
+        # Extract function name
+        func_match = re.search(r'Function:\s*(\S+)', content)
+        if not func_match:
+            assert False, "Could not find function name"
+        function_name = func_match.group(1)
+
+        return parse_single_function(content, function_name, filepath)
+
+    # Handle multiple functions case
+    else:
+        return parse_multiple_functions(content, filepath)
+
+
+def parse_single_function(content, function_name, filepath):
+    """Parse a file with a single max-level function."""
 
     # Extract earliest instruction with L=N
     # Format: "Earliest:   instruction <loc> FUNC=name"
@@ -490,6 +498,77 @@ def parse_dataflow_analysis_output_file(filepath):
         'latest_file': latest_file,
         'latest_line': latest_line,
     }, None
+
+
+def parse_multiple_functions(content, filepath):
+    """Parse a file with multiple max-level functions."""
+    results = []
+
+    # Find the section with function blocks
+    # Format: "function_name:\n  Earliest:...\n  Latest:..."
+    # Split by function blocks
+    function_blocks = re.finditer(
+        r'^(\w+):\s*\n'  # Function name followed by colon
+        r'\s+Earliest:\s+(.*?)\s+<([^>]+)>\s+(?:\(approx\)\s+)?FUNC=(\S+).*?\n'  # Earliest line
+        r'(?:\s+\(Earliest and latest are the same instruction\)|'  # Same instruction case
+        r'\s+Latest:\s+(.*?)\s+<([^>]+)>\s+(?:\(approx\)\s+)?FUNC=(\S+))',  # Latest line
+        content,
+        re.MULTILINE
+    )
+
+    for match in function_blocks:
+        function_name = match.group(1)
+
+        # Check if earliest and latest are the same
+        same_instruction = "(Earliest and latest are the same instruction)" in match.group(0)
+
+        if same_instruction:
+            # Groups: 1=func_name, 2=earliest_instr, 3=earliest_loc, 4=earliest_func
+            earliest_location = match.group(3)
+            earliest_func = match.group(4)
+            latest_location = earliest_location
+            latest_func = earliest_func
+        else:
+            # Groups: 1=func_name, 2=earliest_instr, 3=earliest_loc, 4=earliest_func,
+            #         5=latest_instr, 6=latest_loc, 7=latest_func
+            earliest_location = match.group(3)
+            earliest_func = match.group(4)
+            latest_location = match.group(6)
+            latest_func = match.group(7)
+
+        # Parse source locations (format: file:line:column)
+        def parse_location(loc):
+            parts = loc.rsplit(':', 2)
+            if len(parts) >= 2:
+                return parts[0], int(parts[1])
+            return None, None
+
+        earliest_file, earliest_line = parse_location(earliest_location)
+        latest_file, latest_line = parse_location(latest_location)
+
+        if not earliest_file or not earliest_line:
+            results.append((None, f"Could not parse earliest location: {earliest_location}"))
+            continue
+
+        if not latest_file or not latest_line:
+            results.append((None, f"Could not parse latest location: {latest_location}"))
+            continue
+
+        results.append(({
+            'function': function_name,
+            'earliest_func': earliest_func,
+            'latest_func': latest_func,
+            'earliest_file': earliest_file,
+            'earliest_line': earliest_line,
+            'latest_file': latest_file,
+            'latest_line': latest_line,
+        }, None))
+
+    if not results:
+        return None, "Could not parse any function blocks"
+
+    # Return list of results
+    return results, None
 
 
 def normalize_path(path):
@@ -828,25 +907,8 @@ def find_address_for_line(binary_path, nm_output, readelf_output, source_file, l
         return None, None, None
 
 
-def process_single_file(output_file, vmlinux_path, nm_output, readelf_output, verbose=True, symbol_to_module=None, module_nm_cache=None, module_readelf_cache=None):
-    """Process a single output file and return the results."""
-    if not os.path.exists(output_file):
-        if verbose:
-            print(f"Error: File {output_file} not found")
-        return None
-
-    # Parse the output file
-    result, error = parse_dataflow_analysis_output_file(output_file)
-
-    if error:
-        if error == "TODO":
-            if verbose:
-                print("TODO")
-            return {"status": "TODO", "file": output_file}
-        else:
-            if verbose:
-                print(f"Error: {error}")
-            return {"status": "ERROR", "file": output_file, "error": error}
+def process_single_result(result, vmlinux_path, nm_output, readelf_output, verbose, symbol_to_module, module_nm_cache, module_readelf_cache):
+    """Process a single result (one function's worth of data) and return the output."""
 
     # Find assembly addresses
     if verbose:
@@ -1012,7 +1074,6 @@ def process_single_file(output_file, vmlinux_path, nm_output, readelf_output, ve
 
     return {
         "status": "SUCCESS",
-        "file": output_file,
         "function": result['function'],
         "earliest_file": result['earliest_file'],
         "earliest_line": result['earliest_line'],
@@ -1027,6 +1088,48 @@ def process_single_file(output_file, vmlinux_path, nm_output, readelf_output, ve
     }
 
 
+def process_single_file(output_file, vmlinux_path, nm_output, readelf_output, verbose=True, symbol_to_module=None, module_nm_cache=None, module_readelf_cache=None):
+    """Process a single output file and return the results."""
+    if not os.path.exists(output_file):
+        if verbose:
+            print(f"Error: File {output_file} not found")
+        return None
+
+    # Parse the output file
+    parsed_result, error = parse_dataflow_analysis_output_file(output_file)
+
+    if error:
+        if verbose:
+            print(f"Error: {error}")
+        return {"status": "ERROR", "file": output_file, "error": error}
+
+    # Check if we have multiple results (list) or single result (dict)
+    if isinstance(parsed_result, list):
+        # Multiple functions case
+        all_results = []
+        for result, func_error in parsed_result:
+            if func_error:
+                if verbose:
+                    print(f"Error processing function: {func_error}")
+                all_results.append({"status": "ERROR", "file": output_file, "error": func_error})
+            else:
+                func_result = process_single_result(
+                    result, vmlinux_path, nm_output, readelf_output, verbose,
+                    symbol_to_module, module_nm_cache, module_readelf_cache
+                )
+                func_result["file"] = output_file
+                all_results.append(func_result)
+        return all_results
+    else:
+        # Single function case
+        result = process_single_result(
+            parsed_result, vmlinux_path, nm_output, readelf_output, verbose,
+            symbol_to_module, module_nm_cache, module_readelf_cache
+        )
+        result["file"] = output_file
+        return result
+
+
 def batch_process(directory, vmlinux_path, nm_output, readelf_output, max_workers=None, symbol_to_module=None, module_nm_cache=None, module_readelf_cache=None):
     """Process all .output.txt files in a directory tree in parallel."""
     pattern = os.path.join(directory, '**', '*.output.txt')
@@ -1039,7 +1142,7 @@ def batch_process(directory, vmlinux_path, nm_output, readelf_output, max_worker
     print(f"Processing {len(files)} files in parallel...")
     print()
 
-    results = {"TODO": [], "SUCCESS": [], "ERROR": [], "NOT_FOUND": []}
+    results = {"SUCCESS": [], "ERROR": [], "NOT_FOUND": []}
     completed_count = 0
     print_lock = threading.Lock()
 
@@ -1066,44 +1169,47 @@ def batch_process(directory, vmlinux_path, nm_output, readelf_output, max_worker
 
                 with print_lock:
                     completed_count += 1
-                    header_line = f"[{completed_count}/{len(files)}] {file_path}"
-                    print(header_line)
-                    output_file.write(header_line + "\n")
 
-                    if result:
-                        if result["status"] == "TODO":
-                            results["TODO"].append(file_path)
-                            result_line = "  -> TODO"
-                            print(result_line)
-                            output_file.write(result_line + "\n")
-                        elif result["status"] == "ERROR":
-                            results["ERROR"].append((file_path, result.get("error", "Unknown error")))
-                            result_line = f"  -> ERROR: {result.get('error', 'Unknown')}"
-                            print(result_line)
-                            output_file.write(result_line + "\n")
-                        elif result["status"] == "SUCCESS":
-                            if result["start_addr"] and result["end_addr"]:
-                                # Format: source start, source end, binary start, binary end, symbol name, start offset, end offset
-                                source_start = f"{result['earliest_file']}:{result['earliest_line']}"
-                                source_end = f"{result['latest_file']}:{result['latest_line']}"
-                                binary_start = f"0x{result['start_addr']}"
-                                binary_end = f"0x{result['end_addr']}"
-                                symbol = result.get('start_symbol', 'N/A')
-                                start_off = result.get('start_offset', 'N/A')
-                                end_off = result.get('end_offset', 'N/A')
+                    # Check if result is a list (multiple functions) or single result
+                    results_list = result if isinstance(result, list) else [result] if result else []
 
-                                output_str = f"{source_start}, {source_end}, {binary_start}, {binary_end}, {symbol}, {start_off}, {end_off}"
-                                results["SUCCESS"].append((file_path, output_str))
-                                result_line = f"  -> {output_str}"
+                    for idx, res in enumerate(results_list):
+                        # Print header for each result
+                        header_line = f"[{completed_count}/{len(files)}] {file_path}"
+                        print(header_line)
+                        output_file.write(header_line + "\n")
+
+                        if res:
+                            if res["status"] == "ERROR":
+                                results["ERROR"].append((file_path, res.get("error", "Unknown error")))
+                                result_line = f"  -> ERROR: {res.get('error', 'Unknown')}"
                                 print(result_line)
                                 output_file.write(result_line + "\n")
-                            else:
-                                results["NOT_FOUND"].append(file_path)
-                                result_line = "  -> Addresses not found"
-                                print(result_line)
-                                output_file.write(result_line + "\n")
-                    print()
-                    output_file.write("\n")
+                            elif res["status"] == "SUCCESS":
+                                if res["start_addr"] and res["end_addr"]:
+                                    # Format: source start, source end, binary start, binary end, symbol name, start offset, end offset
+                                    source_start = f"{res['earliest_file']}:{res['earliest_line']}"
+                                    source_end = f"{res['latest_file']}:{res['latest_line']}"
+                                    binary_start = f"0x{res['start_addr']}"
+                                    binary_end = f"0x{res['end_addr']}"
+                                    symbol = res.get('start_symbol', 'N/A')
+                                    start_off = res.get('start_offset', 'N/A')
+                                    end_off = res.get('end_offset', 'N/A')
+
+                                    output_str = f"{source_start}, {source_end}, {binary_start}, {binary_end}, {symbol}, {start_off}, {end_off}"
+                                    results["SUCCESS"].append((file_path, output_str))
+                                    result_line = f"  -> {output_str}"
+                                    print(result_line)
+                                    output_file.write(result_line + "\n")
+                                else:
+                                    results["NOT_FOUND"].append(file_path)
+                                    result_line = "  -> Addresses not found"
+                                    print(result_line)
+                                    output_file.write(result_line + "\n")
+
+                        print()
+                        output_file.write("\n")
+
                     output_file.flush()  # Ensure data is written immediately
             except Exception as e:
                 with print_lock:
@@ -1129,7 +1235,6 @@ def batch_process(directory, vmlinux_path, nm_output, readelf_output, max_worker
     print("SUMMARY")
     print("=" * 80)
     print(f"Total files: {len(files)}")
-    print(f"TODO (multiple max-level functions): {len(results['TODO'])}")
     print(f"SUCCESS (addresses found): {len(results['SUCCESS'])}")
     print(f"NOT_FOUND (addresses not found): {len(results['NOT_FOUND'])}")
     print(f"ERROR: {len(results['ERROR'])}")
