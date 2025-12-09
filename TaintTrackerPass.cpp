@@ -1584,6 +1584,8 @@ found:
         int maxLevel = INT_MIN;
         Instruction *earliestInst = nullptr;
         Instruction *latestInst = nullptr;
+        // Per-function tracking of earliest and latest instructions
+        DenseMap<Function*, std::pair<Instruction*, Instruction*>> EarliestLatestPerFunction;
 
         // Find the maximum level (only considering actually tainted values, not skipped/killed ones)
         for (auto &Entry : ValueLevel) {
@@ -1627,7 +1629,7 @@ found:
             size_t totalMaxLevelValues = MaxLevelInstructions.size() + MaxLevelArguments.size();
 
             // Find earliest and latest by iterating through the module in order
-            // The first and last occurrences in program order
+            // The first and last occurrences in program order (both global and per-function)
             if (!MaxLevelInstructions.empty()) {
                 // Sort by pointer address to get deterministic ordering
                 // Then scan module to find first and last in actual program order
@@ -1638,10 +1640,18 @@ found:
                             // Check if this instruction is in our max level set
                             for (Instruction *MaxI : MaxLevelInstructions) {
                                 if (&I == MaxI) {
+                                    // Global tracking
                                     if (!earliestInst) {
                                         earliestInst = &I;
                                     }
                                     latestInst = &I;
+
+                                    // Per-function tracking
+                                    if (!EarliestLatestPerFunction.count(&F)) {
+                                        EarliestLatestPerFunction[&F] = {&I, &I};
+                                    } else {
+                                        EarliestLatestPerFunction[&F].second = &I;
+                                    }
                                 }
                             }
                         }
@@ -1670,16 +1680,31 @@ found:
                     }
                 }
 
-                if (earliestInst) {
-                    errs() << "\nEarliest instruction with L=" << maxLevel << ":\n";
-                    errs() << "  " << getValueName(earliestInst) << getDebugLoc(earliestInst) << getFuncLevel(earliestInst, ValueLevel, FunctionLevel) << "\n";
-                }
+                // Show earliest and latest instructions per function
+                if (!EarliestLatestPerFunction.empty()) {
+                    errs() << "\nEarliest and latest instructions with L=" << maxLevel << " (per function):\n";
+                    // Sort functions by name for deterministic output
+                    SmallVector<std::pair<Function*, std::pair<Instruction*, Instruction*>>, 16> SortedEarliestLatest(
+                        EarliestLatestPerFunction.begin(), EarliestLatestPerFunction.end());
+                    llvm::sort(SortedEarliestLatest, [](const auto &A, const auto &B) {
+                        return A.first->getName() < B.first->getName();
+                    });
 
-                if (latestInst && latestInst != earliestInst) {
-                    errs() << "\nLatest instruction with L=" << maxLevel << ":\n";
-                    errs() << "  " << getValueName(latestInst) << getDebugLoc(latestInst) << getFuncLevel(latestInst, ValueLevel, FunctionLevel) << "\n";
-                } else if (latestInst == earliestInst) {
-                    errs() << "\n(Earliest and latest are the same instruction)\n";
+                    for (auto &Entry : SortedEarliestLatest) {
+                        Function *F = Entry.first;
+                        Instruction *earliest = Entry.second.first;
+                        Instruction *latest = Entry.second.second;
+
+                        errs() << "\n" << F->getName() << ":\n";
+                        if (earliest) {
+                            errs() << "  Earliest: " << getValueName(earliest) << getDebugLoc(earliest) << getFuncLevel(earliest, ValueLevel, FunctionLevel) << "\n";
+                        }
+                        if (latest && latest != earliest) {
+                            errs() << "  Latest: " << getValueName(latest) << getDebugLoc(latest) << getFuncLevel(latest, ValueLevel, FunctionLevel) << "\n";
+                        } else if (latest == earliest) {
+                            errs() << "  (Earliest and latest are the same instruction)\n";
+                        }
+                    }
                 }
 
                 // --- Instruction Count Statistics ---
