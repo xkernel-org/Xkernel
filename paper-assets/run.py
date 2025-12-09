@@ -5,6 +5,8 @@
 import sys
 import pandas as pd
 import matplotlib.pyplot as plt
+from pathlib import Path
+import re
 
 latex_macros = []
 
@@ -25,6 +27,18 @@ analysis_time_minutes_mean = analysis_time_minutes.mean()
 analysis_time_minutes_stddev = analysis_time_minutes.std()
 analysis_time_minutes_max = analysis_time_minutes.max()
 
+idx_analysis_time_minutes_max = analysis_time_minutes.idxmax()
+max_analysis_time_file_name = df.iloc[idx_analysis_time_minutes_max, 0].strip()
+max_analysis_time_macro_name = max_analysis_time_file_name.split('/')[1].strip()
+max_analysis_time_macro_name_latex = str(max_analysis_time_macro_name).replace('_', '\\_')
+max_analysis_time_macro_name_latex = f"\\texttt{{{max_analysis_time_macro_name_latex}}}"
+with open(Path(max_analysis_time_file_name).parent / 'ss-size2.txt', 'r') as f:
+    content = f.read()
+    total_instructions = re.search(r'Total: (\d+) instructions', content).group(1)
+    total_instructions = int(total_instructions)
+    max_analysis_time_instructions = total_instructions
+    max_analysis_time_instructions_str = "{:,.0f}".format(max_analysis_time_instructions)
+
 analysis_time_minutes_mean_str = "{:.0f}".format(analysis_time_minutes_mean)
 analysis_time_minutes_stddev_str = "{:.0f}".format(analysis_time_minutes_stddev)
 analysis_time_minutes_max_str = "{:.0f}".format(analysis_time_minutes_max)
@@ -32,6 +46,15 @@ analysis_time_minutes_max_str = "{:.0f}".format(analysis_time_minutes_max)
 latex_macros.append(f"\\newcommand{{\\wentaoNumbersSsAnalysisTimeMean}}{{{analysis_time_minutes_mean_str}\\xspace}}")
 latex_macros.append(f"\\newcommand{{\\wentaoNumbersSsAnalysisTimeStddev}}{{{analysis_time_minutes_stddev_str}\\xspace}}")
 latex_macros.append(f"\\newcommand{{\\wentaoNumbersSsAnalysisTimeMax}}{{{analysis_time_minutes_max_str}\\xspace}}")
+
+latex_macros.append(f"\\newcommand{{\\wentaoNumbersSsAnalysisTimeMaxMacro}}{{{max_analysis_time_macro_name_latex}\\xspace}}")
+latex_macros.append(f"\\newcommand{{\\wentaoNumbersSsAnalysisTimeMaxInstructions}}{{{max_analysis_time_instructions_str}\\xspace}}")
+
+df = pd.read_csv('kernel-results/per-perf-const-size.txt')
+ss_size_median = df.iloc[:, 0].median()
+ss_size_median_str = "{:,.0f}".format(ss_size_median)
+
+latex_macros.append(f"\\newcommand{{\\wentaoNumbersSsSizeMedian}}{{{ss_size_median_str}\\xspace}}")
 
 # In[3]:
 
