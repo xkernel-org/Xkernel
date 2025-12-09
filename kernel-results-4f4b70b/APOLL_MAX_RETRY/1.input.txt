@@ -1,0 +1,5 @@
+SOURCE_FILE=io_uring/poll.c
+FUNCTION_NAME=io_arm_poll_handler
+SOURCE_OP="store"
+CONSTANT_VALUE=128
+OCCURENCE=1

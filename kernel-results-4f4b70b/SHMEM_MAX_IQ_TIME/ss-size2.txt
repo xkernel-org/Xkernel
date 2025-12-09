@@ -1,0 +1,3 @@
+shmem_read_file_info: BB1:I7 -> BB1:I7 => 1 instructions
+
+Total: 1 instructions

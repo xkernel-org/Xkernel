@@ -1,0 +1,3 @@
+get_hwpoison_page: [BB110:I0 -> BB110:I1, BB120:I0 -> BB120:I1, BB159:I0 -> BB159:I4] => 9 instructions
+
+Total: 9 instructions

@@ -1,0 +1,5 @@
+  io_buffers_peek: full span
+  io_buffers_select: full span
+  io_recv: BB0:I9 -> BB55:I3
+  io_ring_buffers_peek: full span
+  io_send: BB4:I2 -> BB45:I1

@@ -1,0 +1,71 @@
+=== Taint Tracker Configuration ===
+Function: do_garbage_collect
+Opcode: mul
+Constant: 5
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant 5)
+
+[SOURCE] Tainting:   %77 = mul i32 %56, 5 <fs/f2fs/gc.c:1750:34> (approx) FUNC=do_garbage_collect L=0
+[USE] Source instruction in data flow <fs/f2fs/gc.c:1750:34> (approx) FUNC=do_garbage_collect L=0
+[USE] Processing uses of:   %77 = mul i32 %56, 5
+  [USE] Taint flows to:   %78 = select i1 %76, i32 %56, i32 %77, <fs/f2fs/gc.c:1750:34> FUNC=do_garbage_collect L=0
+[USE] Processing uses of:   %78 = select i1 %76, i32 %56, i32 %77,
+  [USE] Taint flows to:   %80 = phi i32 [ %56, %54 ], [ %78, %62 ], <fs/f2fs/gc.c:1756:28> (approx) FUNC=do_garbage_collect L=0
+[USE] Processing uses of:   %80 = phi i32 [ %56, %54 ], [ %78, %62 ],
+  [USE] Taint flows to:   %81 = add i32 %80, %1, <fs/f2fs/gc.c:1756:28> FUNC=do_garbage_collect L=0
+[USE] Processing uses of:   %81 = add i32 %80, %1,
+  [USE] Taint flows to:   %83 = phi i32 [ %81, %79 ], [ %24, %50 ], <fs/f2fs/gc.c:1759:17> (approx) FUNC=do_garbage_collect L=0
+[USE] Processing uses of:   %83 = phi i32 [ %81, %79 ], [ %24, %50 ],
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %84 = tail call i32 @llvm.umin.i32(i32 %83, i32 %51), !dbg !18658310 <fs/f2fs/gc.c:1759:17>
+  [USE] Taint flows to:   %84 = tail call i32 @llvm.umin.i32(i32 %83, i32 %51), <fs/f2fs/gc.c:1759:17> FUNC=do_garbage_collect L=0
+[USE] Processing uses of:   %84 = tail call i32 @llvm.umin.i32(i32 %83, i32 %51),
+  [USE] Taint flows to:   %95 = phi i32 [ %24, %6 ], [ %84, %82 ], <fs/f2fs/segment.h:34:2> (approx) FUNC=do_garbage_collect L=0
+[USE] Processing uses of:   %95 = phi i32 [ %24, %6 ], [ %84, %82 ],
+  [USE] Taint flows to:   %108 = sub i32 %95, %1, <fs/f2fs/gc.c:1768:16> FUNC=do_garbage_collect L=0
+  [USE] Taint flows to:   %111 = icmp ult i32 %1, %95, <fs/f2fs/gc.c:1771:15> FUNC=do_garbage_collect L=0
+  [USE] Taint flows to:   %213 = icmp eq i32 %212, %95, <fs/f2fs/gc.c:1771:15> FUNC=do_garbage_collect L=0
+  [USE] Taint flows to:   %267 = zext i32 %95 to i64, <fs/f2fs/gc.c:1790:34> FUNC=do_garbage_collect L=0
+[USE] Processing uses of:   %267 = zext i32 %95 to i64,
+  [USE] Taint flows to:   %1543 = icmp eq i64 %1542, %267, <fs/f2fs/gc.c:1790:34> FUNC=do_garbage_collect L=0
+[USE] Processing uses of:   %1543 = icmp eq i64 %1542, %267,
+  [USE] Taint flows to:   br i1 %1543, label %1544, label %268, <fs/f2fs/gc.c:1790:2> FUNC=do_garbage_collect L=0
+[NO USE] No uses of:   br i1 %1543, label %1544, label %268,
+[USE] Processing uses of:   %213 = icmp eq i32 %212, %95,
+  [USE] Taint flows to:   br i1 %213, label %214, label %113, <fs/f2fs/gc.c:1771:2> FUNC=do_garbage_collect L=0
+[NO USE] No uses of:   br i1 %213, label %214, label %113,
+[USE] Processing uses of:   %111 = icmp ult i32 %1, %95,
+  [USE] Taint flows to:   br i1 %111, label %113, label %112, <fs/f2fs/gc.c:1771:2> FUNC=do_garbage_collect L=0
+[NO USE] No uses of:   br i1 %111, label %113, label %112,
+[USE] Processing uses of:   %108 = sub i32 %95, %1,
+  [CHILD FUNCTION] Tainted value used in call to f2fs_ra_meta_pages at argument 2:   %109 = tail call i32 @f2fs_ra_meta_pages(ptr noundef %0, i32 noundef %107, i32 noundef %108, i32 noundef 3, i1 noundef zeroext true) #279, <fs/f2fs/gc.c:1767:3> FUNC=do_garbage_collect L=0
+  [USE] Taint flows to:   %109 = tail call i32 @f2fs_ra_meta_pages(ptr noundef %0, i32 noundef %107, i32 noundef %108, i32 noundef 3, i1 noundef zeroext true) #279, <fs/f2fs/gc.c:1767:3> FUNC=do_garbage_collect L=0
+[NO USE] No uses of:   %109 = tail call i32 @f2fs_ra_meta_pages(ptr noundef %0, i32 noundef %107, i32 noundef %108, i32 noundef 3, i1 noundef zeroext true) #279,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 16
+
+Earliest and latest instructions with L=0 (per function):
+
+do_garbage_collect:
+  Earliest:   %77 = mul i32 %56, 5 <fs/f2fs/gc.c:1750:34> (approx) FUNC=do_garbage_collect L=0
+  Latest:   br i1 %1543, label %1544, label %268, <fs/f2fs/gc.c:1790:2> FUNC=do_garbage_collect L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 1681 instructions
+Other visited functions (total): 0 instructions
+Total: 1681 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+do_garbage_collect, 5, 14, 333, 2
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/f2fs/gc.ll
+../linux-wllvm-defconfig/fs/f2fs/gc.c

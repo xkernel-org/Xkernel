@@ -1,0 +1,20 @@
+bpf_sk_assign_tcp_reqsk: [BB13:I2 -> BB13:I3, BB14:I2 -> BB14:I3] => 4 instructions
+cookie_v4_check: [BB14:I5 -> BB22:I5, BB39:I5 -> BB44:I4] => 103 instructions
+cookie_v6_check: [BB13:I5 -> BB14:I9, BB29:I14 -> BB45:I6] => 159 instructions
+ipv4_synproxy_hook: BB24:I4 -> BB30:I15 => 44 instructions
+ipv6_synproxy_hook: BB24:I4 -> BB30:I15 => 44 instructions
+nf_conntrack_tcp_packet: BB31:I8 -> BB33:I2 => 14 instructions
+synproxy_parse_options: full span => 101 instructions
+synproxy_tg4: BB8:I5 -> BB10:I1 => 20 instructions
+tcp_check_req: BB1:I3 -> BB35:I3 => 217 instructions
+tcp_conn_request: BB8:I25 -> BB37:I2 => 234 instructions
+tcp_connect: BB32:I9 -> BB36:I8 => 46 instructions
+tcp_openreq_init_rwin: BB4:I41 -> BB4:I47 => 7 instructions
+tcp_options: full span => 87 instructions
+tcp_parse_options: full span => 243 instructions
+tcp_rcv_fastopen_synack: BB3:I6 -> BB10:I2 => 32 instructions
+tcp_repair_options_est: BB8:I1 -> BB8:I5 => 5 instructions
+tcp_select_initial_window: full span => 47 instructions
+tcp_timewait_state_process: BB1:I3 -> BB36:I6 => 179 instructions
+
+Total: 1586 instructions

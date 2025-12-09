@@ -1,0 +1,3 @@
+xfs_inobt_walk: BB0:I18 -> BB0:I20 => 3 instructions
+
+Total: 3 instructions

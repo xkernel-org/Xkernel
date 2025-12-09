@@ -1,0 +1,3 @@
+mb_cache_entry_create: BB3:I0 -> BB3:I0 => 1 instructions
+
+Total: 1 instructions

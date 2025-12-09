@@ -1,0 +1,320 @@
+=== Taint Tracker Configuration ===
+Function: tlb_flush_mmu
+Opcode: call
+Constant: 512
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant 512)
+
+[SOURCE] Tainting:   %76 = tail call i32 @llvm.umin.i32(i32 %75, i32 512), <mm/mmu_gather.c:108:9> FUNC=tlb_flush_mmu L=0
+[USE] Source instruction in data flow <mm/mmu_gather.c:108:9> FUNC=tlb_flush_mmu L=0
+[CHILD FUNCTION] Constant used in call to llvm.umin.i32 at argument 1 <mm/mmu_gather.c:108:9> FUNC=tlb_flush_mmu L=0
+[USE] Processing uses of:   %76 = tail call i32 @llvm.umin.i32(i32 %75, i32 512),
+  [USE] Taint flows to:   %77 = add nsw i32 %76, -1, <mm/mmu_gather.c:114:8> FUNC=tlb_flush_mmu L=0
+  [USE] Taint flows to:   %85 = add nuw nsw i32 %76, 1, <mm/mmu_gather.c:116:7> FUNC=tlb_flush_mmu L=0
+  [USE] Taint flows to:   %112 = phi i32 [ %85, %84 ], [ %76, %74 ], [ 0, %71 ], [ %107, %103 ], <mm/mmu_gather.c:136:3> (approx) FUNC=tlb_flush_mmu L=0
+[USE] Processing uses of:   %112 = phi i32 [ %85, %84 ], [ %76, %74 ], [ 0, %71 ], [ %107, %103 ],
+  [CHILD FUNCTION] Tainted value used in call to free_pages_and_swap_cache at argument 1:   tail call void @free_pages_and_swap_cache(ptr noundef %70, i32 noundef %112) #278, <mm/mmu_gather.c:136:3> FUNC=tlb_flush_mmu L=0
+  [USE] Taint flows to:   tail call void @free_pages_and_swap_cache(ptr noundef %70, i32 noundef %112) #278, <mm/mmu_gather.c:136:3> FUNC=tlb_flush_mmu L=0
+  [USE] Taint flows to:   %113 = zext i32 %112 to i64, <mm/mmu_gather.c:137:9> FUNC=tlb_flush_mmu L=0
+  [USE] Taint flows to:   %116 = sub i32 %115, %112, <mm/mmu_gather.c:138:13> FUNC=tlb_flush_mmu L=0
+[USE] Processing uses of:   %116 = sub i32 %115, %112,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #0 (ptr %0) <mm/mmu_gather.c:138:13>
+[USE] Processing uses of:   %113 = zext i32 %112 to i64,
+  [USE] Taint flows to:   %114 = getelementptr ptr, ptr %70, i64 %113, <mm/mmu_gather.c:137:9> FUNC=tlb_flush_mmu L=0
+[USE] Processing uses of:   %114 = getelementptr ptr, ptr %70, i64 %113,
+  [USE] Taint flows to:   %70 = phi ptr [ %114, %111 ], [ %68, %67 ] <./arch/x86/include/asm/jump_label.h:36:2> (approx) FUNC=tlb_flush_mmu L=0
+[USE] Processing uses of:   %70 = phi ptr [ %114, %111 ], [ %68, %67 ]
+  [USE] Taint flows to:   %79 = getelementptr ptr, ptr %70, i64 %78, <mm/mmu_gather.c:114:8> FUNC=tlb_flush_mmu L=0
+  [USE] Taint flows to:   %90 = getelementptr ptr, ptr %70, i64 %89, <mm/mmu_gather.c:128:9> FUNC=tlb_flush_mmu L=0
+  [USE] Taint flows to:   %98 = getelementptr ptr, ptr %70, i64 %97, <mm/mmu_gather.c:130:35> FUNC=tlb_flush_mmu L=0
+  [CHILD FUNCTION] Tainted value used in call to free_pages_and_swap_cache at argument 0:   tail call void @free_pages_and_swap_cache(ptr noundef %70, i32 noundef %112) #278, <mm/mmu_gather.c:136:3> FUNC=tlb_flush_mmu L=0
+[USE] Processing uses of:   %98 = getelementptr ptr, ptr %70, i64 %97,
+  [USE] Taint flows to:   %99 = load ptr, ptr %98, align 8, <mm/mmu_gather.c:130:35> FUNC=tlb_flush_mmu L=0
+[USE] Processing uses of:   %99 = load ptr, ptr %98, align 8,
+  [USE] Taint flows to:   %100 = ptrtoint ptr %99 to i64, <./include/linux/mm_types.h:275:10> FUNC=tlb_flush_mmu L=0
+[USE] Processing uses of:   %100 = ptrtoint ptr %99 to i64,
+  [USE] Taint flows to:   %101 = lshr i64 %100, 2, <./include/linux/mm_types.h:275:31> FUNC=tlb_flush_mmu L=0
+[USE] Processing uses of:   %101 = lshr i64 %100, 2,
+  [USE] Taint flows to:   %102 = trunc i64 %101 to i32, <mm/mmu_gather.c:130:15> FUNC=tlb_flush_mmu L=0
+[USE] Processing uses of:   %102 = trunc i64 %101 to i32,
+  [USE] Taint flows to:   %104 = phi i32 [ %102, %95 ], [ 1, %86 ] <mm/mmu_gather.c:127:11> (approx) FUNC=tlb_flush_mmu L=0
+[USE] Processing uses of:   %104 = phi i32 [ %102, %95 ], [ 1, %86 ]
+  [USE] Taint flows to:   %106 = add i32 %104, %88, <mm/mmu_gather.c:127:11> (approx) FUNC=tlb_flush_mmu L=0
+[USE] Processing uses of:   %106 = add i32 %104, %88,
+  [USE] Taint flows to:   %88 = phi i32 [ %106, %103 ], [ 0, %71 ] <mm/mmu_gather.c:128:9> (approx) FUNC=tlb_flush_mmu L=0
+  [USE] Taint flows to:   %109 = icmp ult i32 %106, 512, <mm/mmu_gather.c:126:24> FUNC=tlb_flush_mmu L=0
+[USE] Processing uses of:   %109 = icmp ult i32 %106, 512,
+  [USE] Taint flows to:   %110 = select i1 %108, i1 %109, i1 false, <mm/mmu_gather.c:126:24> FUNC=tlb_flush_mmu L=0
+[USE] Processing uses of:   %110 = select i1 %108, i1 %109, i1 false,
+  [USE] Taint flows to:   br i1 %110, label %86, label %111, <mm/mmu_gather.c:125:4> FUNC=tlb_flush_mmu L=0
+[NO USE] No uses of:   br i1 %110, label %86, label %111,
+[USE] Processing uses of:   %88 = phi i32 [ %106, %103 ], [ 0, %71 ]
+[USE] Processing uses of:   %90 = getelementptr ptr, ptr %70, i64 %89,
+  [USE] Taint flows to:   %91 = load ptr, ptr %90, align 8, <mm/mmu_gather.c:128:9> FUNC=tlb_flush_mmu L=0
+[USE] Processing uses of:   %91 = load ptr, ptr %90, align 8,
+  [USE] Taint flows to:   %92 = ptrtoint ptr %91 to i64, <./include/linux/mm_types.h:259:29> FUNC=tlb_flush_mmu L=0
+[USE] Processing uses of:   %92 = ptrtoint ptr %91 to i64,
+  [USE] Taint flows to:   %93 = and i64 %92, 2, <./include/linux/mm_types.h:259:27> FUNC=tlb_flush_mmu L=0
+[USE] Processing uses of:   %93 = and i64 %92, 2,
+  [USE] Taint flows to:   %94 = icmp eq i64 %93, 0, <mm/mmu_gather.c:128:9> FUNC=tlb_flush_mmu L=0
+[USE] Processing uses of:   %94 = icmp eq i64 %93, 0,
+  [USE] Taint flows to:   br i1 %94, label %103, label %95, <mm/mmu_gather.c:128:9> FUNC=tlb_flush_mmu L=0
+[NO USE] No uses of:   br i1 %94, label %103, label %95,
+[USE] Processing uses of:   %79 = getelementptr ptr, ptr %70, i64 %78,
+  [USE] Taint flows to:   %80 = load ptr, ptr %79, align 8, <mm/mmu_gather.c:114:8> FUNC=tlb_flush_mmu L=0
+[USE] Processing uses of:   %80 = load ptr, ptr %79, align 8,
+  [USE] Taint flows to:   %81 = ptrtoint ptr %80 to i64, <./include/linux/mm_types.h:259:29> FUNC=tlb_flush_mmu L=0
+[USE] Processing uses of:   %81 = ptrtoint ptr %80 to i64,
+  [USE] Taint flows to:   %82 = and i64 %81, 2, <./include/linux/mm_types.h:259:27> FUNC=tlb_flush_mmu L=0
+[USE] Processing uses of:   %82 = and i64 %81, 2,
+  [USE] Taint flows to:   %83 = icmp eq i64 %82, 0, <mm/mmu_gather.c:114:8> FUNC=tlb_flush_mmu L=0
+[USE] Processing uses of:   %83 = icmp eq i64 %82, 0,
+  [USE] Taint flows to:   br i1 %83, label %111, label %84, <mm/mmu_gather.c:114:8> FUNC=tlb_flush_mmu L=0
+[NO USE] No uses of:   br i1 %83, label %111, label %84,
+[NO USE] No uses of:   tail call void @free_pages_and_swap_cache(ptr noundef %70, i32 noundef %112) #278,
+[USE] Processing uses of:   %85 = add nuw nsw i32 %76, 1,
+[USE] Processing uses of:   %77 = add nsw i32 %76, -1,
+  [USE] Taint flows to:   %78 = zext i32 %77 to i64, <mm/mmu_gather.c:114:8> FUNC=tlb_flush_mmu L=0
+[USE] Processing uses of:   %78 = zext i32 %77 to i64,
+[POINTER PARAMETER] Call to tlb_flush_mmu passes through pointer parameter 0 of unmap_page_range <mm/memory.c:1780:3> FUNC=unmap_page_range L=1
+[POINTER PARAMETER] Call to tlb_flush_mmu passes through pointer parameter 0 of tlb_finish_mmu <mm/mmu_gather.c:488:2> FUNC=tlb_finish_mmu L=1
+[POINTER PARAMETER] Call to tlb_flush_mmu passes through pointer parameter 0 of __unmap_hugepage_range <./include/asm-generic/tlb.h:489:3> FUNC=__unmap_hugepage_range L=1
+[POINTER PARAMETER] Call to tlb_flush_mmu passes through pointer parameter 0 of zap_huge_pmd <./include/asm-generic/tlb.h:489:3> FUNC=zap_huge_pmd L=1
+[UPWARD-INTERPROC] Call to unmap_page_range taints argument 0 (local variable) <mm/oom_kill.c:556:4> FUNC=__oom_reap_task_mm L=2
+  [STORE DESTINATION] Marking pointer as tainted via call:   %4 = alloca %struct.mmu_gather, align 8, !DIAssignID !18658109 FUNC=__oom_reap_task_mm L=2
+[POINTER PARAMETER] Call to unmap_page_range passes through pointer parameter 0 of unmap_single_vma <mm/memory.c:1950:4> FUNC=unmap_single_vma L=2
+[UPWARD-INTERPROC] Call to tlb_finish_mmu taints argument 0 (local variable) <arch/x86/kernel/ldt.c:411:2> FUNC=ldt_dup_context L=2
+  [STORE DESTINATION] Marking pointer as tainted via call:   %3 = alloca %struct.mmu_gather, align 8, !DIAssignID !18658031 FUNC=ldt_dup_context L=2
+[UPWARD-INTERPROC] Call to tlb_finish_mmu taints argument 0 (local variable) <arch/x86/kernel/ldt.c:411:2> FUNC=ldt_arch_exit_mmap L=2
+  [STORE DESTINATION] Marking pointer as tainted via call:   %2 = alloca %struct.mmu_gather, align 8, !DIAssignID !18658027 FUNC=ldt_arch_exit_mmap L=2
+[UPWARD-INTERPROC] Call to tlb_finish_mmu taints argument 0 (local variable) <arch/x86/kernel/ldt.c:411:2> FUNC=free_ldt_pgtables L=2
+  [STORE DESTINATION] Marking pointer as tainted via call:   %2 = alloca %struct.mmu_gather, align 8, !DIAssignID !18658065 FUNC=free_ldt_pgtables L=2
+[UPWARD-INTERPROC] Call to tlb_finish_mmu taints argument 0 (local variable) <mm/memory.c:2030:2> FUNC=zap_page_range_single L=2
+  [STORE DESTINATION] Marking pointer as tainted via call:   %6 = alloca %struct.mmu_gather, align 8, !DIAssignID !18658077 FUNC=zap_page_range_single L=2
+[UPWARD-INTERPROC] Call to tlb_finish_mmu taints argument 0 (local variable) <mm/mmap.c:1297:2> FUNC=exit_mmap L=2
+  [STORE DESTINATION] Marking pointer as tainted via call:   %2 = alloca %struct.mmu_gather, align 8, !DIAssignID !18658066 FUNC=exit_mmap L=2
+[UPWARD-INTERPROC] Call to tlb_finish_mmu taints argument 0 (local variable) <mm/mmap.c:1740:2> FUNC=relocate_vma_down L=2
+  [STORE DESTINATION] Marking pointer as tainted via call:   %5 = alloca %struct.mmu_gather, align 8, !DIAssignID !18658098 FUNC=relocate_vma_down L=2
+[UPWARD-INTERPROC] Call to tlb_finish_mmu taints argument 0 (local variable) <mm/mprotect.c:848:2> FUNC=do_mprotect_pkey L=2
+  [STORE DESTINATION] Marking pointer as tainted via call:   %6 = alloca %struct.mmu_gather, align 8, !DIAssignID !18658110 FUNC=do_mprotect_pkey L=2
+[UPWARD-INTERPROC] Call to tlb_finish_mmu taints argument 0 (local variable) <mm/vma.c:441:2> FUNC=unmap_region L=2
+  [STORE DESTINATION] Marking pointer as tainted via call:   %5 = alloca %struct.mmu_gather, align 8, !DIAssignID !18658092 FUNC=unmap_region L=2
+[UPWARD-INTERPROC] Call to tlb_finish_mmu taints argument 0 (local variable) <mm/vma.c:1144:2> FUNC=vms_clear_ptes L=2
+  [STORE DESTINATION] Marking pointer as tainted via call:   %4 = alloca %struct.mmu_gather, align 8, !DIAssignID !18658115 FUNC=vms_clear_ptes L=2
+[UPWARD-INTERPROC] Call to tlb_finish_mmu taints argument 0 (local variable) <mm/madvise.c:602:2> FUNC=madvise_vma_behavior L=2
+  [STORE DESTINATION] Marking pointer as tainted via call:   %14 = alloca %struct.mmu_gather, align 8, !DIAssignID !18658124 FUNC=madvise_vma_behavior L=2
+[UPWARD-INTERPROC] Call to tlb_finish_mmu taints argument 0 (local variable) <mm/madvise.c:645:2> FUNC=madvise_vma_behavior L=2
+  [STORE DESTINATION] Marking pointer as tainted via call:   %12 = alloca %struct.mmu_gather, align 8, !DIAssignID !18658122 FUNC=madvise_vma_behavior L=2
+[UPWARD-INTERPROC] Call to tlb_finish_mmu taints argument 0 (local variable) <mm/madvise.c:827:2> FUNC=madvise_vma_behavior L=2
+  [STORE DESTINATION] Marking pointer as tainted via call:   %9 = alloca %struct.mmu_gather, align 8, !DIAssignID !18658119 FUNC=madvise_vma_behavior L=2
+[UPWARD-INTERPROC] Call to tlb_finish_mmu taints argument 0 (local variable) <mm/hugetlb.c:5768:2> FUNC=unmap_hugepage_range L=2
+  [STORE DESTINATION] Marking pointer as tainted via call:   %7 = alloca %struct.mmu_gather, align 8, !DIAssignID !18658070 FUNC=unmap_hugepage_range L=2
+[UPWARD-INTERPROC] Call to tlb_finish_mmu taints argument 0 (local variable) <mm/mempolicy.c:684:2> FUNC=change_prot_numa L=2
+  [STORE DESTINATION] Marking pointer as tainted via call:   %4 = alloca %struct.mmu_gather, align 8, !DIAssignID !18658066 FUNC=change_prot_numa L=2
+[UPWARD-INTERPROC] Call to tlb_finish_mmu taints argument 0 (local variable) <fs/exec.c:784:2> FUNC=setup_arg_pages L=2
+  [STORE DESTINATION] Marking pointer as tainted via call:   %5 = alloca %struct.mmu_gather, align 8, !DIAssignID !18658024 FUNC=setup_arg_pages L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %479 = load i16, ptr %478, align 8, (base:   %9 = alloca %struct.mmu_gather, align 8, !DIAssignID !18658119)  <./include/asm-generic/tlb.h:557:11> FUNC=madvise_vma_behavior L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %502 = load i16, ptr %478, align 8, (base:   %9 = alloca %struct.mmu_gather, align 8, !DIAssignID !18658119)  <./include/asm-generic/tlb.h:568:11> FUNC=madvise_vma_behavior L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %525 = load i64, ptr %524, align 8, (base:   %9 = alloca %struct.mmu_gather, align 8, !DIAssignID !18658119)  <./arch/x86/include/asm/tlb.h:15:19> FUNC=madvise_vma_behavior L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %527 = load i64, ptr %526, align 8, (base:   %9 = alloca %struct.mmu_gather, align 8, !DIAssignID !18658119)  <./arch/x86/include/asm/tlb.h:15:19> FUNC=madvise_vma_behavior L=2
+[LOAD] Tainted load from tracked pointer:   %530 = load ptr, ptr %9, align 8, (  %9 = alloca %struct.mmu_gather, align 8, !DIAssignID !18658119)  <./arch/x86/include/asm/tlb.h:20:26> FUNC=madvise_vma_behavior L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %532 = load i16, ptr %478, align 8, (base:   %9 = alloca %struct.mmu_gather, align 8, !DIAssignID !18658119)  <./include/asm-generic/tlb.h:388:11> FUNC=madvise_vma_behavior L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %550 = load i16, ptr %478, align 8, (base:   %9 = alloca %struct.mmu_gather, align 8, !DIAssignID !18658119)  <./include/asm-generic/tlb.h:394:20> FUNC=madvise_vma_behavior L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %317 = load i16, ptr %316, align 8, (base:   %12 = alloca %struct.mmu_gather, align 8, !DIAssignID !18658122)  <./include/asm-generic/tlb.h:557:11> FUNC=madvise_vma_behavior L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %338 = load i16, ptr %316, align 8, (base:   %12 = alloca %struct.mmu_gather, align 8, !DIAssignID !18658122)  <./include/asm-generic/tlb.h:568:11> FUNC=madvise_vma_behavior L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %361 = load i64, ptr %360, align 8, (base:   %12 = alloca %struct.mmu_gather, align 8, !DIAssignID !18658122)  <./arch/x86/include/asm/tlb.h:15:19> FUNC=madvise_vma_behavior L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %363 = load i64, ptr %362, align 8, (base:   %12 = alloca %struct.mmu_gather, align 8, !DIAssignID !18658122)  <./arch/x86/include/asm/tlb.h:15:19> FUNC=madvise_vma_behavior L=2
+[LOAD] Tainted load from tracked pointer:   %366 = load ptr, ptr %12, align 8, (  %12 = alloca %struct.mmu_gather, align 8, !DIAssignID !18658122)  <./arch/x86/include/asm/tlb.h:20:26> FUNC=madvise_vma_behavior L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %368 = load i16, ptr %316, align 8, (base:   %12 = alloca %struct.mmu_gather, align 8, !DIAssignID !18658122)  <./include/asm-generic/tlb.h:388:11> FUNC=madvise_vma_behavior L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %386 = load i16, ptr %316, align 8, (base:   %12 = alloca %struct.mmu_gather, align 8, !DIAssignID !18658122)  <./include/asm-generic/tlb.h:394:20> FUNC=madvise_vma_behavior L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %200 = load i16, ptr %199, align 8, (base:   %14 = alloca %struct.mmu_gather, align 8, !DIAssignID !18658124)  <./include/asm-generic/tlb.h:557:11> FUNC=madvise_vma_behavior L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %221 = load i16, ptr %199, align 8, (base:   %14 = alloca %struct.mmu_gather, align 8, !DIAssignID !18658124)  <./include/asm-generic/tlb.h:568:11> FUNC=madvise_vma_behavior L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %244 = load i64, ptr %243, align 8, (base:   %14 = alloca %struct.mmu_gather, align 8, !DIAssignID !18658124)  <./arch/x86/include/asm/tlb.h:15:19> FUNC=madvise_vma_behavior L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %246 = load i64, ptr %245, align 8, (base:   %14 = alloca %struct.mmu_gather, align 8, !DIAssignID !18658124)  <./arch/x86/include/asm/tlb.h:15:19> FUNC=madvise_vma_behavior L=2
+[LOAD] Tainted load from tracked pointer:   %249 = load ptr, ptr %14, align 8, (  %14 = alloca %struct.mmu_gather, align 8, !DIAssignID !18658124)  <./arch/x86/include/asm/tlb.h:20:26> FUNC=madvise_vma_behavior L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %251 = load i16, ptr %199, align 8, (base:   %14 = alloca %struct.mmu_gather, align 8, !DIAssignID !18658124)  <./include/asm-generic/tlb.h:388:11> FUNC=madvise_vma_behavior L=2
+[LOAD] Tainted load from tracked pointer (struct field):   %269 = load i16, ptr %199, align 8, (base:   %14 = alloca %struct.mmu_gather, align 8, !DIAssignID !18658124)  <./include/asm-generic/tlb.h:394:20> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %271 = phi i16 [ %251, %261 ], [ %269, %267 ], <./include/asm-generic/tlb.h:394:20> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %274 = phi i16 [ %271, %270 ], [ %251, %254 ], <./include/asm-generic/tlb.h:394:20> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %275 = and i16 %274, -245, <./include/asm-generic/tlb.h:398:20> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   store i16 %275, ptr %199, align 8, <./include/asm-generic/tlb.h:398:20> FUNC=madvise_vma_behavior L=2
+  [STORE DESTINATION] Marking pointer as tainted:   %199 = getelementptr inbounds nuw i8, ptr %14, i64 32, <./include/asm-generic/tlb.h:398:20> FUNC=madvise_vma_behavior L=2
+  %199 = getelementptr inbounds nuw i8, ptr %14, i64 32,
+  → base pointer:
+          %14 = alloca %struct.mmu_gather, align 8, !DIAssignID !18658124
+      → no parameter connection
+  → Result: No parameter connection found
+  [USE] Taint flows to:   %252 = and i16 %251, 1, <./include/asm-generic/tlb.h:388:11> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %253 = icmp eq i16 %252, 0, <./include/asm-generic/tlb.h:388:6> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   br i1 %253, label %255, label %254, <./include/asm-generic/tlb.h:388:6> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   call void @flush_tlb_mm_range(ptr noundef %249, i64 noundef %248, i64 noundef %247, i32 noundef %240, i1 noundef zeroext %250) #279, <./arch/x86/include/asm/tlb.h:20:2> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %247 = select i1 %242, i64 %246, i64 -1, <./arch/x86/include/asm/tlb.h:15:19> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %248 = select i1 %242, i64 %244, i64 0, <./arch/x86/include/asm/tlb.h:15:19> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %222 = and i16 %221, 1025, <./include/asm-generic/tlb.h:568:6> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %224 = and i16 %221, 244 <./include/asm-generic/tlb.h:568:6> (approx) FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %228 = and i16 %221, 4, <./include/asm-generic/tlb.h:477:8> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %229 = and i16 %221, 128 <./include/asm-generic/tlb.h:533:6> (approx) FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %231 = and i16 %221, 64 <./include/asm-generic/tlb.h:533:6> (approx) FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %233 = and i16 %221, 16 <./include/asm-generic/tlb.h:533:6> (approx) FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %235 = and i16 %221, 48, <./include/asm-generic/tlb.h:533:6> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %241 = and i16 %221, 2, <./arch/x86/include/asm/tlb.h:15:19> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %242 = icmp eq i16 %241, 0, <./arch/x86/include/asm/tlb.h:15:19> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %236 = icmp eq i16 %235, 0, <./include/asm-generic/tlb.h:533:6> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %240 = select i1 %236, i32 %239, i32 %237, <./include/asm-generic/tlb.h:533:6> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %234 = icmp eq i16 %233, 0 <./include/asm-generic/tlb.h:533:6> (approx) FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %237 = select i1 %234, i32 21, i32 12, <./include/asm-generic/tlb.h:533:6> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %232 = icmp eq i16 %231, 0 <./include/asm-generic/tlb.h:533:6> (approx) FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %239 = select i1 %232, i32 %238, i32 30, <./include/asm-generic/tlb.h:533:6> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %230 = icmp eq i16 %229, 0 <./include/asm-generic/tlb.h:533:6> (approx) FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %238 = select i1 %230, i32 12, i32 39, <./include/asm-generic/tlb.h:533:6> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %250 = icmp ne i16 %228, 0, <./arch/x86/include/asm/tlb.h:20:56> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %225 = icmp eq i16 %224, 0 <./include/asm-generic/tlb.h:568:6> (approx) FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %226 = or i1 %223, %225, <./include/asm-generic/tlb.h:568:6> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   br i1 %226, label %276, label %227, <./include/asm-generic/tlb.h:568:6> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %223 = icmp ne i16 %222, 1024, <./include/asm-generic/tlb.h:568:6> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %201 = and i16 %200, 1, <./include/asm-generic/tlb.h:557:11> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %208 = and i16 %200, -1794, <./include/asm-generic/tlb.h:466:16> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %209 = or disjoint i16 %207, %208, <./include/asm-generic/tlb.h:466:16> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %213 = or disjoint i16 %209, %212, <./include/asm-generic/tlb.h:467:16> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %217 = or disjoint i16 %213, %216, <./include/asm-generic/tlb.h:468:16> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   store i16 %217, ptr %199, align 8, <./include/asm-generic/tlb.h:468:16> FUNC=madvise_vma_behavior L=2
+  %199 = getelementptr inbounds nuw i8, ptr %14, i64 32,
+  → base pointer:
+          %14 = alloca %struct.mmu_gather, align 8, !DIAssignID !18658124
+      → no parameter connection
+  → Result: No parameter connection found
+  [USE] Taint flows to:   %202 = icmp eq i16 %201, 0, <./include/asm-generic/tlb.h:557:6> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   br i1 %202, label %203, label %218, <./include/asm-generic/tlb.h:557:6> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %388 = phi i16 [ %368, %378 ], [ %386, %384 ], <./include/asm-generic/tlb.h:394:20> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %391 = phi i16 [ %388, %387 ], [ %368, %371 ], <./include/asm-generic/tlb.h:394:20> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %392 = and i16 %391, -245, <./include/asm-generic/tlb.h:398:20> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   store i16 %392, ptr %316, align 8, <./include/asm-generic/tlb.h:398:20> FUNC=madvise_vma_behavior L=2
+  [STORE DESTINATION] Marking pointer as tainted:   %316 = getelementptr inbounds nuw i8, ptr %12, i64 32, <./include/asm-generic/tlb.h:398:20> FUNC=madvise_vma_behavior L=2
+  %316 = getelementptr inbounds nuw i8, ptr %12, i64 32,
+  → base pointer:
+          %12 = alloca %struct.mmu_gather, align 8, !DIAssignID !18658122
+      → no parameter connection
+  → Result: No parameter connection found
+  [USE] Taint flows to:   %369 = and i16 %368, 1, <./include/asm-generic/tlb.h:388:11> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %370 = icmp eq i16 %369, 0, <./include/asm-generic/tlb.h:388:6> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   br i1 %370, label %372, label %371, <./include/asm-generic/tlb.h:388:6> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   call void @flush_tlb_mm_range(ptr noundef %366, i64 noundef %365, i64 noundef %364, i32 noundef %357, i1 noundef zeroext %367) #279, <./arch/x86/include/asm/tlb.h:20:2> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %364 = select i1 %359, i64 %363, i64 -1, <./arch/x86/include/asm/tlb.h:15:19> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %365 = select i1 %359, i64 %361, i64 0, <./arch/x86/include/asm/tlb.h:15:19> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %339 = and i16 %338, 1025, <./include/asm-generic/tlb.h:568:6> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %341 = and i16 %338, 244 <./include/asm-generic/tlb.h:568:6> (approx) FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %345 = and i16 %338, 4, <./include/asm-generic/tlb.h:477:8> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %346 = and i16 %338, 128 <./include/asm-generic/tlb.h:533:6> (approx) FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %348 = and i16 %338, 64 <./include/asm-generic/tlb.h:533:6> (approx) FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %350 = and i16 %338, 16 <./include/asm-generic/tlb.h:533:6> (approx) FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %352 = and i16 %338, 48, <./include/asm-generic/tlb.h:533:6> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %358 = and i16 %338, 2, <./arch/x86/include/asm/tlb.h:15:19> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %359 = icmp eq i16 %358, 0, <./arch/x86/include/asm/tlb.h:15:19> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %353 = icmp eq i16 %352, 0, <./include/asm-generic/tlb.h:533:6> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %357 = select i1 %353, i32 %356, i32 %354, <./include/asm-generic/tlb.h:533:6> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %351 = icmp eq i16 %350, 0 <./include/asm-generic/tlb.h:533:6> (approx) FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %354 = select i1 %351, i32 21, i32 12, <./include/asm-generic/tlb.h:533:6> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %349 = icmp eq i16 %348, 0 <./include/asm-generic/tlb.h:533:6> (approx) FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %356 = select i1 %349, i32 %355, i32 30, <./include/asm-generic/tlb.h:533:6> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %347 = icmp eq i16 %346, 0 <./include/asm-generic/tlb.h:533:6> (approx) FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %355 = select i1 %347, i32 12, i32 39, <./include/asm-generic/tlb.h:533:6> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %367 = icmp ne i16 %345, 0, <./arch/x86/include/asm/tlb.h:20:56> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %342 = icmp eq i16 %341, 0 <./include/asm-generic/tlb.h:568:6> (approx) FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %343 = or i1 %340, %342, <./include/asm-generic/tlb.h:568:6> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   br i1 %343, label %393, label %344, <./include/asm-generic/tlb.h:568:6> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %340 = icmp ne i16 %339, 1024, <./include/asm-generic/tlb.h:568:6> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %318 = and i16 %317, 1, <./include/asm-generic/tlb.h:557:11> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %325 = and i16 %317, -1794, <./include/asm-generic/tlb.h:466:16> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %326 = or disjoint i16 %324, %325, <./include/asm-generic/tlb.h:466:16> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %330 = or disjoint i16 %326, %329, <./include/asm-generic/tlb.h:467:16> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %334 = or disjoint i16 %330, %333, <./include/asm-generic/tlb.h:468:16> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   store i16 %334, ptr %316, align 8, <./include/asm-generic/tlb.h:468:16> FUNC=madvise_vma_behavior L=2
+  %316 = getelementptr inbounds nuw i8, ptr %12, i64 32,
+  → base pointer:
+          %12 = alloca %struct.mmu_gather, align 8, !DIAssignID !18658122
+      → no parameter connection
+  → Result: No parameter connection found
+  [USE] Taint flows to:   %319 = icmp eq i16 %318, 0, <./include/asm-generic/tlb.h:557:6> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   br i1 %319, label %320, label %335, <./include/asm-generic/tlb.h:557:6> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %552 = phi i16 [ %532, %542 ], [ %550, %548 ], <./include/asm-generic/tlb.h:394:20> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %555 = phi i16 [ %552, %551 ], [ %532, %535 ], <./include/asm-generic/tlb.h:394:20> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %556 = and i16 %555, -245, <./include/asm-generic/tlb.h:398:20> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   store i16 %556, ptr %478, align 8, <./include/asm-generic/tlb.h:398:20> FUNC=madvise_vma_behavior L=2
+  [STORE DESTINATION] Marking pointer as tainted:   %478 = getelementptr inbounds nuw i8, ptr %9, i64 32, <./include/asm-generic/tlb.h:398:20> FUNC=madvise_vma_behavior L=2
+  %478 = getelementptr inbounds nuw i8, ptr %9, i64 32,
+  → base pointer:
+          %9 = alloca %struct.mmu_gather, align 8, !DIAssignID !18658119
+      → no parameter connection
+  → Result: No parameter connection found
+  [USE] Taint flows to:   %533 = and i16 %532, 1, <./include/asm-generic/tlb.h:388:11> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %534 = icmp eq i16 %533, 0, <./include/asm-generic/tlb.h:388:6> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   br i1 %534, label %536, label %535, <./include/asm-generic/tlb.h:388:6> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   call void @flush_tlb_mm_range(ptr noundef %530, i64 noundef %529, i64 noundef %528, i32 noundef %521, i1 noundef zeroext %531) #279, <./arch/x86/include/asm/tlb.h:20:2> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %528 = select i1 %523, i64 %527, i64 -1, <./arch/x86/include/asm/tlb.h:15:19> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %529 = select i1 %523, i64 %525, i64 0, <./arch/x86/include/asm/tlb.h:15:19> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %503 = and i16 %502, 1025, <./include/asm-generic/tlb.h:568:6> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %505 = and i16 %502, 244 <./include/asm-generic/tlb.h:568:6> (approx) FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %509 = and i16 %502, 4, <./include/asm-generic/tlb.h:477:8> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %510 = and i16 %502, 128 <./include/asm-generic/tlb.h:533:6> (approx) FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %512 = and i16 %502, 64 <./include/asm-generic/tlb.h:533:6> (approx) FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %514 = and i16 %502, 16 <./include/asm-generic/tlb.h:533:6> (approx) FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %516 = and i16 %502, 48, <./include/asm-generic/tlb.h:533:6> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %522 = and i16 %502, 2, <./arch/x86/include/asm/tlb.h:15:19> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %523 = icmp eq i16 %522, 0, <./arch/x86/include/asm/tlb.h:15:19> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %517 = icmp eq i16 %516, 0, <./include/asm-generic/tlb.h:533:6> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %521 = select i1 %517, i32 %520, i32 %518, <./include/asm-generic/tlb.h:533:6> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %515 = icmp eq i16 %514, 0 <./include/asm-generic/tlb.h:533:6> (approx) FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %518 = select i1 %515, i32 21, i32 12, <./include/asm-generic/tlb.h:533:6> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %513 = icmp eq i16 %512, 0 <./include/asm-generic/tlb.h:533:6> (approx) FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %520 = select i1 %513, i32 %519, i32 30, <./include/asm-generic/tlb.h:533:6> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %511 = icmp eq i16 %510, 0 <./include/asm-generic/tlb.h:533:6> (approx) FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %519 = select i1 %511, i32 12, i32 39, <./include/asm-generic/tlb.h:533:6> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %531 = icmp ne i16 %509, 0, <./arch/x86/include/asm/tlb.h:20:56> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %506 = icmp eq i16 %505, 0 <./include/asm-generic/tlb.h:568:6> (approx) FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %507 = or i1 %504, %506, <./include/asm-generic/tlb.h:568:6> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   br i1 %507, label %557, label %508, <./include/asm-generic/tlb.h:568:6> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %504 = icmp ne i16 %503, 1024, <./include/asm-generic/tlb.h:568:6> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %480 = and i16 %479, 1, <./include/asm-generic/tlb.h:557:11> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %487 = and i16 %479, -1794, <./include/asm-generic/tlb.h:466:16> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %488 = or disjoint i16 %486, %487, <./include/asm-generic/tlb.h:466:16> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %492 = or disjoint i16 %488, %491, <./include/asm-generic/tlb.h:467:16> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   %496 = or disjoint i16 %492, %495, <./include/asm-generic/tlb.h:468:16> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   store i16 %496, ptr %478, align 8, <./include/asm-generic/tlb.h:468:16> FUNC=madvise_vma_behavior L=2
+  %478 = getelementptr inbounds nuw i8, ptr %9, i64 32,
+  → base pointer:
+          %9 = alloca %struct.mmu_gather, align 8, !DIAssignID !18658119
+      → no parameter connection
+  → Result: No parameter connection found
+  [USE] Taint flows to:   %481 = icmp eq i16 %480, 0, <./include/asm-generic/tlb.h:557:6> FUNC=madvise_vma_behavior L=2
+  [USE] Taint flows to:   br i1 %481, label %482, label %497, <./include/asm-generic/tlb.h:557:6> FUNC=madvise_vma_behavior L=2
+[POINTER PARAMETER] Call to unmap_single_vma passes through pointer parameter 0 of unmap_vmas <mm/memory.c:1994:3> FUNC=unmap_vmas L=3
+
+=== Maximum Level Statistics ===
+Largest L value: 2
+Number of instructions with L=2: 141
+
+Earliest and latest instructions with L=2 (per function):
+
+madvise_vma_behavior:
+  Earliest:   %200 = load i16, ptr %199, align 8, <./include/asm-generic/tlb.h:557:11> FUNC=madvise_vma_behavior L=2
+  Latest:   store i16 %556, ptr %478, align 8, <./include/asm-generic/tlb.h:398:20> FUNC=madvise_vma_behavior L=2
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 408 instructions
+Other visited functions (total): 133 instructions
+Total: 541 instructions
+Number of max-level functions: 1
+Number of other visited functions: 1
+
+=== Data Flow Span Details ===
+madvise_vma_behavior, 46, 8, 101, 2
+tlb_flush_mmu, full span
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/mm/mmu_gather.ll
+../linux-wllvm-defconfig/mm/mmu_gather.c

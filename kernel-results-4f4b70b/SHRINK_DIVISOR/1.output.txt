@@ -1,0 +1,42 @@
+=== Taint Tracker Configuration ===
+Function: mb_cache_shrink_worker
+Opcode: lshr
+Constant: 4
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant 4)
+
+[SOURCE] Tainting:   %5 = lshr i64 %4, 4, <fs/mbcache.c:346:46> FUNC=mb_cache_shrink_worker L=0
+[USE] Source instruction in data flow <fs/mbcache.c:346:46> FUNC=mb_cache_shrink_worker L=0
+[USE] Processing uses of:   %5 = lshr i64 %4, 4,
+  [CHILD FUNCTION] Tainted value used in call to mb_cache_shrink at argument 1:   %6 = tail call fastcc i64 @mb_cache_shrink(ptr noundef %2, i64 noundef %5) #278, <fs/mbcache.c:346:2> FUNC=mb_cache_shrink_worker L=0
+  [USE] Taint flows to:   %6 = tail call fastcc i64 @mb_cache_shrink(ptr noundef %2, i64 noundef %5) #278, <fs/mbcache.c:346:2> FUNC=mb_cache_shrink_worker L=0
+[NO USE] No uses of:   %6 = tail call fastcc i64 @mb_cache_shrink(ptr noundef %2, i64 noundef %5) #278,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 2
+
+Earliest and latest instructions with L=0 (per function):
+
+mb_cache_shrink_worker:
+  Earliest:   %5 = lshr i64 %4, 4, <fs/mbcache.c:346:46> FUNC=mb_cache_shrink_worker L=0
+  Latest:   %6 = tail call fastcc i64 @mb_cache_shrink(ptr noundef %2, i64 noundef %5) #278, <fs/mbcache.c:346:2> FUNC=mb_cache_shrink_worker L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 2 instructions
+Other visited functions (total): 0 instructions
+Total: 2 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+mb_cache_shrink_worker, 0, 3, 0, 4
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/mbcache.ll
+../linux-wllvm-defconfig/fs/mbcache.c

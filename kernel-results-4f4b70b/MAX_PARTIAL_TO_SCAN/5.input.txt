@@ -1,0 +1,5 @@
+SOURCE_FILE=mm/slub.c
+FUNCTION_NAME=count_partial_free_approx
+SOURCE_OP="phi"
+CONSTANT_VALUE=10000
+OCCURENCE=1

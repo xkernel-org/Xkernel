@@ -1,0 +1,509 @@
+=== Taint Tracker Configuration ===
+Function: get_next_ino
+Opcode: call
+Constant: 1024
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant 1024)
+
+[SOURCE] Tainting:   %8 = tail call i32 asm sideeffect ".pushsection .smp_locks,\22a\22\0A.balign 4\0A.long 671f - .\0A.popsection\0A671:\0A\09lock; xaddl $0, $1\0A", "=r,=*m,0,*m,~{memory},~{cc},~{dirflag},~{fpsr},~{flags}"(ptr nonnull elementtype(i32) @get_next_ino.shared_last_ino, i32 1024, ptr nonnull elementtype(i32) @get_next_ino.shared_last_ino) #278, <./arch/x86/include/asm/atomic.h:85:13> FUNC=get_next_ino L=0
+[USE] Source instruction in data flow <./arch/x86/include/asm/atomic.h:85:13> FUNC=get_next_ino L=0
+[CHILD FUNCTION] Constant used in indirect call at argument 1 <./arch/x86/include/asm/atomic.h:85:13>
+[USE] Processing uses of:   %8 = tail call i32 asm sideeffect ".pushsection .smp_locks,\22a\22\0A.balign 4\0A.long 671f - .\0A.popsection\0A671:\0A\09lock; xaddl $0, $1\0A", "=r,=*m,0,*m,~{memory},~{cc},~{dirflag},~{fpsr},~{flags}"(ptr nonnull elementtype(i32) @get_next_ino.shared_last_ino, i32 1024, ptr nonnull elementtype(i32) @get_next_ino.shared_last_ino) #278,
+  [USE] Taint flows to:   %10 = phi i32 [ %8, %7 ], [ %4, %0 ], <fs/inode.c:1152:5> (approx) FUNC=get_next_ino L=0
+[USE] Processing uses of:   %10 = phi i32 [ %8, %7 ], [ %4, %0 ],
+  [USE] Taint flows to:   %11 = add i32 %10, 1, <fs/inode.c:1152:5> FUNC=get_next_ino L=0
+[USE] Processing uses of:   %11 = add i32 %10, 1,
+  [USE] Taint flows to:   %12 = icmp eq i32 %11, 0, <fs/inode.c:1154:6> FUNC=get_next_ino L=0
+  [USE] Taint flows to:   %15 = phi i32 [ 1, %13 ], [ %11, %9 ], <fs/inode.c:1156:5> (approx) FUNC=get_next_ino L=0
+[USE] Processing uses of:   %15 = phi i32 [ 1, %13 ], [ %11, %9 ],
+  [STORE DESTINATION] Marking pointer as tainted:   %3 = inttoptr i64 %2 to ptr, <fs/inode.c:1156:5>
+  [USE] Taint flows to:   store i32 %15, ptr %3, align 4, <fs/inode.c:1156:5> FUNC=get_next_ino L=0
+  [RETURN] Stop: Tainted value is returned:   ret i32 %15, <fs/inode.c:1158:2>
+[NO USE] No uses of:   store i32 %15, ptr %3, align 4,
+[USE] Processing uses of:   %12 = icmp eq i32 %11, 0,
+  [USE] Taint flows to:   br i1 %12, label %13, label %14, <fs/inode.c:1154:6> FUNC=get_next_ino L=0
+[NO USE] No uses of:   br i1 %12, label %13, label %14,
+[LOAD] Tainted load from tracked pointer:   %4 = load i32, ptr %3, align 4, (  %3 = inttoptr i64 %2 to ptr, !dbg !18658045)  <fs/inode.c:1141:21> FUNC=get_next_ino L=0
+[USE] Processing uses of:   %4 = load i32, ptr %3, align 4,
+  [USE] Taint flows to:   %5 = and i32 %4, 1023, <fs/inode.c:1144:6> FUNC=get_next_ino L=0
+[USE] Processing uses of:   %5 = and i32 %4, 1023,
+  [USE] Taint flows to:   %6 = icmp eq i32 %5, 0, <fs/inode.c:1144:6> FUNC=get_next_ino L=0
+[USE] Processing uses of:   %6 = icmp eq i32 %5, 0,
+  [USE] Taint flows to:   br i1 %6, label %7, label %9, <fs/inode.c:1144:6> FUNC=get_next_ino L=0
+[NO USE] No uses of:   br i1 %6, label %7, label %9,
+[UPWARD-INTERPROC] Call to get_next_ino returns tainted value <fs/pipe.c:885:17> FUNC=create_pipe_files L=1
+[UPWARD-INTERPROC] Call to get_next_ino returns tainted value <fs/libfs.c:1640:17> FUNC=alloc_anon_inode L=1
+[UPWARD-INTERPROC] Call to get_next_ino returns tainted value <fs/binfmt_misc.c:623:18> FUNC=bm_register_write L=1
+[UPWARD-INTERPROC] Call to get_next_ino returns tainted value <fs/proc/base.c:1957:17> FUNC=proc_pid_make_inode L=1
+[UPWARD-INTERPROC] Call to get_next_ino returns tainted value <fs/proc/proc_sysctl.c:460:17> FUNC=proc_sys_make_inode L=1
+[UPWARD-INTERPROC] Call to get_next_ino returns tainted value <fs/ramfs/inode.c:63:18> FUNC=ramfs_get_inode L=1
+[UPWARD-INTERPROC] Call to get_next_ino returns tainted value <fs/ramfs/inode.c:63:18> FUNC=ramfs_symlink L=1
+[UPWARD-INTERPROC] Call to get_next_ino returns tainted value <fs/hugetlbfs/inode.c:895:18> FUNC=hugetlbfs_fill_super L=1
+[UPWARD-INTERPROC] Call to get_next_ino returns tainted value <fs/hugetlbfs/inode.c:939:18> FUNC=hugetlbfs_get_inode L=1
+[UPWARD-INTERPROC] Call to get_next_ino returns tainted value <fs/autofs/inode.c:442:17> FUNC=autofs_fill_super L=1
+[UPWARD-INTERPROC] Call to get_next_ino returns tainted value <fs/autofs/inode.c:442:17> FUNC=autofs_get_inode L=1
+[UPWARD-INTERPROC] Call to get_next_ino returns tainted value <fs/debugfs/inode.c:74:18> FUNC=debugfs_create_symlink L=1
+[UPWARD-INTERPROC] Call to get_next_ino returns tainted value <fs/debugfs/inode.c:74:18> FUNC=__debugfs_create_file L=1
+[UPWARD-INTERPROC] Call to get_next_ino returns tainted value <fs/debugfs/inode.c:74:18> FUNC=debugfs_create_dir L=1
+[UPWARD-INTERPROC] Call to get_next_ino returns tainted value <fs/debugfs/inode.c:74:18> FUNC=debugfs_create_automount L=1
+[UPWARD-INTERPROC] Call to get_next_ino returns tainted value <fs/tracefs/inode.c:275:18> FUNC=tracefs_get_inode L=1
+[UPWARD-INTERPROC] Call to get_next_ino returns tainted value <fs/tracefs/inode.c:275:18> FUNC=tracefs_create_file L=1
+[UPWARD-INTERPROC] Call to get_next_ino returns tainted value <fs/tracefs/inode.c:275:18> FUNC=__create_dir L=1
+[UPWARD-INTERPROC] Call to get_next_ino returns tainted value <fs/tracefs/event_inode.c:53:13> FUNC=eventfs_iterate L=1
+[UPWARD-INTERPROC] Call to get_next_ino returns tainted value <fs/tracefs/event_inode.c:56:14> FUNC=eventfs_iterate L=1
+[UPWARD-INTERPROC] Call to get_next_ino returns tainted value <fs/tracefs/event_inode.c:53:13> FUNC=eventfs_root_lookup L=1
+[UPWARD-INTERPROC] Call to get_next_ino returns tainted value <fs/tracefs/event_inode.c:56:14> FUNC=eventfs_root_lookup L=1
+[UPWARD-INTERPROC] Call to get_next_ino returns tainted value <ipc/mqueue.c:301:17> FUNC=mqueue_fill_super L=1
+[UPWARD-INTERPROC] Call to get_next_ino returns tainted value <ipc/mqueue.c:301:17> FUNC=mqueue_get_inode L=1
+[UPWARD-INTERPROC] Call to get_next_ino returns tainted value <net/socket.c:628:17> FUNC=sock_create_lite L=1
+[UPWARD-INTERPROC] Call to get_next_ino returns tainted value <net/socket.c:628:17> FUNC=__sock_create L=1
+[UPWARD-INTERPROC] Call to get_next_ino returns tainted value <net/socket.c:628:17> FUNC=sock_alloc L=1
+[UPWARD-INTERPROC] Call to get_next_ino returns tainted value <net/socket.c:628:17> FUNC=do_accept L=1
+[UPWARD-INTERPROC] Call to get_next_ino returns tainted value <net/sunrpc/rpc_pipe.c:472:17> FUNC=__rpc_create_common L=1
+[UPWARD-INTERPROC] Call to get_next_ino returns tainted value <net/sunrpc/rpc_pipe.c:472:17> FUNC=rpc_fill_super L=1
+  [USE] Taint flows to:   %23 = zext i32 %22 to i64, <net/sunrpc/rpc_pipe.c:472:17> FUNC=rpc_fill_super L=1
+  [USE] Taint flows to:   store i64 %23, ptr %24, align 8, <net/sunrpc/rpc_pipe.c:472:15> FUNC=rpc_fill_super L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %24 = getelementptr inbounds nuw i8, ptr %19, i64 64, <net/sunrpc/rpc_pipe.c:472:15> FUNC=rpc_fill_super L=1
+  %24 = getelementptr inbounds nuw i8, ptr %19, i64 64,
+  → base pointer:
+          %19 = tail call ptr @new_inode(ptr noundef %0) #278,
+      → call to new_inode (no parameter)
+  → Result: No parameter connection found
+  [USE] Taint flows to:   %12 = zext i32 %11 to i64, <net/sunrpc/rpc_pipe.c:472:17> FUNC=__rpc_create_common L=1
+  [USE] Taint flows to:   store i64 %12, ptr %13, align 8, <net/sunrpc/rpc_pipe.c:472:15> FUNC=__rpc_create_common L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %13 = getelementptr inbounds nuw i8, ptr %8, i64 64, <net/sunrpc/rpc_pipe.c:472:15> FUNC=__rpc_create_common L=1
+  %13 = getelementptr inbounds nuw i8, ptr %8, i64 64,
+  → base pointer:
+          %8 = tail call ptr @new_inode(ptr noundef %7) #278,
+      → call to new_inode (no parameter)
+  → Result: No parameter connection found
+  [USE] Taint flows to:   %23 = zext i32 %22 to i64, <net/socket.c:628:17> FUNC=do_accept L=1
+  [USE] Taint flows to:   store i64 %23, ptr %24, align 8, <net/socket.c:628:15> FUNC=do_accept L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %24 = getelementptr inbounds nuw i8, ptr %18, i64 64, <net/socket.c:628:15> FUNC=do_accept L=1
+  %24 = getelementptr inbounds nuw i8, ptr %18, i64 64,
+  → base pointer:
+          %18 = tail call ptr @new_inode_pseudo(ptr noundef %17) #279,
+      → call to new_inode_pseudo (no parameter)
+  → Result: No parameter connection found
+  [USE] Taint flows to:   %9 = zext i32 %8 to i64, <net/socket.c:628:17> FUNC=sock_alloc L=1
+  [USE] Taint flows to:   store i64 %9, ptr %10, align 8, <net/socket.c:628:15> FUNC=sock_alloc L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %10 = getelementptr inbounds nuw i8, ptr %4, i64 64, <net/socket.c:628:15> FUNC=sock_alloc L=1
+  %10 = getelementptr inbounds nuw i8, ptr %4, i64 64,
+  → base pointer:
+          %4 = tail call ptr @new_inode_pseudo(ptr noundef %3) #278,
+      → call to new_inode_pseudo (no parameter)
+  → Result: No parameter connection found
+  [USE] Taint flows to:   %34 = zext i32 %33 to i64, <net/socket.c:628:17> FUNC=__sock_create L=1
+  [USE] Taint flows to:   store i64 %34, ptr %35, align 8, <net/socket.c:628:15> FUNC=__sock_create L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %35 = getelementptr inbounds nuw i8, ptr %29, i64 64, <net/socket.c:628:15> FUNC=__sock_create L=1
+  %35 = getelementptr inbounds nuw i8, ptr %29, i64 64,
+  → base pointer:
+          %29 = tail call ptr @new_inode_pseudo(ptr noundef %28) #280,
+      → call to new_inode_pseudo (no parameter)
+  → Result: No parameter connection found
+  [USE] Taint flows to:   %16 = zext i32 %15 to i64, <net/socket.c:628:17> FUNC=sock_create_lite L=1
+  [USE] Taint flows to:   store i64 %16, ptr %17, align 8, <net/socket.c:628:15> FUNC=sock_create_lite L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %17 = getelementptr inbounds nuw i8, ptr %11, i64 64, <net/socket.c:628:15> FUNC=sock_create_lite L=1
+  %17 = getelementptr inbounds nuw i8, ptr %11, i64 64,
+  → base pointer:
+          %11 = tail call ptr @new_inode_pseudo(ptr noundef %10) #278,
+      → call to new_inode_pseudo (no parameter)
+  → Result: No parameter connection found
+  [USE] Taint flows to:   %9 = zext i32 %8 to i64, <ipc/mqueue.c:301:17> FUNC=mqueue_get_inode L=1
+  [USE] Taint flows to:   store i64 %9, ptr %10, align 8, <ipc/mqueue.c:301:15> FUNC=mqueue_get_inode L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %10 = getelementptr inbounds nuw i8, ptr %5, i64 64, <ipc/mqueue.c:301:15> FUNC=mqueue_get_inode L=1
+  %10 = getelementptr inbounds nuw i8, ptr %5, i64 64,
+  → base pointer:
+          %5 = tail call ptr @new_inode(ptr noundef %0) #278,
+      → call to new_inode (no parameter)
+  → Result: No parameter connection found
+  [USE] Taint flows to:   %14 = zext i32 %13 to i64, <ipc/mqueue.c:301:17> FUNC=mqueue_fill_super L=1
+  [USE] Taint flows to:   store i64 %14, ptr %15, align 8, <ipc/mqueue.c:301:15> FUNC=mqueue_fill_super L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %15 = getelementptr inbounds nuw i8, ptr %10, i64 64, <ipc/mqueue.c:301:15> FUNC=mqueue_fill_super L=1
+  %15 = getelementptr inbounds nuw i8, ptr %10, i64 64,
+  → base pointer:
+          %10 = tail call ptr @new_inode(ptr noundef %0) #278,
+      → call to new_inode (no parameter)
+  → Result: No parameter connection found
+  [USE] Taint flows to:   store i32 %97, ptr %90, align 4, <fs/tracefs/event_inode.c:56:12> FUNC=eventfs_root_lookup L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %90 = getelementptr inbounds nuw i8, ptr %27, i64 84, <fs/tracefs/event_inode.c:56:12> FUNC=eventfs_root_lookup L=1
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #0 (ptr %0) <fs/tracefs/event_inode.c:56:12> FUNC=eventfs_root_lookup L=1
+  [USE] Taint flows to:   %99 = phi i32 [ %94, %93 ], [ %97, %96 ], [ %91, %68 ], <fs/tracefs/event_inode.c:59:13> FUNC=eventfs_root_lookup L=1
+  [USE] Taint flows to:   %100 = sext i32 %99 to i64, <fs/tracefs/event_inode.c:423:17> FUNC=eventfs_root_lookup L=1
+  [USE] Taint flows to:   store i64 %100, ptr %101, align 8, <fs/tracefs/event_inode.c:423:15> FUNC=eventfs_root_lookup L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %101 = getelementptr inbounds nuw i8, ptr %51, i64 64, <fs/tracefs/event_inode.c:423:15> FUNC=eventfs_root_lookup L=1
+  %101 = getelementptr inbounds nuw i8, ptr %51, i64 64,
+  → base pointer:
+          %51 = tail call ptr @tracefs_get_inode(ptr noundef %50) #279,
+      → call to tracefs_get_inode (no parameter)
+  → Result: No parameter connection found
+  [USE] Taint flows to:   store i32 %94, ptr %90, align 4, <fs/tracefs/event_inode.c:53:11> FUNC=eventfs_root_lookup L=1
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #0 (ptr %0) <fs/tracefs/event_inode.c:53:11> FUNC=eventfs_root_lookup L=1
+  [USE] Taint flows to:   %95 = icmp eq i32 %94, 19680823, <fs/tracefs/event_inode.c:55:15> FUNC=eventfs_root_lookup L=1
+  [USE] Taint flows to:   br i1 %95, label %96, label %98, <fs/tracefs/event_inode.c:55:15> FUNC=eventfs_root_lookup L=1
+  [USE] Taint flows to:   store i32 %114, ptr %107, align 4, <fs/tracefs/event_inode.c:56:12> FUNC=eventfs_iterate L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %107 = getelementptr inbounds nuw i8, ptr %92, i64 84, <fs/tracefs/event_inode.c:56:12> FUNC=eventfs_iterate L=1
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #0 (ptr %0) <fs/tracefs/event_inode.c:56:12> FUNC=eventfs_iterate L=1
+  [USE] Taint flows to:   %116 = phi i32 [ %111, %110 ], [ %114, %113 ], [ %108, %104 ], <fs/tracefs/event_inode.c:59:13> FUNC=eventfs_iterate L=1
+  [USE] Taint flows to:   %119 = sext i32 %116 to i64, <fs/tracefs/event_inode.c:662:42> FUNC=eventfs_iterate L=1
+  [USE] Taint flows to:   %122 = call zeroext i1 %120(ptr noundef %1, ptr noundef %106, i32 noundef %118, i64 noundef %121, i64 noundef range(i64 -2147483648, 2147483648) %119, i32 noundef 4) #279, <./include/linux/fs.h:3851:9> FUNC=eventfs_iterate L=1
+  [USE] Taint flows to:   br i1 %122, label %123, label %132, <fs/tracefs/event_inode.c:662:7> FUNC=eventfs_iterate L=1
+  [USE] Taint flows to:   store i32 %111, ptr %107, align 4, <fs/tracefs/event_inode.c:53:11> FUNC=eventfs_iterate L=1
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #0 (ptr %0) <fs/tracefs/event_inode.c:53:11> FUNC=eventfs_iterate L=1
+  [USE] Taint flows to:   %112 = icmp eq i32 %111, 19680823, <fs/tracefs/event_inode.c:55:15> FUNC=eventfs_iterate L=1
+  [USE] Taint flows to:   br i1 %112, label %113, label %115, <fs/tracefs/event_inode.c:55:15> FUNC=eventfs_iterate L=1
+  [USE] Taint flows to:   %15 = zext i32 %14 to i64, <fs/tracefs/inode.c:275:18> FUNC=__create_dir L=1
+  [USE] Taint flows to:   store i64 %15, ptr %16, align 8, <fs/tracefs/inode.c:275:16> FUNC=__create_dir L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %16 = getelementptr inbounds nuw i8, ptr %9, i64 64, <fs/tracefs/inode.c:275:16> FUNC=__create_dir L=1
+  %16 = getelementptr inbounds nuw i8, ptr %9, i64 64,
+  → base pointer:
+          %9 = tail call ptr @new_inode(ptr noundef %8) #279,
+      → call to new_inode (no parameter)
+  → Result: No parameter connection found
+  [USE] Taint flows to:   %26 = zext i32 %25 to i64, <fs/tracefs/inode.c:275:18> FUNC=tracefs_create_file L=1
+  [USE] Taint flows to:   store i64 %26, ptr %27, align 8, <fs/tracefs/inode.c:275:16> FUNC=tracefs_create_file L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %27 = getelementptr inbounds nuw i8, ptr %20, i64 64, <fs/tracefs/inode.c:275:16> FUNC=tracefs_create_file L=1
+  %27 = getelementptr inbounds nuw i8, ptr %20, i64 64,
+  → base pointer:
+          %20 = tail call ptr @new_inode(ptr noundef %19) #278,
+      → call to new_inode (no parameter)
+  → Result: No parameter connection found
+  [USE] Taint flows to:   %6 = zext i32 %5 to i64, <fs/tracefs/inode.c:275:18> FUNC=tracefs_get_inode L=1
+  [USE] Taint flows to:   store i64 %6, ptr %7, align 8, <fs/tracefs/inode.c:275:16> FUNC=tracefs_get_inode L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %7 = getelementptr inbounds nuw i8, ptr %2, i64 64, <fs/tracefs/inode.c:275:16> FUNC=tracefs_get_inode L=1
+  %7 = getelementptr inbounds nuw i8, ptr %2, i64 64,
+  → base pointer:
+          %2 = tail call ptr @new_inode(ptr noundef %0) #278,
+      → call to new_inode (no parameter)
+  → Result: No parameter connection found
+  [USE] Taint flows to:   %27 = zext i32 %26 to i64, <fs/debugfs/inode.c:74:18> FUNC=debugfs_create_automount L=1
+  [USE] Taint flows to:   store i64 %27, ptr %28, align 8, <fs/debugfs/inode.c:74:16> FUNC=debugfs_create_automount L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %28 = getelementptr inbounds nuw i8, ptr %20, i64 64, <fs/debugfs/inode.c:74:16> FUNC=debugfs_create_automount L=1
+  %28 = getelementptr inbounds nuw i8, ptr %20, i64 64,
+  → base pointer:
+          %20 = tail call ptr @new_inode(ptr noundef %19) #279,
+      → call to new_inode (no parameter)
+  → Result: No parameter connection found
+  [USE] Taint flows to:   %25 = zext i32 %24 to i64, <fs/debugfs/inode.c:74:18> FUNC=debugfs_create_dir L=1
+  [USE] Taint flows to:   store i64 %25, ptr %26, align 8, <fs/debugfs/inode.c:74:16> FUNC=debugfs_create_dir L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %26 = getelementptr inbounds nuw i8, ptr %18, i64 64, <fs/debugfs/inode.c:74:16> FUNC=debugfs_create_dir L=1
+  %26 = getelementptr inbounds nuw i8, ptr %18, i64 64,
+  → base pointer:
+          %18 = tail call ptr @new_inode(ptr noundef %17) #279,
+      → call to new_inode (no parameter)
+  → Result: No parameter connection found
+  [USE] Taint flows to:   %36 = zext i32 %35 to i64, <fs/debugfs/inode.c:74:18> FUNC=__debugfs_create_file L=1
+  [USE] Taint flows to:   store i64 %36, ptr %37, align 8, <fs/debugfs/inode.c:74:16> FUNC=__debugfs_create_file L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %37 = getelementptr inbounds nuw i8, ptr %29, i64 64, <fs/debugfs/inode.c:74:16> FUNC=__debugfs_create_file L=1
+  %37 = getelementptr inbounds nuw i8, ptr %29, i64 64,
+  → base pointer:
+          %29 = tail call ptr @new_inode(ptr noundef %28) #280,
+      → call to new_inode (no parameter)
+  → Result: No parameter connection found
+  [USE] Taint flows to:   %20 = zext i32 %19 to i64, <fs/debugfs/inode.c:74:18> FUNC=debugfs_create_symlink L=1
+  [USE] Taint flows to:   store i64 %20, ptr %21, align 8, <fs/debugfs/inode.c:74:16> FUNC=debugfs_create_symlink L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %21 = getelementptr inbounds nuw i8, ptr %13, i64 64, <fs/debugfs/inode.c:74:16> FUNC=debugfs_create_symlink L=1
+  %21 = getelementptr inbounds nuw i8, ptr %13, i64 64,
+  → base pointer:
+          %13 = tail call ptr @new_inode(ptr noundef %12) #278,
+      → call to new_inode (no parameter)
+  → Result: No parameter connection found
+  [USE] Taint flows to:   %24 = zext i32 %23 to i64, <fs/autofs/inode.c:442:17> FUNC=autofs_get_inode L=1
+  [USE] Taint flows to:   store i64 %24, ptr %25, align 8, <fs/autofs/inode.c:442:15> FUNC=autofs_get_inode L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %25 = getelementptr inbounds nuw i8, ptr %3, i64 64, <fs/autofs/inode.c:442:15> FUNC=autofs_get_inode L=1
+  %25 = getelementptr inbounds nuw i8, ptr %3, i64 64,
+  → base pointer:
+          %3 = tail call ptr @new_inode(ptr noundef %0) #278,
+      → call to new_inode (no parameter)
+  → Result: No parameter connection found
+  [USE] Taint flows to:   %48 = zext i32 %47 to i64, <fs/autofs/inode.c:442:17> FUNC=autofs_fill_super L=1
+  [USE] Taint flows to:   store i64 %48, ptr %49, align 8, <fs/autofs/inode.c:442:15> FUNC=autofs_fill_super L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %49 = getelementptr inbounds nuw i8, ptr %27, i64 64, <fs/autofs/inode.c:442:15> FUNC=autofs_fill_super L=1
+  %49 = getelementptr inbounds nuw i8, ptr %27, i64 64,
+  → base pointer:
+          %27 = tail call ptr @new_inode(ptr noundef %0) #279,
+      → call to new_inode (no parameter)
+  → Result: No parameter connection found
+  [USE] Taint flows to:   %21 = zext i32 %20 to i64, <fs/hugetlbfs/inode.c:939:18> FUNC=hugetlbfs_get_inode L=1
+  [USE] Taint flows to:   store i64 %21, ptr %22, align 8, <fs/hugetlbfs/inode.c:939:16> FUNC=hugetlbfs_get_inode L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %22 = getelementptr inbounds nuw i8, ptr %18, i64 64, <fs/hugetlbfs/inode.c:939:16> FUNC=hugetlbfs_get_inode L=1
+  %22 = getelementptr inbounds nuw i8, ptr %18, i64 64,
+  → base pointer:
+          %18 = phi ptr [ %15, %14 ], [ %12, %11 ]
+      PHI with 2 paths:
+      Path 0 (from %):
+                  %15 = tail call ptr @new_inode(ptr noundef %0) #278,
+          → call to new_inode (no parameter)
+        → no parameter connection
+      Path 1 (from %):
+                  %12 = tail call ptr @new_inode(ptr noundef %0) #278,
+          → call to new_inode (no parameter)
+        → no parameter connection
+  → Result: No parameter connection found
+  [USE] Taint flows to:   %58 = zext i32 %57 to i64, <fs/hugetlbfs/inode.c:895:18> FUNC=hugetlbfs_fill_super L=1
+  [USE] Taint flows to:   store i64 %58, ptr %59, align 8, <fs/hugetlbfs/inode.c:895:16> FUNC=hugetlbfs_fill_super L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %59 = getelementptr inbounds nuw i8, ptr %54, i64 64, <fs/hugetlbfs/inode.c:895:16> FUNC=hugetlbfs_fill_super L=1
+  %59 = getelementptr inbounds nuw i8, ptr %54, i64 64,
+  → base pointer:
+          %54 = tail call ptr @new_inode(ptr noundef %0) #279,
+      → call to new_inode (no parameter)
+  → Result: No parameter connection found
+  [USE] Taint flows to:   %11 = zext i32 %10 to i64, <fs/ramfs/inode.c:63:18> FUNC=ramfs_symlink L=1
+  [USE] Taint flows to:   store i64 %11, ptr %12, align 8, <fs/ramfs/inode.c:63:16> FUNC=ramfs_symlink L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %12 = getelementptr inbounds nuw i8, ptr %7, i64 64, <fs/ramfs/inode.c:63:16> FUNC=ramfs_symlink L=1
+  %12 = getelementptr inbounds nuw i8, ptr %7, i64 64,
+  → base pointer:
+          %7 = tail call ptr @new_inode(ptr noundef %6) #278,
+      → call to new_inode (no parameter)
+  → Result: No parameter connection found
+  [USE] Taint flows to:   %9 = zext i32 %8 to i64, <fs/ramfs/inode.c:63:18> FUNC=ramfs_get_inode L=1
+  [USE] Taint flows to:   store i64 %9, ptr %10, align 8, <fs/ramfs/inode.c:63:16> FUNC=ramfs_get_inode L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %10 = getelementptr inbounds nuw i8, ptr %5, i64 64, <fs/ramfs/inode.c:63:16> FUNC=ramfs_get_inode L=1
+  %10 = getelementptr inbounds nuw i8, ptr %5, i64 64,
+  → base pointer:
+          %5 = tail call ptr @new_inode(ptr noundef %0) #278,
+      → call to new_inode (no parameter)
+  → Result: No parameter connection found
+  [USE] Taint flows to:   %10 = zext i32 %9 to i64, <fs/proc/proc_sysctl.c:460:17> FUNC=proc_sys_make_inode L=1
+  [USE] Taint flows to:   store i64 %10, ptr %11, align 8, <fs/proc/proc_sysctl.c:460:15> FUNC=proc_sys_make_inode L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %11 = getelementptr inbounds nuw i8, ptr %6, i64 64, <fs/proc/proc_sysctl.c:460:15> FUNC=proc_sys_make_inode L=1
+  %11 = getelementptr inbounds nuw i8, ptr %6, i64 64,
+  → base pointer:
+          %6 = tail call ptr @new_inode(ptr noundef %0) #278,
+      → call to new_inode (no parameter)
+  → Result: No parameter connection found
+  [USE] Taint flows to:   %8 = zext i32 %7 to i64, <fs/proc/base.c:1957:17> FUNC=proc_pid_make_inode L=1
+  [USE] Taint flows to:   store i64 %8, ptr %9, align 8, <fs/proc/base.c:1957:15> FUNC=proc_pid_make_inode L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %9 = getelementptr inbounds nuw i8, ptr %4, i64 64, <fs/proc/base.c:1957:15> FUNC=proc_pid_make_inode L=1
+  %9 = getelementptr inbounds nuw i8, ptr %4, i64 64,
+  → base pointer:
+          %4 = tail call ptr @new_inode(ptr noundef %0) #278,
+      → call to new_inode (no parameter)
+  → Result: No parameter connection found
+  [USE] Taint flows to:   %207 = zext i32 %206 to i64, <fs/binfmt_misc.c:623:18> FUNC=bm_register_write L=1
+  [USE] Taint flows to:   store i64 %207, ptr %208, align 8, <fs/binfmt_misc.c:623:16> FUNC=bm_register_write L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %208 = getelementptr inbounds nuw i8, ptr %203, i64 64, <fs/binfmt_misc.c:623:16> FUNC=bm_register_write L=1
+  %208 = getelementptr inbounds nuw i8, ptr %203, i64 64,
+  → base pointer:
+          %203 = tail call ptr @new_inode(ptr noundef %8) #279,
+      → call to new_inode (no parameter)
+  → Result: No parameter connection found
+  [USE] Taint flows to:   %6 = zext i32 %5 to i64, <fs/libfs.c:1640:17> FUNC=alloc_anon_inode L=1
+  [USE] Taint flows to:   store i64 %6, ptr %7, align 8, <fs/libfs.c:1640:15> FUNC=alloc_anon_inode L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %7 = getelementptr inbounds nuw i8, ptr %2, i64 64, <fs/libfs.c:1640:15> FUNC=alloc_anon_inode L=1
+  %7 = getelementptr inbounds nuw i8, ptr %2, i64 64,
+  → base pointer:
+          %2 = tail call ptr @new_inode_pseudo(ptr noundef %0) #278,
+      → call to new_inode_pseudo (no parameter)
+  → Result: No parameter connection found
+  [USE] Taint flows to:   %10 = zext i32 %9 to i64, <fs/pipe.c:885:17> FUNC=create_pipe_files L=1
+  [USE] Taint flows to:   store i64 %10, ptr %11, align 8, <fs/pipe.c:885:15> FUNC=create_pipe_files L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %11 = getelementptr inbounds nuw i8, ptr %6, i64 64, <fs/pipe.c:885:15> FUNC=create_pipe_files L=1
+  %11 = getelementptr inbounds nuw i8, ptr %6, i64 64,
+  → base pointer:
+          %6 = tail call ptr @new_inode_pseudo(ptr noundef %5) #278,
+      → call to new_inode_pseudo (no parameter)
+  → Result: No parameter connection found
+[LOAD] Tainted load from tracked pointer:   %108 = load i32, ptr %107, align 4, (  %107 = getelementptr inbounds nuw i8, ptr %92, i64 84, !dbg !18658213)  <fs/tracefs/event_inode.c:52:11> FUNC=eventfs_iterate L=1
+[LOAD] Tainted load from tracked pointer:   %91 = load i32, ptr %90, align 4, (  %90 = getelementptr inbounds nuw i8, ptr %27, i64 84, !dbg !18658209)  <fs/tracefs/event_inode.c:52:11> FUNC=eventfs_root_lookup L=1
+  [USE] Taint flows to:   %92 = icmp eq i32 %91, 0, <fs/tracefs/event_inode.c:52:7> FUNC=eventfs_root_lookup L=1
+  [USE] Taint flows to:   br i1 %92, label %93, label %98, <fs/tracefs/event_inode.c:52:6> FUNC=eventfs_root_lookup L=1
+  [USE] Taint flows to:   %109 = icmp eq i32 %108, 0, <fs/tracefs/event_inode.c:52:7> FUNC=eventfs_iterate L=1
+  [USE] Taint flows to:   br i1 %109, label %110, label %115, <fs/tracefs/event_inode.c:52:6> FUNC=eventfs_iterate L=1
+[UPWARD-INTERPROC] No callers found for eventfs_iterate (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for eventfs_root_lookup (function taints pointer parameter #0)
+
+=== Maximum Level Statistics ===
+Largest L value: 1
+Number of instructions with L=1: 103
+
+Per-function breakdown:
+  __create_dir: 3 value(s)
+  __debugfs_create_file: 3 value(s)
+  __rpc_create_common: 3 value(s)
+  __sock_create: 3 value(s)
+  alloc_anon_inode: 3 value(s)
+  autofs_fill_super: 3 value(s)
+  autofs_get_inode: 3 value(s)
+  bm_register_write: 3 value(s)
+  create_pipe_files: 3 value(s)
+  debugfs_create_automount: 3 value(s)
+  debugfs_create_dir: 3 value(s)
+  debugfs_create_symlink: 3 value(s)
+  do_accept: 3 value(s)
+  eventfs_iterate: 13 value(s)
+  eventfs_root_lookup: 12 value(s)
+  hugetlbfs_fill_super: 3 value(s)
+  hugetlbfs_get_inode: 3 value(s)
+  mqueue_fill_super: 3 value(s)
+  mqueue_get_inode: 3 value(s)
+  proc_pid_make_inode: 3 value(s)
+  proc_sys_make_inode: 3 value(s)
+  ramfs_get_inode: 3 value(s)
+  ramfs_symlink: 3 value(s)
+  rpc_fill_super: 3 value(s)
+  sock_alloc: 3 value(s)
+  sock_create_lite: 3 value(s)
+  tracefs_create_file: 3 value(s)
+  tracefs_get_inode: 3 value(s)
+
+Earliest and latest instructions with L=1 (per function):
+
+__create_dir:
+  Earliest:   %14 = tail call i32 @get_next_ino() #279, <fs/tracefs/inode.c:275:18> FUNC=__create_dir L=1
+  Latest:   store i64 %15, ptr %16, align 8, <fs/tracefs/inode.c:275:16> FUNC=__create_dir L=1
+
+__debugfs_create_file:
+  Earliest:   %35 = tail call i32 @get_next_ino() #280, <fs/debugfs/inode.c:74:18> FUNC=__debugfs_create_file L=1
+  Latest:   store i64 %36, ptr %37, align 8, <fs/debugfs/inode.c:74:16> FUNC=__debugfs_create_file L=1
+
+__rpc_create_common:
+  Earliest:   %11 = tail call i32 @get_next_ino() #278, <net/sunrpc/rpc_pipe.c:472:17> FUNC=__rpc_create_common L=1
+  Latest:   store i64 %12, ptr %13, align 8, <net/sunrpc/rpc_pipe.c:472:15> FUNC=__rpc_create_common L=1
+
+__sock_create:
+  Earliest:   %33 = tail call i32 @get_next_ino() #280, <net/socket.c:628:17> FUNC=__sock_create L=1
+  Latest:   store i64 %34, ptr %35, align 8, <net/socket.c:628:15> FUNC=__sock_create L=1
+
+alloc_anon_inode:
+  Earliest:   %5 = tail call i32 @get_next_ino() #278, <fs/libfs.c:1640:17> FUNC=alloc_anon_inode L=1
+  Latest:   store i64 %6, ptr %7, align 8, <fs/libfs.c:1640:15> FUNC=alloc_anon_inode L=1
+
+autofs_fill_super:
+  Earliest:   %47 = tail call i32 @get_next_ino() #279, <fs/autofs/inode.c:442:17> FUNC=autofs_fill_super L=1
+  Latest:   store i64 %48, ptr %49, align 8, <fs/autofs/inode.c:442:15> FUNC=autofs_fill_super L=1
+
+autofs_get_inode:
+  Earliest:   %23 = tail call i32 @get_next_ino() #278, <fs/autofs/inode.c:442:17> FUNC=autofs_get_inode L=1
+  Latest:   store i64 %24, ptr %25, align 8, <fs/autofs/inode.c:442:15> FUNC=autofs_get_inode L=1
+
+bm_register_write:
+  Earliest:   %206 = tail call i32 @get_next_ino() #279, <fs/binfmt_misc.c:623:18> FUNC=bm_register_write L=1
+  Latest:   store i64 %207, ptr %208, align 8, <fs/binfmt_misc.c:623:16> FUNC=bm_register_write L=1
+
+create_pipe_files:
+  Earliest:   %9 = tail call i32 @get_next_ino() #278, <fs/pipe.c:885:17> FUNC=create_pipe_files L=1
+  Latest:   store i64 %10, ptr %11, align 8, <fs/pipe.c:885:15> FUNC=create_pipe_files L=1
+
+debugfs_create_automount:
+  Earliest:   %26 = tail call i32 @get_next_ino() #279, <fs/debugfs/inode.c:74:18> FUNC=debugfs_create_automount L=1
+  Latest:   store i64 %27, ptr %28, align 8, <fs/debugfs/inode.c:74:16> FUNC=debugfs_create_automount L=1
+
+debugfs_create_dir:
+  Earliest:   %24 = tail call i32 @get_next_ino() #279, <fs/debugfs/inode.c:74:18> FUNC=debugfs_create_dir L=1
+  Latest:   store i64 %25, ptr %26, align 8, <fs/debugfs/inode.c:74:16> FUNC=debugfs_create_dir L=1
+
+debugfs_create_symlink:
+  Earliest:   %19 = tail call i32 @get_next_ino() #278, <fs/debugfs/inode.c:74:18> FUNC=debugfs_create_symlink L=1
+  Latest:   store i64 %20, ptr %21, align 8, <fs/debugfs/inode.c:74:16> FUNC=debugfs_create_symlink L=1
+
+do_accept:
+  Earliest:   %22 = tail call i32 @get_next_ino() #279, <net/socket.c:628:17> FUNC=do_accept L=1
+  Latest:   store i64 %23, ptr %24, align 8, <net/socket.c:628:15> FUNC=do_accept L=1
+
+eventfs_iterate:
+  Earliest:   %108 = load i32, ptr %107, align 4, <fs/tracefs/event_inode.c:52:11> FUNC=eventfs_iterate L=1
+  Latest:   br i1 %122, label %123, label %132, <fs/tracefs/event_inode.c:662:7> FUNC=eventfs_iterate L=1
+
+eventfs_root_lookup:
+  Earliest:   %91 = load i32, ptr %90, align 4, <fs/tracefs/event_inode.c:52:11> FUNC=eventfs_root_lookup L=1
+  Latest:   store i64 %100, ptr %101, align 8, <fs/tracefs/event_inode.c:423:15> FUNC=eventfs_root_lookup L=1
+
+hugetlbfs_fill_super:
+  Earliest:   %57 = tail call i32 @get_next_ino() #279, <fs/hugetlbfs/inode.c:895:18> FUNC=hugetlbfs_fill_super L=1
+  Latest:   store i64 %58, ptr %59, align 8, <fs/hugetlbfs/inode.c:895:16> FUNC=hugetlbfs_fill_super L=1
+
+hugetlbfs_get_inode:
+  Earliest:   %20 = tail call i32 @get_next_ino() #278, <fs/hugetlbfs/inode.c:939:18> FUNC=hugetlbfs_get_inode L=1
+  Latest:   store i64 %21, ptr %22, align 8, <fs/hugetlbfs/inode.c:939:16> FUNC=hugetlbfs_get_inode L=1
+
+mqueue_fill_super:
+  Earliest:   %13 = tail call i32 @get_next_ino() #278, <ipc/mqueue.c:301:17> FUNC=mqueue_fill_super L=1
+  Latest:   store i64 %14, ptr %15, align 8, <ipc/mqueue.c:301:15> FUNC=mqueue_fill_super L=1
+
+mqueue_get_inode:
+  Earliest:   %8 = tail call i32 @get_next_ino() #278, <ipc/mqueue.c:301:17> FUNC=mqueue_get_inode L=1
+  Latest:   store i64 %9, ptr %10, align 8, <ipc/mqueue.c:301:15> FUNC=mqueue_get_inode L=1
+
+proc_pid_make_inode:
+  Earliest:   %7 = tail call i32 @get_next_ino() #278, <fs/proc/base.c:1957:17> FUNC=proc_pid_make_inode L=1
+  Latest:   store i64 %8, ptr %9, align 8, <fs/proc/base.c:1957:15> FUNC=proc_pid_make_inode L=1
+
+proc_sys_make_inode:
+  Earliest:   %9 = tail call i32 @get_next_ino() #278, <fs/proc/proc_sysctl.c:460:17> FUNC=proc_sys_make_inode L=1
+  Latest:   store i64 %10, ptr %11, align 8, <fs/proc/proc_sysctl.c:460:15> FUNC=proc_sys_make_inode L=1
+
+ramfs_get_inode:
+  Earliest:   %8 = tail call i32 @get_next_ino() #278, <fs/ramfs/inode.c:63:18> FUNC=ramfs_get_inode L=1
+  Latest:   store i64 %9, ptr %10, align 8, <fs/ramfs/inode.c:63:16> FUNC=ramfs_get_inode L=1
+
+ramfs_symlink:
+  Earliest:   %10 = tail call i32 @get_next_ino() #278, <fs/ramfs/inode.c:63:18> FUNC=ramfs_symlink L=1
+  Latest:   store i64 %11, ptr %12, align 8, <fs/ramfs/inode.c:63:16> FUNC=ramfs_symlink L=1
+
+rpc_fill_super:
+  Earliest:   %22 = tail call i32 @get_next_ino() #278, <net/sunrpc/rpc_pipe.c:472:17> FUNC=rpc_fill_super L=1
+  Latest:   store i64 %23, ptr %24, align 8, <net/sunrpc/rpc_pipe.c:472:15> FUNC=rpc_fill_super L=1
+
+sock_alloc:
+  Earliest:   %8 = tail call i32 @get_next_ino() #278, <net/socket.c:628:17> FUNC=sock_alloc L=1
+  Latest:   store i64 %9, ptr %10, align 8, <net/socket.c:628:15> FUNC=sock_alloc L=1
+
+sock_create_lite:
+  Earliest:   %15 = tail call i32 @get_next_ino() #278, <net/socket.c:628:17> FUNC=sock_create_lite L=1
+  Latest:   store i64 %16, ptr %17, align 8, <net/socket.c:628:15> FUNC=sock_create_lite L=1
+
+tracefs_create_file:
+  Earliest:   %25 = tail call i32 @get_next_ino() #278, <fs/tracefs/inode.c:275:18> FUNC=tracefs_create_file L=1
+  Latest:   store i64 %26, ptr %27, align 8, <fs/tracefs/inode.c:275:16> FUNC=tracefs_create_file L=1
+
+tracefs_get_inode:
+  Earliest:   %5 = tail call i32 @get_next_ino() #278, <fs/tracefs/inode.c:275:18> FUNC=tracefs_get_inode L=1
+  Latest:   store i64 %6, ptr %7, align 8, <fs/tracefs/inode.c:275:16> FUNC=tracefs_get_inode L=1
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 136 instructions
+Other visited functions (total): 29 instructions
+Total: 165 instructions
+Number of max-level functions: 28
+Number of other visited functions: 1
+
+=== Data Flow Span Details ===
+__create_dir, 3, 0, 3, 3
+__debugfs_create_file, 7, 0, 7, 3
+__rpc_create_common, 1, 0, 1, 3
+__sock_create, 7, 1, 7, 4
+alloc_anon_inode, 1, 0, 1, 3
+autofs_fill_super, 4, 1, 4, 4
+autofs_get_inode, 3, 1, 3, 4
+bm_register_write, 51, 0, 51, 3
+create_pipe_files, 1, 0, 1, 3
+debugfs_create_automount, 5, 0, 5, 3
+debugfs_create_dir, 5, 0, 5, 3
+debugfs_create_symlink, 5, 0, 5, 3
+do_accept, 3, 1, 3, 4
+eventfs_iterate, 22, 3, 25, 7
+eventfs_root_lookup, 14, 27, 17, 3
+hugetlbfs_fill_super, 4, 0, 4, 3
+hugetlbfs_get_inode, 4, 2, 4, 5
+mqueue_fill_super, 1, 0, 1, 3
+mqueue_get_inode, 1, 0, 1, 3
+proc_pid_make_inode, 1, 1, 1, 4
+proc_sys_make_inode, 1, 0, 1, 3
+ramfs_get_inode, 1, 0, 1, 3
+ramfs_symlink, 1, 0, 1, 3
+rpc_fill_super, 1, 0, 1, 3
+sock_alloc, 1, 1, 1, 4
+sock_create_lite, 2, 1, 2, 4
+tracefs_create_file, 6, 0, 6, 3
+tracefs_get_inode, 1, 0, 1, 3
+get_next_ino, full span
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/inode.ll
+../linux-wllvm-defconfig/fs/inode.c

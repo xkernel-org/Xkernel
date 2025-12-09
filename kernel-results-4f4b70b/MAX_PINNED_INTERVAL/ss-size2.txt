@@ -1,0 +1,3 @@
+sched_balance_rq: BB302:I5 -> BB302:I7 => 3 instructions
+
+Total: 3 instructions

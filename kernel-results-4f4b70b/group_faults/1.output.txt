@@ -1,0 +1,49 @@
+=== Taint Tracker Configuration ===
+Function: should_numa_migrate_memory
+Opcode: shl
+Constant: 2
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant 2)
+
+[SOURCE] Tainting:   %251 = shl i64 %215, 2, <kernel/sched/fair.c:2014:39> FUNC=should_numa_migrate_memory L=0
+[USE] Source instruction in data flow <kernel/sched/fair.c:2014:39> FUNC=should_numa_migrate_memory L=0
+[USE] Processing uses of:   %251 = shl i64 %215, 2,
+  [USE] Taint flows to:   %252 = mul i64 %251, %250, <kernel/sched/fair.c:2014:66> FUNC=should_numa_migrate_memory L=0
+[USE] Processing uses of:   %252 = mul i64 %251, %250,
+  [USE] Taint flows to:   %253 = icmp ugt i64 %235, %252, <kernel/sched/fair.c:2013:70> FUNC=should_numa_migrate_memory L=0
+[USE] Processing uses of:   %253 = icmp ugt i64 %235, %252,
+  [USE] Taint flows to:   %255 = phi i1 [ %253, %249 ], [ false, %4 ], [ true, %50 ], [ %134, %130 ], [ false, %97 ], [ false, %150 ], [ true, %166 ], [ true, %163 ], [ false, %175 ], [ true, %185 ], [ true, %193 ], <kernel/sched/fair.c:2015:1> (approx) FUNC=should_numa_migrate_memory L=0
+[USE] Processing uses of:   %255 = phi i1 [ %253, %249 ], [ false, %4 ], [ true, %50 ], [ %134, %130 ], [ false, %97 ], [ false, %150 ], [ true, %166 ], [ true, %163 ], [ false, %175 ], [ true, %185 ], [ true, %193 ],
+  [RETURN] Stop: Tainted value is returned:   ret i1 %255, <kernel/sched/fair.c:2015:1>
+[UPWARD-INTERPROC] Call to should_numa_migrate_memory returns tainted value <mm/mempolicy.c:2844:8> FUNC=mpol_misplaced L=1
+  [USE] Taint flows to:   br i1 %165, label %166, label %170, <mm/mempolicy.c:2844:7> FUNC=mpol_misplaced L=1
+
+=== Maximum Level Statistics ===
+Largest L value: 1
+Number of instructions with L=1: 2
+
+Earliest and latest instructions with L=1 (per function):
+
+mpol_misplaced:
+  Earliest:   %165 = call zeroext i1 @should_numa_migrate_memory(ptr noundef %164, ptr noundef %0, i32 noundef %7, i32 noundef %9) #280, <mm/mempolicy.c:2844:8> FUNC=mpol_misplaced L=1
+  Latest:   br i1 %165, label %166, label %170, <mm/mempolicy.c:2844:7> FUNC=mpol_misplaced L=1
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 2 instructions
+Other visited functions (total): 258 instructions
+Total: 260 instructions
+Number of max-level functions: 1
+Number of other visited functions: 1
+
+=== Data Flow Span Details ===
+mpol_misplaced, 36, 2, 36, 3
+should_numa_migrate_memory, full span
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/kernel/sched/fair.ll
+../linux-wllvm-defconfig/kernel/sched/fair.c

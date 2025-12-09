@@ -1,0 +1,47 @@
+=== Taint Tracker Configuration ===
+Function: bfq_finish_requeue_request
+Opcode: call
+Constant: 2000000
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant 2000000)
+
+[SOURCE] Tainting:   %362 = tail call i32 @llvm.umin.i32(i32 %304, i32 2000000), <block/bfq-iosched.c:3406:8> FUNC=bfq_finish_requeue_request L=0
+[USE] Source instruction in data flow <block/bfq-iosched.c:3406:8> FUNC=bfq_finish_requeue_request L=0
+[CHILD FUNCTION] Constant used in call to llvm.umin.i32 at argument 1 <block/bfq-iosched.c:3406:8> FUNC=bfq_finish_requeue_request L=0
+[USE] Processing uses of:   %362 = tail call i32 @llvm.umin.i32(i32 %304, i32 2000000),
+  [USE] Taint flows to:   %368 = phi i32 [ %366, %365 ], [ %304, %363 ], [ %362, %361 ], [ %304, %344 ], [ %304, %345 ], [ %304, %354 ], [ %304, %357 ], <block/blk.h:648:35> (approx) FUNC=bfq_finish_requeue_request L=0
+[USE] Processing uses of:   %368 = phi i32 [ %366, %365 ], [ %304, %363 ], [ %362, %361 ], [ %304, %344 ], [ %304, %345 ], [ %304, %354 ], [ %304, %357 ],
+  [USE] Taint flows to:   %393 = zext i32 %368 to i64, <block/bfq-iosched.c:3413:53> FUNC=bfq_finish_requeue_request L=0
+[USE] Processing uses of:   %393 = zext i32 %368 to i64,
+  [CHILD FUNCTION] Tainted value used in call to hrtimer_start_range_ns at argument 1:   tail call void @hrtimer_start_range_ns(ptr noundef nonnull %392, i64 noundef %393, i64 noundef 0, i32 noundef 1) #278, <./include/linux/hrtimer.h:260:2> FUNC=bfq_finish_requeue_request L=0
+  [USE] Taint flows to:   tail call void @hrtimer_start_range_ns(ptr noundef nonnull %392, i64 noundef %393, i64 noundef 0, i32 noundef 1) #278, <./include/linux/hrtimer.h:260:2> FUNC=bfq_finish_requeue_request L=0
+[NO USE] No uses of:   tail call void @hrtimer_start_range_ns(ptr noundef nonnull %392, i64 noundef %393, i64 noundef 0, i32 noundef 1) #278,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 4
+
+Earliest and latest instructions with L=0 (per function):
+
+bfq_finish_requeue_request:
+  Earliest:   %362 = tail call i32 @llvm.umin.i32(i32 %304, i32 2000000), <block/bfq-iosched.c:3406:8> FUNC=bfq_finish_requeue_request L=0
+  Latest:   tail call void @hrtimer_start_range_ns(ptr noundef nonnull %392, i64 noundef %393, i64 noundef 0, i32 noundef 1) #278, <./include/linux/hrtimer.h:260:2> FUNC=bfq_finish_requeue_request L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 37 instructions
+Other visited functions (total): 0 instructions
+Total: 37 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+bfq_finish_requeue_request, 70, 0, 78, 8
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/block/bfq-iosched.ll
+../linux-wllvm-defconfig/block/bfq-iosched.c

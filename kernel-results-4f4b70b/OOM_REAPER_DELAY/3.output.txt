@@ -1,0 +1,45 @@
+=== Taint Tracker Configuration ===
+Function: oom_kill_process
+Opcode: add
+Constant: 2000
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 2 (of constant 2000)
+
+[SOURCE] Tainting:   %210 = add i64 %209, 2000, <mm/oom_kill.c:703:42> FUNC=oom_kill_process L=0
+[USE] Source instruction in data flow <mm/oom_kill.c:703:42> FUNC=oom_kill_process L=0
+[USE] Processing uses of:   %210 = add i64 %209, 2000,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #0 (ptr %0) <mm/oom_kill.c:703:32>
+[POINTER PARAMETER] Call to oom_kill_process passes through pointer parameter 0 of out_of_memory <mm/oom_kill.c:1160:3> FUNC=out_of_memory L=1
+[UPWARD-INTERPROC] Call to out_of_memory taints argument 0 (local variable) <mm/page_alloc.c:3644:6> FUNC=__alloc_pages_may_oom L=2
+  [STORE DESTINATION] Marking pointer as tainted via call:   %5 = alloca %struct.oom_control, align 8, !DIAssignID !18658022 FUNC=__alloc_pages_may_oom L=2
+[UPWARD-INTERPROC] Call to out_of_memory taints argument 0 (local variable) <drivers/tty/sysrq.c:397:7> FUNC=moom_callback L=2
+  [STORE DESTINATION] Marking pointer as tainted via call:   %2 = alloca %struct.oom_control, align 8, !DIAssignID !18658188 FUNC=moom_callback L=2
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 1
+
+Earliest and latest instructions with L=0 (per function):
+
+oom_kill_process:
+  Earliest:   %210 = add i64 %209, 2000, <mm/oom_kill.c:703:42> FUNC=oom_kill_process L=0
+  (Earliest and latest are the same instruction)
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 1 instructions
+Other visited functions (total): 0 instructions
+Total: 1 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+oom_kill_process, 48, 3, 48, 3
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/mm/oom_kill.ll
+../linux-wllvm-defconfig/mm/oom_kill.c

@@ -1,0 +1,4 @@
+dccp_delack_timer: BB1:I7 -> BB1:I8 => 2 instructions
+tcp_send_delayed_ack: [BB0:I4 -> BB0:I5, BB5:I4 -> BB14:I8] => 68 instructions
+
+Total: 70 instructions

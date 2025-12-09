@@ -1,0 +1,115 @@
+=== Taint Tracker Configuration ===
+Function: bfq_bfqq_expire
+Opcode: phi
+Constant: 512
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant 512)
+
+[SOURCE] Tainting:   %216 = phi i32 [ %214, %211 ], [ 512, %204 ], <block/bfq-iosched.c:3982:12> (approx) FUNC=bfq_bfqq_expire L=0
+[USE] Source instruction in data flow <block/bfq-iosched.c:3982:12> (approx) FUNC=bfq_bfqq_expire L=0
+[USE] Processing uses of:   %216 = phi i32 [ %214, %211 ], [ 512, %204 ],
+  [USE] Taint flows to:   %223 = shl nsw i32 %216, 1, <block/bfq-iosched.c:3990:14> FUNC=bfq_bfqq_expire L=0
+  [USE] Taint flows to:   %330 = mul nsw i32 %216, 5, <block/bfq-iosched.c:4033:20> FUNC=bfq_bfqq_expire L=0
+  [USE] Taint flows to:   %333 = shl nsw i32 %216, 2, <block/bfq-iosched.c:4034:18> FUNC=bfq_bfqq_expire L=0
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %348 = call i32 @llvm.smax.i32(i32 %347, i32 %216), !dbg !18658602 <block/bfq-iosched.c:4093:13>
+  [USE] Taint flows to:   %348 = call i32 @llvm.smax.i32(i32 %347, i32 %216), <block/bfq-iosched.c:4093:13> FUNC=bfq_bfqq_expire L=0
+  [USE] Taint flows to:   %357 = phi i32 [ %348, %345 ], [ %344, %340 ], [ %339, %335 ], [ %328, %324 ], [ %334, %332 ], [ %225, %349 ], [ %355, %353 ], [ %216, %329 ], <block/bfq-iosched.c:4108:8> (approx) FUNC=bfq_bfqq_expire L=0
+[USE] Processing uses of:   %357 = phi i32 [ %348, %345 ], [ %344, %340 ], [ %339, %335 ], [ %328, %324 ], [ %334, %332 ], [ %225, %349 ], [ %355, %353 ], [ %216, %329 ],
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #1 (ptr %1) <block/bfq-iosched.c:4108:19>
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %368 = call i32 @llvm.smin.i32(i32 %357, i32 %367), !dbg !18658628 <block/bfq-iosched.c:4112:22>
+  [USE] Taint flows to:   %368 = call i32 @llvm.smin.i32(i32 %357, i32 %367), <block/bfq-iosched.c:4112:22> FUNC=bfq_bfqq_expire L=0
+  [USE] Taint flows to:   %370 = phi i32 [ %368, %365 ], [ %357, %361 ], [ %357, %356 ] <block/bfq-iosched.c:4124:18> (approx) FUNC=bfq_bfqq_expire L=0
+[USE] Processing uses of:   %370 = phi i32 [ %368, %365 ], [ %357, %361 ], [ %357, %356 ]
+  [USE] Taint flows to:   %375 = sext i32 %370 to i64, <block/bfq-iosched.c:4126:25> FUNC=bfq_bfqq_expire L=0
+[USE] Processing uses of:   %375 = sext i32 %370 to i64,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %444 = call i64 @llvm.umax.i64(i64 %443, i64 %375), !dbg !18658633 <block/bfq-iosched.c:4126:25>
+  [USE] Taint flows to:   %444 = call i64 @llvm.umax.i64(i64 %443, i64 %375), <block/bfq-iosched.c:4126:25> FUNC=bfq_bfqq_expire L=0
+[USE] Processing uses of:   %444 = call i64 @llvm.umax.i64(i64 %443, i64 %375),
+  [USE] Taint flows to:   %445 = trunc nsw i64 %444 to i32, <block/bfq-iosched.c:4126:25> FUNC=bfq_bfqq_expire L=0
+[USE] Processing uses of:   %445 = trunc nsw i64 %444 to i32,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #1 (ptr %1) <block/bfq-iosched.c:4126:23>
+[USE] Processing uses of:   %368 = call i32 @llvm.smin.i32(i32 %357, i32 %367),
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #1 (ptr %1) <block/bfq-iosched.c:4112:20>
+[USE] Processing uses of:   %348 = call i32 @llvm.smax.i32(i32 %347, i32 %216),
+[USE] Processing uses of:   %333 = shl nsw i32 %216, 2,
+  [USE] Taint flows to:   %334 = sub i32 %225, %333, <block/bfq-iosched.c:4034:13> FUNC=bfq_bfqq_expire L=0
+[USE] Processing uses of:   %334 = sub i32 %225, %333,
+[USE] Processing uses of:   %330 = mul nsw i32 %216, 5,
+  [USE] Taint flows to:   %331 = icmp sgt i32 %225, %330, <block/bfq-iosched.c:4033:16> FUNC=bfq_bfqq_expire L=0
+[USE] Processing uses of:   %331 = icmp sgt i32 %225, %330,
+  [USE] Taint flows to:   br i1 %331, label %332, label %356, <block/bfq-iosched.c:4033:16> FUNC=bfq_bfqq_expire L=0
+[NO USE] No uses of:   br i1 %331, label %332, label %356,
+[USE] Processing uses of:   %223 = shl nsw i32 %216, 1,
+  [USE] Taint flows to:   %225 = phi i32 [ %221, %219 ], [ %223, %222 ], <block/bfq-iosched.c:3992:2> (approx) FUNC=bfq_bfqq_expire L=0
+[USE] Processing uses of:   %225 = phi i32 [ %221, %219 ], [ %223, %222 ],
+  [CHILD FUNCTION] Tainted value used in call to __blk_trace_note_message at argument 4:   call void (ptr, ptr, ptr, ...) @__blk_trace_note_message(ptr noundef nonnull %264, ptr noundef %270, ptr noundef nonnull @.str.11.44763, ptr noundef nonnull %6, i32 noundef %225, i32 noundef %278) #280, <block/bfq-iosched.c:3994:2> FUNC=bfq_bfqq_expire L=0
+  [USE] Taint flows to:   call void (ptr, ptr, ptr, ...) @__blk_trace_note_message(ptr noundef nonnull %264, ptr noundef %270, ptr noundef nonnull @.str.11.44763, ptr noundef nonnull %6, i32 noundef %225, i32 noundef %278) #280, <block/bfq-iosched.c:3994:2> FUNC=bfq_bfqq_expire L=0
+  [USE] Taint flows to:   %327 = shl i32 %225, 1, <block/bfq-iosched.c:4031:14> FUNC=bfq_bfqq_expire L=0
+  [USE] Taint flows to:   %338 = shl i32 %225, 1, <block/bfq-iosched.c:4046:13> FUNC=bfq_bfqq_expire L=0
+  [USE] Taint flows to:   %343 = shl i32 %225, 2, <block/bfq-iosched.c:4058:13> FUNC=bfq_bfqq_expire L=0
+[USE] Processing uses of:   %343 = shl i32 %225, 2,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %344 = call i32 @llvm.smin.i32(i32 %343, i32 %342), !dbg !18658600 <block/bfq-iosched.c:4058:13>
+  [USE] Taint flows to:   %344 = call i32 @llvm.smin.i32(i32 %343, i32 %342), <block/bfq-iosched.c:4058:13> FUNC=bfq_bfqq_expire L=0
+[USE] Processing uses of:   %344 = call i32 @llvm.smin.i32(i32 %343, i32 %342),
+[USE] Processing uses of:   %338 = shl i32 %225, 1,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %339 = call i32 @llvm.smin.i32(i32 %338, i32 %337), !dbg !18658597 <block/bfq-iosched.c:4046:13>
+  [USE] Taint flows to:   %339 = call i32 @llvm.smin.i32(i32 %338, i32 %337), <block/bfq-iosched.c:4046:13> FUNC=bfq_bfqq_expire L=0
+[USE] Processing uses of:   %339 = call i32 @llvm.smin.i32(i32 %338, i32 %337),
+[USE] Processing uses of:   %327 = shl i32 %225, 1,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %328 = call i32 @llvm.smin.i32(i32 %327, i32 %326), !dbg !18658587 <block/bfq-iosched.c:4031:14>
+  [USE] Taint flows to:   %328 = call i32 @llvm.smin.i32(i32 %327, i32 %326), <block/bfq-iosched.c:4031:14> FUNC=bfq_bfqq_expire L=0
+[USE] Processing uses of:   %328 = call i32 @llvm.smin.i32(i32 %327, i32 %326),
+[NO USE] No uses of:   call void (ptr, ptr, ptr, ...) @__blk_trace_note_message(ptr noundef nonnull %264, ptr noundef %270, ptr noundef nonnull @.str.11.44763, ptr noundef nonnull %6, i32 noundef %225, i32 noundef %278) #280,
+[POINTER PARAMETER] Call to bfq_bfqq_expire passes through pointer parameter 1 of bfq_insert_requests <block/bfq-iosched.c:6142:4> FUNC=bfq_insert_requests L=1
+[POINTER PARAMETER] Call to bfq_bfqq_expire passes through pointer parameter 0 of bfq_dispatch_request <block/bfq-iosched.c:5032:2> FUNC=bfq_dispatch_request L=1
+[POINTER PARAMETER] Call to bfq_bfqq_expire passes through pointer parameter 0 of bfq_finish_requeue_request <block/bfq-iosched.c:6491:13> (approx) FUNC=bfq_finish_requeue_request L=1
+[POINTER PARAMETER] Call to bfq_bfqq_expire passes through pointer parameter 0 of bfq_add_request <block/bfq-iosched.c:1992:3> FUNC=bfq_add_request L=1
+[POINTER PARAMETER] Call to bfq_bfqq_expire passes through pointer parameter 0 of bfq_idle_slice_timer <block/bfq-iosched.c:7059:2> FUNC=bfq_idle_slice_timer L=1
+[POINTER PARAMETER] Call to bfq_bfqq_expire passes through pointer parameter 0 of bfq_bfqq_move <block/bfq-cgroup.c:673:3> FUNC=bfq_bfqq_move L=1
+[UPWARD-INTERPROC] No callers found for bfq_insert_requests (function taints pointer parameter #1)
+[UPWARD-INTERPROC] No callers found for bfq_dispatch_request (function taints pointer parameter #0)
+[POINTER PARAMETER] Call to bfq_finish_requeue_request passes through pointer parameter 0 of bfq_finish_request <block/bfq-iosched.c:6719:2> FUNC=bfq_finish_request L=2
+[UPWARD-INTERPROC] No callers found for bfq_idle_slice_timer (function taints pointer parameter #0)
+[POINTER PARAMETER] Call to bfq_bfqq_move passes through pointer parameter 0 of __bfq_put_async_bfqq <block/bfq-iosched.c:7097:3> FUNC=__bfq_put_async_bfqq L=2
+[POINTER PARAMETER] Call to bfq_bfqq_move passes through pointer parameter 0 of bfq_pd_offline <block/bfq-cgroup.c:837:2> FUNC=bfq_pd_offline L=2
+[POINTER PARAMETER] Call to bfq_bfqq_move passes through pointer parameter 0 of __bfq_bic_change_cgroup <block/bfq-cgroup.c:714:4> FUNC=__bfq_bic_change_cgroup L=2
+[UPWARD-INTERPROC] No callers found for bfq_finish_request (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for bfq_insert_requests (function taints pointer parameter #1)
+[UPWARD-INTERPROC] No callers found for bfq_dispatch_request (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for bfq_idle_slice_timer (function taints pointer parameter #0)
+[POINTER PARAMETER] Call to __bfq_put_async_bfqq passes through pointer parameter 0 of bfq_put_async_queues <block/bfq-iosched.c:7119:5> FUNC=bfq_put_async_queues L=3
+[UPWARD-INTERPROC] No callers found for bfq_pd_offline (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for bfq_finish_request (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for bfq_insert_requests (function taints pointer parameter #1)
+[UPWARD-INTERPROC] No callers found for bfq_dispatch_request (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for bfq_idle_slice_timer (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for bfq_pd_offline (function taints pointer parameter #0)
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 22
+
+Earliest and latest instructions with L=0 (per function):
+
+bfq_bfqq_expire:
+  Earliest:   %216 = phi i32 [ %214, %211 ], [ 512, %204 ], <block/bfq-iosched.c:3982:12> (approx) FUNC=bfq_bfqq_expire L=0
+  Latest:   %445 = trunc nsw i64 %444 to i32, <block/bfq-iosched.c:4126:25> FUNC=bfq_bfqq_expire L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 259 instructions
+Other visited functions (total): 0 instructions
+Total: 259 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+bfq_bfqq_expire, 42, 0, 95, 3
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/block/bfq-iosched.ll
+../linux-wllvm-defconfig/block/bfq-iosched.c

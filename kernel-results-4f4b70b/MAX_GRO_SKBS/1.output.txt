@@ -1,0 +1,41 @@
+=== Taint Tracker Configuration ===
+Function: dev_gro_receive
+Opcode: icmp
+Constant: 7
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant 7)
+
+[SOURCE] Tainting:   %357 = icmp sgt i32 %356, 7, <net/core/gro.c:539:6> FUNC=dev_gro_receive L=0
+[USE] Source instruction in data flow <net/core/gro.c:539:6> FUNC=dev_gro_receive L=0
+[USE] Processing uses of:   %357 = icmp sgt i32 %356, 7,
+  [USE] Taint flows to:   br i1 %357, label %358, label %359, <net/core/gro.c:539:6> FUNC=dev_gro_receive L=0
+[NO USE] No uses of:   br i1 %357, label %358, label %359,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 2
+
+Earliest and latest instructions with L=0 (per function):
+
+dev_gro_receive:
+  Earliest:   %357 = icmp sgt i32 %356, 7, <net/core/gro.c:539:6> FUNC=dev_gro_receive L=0
+  Latest:   br i1 %357, label %358, label %359, <net/core/gro.c:539:6> FUNC=dev_gro_receive L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 2 instructions
+Other visited functions (total): 0 instructions
+Total: 2 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+dev_gro_receive, 49, 2, 49, 3
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/core/gro.ll
+../linux-wllvm-defconfig/net/core/gro.c

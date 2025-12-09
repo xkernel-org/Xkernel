@@ -1,0 +1,3 @@
+bfq_finish_requeue_request: [BB25:I3 -> BB25:I4, BB28:I8 -> BB28:I11, BB30:I0 -> BB30:I11] => 18 instructions
+
+Total: 18 instructions

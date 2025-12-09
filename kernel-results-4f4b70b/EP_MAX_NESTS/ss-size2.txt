@@ -1,0 +1,4 @@
+ep_loop_check_proc: BB1:I0 -> BB4:I3 => 20 instructions
+reverse_path_check_proc: BB0:I0 -> BB0:I1 => 2 instructions
+
+Total: 22 instructions

@@ -1,0 +1,5 @@
+SOURCE_FILE=fs/xfs/xfs_discard.c
+FUNCTION_NAME=xfs_trim_gather_extents
+SOURCE_OP="phi"
+CONSTANT_VALUE=100
+OCCURENCE=1

@@ -1,0 +1,41 @@
+=== Taint Tracker Configuration ===
+Function: tcp_parse_options
+Opcode: icmp
+Constant: 14
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant 14)
+
+[SOURCE] Tainting:   %90 = icmp ugt i8 %86, 14, <net/ipv4/tcp_input.c:4237:21> FUNC=tcp_parse_options L=0
+[USE] Source instruction in data flow <net/ipv4/tcp_input.c:4237:21> FUNC=tcp_parse_options L=0
+[USE] Processing uses of:   %90 = icmp ugt i8 %86, 14,
+  [USE] Taint flows to:   br i1 %90, label %91, label %96, <net/ipv4/tcp_input.c:4237:21> FUNC=tcp_parse_options L=0
+[NO USE] No uses of:   br i1 %90, label %91, label %96,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 2
+
+Earliest and latest instructions with L=0 (per function):
+
+tcp_parse_options:
+  Earliest:   %90 = icmp ugt i8 %86, 14, <net/ipv4/tcp_input.c:4237:21> FUNC=tcp_parse_options L=0
+  Latest:   br i1 %90, label %91, label %96, <net/ipv4/tcp_input.c:4237:21> FUNC=tcp_parse_options L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 2 instructions
+Other visited functions (total): 0 instructions
+Total: 2 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+tcp_parse_options, 14, 5, 14, 6
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/ipv4/tcp_input.ll
+../linux-wllvm-defconfig/net/ipv4/tcp_input.c

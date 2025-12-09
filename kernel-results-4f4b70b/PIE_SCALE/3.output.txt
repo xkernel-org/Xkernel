@@ -1,0 +1,52 @@
+=== Taint Tracker Configuration ===
+Function: pie_process_dequeue
+Opcode: shl
+Constant: 8
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant 8)
+
+[SOURCE] Tainting:   %51 = shl i32 %50, 8, <net/sched/sch_pie.c:258:16> FUNC=pie_process_dequeue L=0
+[USE] Source instruction in data flow <net/sched/sch_pie.c:258:16> FUNC=pie_process_dequeue L=0
+[USE] Processing uses of:   %51 = shl i32 %50, 8,
+  [USE] Taint flows to:   %52 = udiv i32 %51, %47, <net/sched/sch_pie.c:265:18> FUNC=pie_process_dequeue L=0
+[USE] Processing uses of:   %52 = udiv i32 %51, %47,
+  [USE] Taint flows to:   %57 = lshr i32 %52, 3, <net/sched/sch_pie.c:267:26> FUNC=pie_process_dequeue L=0
+  [USE] Taint flows to:   %60 = select i1 %55, i32 %52, i32 %59, <net/sched/sch_pie.c:267:26> FUNC=pie_process_dequeue L=0
+[USE] Processing uses of:   %60 = select i1 %55, i32 %52, i32 %59,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #2 (ptr %2) <net/sched/sch_pie.c:279:16> (approx)
+[USE] Processing uses of:   %57 = lshr i32 %52, 3,
+  [USE] Taint flows to:   %58 = add i32 %57, %54, <net/sched/sch_pie.c:267:26> FUNC=pie_process_dequeue L=0
+[USE] Processing uses of:   %58 = add i32 %57, %54,
+  [USE] Taint flows to:   %59 = sub i32 %58, %56, <net/sched/sch_pie.c:267:26> FUNC=pie_process_dequeue L=0
+[USE] Processing uses of:   %59 = sub i32 %58, %56,
+[POINTER PARAMETER] Call to pie_process_dequeue passes through pointer parameter 0 of pie_qdisc_dequeue <net/sched/sch_pie.c:531:2> FUNC=pie_qdisc_dequeue L=1
+[UPWARD-INTERPROC] No callers found for pie_qdisc_dequeue (function taints pointer parameter #0)
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 6
+
+Earliest and latest instructions with L=0 (per function):
+
+pie_process_dequeue:
+  Earliest:   %51 = shl i32 %50, 8, <net/sched/sch_pie.c:258:16> FUNC=pie_process_dequeue L=0
+  Latest:   %60 = select i1 %55, i32 %52, i32 %59, <net/sched/sch_pie.c:267:26> FUNC=pie_process_dequeue L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 10 instructions
+Other visited functions (total): 0 instructions
+Total: 10 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+pie_process_dequeue, 10, 1, 10, 10
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/sched/sch_pie.ll
+../linux-wllvm-defconfig/net/sched/sch_pie.c

@@ -1,0 +1,3 @@
+alloc_pipe_info: BB10:I0 -> BB16:I1 => 42 instructions
+
+Total: 42 instructions

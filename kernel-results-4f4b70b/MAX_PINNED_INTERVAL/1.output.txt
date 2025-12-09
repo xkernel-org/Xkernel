@@ -1,0 +1,43 @@
+=== Taint Tracker Configuration ===
+Function: sched_balance_rq
+Opcode: icmp
+Constant: 512
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant 512)
+
+[SOURCE] Tainting:   %1574 = icmp ult i32 %1573, 512 <kernel/sched/fair.c:11984:34> (approx) FUNC=sched_balance_rq L=0
+[USE] Source instruction in data flow <kernel/sched/fair.c:11984:34> (approx) FUNC=sched_balance_rq L=0
+[USE] Processing uses of:   %1574 = icmp ult i32 %1573, 512
+  [USE] Taint flows to:   %1575 = select i1 %1571, i1 %1574, i1 false, <kernel/sched/fair.c:11984:34> FUNC=sched_balance_rq L=0
+[USE] Processing uses of:   %1575 = select i1 %1571, i1 %1574, i1 false,
+  [USE] Taint flows to:   br i1 %1575, label %1581, label %1576, <kernel/sched/fair.c:11984:34> FUNC=sched_balance_rq L=0
+[NO USE] No uses of:   br i1 %1575, label %1581, label %1576,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 3
+
+Earliest and latest instructions with L=0 (per function):
+
+sched_balance_rq:
+  Earliest:   %1574 = icmp ult i32 %1573, 512 <kernel/sched/fair.c:11984:34> (approx) FUNC=sched_balance_rq L=0
+  Latest:   br i1 %1575, label %1581, label %1576, <kernel/sched/fair.c:11984:34> FUNC=sched_balance_rq L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 3 instructions
+Other visited functions (total): 0 instructions
+Total: 3 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+sched_balance_rq, 302, 5, 302, 7
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/kernel/sched/fair.ll
+../linux-wllvm-defconfig/kernel/sched/fair.c

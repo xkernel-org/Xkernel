@@ -1,0 +1,7 @@
+  init_numa_balancing: BB8:I2 -> BB8:I9
+  migrate_task_rq_fair: BB15:I0 -> BB15:I2
+  task_numa_fault: BB42:I1 -> BB116:I32
+  task_numa_work: BB4:I1 -> BB6:I8
+  task_scan_max: full span
+  task_scan_start: full span
+  task_tick_fair: BB14:I3 -> BB17:I2

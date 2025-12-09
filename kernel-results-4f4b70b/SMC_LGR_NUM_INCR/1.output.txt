@@ -1,0 +1,51 @@
+=== Taint Tracker Configuration ===
+Function: smc_conn_create
+Opcode: add
+Constant: 256
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant 256)
+
+[SOURCE] Tainting:   %326 = add i32 %325, 256, <net/smc/smc_core.c:919:19> FUNC=smc_conn_create L=0
+[USE] Source instruction in data flow <net/smc/smc_core.c:919:19> FUNC=smc_conn_create L=0
+[USE] Processing uses of:   %326 = add i32 %325, 256,
+  [STORE DESTINATION] Marking pointer as tainted: ptr getelementptr inbounds nuw (i8, ptr @smc_lgr_list, i64 20) <net/smc/smc_core.c:919:19>
+  [USE] Taint flows to:   store i32 %326, ptr getelementptr inbounds nuw (i8, ptr @smc_lgr_list, i64 20), align 4, <net/smc/smc_core.c:919:19> FUNC=smc_conn_create L=0
+  %239 = getelementptr inbounds nuw i8, ptr %236, i64 648,
+  → base pointer:
+          %236 = tail call noalias align 4096 dereferenceable_or_null(17280) ptr @__kmalloc_large_noprof(i64 noundef range(i64 -2147483648, 2147483648) 17280, i32 noundef range(i32 3264, 601600) 3520) #280,
+      → call to __kmalloc_large_noprof (no parameter)
+  → Result: No parameter connection found
+  [STORE DESTINATION] Marking pointer as tainted:   %239 = getelementptr inbounds nuw i8, ptr %236, i64 648, <net/smc/smc_core.c:920:2>
+  [USE] Taint flows to:   store i32 %326, ptr %239, align 8, <net/smc/smc_core.c:920:2> FUNC=smc_conn_create L=0
+[NO USE] No uses of:   store i32 %326, ptr %239, align 8,
+[NO USE] No uses of:   store i32 %326, ptr getelementptr inbounds nuw (i8, ptr @smc_lgr_list, i64 20), align 4,
+[SKIP] Load before taint origin, not tainting:   %325 = load i32, ptr getelementptr inbounds nuw (i8, ptr @smc_lgr_list, i64 20), align 4, <net/smc/smc_core.c:919:19> FUNC=smc_conn_create L=0
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 3
+
+Earliest and latest instructions with L=0 (per function):
+
+smc_conn_create:
+  Earliest:   %326 = add i32 %325, 256, <net/smc/smc_core.c:919:19> FUNC=smc_conn_create L=0
+  Latest:   store i32 %326, ptr %239, align 8, <net/smc/smc_core.c:920:2> FUNC=smc_conn_create L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 3 instructions
+Other visited functions (total): 0 instructions
+Total: 3 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+smc_conn_create, 56, 155, 56, 157
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/smc/smc_core.ll
+../linux-wllvm-defconfig/net/smc/smc_core.c

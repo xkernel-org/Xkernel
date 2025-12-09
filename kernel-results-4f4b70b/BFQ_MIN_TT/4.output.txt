@@ -1,0 +1,48 @@
+=== Taint Tracker Configuration ===
+Function: bfq_bfqq_expire
+Opcode: select
+Constant: 2
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant 2)
+
+[SOURCE] Tainting:   %59 = select i1 %58, i64 2, i64 8 <block/bfq-iosched.c:4193:3> (approx) FUNC=bfq_bfqq_expire L=0
+[USE] Source instruction in data flow <block/bfq-iosched.c:4193:3> (approx) FUNC=bfq_bfqq_expire L=0
+[USE] Processing uses of:   %59 = select i1 %58, i64 2, i64 8
+  [USE] Taint flows to:   %97 = phi i64 [ %59, %53 ], [ %62, %95 ], <block/bfq-iosched.c:4379:12> (approx) FUNC=bfq_bfqq_expire L=0
+[USE] Processing uses of:   %97 = phi i64 [ %59, %53 ], [ %62, %95 ],
+  [USE] Taint flows to:   %108 = phi i64 [ %97, %106 ], [ 0, %102 ] <block/bfq-iosched.c:4381:15> (approx) FUNC=bfq_bfqq_expire L=0
+  [USE] Taint flows to:   %120 = phi i64 [ %108, %111 ], [ %97, %106 ] <block/bfq-iosched.c:4383:3> (approx) FUNC=bfq_bfqq_expire L=0
+[USE] Processing uses of:   %120 = phi i64 [ %108, %111 ], [ %97, %106 ]
+  [CHILD FUNCTION] Tainted value used in call to bfq_bfqq_charge_time at argument 2:   call void @bfq_bfqq_charge_time(ptr noundef %0, ptr noundef %1, i64 noundef %120) #280, <block/bfq-iosched.c:4383:3> FUNC=bfq_bfqq_expire L=0
+  [USE] Taint flows to:   call void @bfq_bfqq_charge_time(ptr noundef %0, ptr noundef %1, i64 noundef %120) #280, <block/bfq-iosched.c:4383:3> FUNC=bfq_bfqq_expire L=0
+[NO USE] No uses of:   call void @bfq_bfqq_charge_time(ptr noundef %0, ptr noundef %1, i64 noundef %120) #280,
+[USE] Processing uses of:   %108 = phi i64 [ %97, %106 ], [ 0, %102 ]
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 5
+
+Earliest and latest instructions with L=0 (per function):
+
+bfq_bfqq_expire:
+  Earliest:   %59 = select i1 %58, i64 2, i64 8 <block/bfq-iosched.c:4193:3> (approx) FUNC=bfq_bfqq_expire L=0
+  Latest:   call void @bfq_bfqq_charge_time(ptr noundef %0, ptr noundef %1, i64 noundef %120) #280, <block/bfq-iosched.c:4383:3> FUNC=bfq_bfqq_expire L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 75 instructions
+Other visited functions (total): 0 instructions
+Total: 75 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+bfq_bfqq_expire, 9, 5, 24, 3
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/block/bfq-iosched.ll
+../linux-wllvm-defconfig/block/bfq-iosched.c

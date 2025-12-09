@@ -1,0 +1,40 @@
+=== Taint Tracker Configuration ===
+Function: __blk_mq_sched_dispatch_requests
+Opcode: call
+Constant: 3
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 2 (of constant 3)
+
+[SOURCE] Tainting:   call void @blk_mq_delay_run_hw_queues(ptr noundef %214, i64 noundef 3) #279, <block/blk-mq-sched.c:248:4> FUNC=__blk_mq_sched_dispatch_requests L=0
+[USE] Source instruction in data flow <block/blk-mq-sched.c:248:4> FUNC=__blk_mq_sched_dispatch_requests L=0
+[CHILD FUNCTION] Constant used in call to blk_mq_delay_run_hw_queues at argument 1 <block/blk-mq-sched.c:248:4> FUNC=__blk_mq_sched_dispatch_requests L=0
+[NO USE] No uses of:   call void @blk_mq_delay_run_hw_queues(ptr noundef %214, i64 noundef 3) #279,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 1
+
+Earliest and latest instructions with L=0 (per function):
+
+__blk_mq_sched_dispatch_requests:
+  Earliest:   call void @blk_mq_delay_run_hw_queues(ptr noundef %214, i64 noundef 3) #279, <block/blk-mq-sched.c:248:4> FUNC=__blk_mq_sched_dispatch_requests L=0
+  (Earliest and latest are the same instruction)
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 1 instructions
+Other visited functions (total): 0 instructions
+Total: 1 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+__blk_mq_sched_dispatch_requests, 63, 0, 63, 0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/block/blk-mq-sched.ll
+../linux-wllvm-defconfig/block/blk-mq-sched.c

@@ -1,0 +1,137 @@
+=== Taint Tracker Configuration ===
+Function: task_scan_max
+Opcode: udiv
+Constant: 2560
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant 2560)
+
+[SOURCE] Tainting:   %6 = udiv i16 2560, %5, <kernel/sched/fair.c:1520:29> FUNC=task_scan_max L=0
+[USE] Source instruction in data flow <kernel/sched/fair.c:1520:29> FUNC=task_scan_max L=0
+[USE] Processing uses of:   %6 = udiv i16 2560, %5,
+  [USE] Taint flows to:   %8 = phi i16 [ %6, %4 ], [ 1, %1 ], <kernel/sched/fair.c:1523:9> (approx) FUNC=task_scan_max L=0
+[USE] Processing uses of:   %8 = phi i16 [ %6, %4 ], [ 1, %1 ],
+  [USE] Taint flows to:   %110 = udiv i16 1000, %8, <kernel/sched/fair.c:1521:15> FUNC=task_scan_max L=0
+[USE] Processing uses of:   %110 = udiv i16 1000, %8,
+  [USE] Taint flows to:   %111 = zext nneg i16 %110 to i32, <kernel/sched/fair.c:1521:15> FUNC=task_scan_max L=0
+[USE] Processing uses of:   %111 = zext nneg i16 %110 to i32,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %125 = tail call i32 @llvm.umax.i32(i32 %111, i32 %124), !dbg !18658340 <kernel/sched/fair.c:1524:9>
+  [USE] Taint flows to:   %125 = tail call i32 @llvm.umax.i32(i32 %111, i32 %124), <kernel/sched/fair.c:1524:9> FUNC=task_scan_max L=0
+[USE] Processing uses of:   %125 = tail call i32 @llvm.umax.i32(i32 %111, i32 %124),
+  [USE] Taint flows to:   %126 = zext i32 %125 to i64, <kernel/sched/fair.c:1551:23> FUNC=task_scan_max L=0
+[USE] Processing uses of:   %126 = zext i32 %125 to i64,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %127 = tail call i64 @llvm.umax.i64(i64 %109, i64 %126), !dbg !18658343 <kernel/sched/fair.c:1572:9>
+  [USE] Taint flows to:   %127 = tail call i64 @llvm.umax.i64(i64 %109, i64 %126), <kernel/sched/fair.c:1572:9> FUNC=task_scan_max L=0
+[USE] Processing uses of:   %127 = tail call i64 @llvm.umax.i64(i64 %109, i64 %126),
+  [USE] Taint flows to:   %128 = trunc i64 %127 to i32, <kernel/sched/fair.c:1572:9> FUNC=task_scan_max L=0
+[USE] Processing uses of:   %128 = trunc i64 %127 to i32,
+  [RETURN] Stop: Tainted value is returned:   ret i32 %128, <kernel/sched/fair.c:1572:2>
+[UPWARD-INTERPROC] Call to task_scan_max returns tainted value <kernel/sched/fair.c:2899:28> FUNC=task_numa_fault L=1
+[UPWARD-INTERPROC] Call to task_scan_max returns tainted value <kernel/sched/fair.c:2755:24> FUNC=task_numa_fault L=1
+[UPWARD-INTERPROC] Call to task_scan_max returns tainted value <kernel/sched/fair.c:3578:11> FUNC=init_numa_balancing L=1
+[UPWARD-INTERPROC] Call to task_scan_max returns tainted value <kernel/sched/fair.c:3331:29> FUNC=task_numa_work L=1
+  [USE] Taint flows to:   store i32 %32, ptr %33, align 64, <kernel/sched/fair.c:3331:27> FUNC=task_numa_work L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %33 = getelementptr inbounds nuw i8, ptr %6, i64 2560, <kernel/sched/fair.c:3331:27> FUNC=task_numa_work L=1
+  %33 = getelementptr inbounds nuw i8, ptr %6, i64 2560,
+  → base pointer:
+          %6 = inttoptr i64 %5 to ptr,
+      → no parameter connection
+  → Result: No parameter connection found
+  [USE] Taint flows to:   %50 = tail call i32 @llvm.umin.i32(i32 %46, i32 %49), <kernel/sched/fair.c:3578:11> FUNC=init_numa_balancing L=1
+  [USE] Taint flows to:   %51 = add i32 %50, 2000000, <kernel/sched/fair.c:3580:9> FUNC=init_numa_balancing L=1
+  [USE] Taint flows to:   %52 = zext i32 %51 to i64, <kernel/sched/fair.c:3581:19> FUNC=init_numa_balancing L=1
+  [USE] Taint flows to:   store i64 %52, ptr %25, align 16, <kernel/sched/fair.c:3581:17> FUNC=init_numa_balancing L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %25 = phi ptr [ %20, %19 ], [ %18, %17 ] <kernel/sched/fair.c:3581:17> FUNC=init_numa_balancing L=1
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #1 (ptr %1) <kernel/sched/fair.c:3581:17> FUNC=init_numa_balancing L=1
+  [USE] Taint flows to:   %793 = icmp ult i32 %757, %773, <kernel/sched/fair.c:2755:24> FUNC=task_numa_fault L=1
+  [USE] Taint flows to:   %795 = select i1 %793, i32 %794, i32 %773, <kernel/sched/fair.c:2755:24> FUNC=task_numa_fault L=1
+  [USE] Taint flows to:   store i32 %795, ptr %730, align 4, <kernel/sched/fair.c:2755:22> FUNC=task_numa_fault L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %730 = getelementptr inbounds nuw i8, ptr %10, i64 2556, <kernel/sched/fair.c:2755:22> FUNC=task_numa_fault L=1
+  %730 = getelementptr inbounds nuw i8, ptr %10, i64 2556,
+  → base pointer:
+          %10 = inttoptr i64 %9 to ptr,
+      → no parameter connection
+  → Result: No parameter connection found
+  [USE] Taint flows to:   store i32 %285, ptr %286, align 64, <kernel/sched/fair.c:2899:26> FUNC=task_numa_fault L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %286 = getelementptr inbounds nuw i8, ptr %10, i64 2560, <kernel/sched/fair.c:2899:26> FUNC=task_numa_fault L=1
+  %286 = getelementptr inbounds nuw i8, ptr %10, i64 2560,
+  → base pointer:
+          %10 = inttoptr i64 %9 to ptr,
+      → no parameter connection
+  → Result: No parameter connection found
+[LOAD] Tainted load from tracked pointer:   %719 = load i32, ptr %286, align 64, (  %286 = getelementptr inbounds nuw i8, ptr %10, i64 2560, !dbg !18658749)  <kernel/sched/fair.c:2707:25> FUNC=task_numa_fault L=1
+[LOAD] Tainted load from tracked pointer:   %731 = load i32, ptr %730, align 4, (  %730 = getelementptr inbounds nuw i8, ptr %10, i64 2556, !dbg !18659403)  <kernel/sched/fair.c:2722:16> FUNC=task_numa_fault L=1
+  [USE] Taint flows to:   %732 = add i32 %731, 9, <kernel/sched/fair.c:2722:16> FUNC=task_numa_fault L=1
+  [USE] Taint flows to:   %757 = add i32 %756, %731, <kernel/sched/fair.c:2755:24> FUNC=task_numa_fault L=1
+  [USE] Taint flows to:   %794 = call i32 @llvm.umax.i32(i32 %757, i32 %792), <kernel/sched/fair.c:2755:24> FUNC=task_numa_fault L=1
+  [USE] Taint flows to:   %733 = udiv i32 %732, 10, <kernel/sched/fair.c:2722:16> FUNC=task_numa_fault L=1
+  [USE] Taint flows to:   %756 = mul i32 %755, %733, <kernel/sched/fair.c:2755:24> (approx) FUNC=task_numa_fault L=1
+  [USE] Taint flows to:   %723 = call i32 @llvm.umin.i32(i32 %719, i32 %722), <kernel/sched/fair.c:2707:25> FUNC=task_numa_fault L=1
+  [USE] Taint flows to:   store i32 %723, ptr %720, align 4, <kernel/sched/fair.c:2707:23> FUNC=task_numa_fault L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %720 = getelementptr inbounds nuw i8, ptr %10, i64 2556, <kernel/sched/fair.c:2707:23> FUNC=task_numa_fault L=1
+  %720 = getelementptr inbounds nuw i8, ptr %10, i64 2556,
+  → base pointer:
+          %10 = inttoptr i64 %9 to ptr,
+      → no parameter connection
+  → Result: No parameter connection found
+  [USE] Taint flows to:   %725 = call i64 @__msecs_to_jiffies(i32 noundef %723) #280, <./include/linux/jiffies.h:525:10> FUNC=task_numa_fault L=1
+  [USE] Taint flows to:   %726 = add i64 %725, %724, <kernel/sched/fair.c:2710:35> FUNC=task_numa_fault L=1
+  [USE] Taint flows to:   store i64 %726, ptr %728, align 32, <kernel/sched/fair.c:2710:25> FUNC=task_numa_fault L=1
+  [STORE DESTINATION] Marking pointer as tainted:   %728 = getelementptr inbounds nuw i8, ptr %727, i64 1184, <kernel/sched/fair.c:2710:25> FUNC=task_numa_fault L=1
+  %728 = getelementptr inbounds nuw i8, ptr %727, i64 1184,
+  → base pointer:
+          %727 = load ptr, ptr %24, align 16,
+      → load from:
+          %24 = getelementptr inbounds nuw i8, ptr %10, i64 1296,
+          %24 = getelementptr inbounds nuw i8, ptr %10, i64 1296,
+          → base pointer:
+                          %10 = inttoptr i64 %9 to ptr,
+              → no parameter connection
+      → no parameter connection
+  → Result: No parameter connection found
+[SKIP] Load before taint origin, not tainting:   %721 = load i32, ptr %720, align 4, <kernel/sched/fair.c:2707:25> FUNC=task_numa_fault L=1
+[POINTER PARAMETER] Call to init_numa_balancing passes through pointer parameter 1 of sched_fork <kernel/sched/core.c:4523:2> FUNC=sched_fork L=2
+
+=== Maximum Level Statistics ===
+Largest L value: 1
+Number of instructions with L=1: 25
+
+Per-function breakdown:
+  init_numa_balancing: 5 value(s)
+  task_numa_fault: 18 value(s)
+  task_numa_work: 2 value(s)
+
+Earliest and latest instructions with L=1 (per function):
+
+init_numa_balancing:
+  Earliest:   %46 = tail call fastcc i32 @task_scan_max(ptr noundef %45) #280, <kernel/sched/fair.c:3578:11> FUNC=init_numa_balancing L=1
+  Latest:   store i64 %52, ptr %25, align 16, <kernel/sched/fair.c:3581:17> FUNC=init_numa_balancing L=1
+
+task_numa_fault:
+  Earliest:   %285 = call fastcc i32 @task_scan_max(ptr noundef %10) #282, <kernel/sched/fair.c:2899:28> FUNC=task_numa_fault L=1
+  Latest:   store i32 %795, ptr %730, align 4, <kernel/sched/fair.c:2755:22> FUNC=task_numa_fault L=1
+
+task_numa_work:
+  Earliest:   %32 = tail call fastcc i32 @task_scan_max(ptr noundef %6) #281, <kernel/sched/fair.c:3331:29> FUNC=task_numa_work L=1
+  Latest:   store i32 %32, ptr %33, align 64, <kernel/sched/fair.c:3331:27> FUNC=task_numa_work L=1
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 558 instructions
+Other visited functions (total): 128 instructions
+Total: 686 instructions
+Number of max-level functions: 3
+Number of other visited functions: 1
+
+=== Data Flow Span Details ===
+init_numa_balancing, 8, 2, 8, 9
+task_numa_fault, 42, 1, 116, 32
+task_numa_work, 5, 0, 5, 2
+task_scan_max, full span
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/kernel/sched/fair.ll
+../linux-wllvm-defconfig/kernel/sched/fair.c

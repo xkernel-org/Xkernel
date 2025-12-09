@@ -1,0 +1,41 @@
+=== Taint Tracker Configuration ===
+Function: cache_check_rcu
+Opcode: icmp
+Constant: 301
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant 301)
+
+[SOURCE] Tainting:   %163 = icmp slt i32 %162, 301, <net/sunrpc/cache.c:684:22> FUNC=cache_check_rcu L=0
+[USE] Source instruction in data flow <net/sunrpc/cache.c:684:22> FUNC=cache_check_rcu L=0
+[USE] Processing uses of:   %163 = icmp slt i32 %162, 301,
+  [USE] Taint flows to:   br i1 %163, label %207, label %164, <net/sunrpc/cache.c:684:22> FUNC=cache_check_rcu L=0
+[NO USE] No uses of:   br i1 %163, label %207, label %164,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 2
+
+Earliest and latest instructions with L=0 (per function):
+
+cache_check_rcu:
+  Earliest:   %163 = icmp slt i32 %162, 301, <net/sunrpc/cache.c:684:22> FUNC=cache_check_rcu L=0
+  Latest:   br i1 %163, label %207, label %164, <net/sunrpc/cache.c:684:22> FUNC=cache_check_rcu L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 2 instructions
+Other visited functions (total): 0 instructions
+Total: 2 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+cache_check_rcu, 37, 1, 37, 2
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/sunrpc/cache.ll
+../linux-wllvm-defconfig/net/sunrpc/cache.c

@@ -1,0 +1,42 @@
+=== Taint Tracker Configuration ===
+Function: do_epoll_wait
+Opcode: select
+Constant: 8
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant 8)
+
+[SOURCE] Tainting:   %227 = select i1 %226, i16 8, i16 %223, <fs/eventpoll.c:447:6> FUNC=do_epoll_wait L=0
+[USE] Source instruction in data flow <fs/eventpoll.c:447:6> FUNC=do_epoll_wait L=0
+[USE] Processing uses of:   %227 = select i1 %226, i16 8, i16 %223,
+  [CHILD FUNCTION] Tainted value used in call to napi_busy_loop at argument 4:   call void @napi_busy_loop(i32 noundef %222, ptr noundef nonnull @ep_busy_loop_end, ptr noundef %31, i1 noundef zeroext %225, i16 noundef zeroext %227) #279, <fs/eventpoll.c:451:3> FUNC=do_epoll_wait L=0
+  [USE] Taint flows to:   call void @napi_busy_loop(i32 noundef %222, ptr noundef nonnull @ep_busy_loop_end, ptr noundef %31, i1 noundef zeroext %225, i16 noundef zeroext %227) #279, <fs/eventpoll.c:451:3> FUNC=do_epoll_wait L=0
+[NO USE] No uses of:   call void @napi_busy_loop(i32 noundef %222, ptr noundef nonnull @ep_busy_loop_end, ptr noundef %31, i1 noundef zeroext %225, i16 noundef zeroext %227) #279,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 2
+
+Earliest and latest instructions with L=0 (per function):
+
+do_epoll_wait:
+  Earliest:   %227 = select i1 %226, i16 8, i16 %223, <fs/eventpoll.c:447:6> FUNC=do_epoll_wait L=0
+  Latest:   call void @napi_busy_loop(i32 noundef %222, ptr noundef nonnull @ep_busy_loop_end, ptr noundef %31, i1 noundef zeroext %225, i16 noundef zeroext %227) #279, <fs/eventpoll.c:451:3> FUNC=do_epoll_wait L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 13 instructions
+Other visited functions (total): 0 instructions
+Total: 13 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+do_epoll_wait, 46, 5, 50, 0
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/eventpoll.ll
+../linux-wllvm-defconfig/fs/eventpoll.c

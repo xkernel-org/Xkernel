@@ -1,0 +1,43 @@
+=== Taint Tracker Configuration ===
+Function: __btrfs_update_delayed_inode
+Opcode: icmp
+Constant: 15
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant 15)
+
+[SOURCE] Tainting:   %101 = icmp eq i32 %100, 15 <fs/btrfs/delayed-inode.c:414:31> (approx) FUNC=__btrfs_update_delayed_inode L=0
+[USE] Source instruction in data flow <fs/btrfs/delayed-inode.c:414:31> (approx) FUNC=__btrfs_update_delayed_inode L=0
+[USE] Processing uses of:   %101 = icmp eq i32 %100, 15
+  [USE] Taint flows to:   %102 = select i1 %99, i1 true, i1 %101, <fs/btrfs/delayed-inode.c:414:31> FUNC=__btrfs_update_delayed_inode L=0
+[USE] Processing uses of:   %102 = select i1 %99, i1 true, i1 %101,
+  [USE] Taint flows to:   br i1 %102, label %103, label %110, <fs/btrfs/delayed-inode.c:414:31> FUNC=__btrfs_update_delayed_inode L=0
+[NO USE] No uses of:   br i1 %102, label %103, label %110,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 3
+
+Earliest and latest instructions with L=0 (per function):
+
+__btrfs_update_delayed_inode:
+  Earliest:   %101 = icmp eq i32 %100, 15 <fs/btrfs/delayed-inode.c:414:31> (approx) FUNC=__btrfs_update_delayed_inode L=0
+  Latest:   br i1 %102, label %103, label %110, <fs/btrfs/delayed-inode.c:414:31> FUNC=__btrfs_update_delayed_inode L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 3 instructions
+Other visited functions (total): 0 instructions
+Total: 3 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+__btrfs_update_delayed_inode, 10, 17, 10, 19
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/btrfs/delayed-inode.ll
+../linux-wllvm-defconfig/fs/btrfs/delayed-inode.c
