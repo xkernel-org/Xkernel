@@ -1,0 +1,45 @@
+=== Taint Tracker Configuration ===
+Function: bfq_init_queue
+Opcode: store
+Constant: 16384
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 2 (of constant 16384)
+
+[SOURCE] Tainting:   store i32 16384, ptr %97, align 4, <block/bfq-iosched.c:7339:21> FUNC=bfq_init_queue L=0
+[USE] Source instruction in data flow <block/bfq-iosched.c:7339:21> FUNC=bfq_init_queue L=0
+[STORE DESTINATION] Storing constant to:   %97 = getelementptr inbounds nuw i8, ptr %13, i64 516, <block/bfq-iosched.c:7339:21> FUNC=bfq_init_queue L=0
+  %97 = getelementptr inbounds nuw i8, ptr %13, i64 516,
+  → base pointer:
+          %13 = tail call noalias align 8 dereferenceable_or_null(2032) ptr @__kmalloc_cache_node_noprof(ptr noundef %12, i32 noundef 3520, i32 noundef %11, i64 noundef 2032) #279,
+      → call to __kmalloc_cache_node_noprof (no parameter)
+→ Result: No parameter connection found
+[NO USE] No uses of:   store i32 16384, ptr %97, align 4,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 1
+
+Earliest and latest instructions with L=0 (per function):
+
+bfq_init_queue:
+  Earliest:   store i32 16384, ptr %97, align 4, <block/bfq-iosched.c:7339:21> FUNC=bfq_init_queue L=0
+  (Earliest and latest are the same instruction)
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 1 instructions
+Other visited functions (total): 0 instructions
+Total: 1 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+bfq_init_queue, 12, 42, 12, 42
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/block/bfq-iosched.ll
+../linux-wllvm-defconfig/block/bfq-iosched.c

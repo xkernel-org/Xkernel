@@ -1,0 +1,41 @@
+=== Taint Tracker Configuration ===
+Function: get_hwpoison_page
+Opcode: icmp
+Constant: 3
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant 3)
+
+[SOURCE] Tainting:   %385 = icmp samesign ult i32 %142, 3, <mm/memory-failure.c:1445:16> FUNC=get_hwpoison_page L=0
+[USE] Source instruction in data flow <mm/memory-failure.c:1445:16> FUNC=get_hwpoison_page L=0
+[USE] Processing uses of:   %385 = icmp samesign ult i32 %142, 3,
+  [USE] Taint flows to:   br i1 %385, label %444, label %624, <mm/memory-failure.c:1445:16> FUNC=get_hwpoison_page L=0
+[NO USE] No uses of:   br i1 %385, label %444, label %624,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 2
+
+Earliest and latest instructions with L=0 (per function):
+
+get_hwpoison_page:
+  Earliest:   %385 = icmp samesign ult i32 %142, 3, <mm/memory-failure.c:1445:16> FUNC=get_hwpoison_page L=0
+  Latest:   br i1 %385, label %444, label %624, <mm/memory-failure.c:1445:16> FUNC=get_hwpoison_page L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 2 instructions
+Other visited functions (total): 0 instructions
+Total: 2 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+get_hwpoison_page, 110, 0, 110, 1
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/mm/memory-failure.ll
+../linux-wllvm-defconfig/mm/memory-failure.c

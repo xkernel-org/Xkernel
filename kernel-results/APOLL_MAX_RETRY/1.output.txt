@@ -1,0 +1,151 @@
+=== Taint Tracker Configuration ===
+Function: io_arm_poll_handler
+Opcode: store
+Constant: 128
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant 128)
+
+[SOURCE] Tainting:   store i32 128, ptr %77, align 4, <io_uring/poll.c:662:23> FUNC=io_arm_poll_handler L=0
+[USE] Source instruction in data flow <io_uring/poll.c:662:23> FUNC=io_arm_poll_handler L=0
+[STORE DESTINATION] Storing constant to:   %77 = getelementptr inbounds nuw i8, ptr %76, i64 20, <io_uring/poll.c:662:23> FUNC=io_arm_poll_handler L=0
+  %77 = getelementptr inbounds nuw i8, ptr %76, i64 20,
+  → base pointer:
+          %76 = phi ptr [ %73, %72 ], [ %65, %60 ]
+      PHI with 2 paths:
+      Path 0 (from %):
+                  %73 = phi ptr [ %71, %69 ], [ %68, %67 ],
+          PHI with 2 paths:
+          Path 0 (from %):
+                          %71 = tail call noalias align 8 dereferenceable_or_null(72) ptr @__kmalloc_cache_noprof(ptr noundef %70, i32 noundef 2080, i64 noundef 72) #280,
+              → call to __kmalloc_cache_noprof (no parameter)
+            → no parameter connection
+          Path 1 (from %):
+                          %68 = tail call ptr @io_cache_alloc_new(ptr noundef nonnull %56, i32 noundef 2080) #279,
+              → call to io_cache_alloc_new (no parameter)
+            → no parameter connection
+        → no parameter connection
+      Path 1 (from %):
+                  %65 = load ptr, ptr %64, align 8,
+          → load from:
+              %64 = getelementptr ptr, ptr %61, i64 %63,
+              %64 = getelementptr ptr, ptr %61, i64 %63,
+              → base pointer:
+                                  %61 = load ptr, ptr %56, align 8,
+                  → load from:
+                      %56 = getelementptr inbounds nuw i8, ptr %44, i64 336,
+                      %56 = getelementptr inbounds nuw i8, ptr %44, i64 336,
+                      → base pointer:
+                                                  %44 = load ptr, ptr %43, align 8,
+                          → load from:
+                              %43 = getelementptr inbounds nuw i8, ptr %0, i64 96,
+                              %43 = getelementptr inbounds nuw i8, ptr %0, i64 96,
+                              → base pointer:
+                                                                ptr %0
+                                  → parameter #0
+        → connects to parameter #0
+→ Result: Connects to parameter #0 (ptr %0)
+[POINTER PARAMETER] Constant stored through pointer parameter #0 (ptr %0) <io_uring/poll.c:662:23> FUNC=io_arm_poll_handler L=0
+[NO USE] No uses of:   store i32 128, ptr %77, align 4,
+[POINTER PARAMETER] Call to io_arm_poll_handler passes through pointer parameter 0 of io_queue_async <io_uring/io_uring.c:1925:10> FUNC=io_queue_async L=1
+[POINTER PARAMETER] Call to io_arm_poll_handler passes through pointer parameter 0 of io_wq_submit_work <io_uring/io_uring.c:1828:8> FUNC=io_wq_submit_work L=1
+[POINTER PARAMETER] Call to io_queue_async passes through pointer parameter 0 of io_req_task_submit <io_uring/io_uring.c:1954:3> FUNC=io_req_task_submit L=2
+[POINTER PARAMETER] Call to io_queue_async passes through pointer parameter 0 of io_submit_sqes <io_uring/io_uring.c:1954:3> FUNC=io_submit_sqes L=2
+[UPWARD-INTERPROC] No callers found for io_wq_submit_work (function taints pointer parameter #0)
+[POINTER PARAMETER] Call to io_req_task_submit passes through pointer parameter 0 of io_poll_task_func <io_uring/poll.c:338:4> FUNC=io_poll_task_func L=3
+[UPWARD-INTERPROC] No callers found for io_wq_submit_work (function taints pointer parameter #0)
+[POINTER PARAMETER] Call to io_submit_sqes passes through pointer parameter 0 of io_sq_thread <io_uring/sqpoll.c:189:10> FUNC=io_sq_thread L=3
+[UPWARD-INTERPROC] No callers found for io_wq_submit_work (function taints pointer parameter #0)
+[POINTER PARAMETER] Call to io_poll_task_func passes through pointer parameter 0 of io_handle_tw_list <io_uring/io_uring.c:1059:3> FUNC=io_handle_tw_list L=4
+[POINTER PARAMETER] Call to io_poll_task_func passes through pointer parameter 0 of __io_run_local_work <io_uring/io_uring.c:1288:3> FUNC=__io_run_local_work L=4
+[UPWARD-INTERPROC] Call to io_poll_task_func taints argument 0 (local variable) <io_uring/io_uring.c:1288:3> FUNC=__io_run_local_work L=4
+  [STORE DESTINATION] Marking pointer as tainted via call:   %59 = phi ptr [ %55, %52 ], [ %63, %73 ], FUNC=__io_run_local_work L=4
+[UPWARD-INTERPROC] No callers found for io_sq_thread (function taints pointer parameter #0)
+[LOAD] Tainted load from tracked pointer:   %63 = load ptr, ptr %59, align 8, (  %59 = phi ptr [ %55, %52 ], [ %63, %73 ], !dbg !18658041)  <io_uring/io_uring.c:1285:38> FUNC=__io_run_local_work L=4
+[LOAD] Tainted load from tracked pointer (struct field):   %66 = load ptr, ptr %65, align 8, (base:   %59 = phi ptr [ %55, %52 ], [ %63, %73 ],)  <io_uring/io_uring.c:1288:3> FUNC=__io_run_local_work L=4
+  [USE] Taint flows to:   %67 = icmp eq ptr %66, @io_poll_task_func, <io_uring/io_uring.c:1288:3> FUNC=__io_run_local_work L=4
+  [USE] Taint flows to:   %70 = icmp eq ptr %66, @io_req_rw_complete, <io_uring/io_uring.c:1288:3> FUNC=__io_run_local_work L=4
+  [USE] Taint flows to:   tail call void %66(ptr noundef %64, ptr noundef %1) #280, <io_uring/io_uring.c:1288:3> FUNC=__io_run_local_work L=4
+  [USE] Taint flows to:   br i1 %70, label %71, label %72, <io_uring/io_uring.c:1288:3> FUNC=__io_run_local_work L=4
+  [USE] Taint flows to:   br i1 %67, label %68, label %69, <io_uring/io_uring.c:1288:3> FUNC=__io_run_local_work L=4
+  [USE] Taint flows to:   %59 = phi ptr [ %55, %52 ], [ %63, %73 ], <io_uring/io_uring.c:1284:2> (approx) FUNC=__io_run_local_work L=4
+  [USE] Taint flows to:   %77 = phi ptr [ null, %58 ], [ %63, %73 ], <io_uring/io_uring.c:1321:6> (approx) FUNC=__io_run_local_work L=4
+  [USE] Taint flows to:   store ptr %77, ptr %20, align 8, <io_uring/io_uring.c:1322:25> FUNC=__io_run_local_work L=4
+  [STORE DESTINATION] Marking pointer as tainted:   %20 = getelementptr inbounds nuw i8, ptr %0, i64 520 <io_uring/io_uring.c:1322:25> FUNC=__io_run_local_work L=4
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #0 (ptr %0) <io_uring/io_uring.c:1322:25> FUNC=__io_run_local_work L=4
+  [USE] Taint flows to:   %61 = icmp eq ptr %59, null, <io_uring/io_uring.c:1284:2> FUNC=__io_run_local_work L=4
+  [USE] Taint flows to:   %64 = getelementptr i8, ptr %59, i64 -144, <io_uring/io_uring.c:1286:26> FUNC=__io_run_local_work L=4
+  [USE] Taint flows to:   %65 = getelementptr inbounds nuw i8, ptr %59, i64 8, <io_uring/io_uring.c:1288:3> FUNC=__io_run_local_work L=4
+  [USE] Taint flows to:   tail call void @io_poll_task_func(ptr noundef %64, ptr noundef %1) #280, <io_uring/io_uring.c:1288:3> FUNC=__io_run_local_work L=4
+  [USE] Taint flows to:   tail call void @io_req_rw_complete(ptr noundef %64, ptr noundef %1) #280, <io_uring/io_uring.c:1288:3> FUNC=__io_run_local_work L=4
+  [USE] Taint flows to:   br i1 %61, label %76, label %62, <io_uring/io_uring.c:1284:2> FUNC=__io_run_local_work L=4
+[LOAD] Tainted load from tracked pointer:   %31 = load ptr, ptr %20, align 8, (  %20 = getelementptr inbounds nuw i8, ptr %0, i64 520)  <io_uring/io_uring.c:1284:9> FUNC=__io_run_local_work L=4
+[LOAD] Tainted load from tracked pointer:   %84 = load volatile ptr, ptr %20, align 8, (  %20 = getelementptr inbounds nuw i8, ptr %0, i64 520)  <./include/linux/llist.h:218:9> FUNC=__io_run_local_work L=4
+[LOAD] Tainted load from tracked pointer:   %111 = load volatile ptr, ptr %20, align 8, (  %20 = getelementptr inbounds nuw i8, ptr %0, i64 520)  <./include/linux/llist.h:218:9> FUNC=__io_run_local_work L=4
+  [USE] Taint flows to:   %112 = icmp eq ptr %111, null, <./include/linux/llist.h:218:32> FUNC=__io_run_local_work L=4
+  [USE] Taint flows to:   br i1 %112, label %122, label %113, <io_uring/io_uring.c:1269:6> FUNC=__io_run_local_work L=4
+  [USE] Taint flows to:   %85 = icmp eq ptr %84, null, <./include/linux/llist.h:218:32> FUNC=__io_run_local_work L=4
+  [USE] Taint flows to:   br i1 %85, label %98, label %86, <io_uring/io_uring.c:1269:6> FUNC=__io_run_local_work L=4
+  [USE] Taint flows to:   %33 = phi ptr [ %37, %47 ], [ %31, %26 ], <io_uring/io_uring.c:1284:9> FUNC=__io_run_local_work L=4
+  [USE] Taint flows to:   %35 = icmp eq ptr %33, null, <io_uring/io_uring.c:1284:2> FUNC=__io_run_local_work L=4
+  [USE] Taint flows to:   %37 = load ptr, ptr %33, align 8, <io_uring/io_uring.c:1285:38> FUNC=__io_run_local_work L=4
+  [USE] Taint flows to:   %38 = getelementptr i8, ptr %33, i64 -144, <io_uring/io_uring.c:1286:26> FUNC=__io_run_local_work L=4
+  [USE] Taint flows to:   %39 = getelementptr inbounds nuw i8, ptr %33, i64 8, <io_uring/io_uring.c:1288:3> FUNC=__io_run_local_work L=4
+  [USE] Taint flows to:   %40 = load ptr, ptr %39, align 8, <io_uring/io_uring.c:1288:3> FUNC=__io_run_local_work L=4
+  [USE] Taint flows to:   %41 = icmp eq ptr %40, @io_poll_task_func, <io_uring/io_uring.c:1288:3> FUNC=__io_run_local_work L=4
+  [USE] Taint flows to:   %44 = icmp eq ptr %40, @io_req_rw_complete, <io_uring/io_uring.c:1288:3> FUNC=__io_run_local_work L=4
+  [USE] Taint flows to:   tail call void %40(ptr noundef %38, ptr noundef %1) #280, <io_uring/io_uring.c:1288:3> FUNC=__io_run_local_work L=4
+  [USE] Taint flows to:   br i1 %44, label %45, label %46, <io_uring/io_uring.c:1288:3> FUNC=__io_run_local_work L=4
+  [USE] Taint flows to:   br i1 %41, label %42, label %43, <io_uring/io_uring.c:1288:3> FUNC=__io_run_local_work L=4
+  [USE] Taint flows to:   tail call void @io_poll_task_func(ptr noundef %38, ptr noundef %1) #280, <io_uring/io_uring.c:1288:3> FUNC=__io_run_local_work L=4
+  [USE] Taint flows to:   tail call void @io_req_rw_complete(ptr noundef %38, ptr noundef %1) #280, <io_uring/io_uring.c:1288:3> FUNC=__io_run_local_work L=4
+  [USE] Taint flows to:   store ptr %37, ptr %20, align 8, <io_uring/io_uring.c:1291:9> FUNC=__io_run_local_work L=4
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #0 (ptr %0) <io_uring/io_uring.c:1291:9> FUNC=__io_run_local_work L=4
+  [USE] Taint flows to:   %51 = icmp eq ptr %37, null, <io_uring/io_uring.c:1313:6> FUNC=__io_run_local_work L=4
+  [USE] Taint flows to:   br i1 %51, label %52, label %98, <io_uring/io_uring.c:1313:6> FUNC=__io_run_local_work L=4
+  [USE] Taint flows to:   br i1 %35, label %52, label %36, <io_uring/io_uring.c:1284:2> FUNC=__io_run_local_work L=4
+[POINTER PARAMETER] Call to __io_run_local_work passes through pointer parameter 0 of io_run_local_work <io_uring/io_uring.c:1354:8> FUNC=io_run_local_work L=5
+[POINTER PARAMETER] Call to __io_run_local_work passes through pointer parameter 0 of io_run_task_work_sig <io_uring/io_uring.c:1354:8> FUNC=io_run_task_work_sig L=5
+[POINTER PARAMETER] Call to __io_run_local_work passes through pointer parameter 0 of io_run_local_work_locked <io_uring/io_uring.c:1343:9> FUNC=io_run_local_work_locked L=5
+[UPWARD-INTERPROC] No callers found for io_wq_submit_work (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for io_sq_thread (function taints pointer parameter #0)
+[POINTER PARAMETER] Call to io_run_local_work passes through pointer parameter 0 of io_uring_try_cancel_requests <io_uring/io_uring.c:3083:10> FUNC=io_uring_try_cancel_requests L=6
+[UPWARD-INTERPROC] No callers found for io_wq_submit_work (function taints pointer parameter #0)
+[POINTER PARAMETER] Call to io_run_task_work_sig passes through pointer parameter 0 of io_sync_cancel <io_uring/cancel.c:323:9> FUNC=io_sync_cancel L=6
+[UPWARD-INTERPROC] No callers found for io_sq_thread (function taints pointer parameter #0)
+[POINTER PARAMETER] Call to io_uring_try_cancel_requests passes through pointer parameter 0 of io_ring_exit_work <io_uring/io_uring.c:2874:10> FUNC=io_ring_exit_work L=7
+[POINTER PARAMETER] Call to io_uring_try_cancel_requests passes through pointer parameter 1 of io_uring_cancel_generic <io_uring/io_uring.c:3151:13> FUNC=io_uring_cancel_generic L=7
+[UPWARD-INTERPROC] No callers found for io_wq_submit_work (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for io_sq_thread (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for io_ring_exit_work (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for io_wq_submit_work (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for io_sq_thread (function taints pointer parameter #0)
+
+=== Maximum Level Statistics ===
+Largest L value: 4
+Number of instructions with L=4: 40
+
+Earliest and latest instructions with L=4 (per function):
+
+__io_run_local_work:
+  Earliest:   %31 = load ptr, ptr %20, align 8, <io_uring/io_uring.c:1284:9> FUNC=__io_run_local_work L=4
+  Latest:   br i1 %112, label %122, label %113, <io_uring/io_uring.c:1269:6> FUNC=__io_run_local_work L=4
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 93 instructions
+Other visited functions (total): 160 instructions
+Total: 253 instructions
+Number of max-level functions: 1
+Number of other visited functions: 1
+
+=== Data Flow Span Details ===
+__io_run_local_work, 5, 4, 32, 2
+io_arm_poll_handler, full span
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/io_uring/poll.ll
+../linux-wllvm-defconfig/io_uring/poll.c

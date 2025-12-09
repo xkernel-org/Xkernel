@@ -1,0 +1,43 @@
+=== Taint Tracker Configuration ===
+Function: io_run_local_work_locked
+Opcode: call
+Constant: 20
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant 20)
+
+[SOURCE] Tainting:   %12 = tail call i32 @llvm.smax.i32(i32 %1, i32 20), <io_uring/io_uring.c:1344:6> FUNC=io_run_local_work_locked L=0
+[USE] Source instruction in data flow <io_uring/io_uring.c:1344:6> FUNC=io_run_local_work_locked L=0
+[CHILD FUNCTION] Constant used in call to llvm.smax.i32 at argument 1 <io_uring/io_uring.c:1344:6> FUNC=io_run_local_work_locked L=0
+[USE] Processing uses of:   %12 = tail call i32 @llvm.smax.i32(i32 %1, i32 20),
+  [CHILD FUNCTION] Tainted value used in call to __io_run_local_work at argument 3:   %13 = call fastcc i32 @__io_run_local_work(ptr noundef %0, ptr noundef nonnull %3, i32 noundef %1, i32 noundef %12) #279, <io_uring/io_uring.c:1343:9> FUNC=io_run_local_work_locked L=0
+  [USE] Taint flows to:   %13 = call fastcc i32 @__io_run_local_work(ptr noundef %0, ptr noundef nonnull %3, i32 noundef %1, i32 noundef %12) #279, <io_uring/io_uring.c:1343:9> FUNC=io_run_local_work_locked L=0
+[NO USE] No uses of:   %13 = call fastcc i32 @__io_run_local_work(ptr noundef %0, ptr noundef nonnull %3, i32 noundef %1, i32 noundef %12) #279,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 2
+
+Earliest and latest instructions with L=0 (per function):
+
+io_run_local_work_locked:
+  Earliest:   %12 = tail call i32 @llvm.smax.i32(i32 %1, i32 20), <io_uring/io_uring.c:1344:6> FUNC=io_run_local_work_locked L=0
+  Latest:   %13 = call fastcc i32 @__io_run_local_work(ptr noundef %0, ptr noundef nonnull %3, i32 noundef %1, i32 noundef %12) #279, <io_uring/io_uring.c:1343:9> FUNC=io_run_local_work_locked L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 2 instructions
+Other visited functions (total): 0 instructions
+Total: 2 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+io_run_local_work_locked, 2, 0, 2, 1
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/io_uring/io_uring.ll
+../linux-wllvm-defconfig/io_uring/io_uring.c

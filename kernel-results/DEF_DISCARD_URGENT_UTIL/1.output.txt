@@ -1,0 +1,45 @@
+=== Taint Tracker Configuration ===
+Function: f2fs_build_segment_manager
+Opcode: store
+Constant: 80
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant 80)
+
+[SOURCE] Tainting:   store i32 80, ptr %127, align 4, <fs/f2fs/segment.c:2343:27> FUNC=f2fs_build_segment_manager L=0
+[USE] Source instruction in data flow <fs/f2fs/segment.c:2343:27> FUNC=f2fs_build_segment_manager L=0
+[STORE DESTINATION] Storing constant to:   %127 = getelementptr inbounds nuw i8, ptr %68, i64 8332, <fs/f2fs/segment.c:2343:27> FUNC=f2fs_build_segment_manager L=0
+  %127 = getelementptr inbounds nuw i8, ptr %68, i64 8332,
+  → base pointer:
+          %68 = tail call noalias align 4096 dereferenceable_or_null(8392) ptr @__kmalloc_large_noprof(i64 noundef range(i64 0, 171798691801) 8392, i32 noundef 3520) #281,
+      → call to __kmalloc_large_noprof (no parameter)
+→ Result: No parameter connection found
+[NO USE] No uses of:   store i32 80, ptr %127, align 4,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 1
+
+Earliest and latest instructions with L=0 (per function):
+
+f2fs_build_segment_manager:
+  Earliest:   store i32 80, ptr %127, align 4, <fs/f2fs/segment.c:2343:27> FUNC=f2fs_build_segment_manager L=0
+  (Earliest and latest are the same instruction)
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 1 instructions
+Other visited functions (total): 0 instructions
+Total: 1 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+f2fs_build_segment_manager, 14, 35, 14, 35
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/f2fs/segment.ll
+../linux-wllvm-defconfig/fs/f2fs/segment.c

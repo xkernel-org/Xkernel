@@ -1,0 +1,42 @@
+=== Taint Tracker Configuration ===
+Function: blk_mq_try_issue_directly
+Opcode: mul
+Constant: 7
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 3 (of constant 7)
+
+[SOURCE] Tainting:   %91 = mul i32 %88, 7, <block/blk-mq.c:1988:7> FUNC=blk_mq_try_issue_directly L=0
+[USE] Source instruction in data flow <block/blk-mq.c:1988:7> FUNC=blk_mq_try_issue_directly L=0
+[USE] Processing uses of:   %91 = mul i32 %88, 7,
+  [USE] Taint flows to:   %92 = lshr i32 %91, 3, <block/blk-mq.c:1991:7> FUNC=blk_mq_try_issue_directly L=0
+[USE] Processing uses of:   %92 = lshr i32 %91, 3,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #0 (ptr %0) <block/blk-mq.c:1993:22>
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 2
+
+Earliest and latest instructions with L=0 (per function):
+
+blk_mq_try_issue_directly:
+  Earliest:   %91 = mul i32 %88, 7, <block/blk-mq.c:1988:7> FUNC=blk_mq_try_issue_directly L=0
+  Latest:   %92 = lshr i32 %91, 3, <block/blk-mq.c:1991:7> FUNC=blk_mq_try_issue_directly L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 2 instructions
+Other visited functions (total): 0 instructions
+Total: 2 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+blk_mq_try_issue_directly, 21, 0, 21, 1
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/block/blk-mq.ll
+../linux-wllvm-defconfig/block/blk-mq.c

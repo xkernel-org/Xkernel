@@ -1,0 +1,5 @@
+SOURCE_FILE=kernel/sched/fair.c
+FUNCTION_NAME=sched_balance_rq
+SOURCE_OP="add"
+CONSTANT_VALUE=32
+OCCURENCE=1

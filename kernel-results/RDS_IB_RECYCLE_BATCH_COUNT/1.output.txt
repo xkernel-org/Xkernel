@@ -1,0 +1,41 @@
+=== Taint Tracker Configuration ===
+Function: rds_ib_recv_cache_put
+Opcode: icmp
+Constant: 32
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant 32)
+
+[SOURCE] Tainting:   %23 = icmp ult i64 %22, 32, <net/rds/ib_recv.c:496:44> FUNC=rds_ib_recv_cache_put L=0
+[USE] Source instruction in data flow <net/rds/ib_recv.c:496:44> FUNC=rds_ib_recv_cache_put L=0
+[USE] Processing uses of:   %23 = icmp ult i64 %22, 32,
+  [USE] Taint flows to:   br i1 %23, label %50, label %24, <net/rds/ib_recv.c:496:44> FUNC=rds_ib_recv_cache_put L=0
+[NO USE] No uses of:   br i1 %23, label %50, label %24,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 2
+
+Earliest and latest instructions with L=0 (per function):
+
+rds_ib_recv_cache_put:
+  Earliest:   %23 = icmp ult i64 %22, 32, <net/rds/ib_recv.c:496:44> FUNC=rds_ib_recv_cache_put L=0
+  Latest:   br i1 %23, label %50, label %24, <net/rds/ib_recv.c:496:44> FUNC=rds_ib_recv_cache_put L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 2 instructions
+Other visited functions (total): 0 instructions
+Total: 2 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+rds_ib_recv_cache_put, 3, 9, 3, 10
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/rds/ib_recv.ll
+../linux-wllvm-defconfig/net/rds/ib_recv

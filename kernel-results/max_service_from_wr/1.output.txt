@@ -1,0 +1,41 @@
+=== Taint Tracker Configuration ===
+Function: bfq_dispatch_request
+Opcode: icmp
+Constant: 120000
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant 120000)
+
+[SOURCE] Tainting:   %1355 = icmp ugt i64 %1354, 120000, <block/bfq-iosched.c:5095:29> FUNC=bfq_dispatch_request L=0
+[USE] Source instruction in data flow <block/bfq-iosched.c:5095:29> FUNC=bfq_dispatch_request L=0
+[USE] Processing uses of:   %1355 = icmp ugt i64 %1354, 120000,
+  [USE] Taint flows to:   br i1 %1355, label %1356, label %1383, <block/bfq-iosched.c:5094:57> FUNC=bfq_dispatch_request L=0
+[NO USE] No uses of:   br i1 %1355, label %1356, label %1383,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 2
+
+Earliest and latest instructions with L=0 (per function):
+
+bfq_dispatch_request:
+  Earliest:   %1355 = icmp ugt i64 %1354, 120000, <block/bfq-iosched.c:5095:29> FUNC=bfq_dispatch_request L=0
+  Latest:   br i1 %1355, label %1356, label %1383, <block/bfq-iosched.c:5094:57> FUNC=bfq_dispatch_request L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 2 instructions
+Other visited functions (total): 0 instructions
+Total: 2 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+bfq_dispatch_request, 295, 2, 295, 3
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/block/bfq-iosched.ll
+../linux-wllvm-defconfig/block/bfq-iosched.c

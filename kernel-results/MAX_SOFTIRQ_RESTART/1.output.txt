@@ -1,0 +1,47 @@
+=== Taint Tracker Configuration ===
+Function: handle_softirqs
+Opcode: phi
+Constant: 10
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant 10)
+
+[SOURCE] Tainting:   %11 = phi i32 [ 10, %1 ], [ %114, %110 ], <kernel/softirq.c:543:2> (approx) FUNC=handle_softirqs L=0
+[USE] Source instruction in data flow <kernel/softirq.c:543:2> (approx) FUNC=handle_softirqs L=0
+[USE] Processing uses of:   %11 = phi i32 [ 10, %1 ], [ %114, %110 ],
+  [USE] Taint flows to:   %114 = add nsw i32 %11, -1 <kernel/softirq.c:580:52> (approx) FUNC=handle_softirqs L=0
+[USE] Processing uses of:   %114 = add nsw i32 %11, -1
+  [USE] Taint flows to:   %115 = icmp eq i32 %114, 0 <kernel/softirq.c:580:52> (approx) FUNC=handle_softirqs L=0
+[USE] Processing uses of:   %115 = icmp eq i32 %114, 0
+  [USE] Taint flows to:   %116 = select i1 %113, i1 true, i1 %115, <kernel/softirq.c:580:52> FUNC=handle_softirqs L=0
+[USE] Processing uses of:   %116 = select i1 %113, i1 true, i1 %115,
+  [USE] Taint flows to:   br i1 %116, label %117, label %9, <kernel/softirq.c:580:52> FUNC=handle_softirqs L=0
+[NO USE] No uses of:   br i1 %116, label %117, label %9,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 5
+
+Earliest and latest instructions with L=0 (per function):
+
+handle_softirqs:
+  Earliest:   %11 = phi i32 [ 10, %1 ], [ %114, %110 ], <kernel/softirq.c:543:2> (approx) FUNC=handle_softirqs L=0
+  Latest:   br i1 %116, label %117, label %9, <kernel/softirq.c:580:52> FUNC=handle_softirqs L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 127 instructions
+Other visited functions (total): 0 instructions
+Total: 127 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+handle_softirqs, 1, 1, 23, 6
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/kernel/softirq.ll
+../linux-wllvm-defconfig/kernel/softirq.c

@@ -1,0 +1,45 @@
+=== Taint Tracker Configuration ===
+Function: nfsd_prune_bucket_locked
+Opcode: add
+Constant: -120000
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant -120000)
+
+[SOURCE] Tainting:   %6 = add i64 %5, -120000, <fs/nfsd/nfscache.c:267:33> FUNC=nfsd_prune_bucket_locked L=0
+[USE] Source instruction in data flow <fs/nfsd/nfscache.c:267:33> FUNC=nfsd_prune_bucket_locked L=0
+[USE] Processing uses of:   %6 = add i64 %5, -120000,
+  [USE] Taint flows to:   %29 = sub i64 %6, %28, <fs/nfsd/nfscache.c:283:7> FUNC=nfsd_prune_bucket_locked L=0
+[USE] Processing uses of:   %29 = sub i64 %6, %28,
+  [USE] Taint flows to:   %30 = icmp slt i64 %29, 0, <fs/nfsd/nfscache.c:283:7> FUNC=nfsd_prune_bucket_locked L=0
+[USE] Processing uses of:   %30 = icmp slt i64 %29, 0,
+  [USE] Taint flows to:   br i1 %30, label %65, label %31, <fs/nfsd/nfscache.c:282:64> FUNC=nfsd_prune_bucket_locked L=0
+[NO USE] No uses of:   br i1 %30, label %65, label %31,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 4
+
+Earliest and latest instructions with L=0 (per function):
+
+nfsd_prune_bucket_locked:
+  Earliest:   %6 = add i64 %5, -120000, <fs/nfsd/nfscache.c:267:33> FUNC=nfsd_prune_bucket_locked L=0
+  Latest:   br i1 %30, label %65, label %31, <fs/nfsd/nfscache.c:282:64> FUNC=nfsd_prune_bucket_locked L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 26 instructions
+Other visited functions (total): 0 instructions
+Total: 26 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+nfsd_prune_bucket_locked, 0, 1, 4, 4
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/nfsd/nfscache.ll
+../linux-wllvm-defconfig/fs/nfsd/nfscache.c

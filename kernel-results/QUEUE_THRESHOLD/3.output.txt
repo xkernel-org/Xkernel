@@ -1,0 +1,41 @@
+=== Taint Tracker Configuration ===
+Function: pie_process_dequeue
+Opcode: icmp
+Constant: 16384
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant 16384)
+
+[SOURCE] Tainting:   %61 = icmp ult i32 %3, 16384, <net/sched/sch_pie.c:279:16> FUNC=pie_process_dequeue L=0
+[USE] Source instruction in data flow <net/sched/sch_pie.c:279:16> FUNC=pie_process_dequeue L=0
+[USE] Processing uses of:   %61 = icmp ult i32 %3, 16384,
+  [USE] Taint flows to:   br i1 %61, label %62, label %63, <net/sched/sch_pie.c:279:16> FUNC=pie_process_dequeue L=0
+[NO USE] No uses of:   br i1 %61, label %62, label %63,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 2
+
+Earliest and latest instructions with L=0 (per function):
+
+pie_process_dequeue:
+  Earliest:   %61 = icmp ult i32 %3, 16384, <net/sched/sch_pie.c:279:16> FUNC=pie_process_dequeue L=0
+  Latest:   br i1 %61, label %62, label %63, <net/sched/sch_pie.c:279:16> FUNC=pie_process_dequeue L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 2 instructions
+Other visited functions (total): 0 instructions
+Total: 2 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+pie_process_dequeue, 10, 12, 10, 13
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/net/sched/sch_pie.ll
+../linux-wllvm-defconfig/net/sched/sch_pie.c

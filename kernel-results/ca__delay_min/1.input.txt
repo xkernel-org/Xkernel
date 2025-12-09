@@ -1,0 +1,5 @@
+SOURCE_FILE=net/ipv4/tcp_cubic.c
+FUNCTION_NAME=cubictcp_acked
+SOURCE_OP="icmp"
+CONSTANT_VALUE=127999
+OCCURENCE=1

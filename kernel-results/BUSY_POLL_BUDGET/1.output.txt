@@ -1,0 +1,40 @@
+=== Taint Tracker Configuration ===
+Function: __io_napi_busy_loop
+Opcode: call
+Constant: 8
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant 8)
+
+[SOURCE] Tainting:   tail call void @napi_busy_loop_rcu(i32 noundef %61, ptr noundef %46, ptr noundef %45, i1 noundef zeroext %63, i16 noundef zeroext 8) #278, <io_uring/napi.c:170:3> FUNC=__io_napi_busy_loop L=0
+[USE] Source instruction in data flow <io_uring/napi.c:170:3> FUNC=__io_napi_busy_loop L=0
+[CHILD FUNCTION] Constant used in call to napi_busy_loop_rcu at argument 4 <io_uring/napi.c:170:3> FUNC=__io_napi_busy_loop L=0
+[NO USE] No uses of:   tail call void @napi_busy_loop_rcu(i32 noundef %61, ptr noundef %46, ptr noundef %45, i1 noundef zeroext %63, i16 noundef zeroext 8) #278,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 1
+
+Earliest and latest instructions with L=0 (per function):
+
+__io_napi_busy_loop:
+  Earliest:   tail call void @napi_busy_loop_rcu(i32 noundef %61, ptr noundef %46, ptr noundef %45, i1 noundef zeroext %63, i16 noundef zeroext 8) #278, <io_uring/napi.c:170:3> FUNC=__io_napi_busy_loop L=0
+  (Earliest and latest are the same instruction)
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 1 instructions
+Other visited functions (total): 0 instructions
+Total: 1 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+__io_napi_busy_loop, 11, 5, 11, 5
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/io_uring/napi.ll
+../linux-wllvm-defconfig/io_uring/napi.c

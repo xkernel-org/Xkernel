@@ -1,0 +1,45 @@
+=== Taint Tracker Configuration ===
+Function: btrfs_async_run_delayed_root
+Opcode: icmp
+Constant: 512
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant 512)
+
+[SOURCE] Tainting:   %53 = icmp slt i32 %50, 512 <fs/btrfs/delayed-inode.c:1369:32> (approx) FUNC=btrfs_async_run_delayed_root L=0
+[USE] Source instruction in data flow <fs/btrfs/delayed-inode.c:1369:32> (approx) FUNC=btrfs_async_run_delayed_root L=0
+[USE] Processing uses of:   %53 = icmp slt i32 %50, 512
+  [USE] Taint flows to:   %54 = select i1 %52, i1 %53, i1 false, <fs/btrfs/delayed-inode.c:1369:32> FUNC=btrfs_async_run_delayed_root L=0
+[USE] Processing uses of:   %54 = select i1 %52, i1 %53, i1 false,
+  [USE] Taint flows to:   %56 = select i1 %54, i1 true, i1 %55, <fs/btrfs/delayed-inode.c:1369:32> FUNC=btrfs_async_run_delayed_root L=0
+[USE] Processing uses of:   %56 = select i1 %54, i1 true, i1 %55,
+  [USE] Taint flows to:   br i1 %56, label %10, label %57, <fs/btrfs/delayed-inode.c:1369:32> FUNC=btrfs_async_run_delayed_root L=0
+[NO USE] No uses of:   br i1 %56, label %10, label %57,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 4
+
+Earliest and latest instructions with L=0 (per function):
+
+btrfs_async_run_delayed_root:
+  Earliest:   %53 = icmp slt i32 %50, 512 <fs/btrfs/delayed-inode.c:1369:32> (approx) FUNC=btrfs_async_run_delayed_root L=0
+  Latest:   br i1 %56, label %10, label %57, <fs/btrfs/delayed-inode.c:1369:32> FUNC=btrfs_async_run_delayed_root L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 5 instructions
+Other visited functions (total): 0 instructions
+Total: 5 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+btrfs_async_run_delayed_root, 11, 5, 11, 9
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/btrfs/delayed-inode.ll
+../linux-wllvm-defconfig/fs/btrfs/delayed-inode.c

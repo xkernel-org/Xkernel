@@ -1,0 +1,43 @@
+=== Taint Tracker Configuration ===
+Function: btrfs_release_delayed_item
+Opcode: icmp
+Constant: 128
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant 128)
+
+[SOURCE] Tainting:   %35 = icmp slt i32 %34, 128, <fs/btrfs/delayed-inode.c:413:47> FUNC=btrfs_release_delayed_item L=0
+[USE] Source instruction in data flow <fs/btrfs/delayed-inode.c:413:47> FUNC=btrfs_release_delayed_item L=0
+[USE] Processing uses of:   %35 = icmp slt i32 %34, 128,
+  [USE] Taint flows to:   %38 = select i1 %35, i1 true, i1 %37, <fs/btrfs/delayed-inode.c:414:31> FUNC=btrfs_release_delayed_item L=0
+[USE] Processing uses of:   %38 = select i1 %35, i1 true, i1 %37,
+  [USE] Taint flows to:   br i1 %38, label %39, label %46, <fs/btrfs/delayed-inode.c:414:31> FUNC=btrfs_release_delayed_item L=0
+[NO USE] No uses of:   br i1 %38, label %39, label %46,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 3
+
+Earliest and latest instructions with L=0 (per function):
+
+btrfs_release_delayed_item:
+  Earliest:   %35 = icmp slt i32 %34, 128, <fs/btrfs/delayed-inode.c:413:47> FUNC=btrfs_release_delayed_item L=0
+  Latest:   br i1 %38, label %39, label %46, <fs/btrfs/delayed-inode.c:414:31> FUNC=btrfs_release_delayed_item L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 5 instructions
+Other visited functions (total): 0 instructions
+Total: 5 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+btrfs_release_delayed_item, 4, 11, 4, 15
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/fs/btrfs/delayed-inode.ll
+../linux-wllvm-defconfig/fs/btrfs/delayed-inode.c

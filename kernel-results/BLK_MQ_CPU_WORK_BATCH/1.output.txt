@@ -1,0 +1,53 @@
+=== Taint Tracker Configuration ===
+Function: blk_mq_map_swqueue
+Opcode: store
+Constant: 8
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant 8)
+
+[SOURCE] Tainting:   store i32 8, ptr %251, align 4, <block/blk-mq.c:4199:24> FUNC=blk_mq_map_swqueue L=0
+[USE] Source instruction in data flow <block/blk-mq.c:4199:24> FUNC=blk_mq_map_swqueue L=0
+[STORE DESTINATION] Storing constant to:   %251 = getelementptr inbounds nuw i8, ptr %162, i64 164, <block/blk-mq.c:4199:24> FUNC=blk_mq_map_swqueue L=0
+  %251 = getelementptr inbounds nuw i8, ptr %162, i64 164,
+  → base pointer:
+          %162 = phi ptr [ %253, %252 ], [ %159, %158 ]
+      PHI with 2 paths:
+      Path 0 (from %):
+                  %253 = call ptr @xa_find_after(ptr noundef nonnull %5, ptr noundef nonnull %2, i64 noundef -1, i32 noundef 8) #279,
+          → call to xa_find_after (no parameter)
+        → no parameter connection
+      Path 1 (from %):
+                  %159 = call ptr @xa_find(ptr noundef nonnull %5, ptr noundef nonnull %2, i64 noundef -1, i32 noundef 8) #279,
+          → call to xa_find (no parameter)
+        → no parameter connection
+→ Result: No parameter connection found
+[NO USE] No uses of:   store i32 8, ptr %251, align 4,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 1
+
+Earliest and latest instructions with L=0 (per function):
+
+blk_mq_map_swqueue:
+  Earliest:   store i32 8, ptr %251, align 4, <block/blk-mq.c:4199:24> FUNC=blk_mq_map_swqueue L=0
+  (Earliest and latest are the same instruction)
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 1 instructions
+Other visited functions (total): 0 instructions
+Total: 1 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+blk_mq_map_swqueue, 47, 4, 47, 4
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/block/blk-mq.ll
+../linux-wllvm-defconfig/block/blk-mq.c

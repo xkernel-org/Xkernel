@@ -1,0 +1,41 @@
+=== Taint Tracker Configuration ===
+Function: task_scan_start
+Opcode: icmp
+Constant: 2560
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant 2560)
+
+[SOURCE] Tainting:   %3 = icmp ult i32 %2, 2560, <kernel/sched/fair.c:1519:16> FUNC=task_scan_start L=0
+[USE] Source instruction in data flow <kernel/sched/fair.c:1519:16> FUNC=task_scan_start L=0
+[USE] Processing uses of:   %3 = icmp ult i32 %2, 2560,
+  [USE] Taint flows to:   br i1 %3, label %4, label %7, <kernel/sched/fair.c:1519:16> FUNC=task_scan_start L=0
+[NO USE] No uses of:   br i1 %3, label %4, label %7,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 2
+
+Earliest and latest instructions with L=0 (per function):
+
+task_scan_start:
+  Earliest:   %3 = icmp ult i32 %2, 2560, <kernel/sched/fair.c:1519:16> FUNC=task_scan_start L=0
+  Latest:   br i1 %3, label %4, label %7, <kernel/sched/fair.c:1519:16> FUNC=task_scan_start L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 2 instructions
+Other visited functions (total): 0 instructions
+Total: 2 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+task_scan_start, 0, 1, 0, 2
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/kernel/sched/fair.ll
+../linux-wllvm-defconfig/kernel/sched/fair.c

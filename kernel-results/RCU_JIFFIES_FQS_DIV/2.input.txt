@@ -1,0 +1,5 @@
+SOURCE_FILE=kernel/rcu/tree.c
+FUNCTION_NAME=param_set_first_fqs_jiffies
+SOURCE_OP="lshr"
+CONSTANT_VALUE=8
+OCCURENCE=1

@@ -1,0 +1,95 @@
+=== Taint Tracker Configuration ===
+Function: blk_revalidate_disk_zones
+Opcode: call
+Constant: 128
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant 128)
+
+[SOURCE] Tainting:   %62 = tail call i32 @llvm.umin.i32(i32 %35, i32 128), <block/blk-zoned.c:1479:6> FUNC=blk_revalidate_disk_zones L=0
+[USE] Source instruction in data flow <block/blk-zoned.c:1479:6> FUNC=blk_revalidate_disk_zones L=0
+[CHILD FUNCTION] Constant used in call to llvm.umin.i32 at argument 1 <block/blk-zoned.c:1479:6> FUNC=blk_revalidate_disk_zones L=0
+[USE] Processing uses of:   %62 = tail call i32 @llvm.umin.i32(i32 %35, i32 128),
+  [USE] Taint flows to:   %63 = select i1 %61, i32 %62, i32 %60, <block/blk-zoned.c:1479:6> FUNC=blk_revalidate_disk_zones L=0
+[USE] Processing uses of:   %63 = select i1 %61, i32 %62, i32 %60,
+  [CHILD FUNCTION] Tainted value used in call to mempool_create_node_noprof at argument 0:   %88 = tail call ptr @mempool_create_node_noprof(i32 noundef %63, ptr noundef nonnull @mempool_kmalloc, ptr noundef nonnull @mempool_kfree, ptr noundef nonnull inttoptr (i64 112 to ptr), i32 noundef 3264, i32 noundef -1) #282, <block/blk-zoned.c:1359:27> FUNC=blk_revalidate_disk_zones L=0
+  [USE] Taint flows to:   %88 = tail call ptr @mempool_create_node_noprof(i32 noundef %63, ptr noundef nonnull @mempool_kmalloc, ptr noundef nonnull @mempool_kfree, ptr noundef nonnull inttoptr (i64 112 to ptr), i32 noundef 3264, i32 noundef -1) #282, <block/blk-zoned.c:1359:27> FUNC=blk_revalidate_disk_zones L=0
+  [CHILD FUNCTION] Tainted value used in call to alloc_workqueue at argument 2:   %93 = tail call ptr (ptr, i32, i32, ...) @alloc_workqueue(ptr noundef nonnull @.str.17.44901, i32 noundef 24, i32 noundef %63, ptr noundef nonnull %92) #282, <block/blk-zoned.c:1365:3> FUNC=blk_revalidate_disk_zones L=0
+  [USE] Taint flows to:   %93 = tail call ptr (ptr, i32, i32, ...) @alloc_workqueue(ptr noundef nonnull @.str.17.44901, i32 noundef 24, i32 noundef %63, ptr noundef nonnull %92) #282, <block/blk-zoned.c:1365:3> FUNC=blk_revalidate_disk_zones L=0
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %69 = tail call i32 asm "bsrl $1,$0", "=r,r,0,~{dirflag},~{fpsr},~{flags}"(i32 %63, i32 -1) #280, !dbg !18658282, !srcloc !18658283 <./arch/x86/include/asm/bitops.h:378:2>
+  [USE] Taint flows to:   %69 = tail call i32 asm "bsrl $1,$0", "=r,r,0,~{dirflag},~{fpsr},~{flags}"(i32 %63, i32 -1) #280, <./arch/x86/include/asm/bitops.h:378:2> FUNC=blk_revalidate_disk_zones L=0
+[USE] Processing uses of:   %69 = tail call i32 asm "bsrl $1,$0", "=r,r,0,~{dirflag},~{fpsr},~{flags}"(i32 %63, i32 -1) #280,
+  [USE] Taint flows to:   %70 = add i32 %69, 1, <block/blk-zoned.c:1348:3> FUNC=blk_revalidate_disk_zones L=0
+[USE] Processing uses of:   %70 = add i32 %69, 1,
+  [EXTERNAL CALL] Tainted value used in external/indirect call:   %71 = tail call i32 @llvm.smin.i32(i32 %70, i32 9), !dbg !18658285 <block/blk-zoned.c:1348:3>
+  [USE] Taint flows to:   %71 = tail call i32 @llvm.smin.i32(i32 %70, i32 9), <block/blk-zoned.c:1348:3> FUNC=blk_revalidate_disk_zones L=0
+[USE] Processing uses of:   %71 = tail call i32 @llvm.smin.i32(i32 %70, i32 9),
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #0 (ptr %0) <block/blk-zoned.c:1347:30>
+  [USE] Taint flows to:   %73 = shl nuw nsw i32 1, %71, <block/blk-zoned.c:1324:12> FUNC=blk_revalidate_disk_zones L=0
+[USE] Processing uses of:   %73 = shl nuw nsw i32 1, %71,
+  [USE] Taint flows to:   %74 = zext nneg i32 %73 to i64, <block/blk-zoned.c:1351:3> FUNC=blk_revalidate_disk_zones L=0
+[USE] Processing uses of:   %74 = zext nneg i32 %73 to i64,
+  [USE] Taint flows to:   %75 = shl nuw nsw i64 %74, 3, <./include/linux/slab.h:942:6> FUNC=blk_revalidate_disk_zones L=0
+[USE] Processing uses of:   %75 = shl nuw nsw i64 %74, 3,
+  [CHILD FUNCTION] Tainted value used in call to __kmalloc_noprof at argument 0:   %76 = tail call noalias align 8 ptr @__kmalloc_noprof(i64 noundef range(i64 0, 34359738361) %75, i32 noundef 3520) #281, <./include/linux/slab.h:905:9> FUNC=blk_revalidate_disk_zones L=0
+  [USE] Taint flows to:   %76 = tail call noalias align 8 ptr @__kmalloc_noprof(i64 noundef range(i64 0, 34359738361) %75, i32 noundef 3520) #281, <./include/linux/slab.h:905:9> FUNC=blk_revalidate_disk_zones L=0
+[USE] Processing uses of:   %76 = tail call noalias align 8 ptr @__kmalloc_noprof(i64 noundef range(i64 0, 34359738361) %75, i32 noundef 3520) #281,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #0 (ptr %0) <block/blk-zoned.c:1350:25>
+  [USE] Taint flows to:   %77 = icmp eq ptr %76, null, <block/blk-zoned.c:1353:7> FUNC=blk_revalidate_disk_zones L=0
+[USE] Processing uses of:   %77 = icmp eq ptr %76, null,
+  [USE] Taint flows to:   br i1 %77, label %100, label %78, <block/blk-zoned.c:1353:6> FUNC=blk_revalidate_disk_zones L=0
+[NO USE] No uses of:   br i1 %77, label %100, label %78,
+[USE] Processing uses of:   %93 = tail call ptr (ptr, i32, i32, ...) @alloc_workqueue(ptr noundef nonnull @.str.17.44901, i32 noundef 24, i32 noundef %63, ptr noundef nonnull %92) #282,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #0 (ptr %0) <block/blk-zoned.c:1364:23>
+  [USE] Taint flows to:   %95 = icmp eq ptr %93, null, <block/blk-zoned.c:1367:7> FUNC=blk_revalidate_disk_zones L=0
+[USE] Processing uses of:   %95 = icmp eq ptr %93, null,
+  [USE] Taint flows to:   br i1 %95, label %96, label %104, <block/blk-zoned.c:1367:6> FUNC=blk_revalidate_disk_zones L=0
+[NO USE] No uses of:   br i1 %95, label %96, label %104,
+[USE] Processing uses of:   %88 = tail call ptr @mempool_create_node_noprof(i32 noundef %63, ptr noundef nonnull @mempool_kmalloc, ptr noundef nonnull @mempool_kfree, ptr noundef nonnull inttoptr (i64 112 to ptr), i32 noundef 3264, i32 noundef -1) #282,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #0 (ptr %0) <block/blk-zoned.c:1359:25>
+  [USE] Taint flows to:   %90 = icmp eq ptr %88, null, <block/blk-zoned.c:1361:7> FUNC=blk_revalidate_disk_zones L=0
+[USE] Processing uses of:   %90 = icmp eq ptr %88, null,
+  [USE] Taint flows to:   br i1 %90, label %98, label %91, <block/blk-zoned.c:1361:6> FUNC=blk_revalidate_disk_zones L=0
+[NO USE] No uses of:   br i1 %90, label %98, label %91,
+[POINTER PARAMETER] Call to blk_revalidate_disk_zones passes through pointer parameter 0 of sd_zbc_revalidate_zones <drivers/scsi/sd_zbc.c:568:8> FUNC=sd_zbc_revalidate_zones L=1
+[POINTER PARAMETER] Call to blk_revalidate_disk_zones passes through pointer parameter 0 of nvme_update_ns_info_block <drivers/nvme/host/core.c:2247:9> FUNC=nvme_update_ns_info_block L=1
+[POINTER PARAMETER] Call to blk_revalidate_disk_zones passes through pointer parameter 0 of dm_revalidate_zones <drivers/md/dm-zone.c:178:8> FUNC=dm_revalidate_zones L=1
+[POINTER PARAMETER] Call to dm_revalidate_zones passes through pointer parameter 0 of dm_table_set_restrictions <drivers/md/dm-table.c:1896:7> FUNC=dm_table_set_restrictions L=2
+[POINTER PARAMETER] Call to sd_zbc_revalidate_zones passes through pointer parameter 0 of sd_revalidate_disk <drivers/scsi/sd.c:3819:6> FUNC=sd_revalidate_disk L=2
+[POINTER PARAMETER] Call to nvme_update_ns_info_block passes through pointer parameter 0 of nvme_update_ns_info <drivers/nvme/host/core.c:2290:10> (approx) FUNC=nvme_update_ns_info L=2
+[POINTER PARAMETER] Call to dm_table_set_restrictions passes through pointer parameter 1 of dm_setup_md_queue <drivers/md/dm.c:2567:6> FUNC=dm_setup_md_queue L=3
+[POINTER PARAMETER] Call to dm_table_set_restrictions passes through pointer parameter 1 of dm_swap_table <drivers/md/dm.c:2467:8> FUNC=dm_swap_table L=3
+[POINTER PARAMETER] Call to sd_revalidate_disk passes through pointer parameter 0 of cache_type_store.72208 <drivers/scsi/sd.c:212:2> FUNC=cache_type_store.72208 L=3
+[POINTER PARAMETER] Call to sd_revalidate_disk passes through pointer parameter 0 of sd_rescan <drivers/scsi/sd.c:1855:2> FUNC=sd_rescan L=3
+[POINTER PARAMETER] Call to sd_revalidate_disk passes through pointer parameter 0 of sd_open <drivers/scsi/sd.c:1530:3> FUNC=sd_open L=3
+[UPWARD-INTERPROC] No callers found for cache_type_store.72208 (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for sd_rescan (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for sd_open (function taints pointer parameter #0)
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 17
+
+Earliest and latest instructions with L=0 (per function):
+
+blk_revalidate_disk_zones:
+  Earliest:   %62 = tail call i32 @llvm.umin.i32(i32 %35, i32 128), <block/blk-zoned.c:1479:6> FUNC=blk_revalidate_disk_zones L=0
+  Latest:   br i1 %95, label %96, label %104, <block/blk-zoned.c:1367:6> FUNC=blk_revalidate_disk_zones L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 41 instructions
+Other visited functions (total): 0 instructions
+Total: 41 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+blk_revalidate_disk_zones, 8, 6, 12, 5
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/block/blk-zoned.ll
+../linux-wllvm-defconfig/block/blk-zoned.c

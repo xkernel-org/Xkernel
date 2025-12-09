@@ -1,0 +1,58 @@
+=== Taint Tracker Configuration ===
+Function: blk_mq_init_sched
+Opcode: call
+Constant: 128
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant 128)
+
+[SOURCE] Tainting:   %11 = tail call i32 @llvm.umin.i32(i32 %10, i32 128), <block/blk-mq-sched.c:453:23> FUNC=blk_mq_init_sched L=0
+[USE] Source instruction in data flow <block/blk-mq-sched.c:453:23> FUNC=blk_mq_init_sched L=0
+[CHILD FUNCTION] Constant used in call to llvm.umin.i32 at argument 1 <block/blk-mq-sched.c:453:23> FUNC=blk_mq_init_sched L=0
+[USE] Processing uses of:   %11 = tail call i32 @llvm.umin.i32(i32 %10, i32 128),
+  [USE] Taint flows to:   %12 = shl nuw nsw i32 %11, 1, <block/blk-mq-sched.c:453:21> FUNC=blk_mq_init_sched L=0
+[USE] Processing uses of:   %12 = shl nuw nsw i32 %11, 1,
+  [USE] Taint flows to:   %13 = zext nneg i32 %12 to i64, <block/blk-mq-sched.c:453:19> FUNC=blk_mq_init_sched L=0
+[USE] Processing uses of:   %13 = zext nneg i32 %12 to i64,
+  [POINTER PARAMETER] Tainted value stored through pointer parameter #0 (ptr %0) <block/blk-mq-sched.c:453:17>
+[POINTER PARAMETER] Call to blk_mq_init_sched passes through pointer parameter 0 of elevator_init_mq <block/elevator.c:598:8> FUNC=elevator_init_mq L=1
+[POINTER PARAMETER] Call to blk_mq_init_sched passes through pointer parameter 0 of elevator_switch <block/elevator.c:631:8> FUNC=elevator_switch L=1
+[POINTER PARAMETER] Call to elevator_init_mq passes through pointer parameter 1 of add_disk_fwnode <block/genhd.c:424:3> FUNC=add_disk_fwnode L=2
+[POINTER PARAMETER] Call to elevator_switch passes through pointer parameter 0 of elv_iosched_store <block/elevator.c:698:8> FUNC=elv_iosched_store L=2
+[POINTER PARAMETER] Call to elevator_switch passes through pointer parameter 0 of blk_mq_update_nr_hw_queues <block/blk-mq.c:4984:2> FUNC=blk_mq_update_nr_hw_queues L=2
+[UPWARD-INTERPROC] No callers found for elv_iosched_store (function taints pointer parameter #0)
+[POINTER PARAMETER] Call to blk_mq_update_nr_hw_queues passes through pointer parameter 0 of nvme_reset_work <drivers/nvme/host/pci.c:2676:2> FUNC=nvme_reset_work L=3
+[POINTER PARAMETER] Call to add_disk_fwnode passes through pointer parameter 1 of device_add_disk <block/genhd.c:586:9> FUNC=device_add_disk L=3
+[UPWARD-INTERPROC] No callers found for nvme_reset_work (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for elv_iosched_store (function taints pointer parameter #0)
+[POINTER PARAMETER] Call to device_add_disk passes through pointer parameter 0 of dm_setup_md_queue <./include/linux/blkdev.h:758:9> FUNC=dm_setup_md_queue L=4
+[UPWARD-INTERPROC] No callers found for nvme_reset_work (function taints pointer parameter #0)
+[UPWARD-INTERPROC] No callers found for elv_iosched_store (function taints pointer parameter #0)
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 3
+
+Earliest and latest instructions with L=0 (per function):
+
+blk_mq_init_sched:
+  Earliest:   %11 = tail call i32 @llvm.umin.i32(i32 %10, i32 128), <block/blk-mq-sched.c:453:23> FUNC=blk_mq_init_sched L=0
+  Latest:   %13 = zext nneg i32 %12 to i64, <block/blk-mq-sched.c:453:19> FUNC=blk_mq_init_sched L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 3 instructions
+Other visited functions (total): 0 instructions
+Total: 3 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+blk_mq_init_sched, 0, 9, 0, 11
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/block/blk-mq-sched.ll
+../linux-wllvm-defconfig/block/blk-mq-sched.c

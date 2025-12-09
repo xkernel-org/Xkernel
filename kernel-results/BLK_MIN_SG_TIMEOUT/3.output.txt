@@ -1,0 +1,51 @@
+=== Taint Tracker Configuration ===
+Function: sg_io
+Opcode: phi
+Constant: 60000
+Verbose: OFF
+Interproc (downward): OFF
+Interproc (upward): ON
+IndirectCall: OFF
+ApproxDebugInfo: ON
+Occurrence: 1 (of constant 60000)
+
+[SOURCE] Tainting:   %65 = phi i32 [ 60000, %57 ], [ 7000, %61 ] <drivers/scsi/scsi_ioctl.c:472:42> (approx) FUNC=sg_io L=0
+[USE] Source instruction in data flow <drivers/scsi/scsi_ioctl.c:472:42> (approx) FUNC=sg_io L=0
+[USE] Processing uses of:   %65 = phi i32 [ 60000, %57 ], [ 7000, %61 ]
+  %55 = getelementptr inbounds nuw i8, ptr %27, i64 40,
+  → base pointer:
+          %27 = tail call ptr @scsi_alloc_request(ptr noundef %10, i32 noundef %22, i32 noundef 0) #278,
+      → call to scsi_alloc_request (no parameter)
+  → Result: No parameter connection found
+  [STORE DESTINATION] Marking pointer as tainted:   %55 = getelementptr inbounds nuw i8, ptr %27, i64 40, <drivers/scsi/scsi_ioctl.c:472:42> (approx)
+  [USE] Taint flows to:   store i32 %65, ptr %55, align 8, <drivers/scsi/scsi_ioctl.c:472:42> (approx) FUNC=sg_io L=0
+[NO USE] No uses of:   store i32 %65, ptr %55, align 8,
+[KILL] Store overwrites tainted pointer with non-tainted value:   store i32 %54, ptr %55, align 8,
+[KILL] Store overwrites tainted pointer with non-tainted value:   store i32 %59, ptr %55, align 8,
+[KILL] Store overwrites tainted pointer with non-tainted value:   store i32 %54, ptr %55, align 8,
+[KILL] Store overwrites tainted pointer with non-tainted value:   store i32 %59, ptr %55, align 8,
+
+=== Maximum Level Statistics ===
+Largest L value: 0
+Number of instructions with L=0: 2
+
+Earliest and latest instructions with L=0 (per function):
+
+sg_io:
+  Earliest:   %65 = phi i32 [ 60000, %57 ], [ 7000, %61 ] <drivers/scsi/scsi_ioctl.c:472:42> (approx) FUNC=sg_io L=0
+  Latest:   store i32 %65, ptr %55, align 8, <drivers/scsi/scsi_ioctl.c:472:42> (approx) FUNC=sg_io L=0
+
+=== Instruction Count Statistics ===
+Max-level functions (data flow span): 2 instructions
+Other visited functions (total): 0 instructions
+Total: 2 instructions
+Number of max-level functions: 1
+Number of other visited functions: 0
+
+=== Data Flow Span Details ===
+sg_io, 14, 0, 14, 1
+
+=== Taint Analysis Complete ===
+
+../linux-wllvm-defconfig/drivers/scsi/scsi_ioctl.ll
+../linux-wllvm-defconfig/drivers/scsi/scsi_ioctl.c
