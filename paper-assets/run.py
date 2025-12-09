@@ -10,6 +10,17 @@ import re
 
 latex_macros = []
 
+skip_macro_list = [
+    # Huge IR diff
+    'MLD_MAX_QUEUE',
+    'MAX_MADVISE_GUARD_RETRIES',
+    'MAX_VMAP_RETRIES',
+    'TCP_DELACK_MAX',
+
+    # Not in all-cases.txt
+    'Try_KLP_bad_case',
+]
+
 # In[2]:
 
 
@@ -20,6 +31,22 @@ df = pd.read_csv(analysis_time_csv_file)
 if df.shape[1] < 3:
     print("CSV must have at least 3 columns")
     sys.exit(1)
+
+# Remove rows where the first column matches any skip macro
+
+# print(f"Original {len(df)} cases")
+
+pattern = re.compile(r'^kernel-results/([^/]+)/')
+def is_skip_macro(row):
+    m = pattern.match(str(row.iloc[0]))
+    if m:
+        macro_name = m.group(1)
+        return macro_name in skip_macro_list
+    return False
+
+df = df[~df.apply(is_skip_macro, axis=1)].reset_index(drop=True)
+
+# print(f"Original {len(df)} cases")
 
 analysis_time_minutes = df.iloc[:, 1]
 
@@ -65,3 +92,42 @@ with open('paper-assets/numbers_auto.tex', 'w') as f:
 """)
     f.write("\n".join(latex_macros))
     f.write("\n")
+
+print("Don't forget to move numbers_auto.tex to the LaTeX repo ./Data/eval_wentao/")
+
+# In[4]:
+
+with open('kernel-results/per-perf-const-size.txt', 'r') as f:
+    content = f.read()
+
+with open('paper-assets/ss_instr_size.txt', 'w') as f:
+    f.write(content)
+
+print("Don't forget to move ss_instr_size.txt to plot repo ./cs_ss_func_size/")
+
+# In[5]:
+
+import glob
+
+count_disjoint_sses = {}
+
+for filename in glob.glob('kernel-results/*/ss-size2.txt'):
+    skip=False
+    for skip_macro in skip_macro_list:
+        if filename == f'kernel-results/{skip_macro}/ss-size2.txt':
+            skip=True
+            break
+
+    if skip:
+        continue
+
+    with open(filename) as f:
+        # Number of spans with largest L value
+        bb_lines = [line for line in f if 'BB' in line]
+        count_disjoint_sses[filename] = len(bb_lines)
+
+with open('paper-assets/disjoint_sses.txt', 'w') as f:
+    for fname, count in count_disjoint_sses.items():
+        f.write(f"{count}\n")
+
+print("Don't forget to move disjoint_sses.txt to plot repo ./dataset/")
