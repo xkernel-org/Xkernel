@@ -1,18 +1,18 @@
 	Command being timed: "opt -load-pass-plugin=build/libTaintTrackerPass.so -passes=taint-tracker<do_sync_mmap_readahead;icmp;1000;false;false;false;true;1;true> -disable-output ../linux-wllvm-defconfig/vmlinux.bc"
-	User time (seconds): 176.46
-	System time (seconds): 12.92
+	User time (seconds): 126.71
+	System time (seconds): 9.86
 	Percent of CPU this job got: 99%
-	Elapsed (wall clock) time (h:mm:ss or m:ss): 3:09.40
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 2:16.58
 	Average shared text size (kbytes): 0
 	Average unshared data size (kbytes): 0
 	Average stack size (kbytes): 0
 	Average total size (kbytes): 0
-	Maximum resident set size (kbytes): 7483464
+	Maximum resident set size (kbytes): 7481244
 	Average resident set size (kbytes): 0
-	Major (requiring I/O) page faults: 0
-	Minor (reclaiming a frame) page faults: 3974038
-	Voluntary context switches: 1
-	Involuntary context switches: 248
+	Major (requiring I/O) page faults: 2
+	Minor (reclaiming a frame) page faults: 4056955
+	Voluntary context switches: 53
+	Involuntary context switches: 229
 	Swaps: 0
 	File system inputs: 0
 	File system outputs: 16
