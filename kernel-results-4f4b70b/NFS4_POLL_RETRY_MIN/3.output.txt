@@ -185,7 +185,7 @@ nfs4_close_done:
 
 nfs4_commit_done_cb:
   Earliest:   %38 = load i8, ptr %37, align 2, <fs/nfs/nfs4proc.c:716:16> FUNC=nfs4_commit_done_cb L=1
-  Latest:   br i1 %40, label %41, label %42, <UNKNOWN> FUNC=nfs4_commit_done_cb L=1
+  Latest:   br i1 %40, label %41, label %42, <fs/nfs/nfs4proc.c:5789:> FUNC=nfs4_commit_done_cb L=1
 
 nfs4_delegreturn_done:
   Earliest:   %129 = load i8, ptr %12, align 2, <fs/nfs/nfs4proc.c:6766:17> FUNC=nfs4_delegreturn_done L=1
@@ -193,7 +193,7 @@ nfs4_delegreturn_done:
 
 nfs4_layoutcommit_done:
   Earliest:   %26 = load i8, ptr %25, align 2, <fs/nfs/nfs4proc.c:716:16> FUNC=nfs4_layoutcommit_done L=1
-  Latest:   br i1 %28, label %29, label %30, <UNKNOWN> FUNC=nfs4_layoutcommit_done L=1
+  Latest:   br i1 %28, label %29, label %30, <fs/nfs/nfs4proc.c:10214:> FUNC=nfs4_layoutcommit_done L=1
 
 nfs4_layoutreturn_done:
   Earliest:   %44 = load i8, ptr %43, align 2, <fs/nfs/nfs4proc.c:716:16> FUNC=nfs4_layoutreturn_done L=1
@@ -205,11 +205,11 @@ nfs4_locku_done:
 
 nfs4_proc_rename_done:
   Earliest:   %18 = load i64, ptr %13, align 8, <fs/nfs/nfs4proc.c:712:23> FUNC=nfs4_proc_rename_done L=1
-  Latest:   br i1 %29, label %30, label %32, <UNKNOWN> FUNC=nfs4_proc_rename_done L=1
+  Latest:   br i1 %29, label %30, label %32, <fs/nfs/nfs4proc.c:5014:> FUNC=nfs4_proc_rename_done L=1
 
 nfs4_proc_unlink_done:
   Earliest:   %17 = load i64, ptr %12, align 8, <fs/nfs/nfs4proc.c:712:23> FUNC=nfs4_proc_unlink_done L=1
-  Latest:   br i1 %28, label %29, label %31, <UNKNOWN> FUNC=nfs4_proc_unlink_done L=1
+  Latest:   br i1 %28, label %29, label %31, <fs/nfs/nfs4proc.c:4970:> FUNC=nfs4_proc_unlink_done L=1
 
 nfs4_read_done_cb:
   Earliest:   %46 = load i8, ptr %44, align 2, <fs/nfs/nfs4proc.c:5552:17> FUNC=nfs4_read_done_cb L=1
@@ -217,7 +217,7 @@ nfs4_read_done_cb:
 
 nfs4_release_lockowner_done:
   Earliest:   %38 = load i8, ptr %37, align 2, <fs/nfs/nfs4proc.c:716:16> FUNC=nfs4_release_lockowner_done L=1
-  Latest:   br i1 %40, label %43, label %41, <fs/nfs/nfs4proc.c:7859:22> FUNC=nfs4_release_lockowner_done L=1
+  Latest:   br i1 %40, label %43, label %41, <fs/nfs/nfs4proc.c:7858> FUNC=nfs4_release_lockowner_done L=1
 
 nfs4_write_done_cb:
   Earliest:   %46 = load i8, ptr %40, align 2, <fs/nfs/nfs4proc.c:5669:17> FUNC=nfs4_write_done_cb L=1

@@ -94,7 +94,7 @@ dump_unreclaimable_slab:
   Latest:   %34 = call i32 (ptr, ...) @_printk(ptr noundef nonnull @.str.137.16410, ptr noundef %25, i64 noundef %31, i64 noundef %33) #280, <mm/slab_common.c:1164:4> FUNC=dump_unreclaimable_slab L=2
 
 slab_show:
-  Earliest:   %15 = load i64, ptr %3, align 8, <mm/slab_common.c:1117:21> FUNC=slab_show L=2
+  Earliest:   %15 = load i64, ptr %3, align 8, <mm/slab_common.c:1116:> FUNC=slab_show L=2
   Latest:   call void (ptr, ptr, ...) @seq_printf(ptr noundef %0, ptr noundef nonnull @.str.252.16324, i64 noundef %32, i64 noundef %34, i64 noundef %36) #278, <mm/slab_common.c:1122:2> FUNC=slab_show L=2
 
 === Instruction Count Statistics ===

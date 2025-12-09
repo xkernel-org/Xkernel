@@ -29,7 +29,7 @@ Number of instructions with L=0: 5
 Earliest and latest instructions with L=0 (per function):
 
 bfq_bfqq_expire:
-  Earliest:   %59 = select i1 %58, i64 2, i64 8 <block/bfq-iosched.c:4193:3> (approx) FUNC=bfq_bfqq_expire L=0
+  Earliest:   %59 = select i1 %58, i64 2, i64 8 <block/bfq-iosched.c:4189> (approx) FUNC=bfq_bfqq_expire L=0
   Latest:   call void @bfq_bfqq_charge_time(ptr noundef %0, ptr noundef %1, i64 noundef %120) #280, <block/bfq-iosched.c:4383:3> FUNC=bfq_bfqq_expire L=0
 
 === Instruction Count Statistics ===

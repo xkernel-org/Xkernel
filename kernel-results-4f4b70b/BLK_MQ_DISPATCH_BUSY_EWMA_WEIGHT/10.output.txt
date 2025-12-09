@@ -2000,8 +2000,8 @@ nvme_resume:
   Latest:   br i1 %17, label %20, label %18, <drivers/nvme/host/pci.c:3433:18> FUNC=nvme_resume L=9
 
 nvme_scan_ns:
-  Earliest:   %278 = call fastcc i32 @nvme_update_ns_info(ptr noundef nonnull %247, ptr noundef nonnull %7) #280, <drivers/nvme/host/core.c:4053:8> FUNC=nvme_scan_ns L=9
-  Latest:   br i1 %628, label %629, label %656, <drivers/nvme/host/core.c:3933:6> FUNC=nvme_scan_ns L=9
+  Earliest:   %278 = call fastcc i32 @nvme_update_ns_info(ptr noundef nonnull %247, ptr noundef nonnull %7) #280, <drivers/nvme/host/core.c:4054> FUNC=nvme_scan_ns L=9
+  Latest:   br i1 %628, label %629, label %656, <drivers/nvme/host/core.c:4108> FUNC=nvme_scan_ns L=9
 
 nvme_suspend:
   Earliest:   %33 = tail call fastcc i32 @nvme_set_host_mem(ptr noundef %4, i32 noundef 0) #279, <drivers/nvme/host/pci.c:3481:9> FUNC=nvme_suspend L=9

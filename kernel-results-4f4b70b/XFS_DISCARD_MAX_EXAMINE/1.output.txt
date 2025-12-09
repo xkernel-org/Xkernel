@@ -26,8 +26,8 @@ Number of instructions with L=0: 4
 Earliest and latest instructions with L=0 (per function):
 
 xfs_trim_gather_extents:
-  Earliest:   %68 = phi i32 [ %73, %64 ], [ 100, %56 ] <fs/xfs/xfs_discard.c:241:7> (approx) FUNC=xfs_trim_gather_extents L=0
-  Latest:   br i1 %74, label %76, label %78, <fs/xfs/xfs_discard.c:247:15> FUNC=xfs_trim_gather_extents L=0
+  Earliest:   %68 = phi i32 [ %73, %64 ], [ 100, %56 ] <fs/xfs/xfs_discard.c:241:7> (approx) FUNC=xfs_ioc_trim L=0
+  Latest:   br i1 %74, label %76, label %78, <fs/xfs/xfs_discard.c:247:15> FUNC=xfs_ioc_trim L=0
 
 === Instruction Count Statistics ===
 Max-level functions (data flow span): 12 instructions

@@ -1143,7 +1143,7 @@ Earliest and latest instructions with L=1 (per function):
 
 tcp_ack:
   Earliest:   %1083 = call i32 @tcp_clamp_probe0_to_user_timeout(ptr noundef %0, i32 noundef %1082) #280, <net/ipv4/tcp_input.c:3571:10> FUNC=tcp_ack L=1
-  Latest:   call void @sk_reset_timer(ptr noundef %0, ptr noundef nonnull %1101, i64 noundef %1099) #280, <UNKNOWN> FUNC=tcp_ack L=1
+  Latest:   call void @sk_reset_timer(ptr noundef %0, ptr noundef nonnull %1101, i64 noundef %1099) #280, <net/ipv4/tcp_input.c:3572> FUNC=tcp_ack L=1
 
 tcp_send_probe0:
   Earliest:   %44 = tail call i32 @tcp_clamp_probe0_to_user_timeout(ptr noundef %0, i32 noundef %43) #279, <net/ipv4/tcp_output.c:4404:12> FUNC=tcp_send_probe0 L=1

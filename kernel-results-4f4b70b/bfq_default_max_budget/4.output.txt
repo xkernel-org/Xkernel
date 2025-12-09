@@ -26,8 +26,8 @@ Number of instructions with L=0: 2
 Earliest and latest instructions with L=0 (per function):
 
 bfq_add_request:
-  Earliest:   %675 = phi i32 [ %673, %669 ], [ 1024, %661 ], <block/bfq-iosched.c:1707:25> (approx) FUNC=bfq_add_request L=0
-  Latest:   %676 = call i32 @llvm.umin.i32(i32 %665, i32 %675), <block/bfq-iosched.c:1707:25> FUNC=bfq_add_request L=0
+  Earliest:   %675 = phi i32 [ %673, %669 ], [ 1024, %661 ], <block/bfq-iosched.c:1707:25> (approx) FUNC=bfq_insert_requests L=0
+  Latest:   %676 = call i32 @llvm.umin.i32(i32 %665, i32 %675), <block/bfq-iosched.c:1707:25> FUNC=bfq_insert_requests L=0
 
 === Instruction Count Statistics ===
 Max-level functions (data flow span): 2 instructions
