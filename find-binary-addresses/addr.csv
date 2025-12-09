@@ -150,8 +150,8 @@ ID,directory,file,function,offset,source start,source end
 39,NR_MAX_MIGRATE_PAGES_RETRY,kernel-results/NR_MAX_MIGRATE_PAGES_RETRY/2.output.txt,,,,
 39,NR_MAX_MIGRATE_PAGES_RETRY,kernel-results/NR_MAX_MIGRATE_PAGES_RETRY/3.output.txt,,,,
 40,SHRINK_BATCH,kernel-results/SHRINK_BATCH/1.output.txt,__pfx_perf_trace_mm_shrink_slab_end,0x15145 - 0x10,mm/shrinker.c:380,./include/trace/events/vmscan.h:244
-40,SHRINK_BATCH,kernel-results/SHRINK_BATCH/2.output.txt,filemap_fault,0x5b7 - 0x5b7,mm/filemap.c:3243,mm/filemap.c:3243
-40,SHRINK_BATCH,kernel-results/SHRINK_BATCH/3.output.txt,filemap_fault,0x5cc - 0x5cc,mm/filemap.c:3250,mm/filemap.c:3250
+41,MMAP_LOTSAMISS,kernel-results/MMAP_LOTSAMISS/1.output.txt,filemap_fault,0x5b7 - 0x5b7,mm/filemap.c:3243,mm/filemap.c:3243
+41,MMAP_LOTSAMISS,kernel-results/MMAP_LOTSAMISS/2.output.txt,filemap_fault,0x5cc - 0x5cc,mm/filemap.c:3250,mm/filemap.c:3250
 42,GET_PAGE_MAX_RETRY_NUM,kernel-results/GET_PAGE_MAX_RETRY_NUM/1.output.txt,get_hwpoison_page,0x22b - 0x235,mm/memory-failure.c:1445,mm/memory-failure.c:1445
 42,GET_PAGE_MAX_RETRY_NUM,kernel-results/GET_PAGE_MAX_RETRY_NUM/2.output.txt,get_hwpoison_page,0x3aa - 0x3ae,mm/memory-failure.c:1450,mm/memory-failure.c:1450
 42,GET_PAGE_MAX_RETRY_NUM,kernel-results/GET_PAGE_MAX_RETRY_NUM/3.output.txt,get_hwpoison_page,0x2dd - 0x2e1,mm/memory-failure.c:1476,mm/memory-failure.c:1476
