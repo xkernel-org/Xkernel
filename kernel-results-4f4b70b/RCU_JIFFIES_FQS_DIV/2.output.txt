@@ -33,8 +33,8 @@ Number of instructions with L=0: 6
 Earliest and latest instructions with L=0 (per function):
 
 param_set_first_fqs_jiffies:
-  Earliest:   %19 = lshr i32 %18, 8, <kernel/rcu/tree.c:455:31> FUNC=param_set_first_fqs_jiffies L=0
-  Latest:   %25 = phi i64 [ %22, %13 ], [ %11, %6 ] <kernel/rcu/tree.c:469:2> (approx) FUNC=param_set_first_fqs_jiffies L=0
+  Earliest:   %19 = lshr i32 %18, 8, <kernel/rcu/tree.c:455> FUNC=adjust_jiffies_till_sched_qs L=0
+  Latest:   %25 = phi i64 [ %22, %13 ], [ %11, %6 ] <kernel/rcu/tree.c:458> (approx) FUNC=adjust_jiffies_till_sched_qs L=0
 
 === Instruction Count Statistics ===
 Max-level functions (data flow span): 7 instructions
