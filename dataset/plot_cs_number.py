@@ -22,15 +22,16 @@ TEXT_SIZE_LEGEND = 18
 """
 Caveats:
 
-1. SS now has a total number of 134 instead of 140. Because:
+1. SS now has a total number of 135 instead of 140. Because:
     - The duplicate BFQ_RATE_MIN_SAMPLES is counted only once (-1)
     - MLD_MAX_QUEUE, MAX_MADVISE_GUARD_RETRIES, MAX_VMAP_RETRIES, TCP_DELACK_MAX
       produced huge IR diff and we gave them up (-4)
-    - MMAP_LOTSAMISS that's being rerun due to my mistake (-1)
-2. SS is characterized using disjoint IR spans. Recall that we calculate SS size
-   by adding (1) top level spans + (2) lower level full functions. Here the number is
-   number of top level spans.
-
+2. SS is characterized using one of the following ways:
+   a. disjoint IR spans. Recall that we calculate SS size by adding (1) top level
+      spans + (2) lower level full functions. Here the number is number of top
+      level spans.
+   b. disjoint assembly spans
+   c. Number of disjoint CSes - (number of IR starting points - clustered dataflow results)
 """
 
 def get_ss_number_dist():
@@ -46,7 +47,11 @@ def get_ss_number_dist():
         { 'label': '> 10', 'condition': lambda x: x > 10, 'count': 0 },
     ]
 
-    with open(os.path.join(script_dir, 'disjoint_sses.txt'), 'r') as f:
+    # TODO choose what we want to present in terms of SS 
+    input_data = 'disjoint_sses.txt'
+    # input_data = 'disjoint_sses_asm.txt'
+
+    with open(os.path.join(script_dir, input_data), 'r') as f:
         lines = f.readlines()
         for line in lines:
             size = int(line.strip())
