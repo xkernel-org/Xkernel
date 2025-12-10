@@ -3,18 +3,28 @@ from matplotlib import font_manager
 import numpy as np
 import os
 import sys
+import seaborn as sns
 
 colors = [
-    "#d62728",
-    "#2ca02c",
     "#1f77b4",
-    "#9467bd",
     "#ff7f0e",
+    "#2ca02c",
+    "#d62728",
+    "#9467bd",
     "#8c564b",
     "#bcbd22",
     "#7f7f7f",
     "#e377c2",
     "#17becf",
+]
+
+colors_2 = [
+    '#95CFB2',
+    '#50A7A0',
+    '#42869A',
+    '#446790',
+    '#484473',
+    '#2E2237',
 ]
 
 markers = ["o", "^", "D", "x", "P", "v", "p", "s", "h", "H"]
@@ -64,7 +74,7 @@ params_line = {
 plt.rcParams.update(params_line)
 
 def save_fig(output_dir, fig_name, p=1):
-    plt.savefig(f"{output_dir}/{fig_name}.pdf", metadata={'CreationDate': None})
+    plt.savefig(f"{output_dir}/{fig_name}.pdf", bbox_inches='tight')
     PYTHON_INTERPRETER = sys.executable
     python_interpreter = os.path.expanduser(PYTHON_INTERPRETER)
     python_interpreter_bin = os.path.dirname(python_interpreter)

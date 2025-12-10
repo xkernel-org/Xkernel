@@ -1,4 +1,4 @@
-Tthreshold 70
+TS 70
 Timing 32
-Batch 16
+BS 16
 SF 22

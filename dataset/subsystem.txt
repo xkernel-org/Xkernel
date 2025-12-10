@@ -1,8 +1,6 @@
-net	30
-block	26
-io_uring	9
+net	34
+block	28
+io	9
 cpu	17
-rcu	1
 fs	35
 mm	17
-drivers	5

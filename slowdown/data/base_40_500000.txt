@@ -1,0 +1,21 @@
+Benchmark Config:
+  Threads:    10 (CPU Pinned)
+  Target:     /dev/null (bs=1)
+  Total IOPS: 500000 (50000 per thread)
+  App Delay:  40 us
+
+--- Aggregate Results ---
+Time elapsed:    10.11 s (slowest thread)
+Reqs submitted:  2500000
+Reqs completed:  2500000
+Errors:          0
+Realized IOPS:   247311.96
+Throughput:      0.24 MiB/s
+Sorting 2500000 latency samples...
+
+Latency (ns):
+  P50:   5234672
+  P90:   9325469
+  P99:   10248809
+  P99.9: 10387303
+  Max:   10590517

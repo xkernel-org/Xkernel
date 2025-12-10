@@ -1,0 +1,10 @@
+66/s
+tcp_event_data_recv,0xffffffffad2b02b0,0x152,0x17d
+tcp_event_data_recv,0xffffffffad2b02b0,0x1d5,0x1d8
+   kprobe_loader-2564453 [005] b..11 159768.907845: bpf_trace_printk: 159763905338011
+   kprobe_loader-2564453 [005] b..11 159768.911315: bpf_trace_printk: 159763908808965
+            node-3305    [051] d.Z31 159768.915953: bpf_trace_printk: cpu: 51, task: [node], ktime_ns: 159763913439692, check time: 6 us
+          <idle>-0       [021] d.Z31 159768.936036: bpf_trace_printk: cpu: 21, task: [swapper/21], ktime_ns: 159763933522519, check time: 5 us
+            sshd-2421314 [024] d.Z31 159768.936289: bpf_trace_printk: cpu: 24, task: [sshd], ktime_ns: 159763933775651, check time: 6 us
+            node-12284   [022] d.Z31 159768.939682: bpf_trace_printk: cpu: 22, task: [node], ktime_ns: 159763937172591, check time: 3 us
+          <idle>-0       [049] d.Z31 159769.029635: bpf_trace_printk: cpu: 49, task: [swapper/49], ktime_ns: 159764027121958, check time: 5 us

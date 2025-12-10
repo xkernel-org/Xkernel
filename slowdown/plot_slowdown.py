@@ -5,10 +5,20 @@ import numpy as np
 from matplotlib.ticker import FuncFormatter, FixedLocator
 import matplotlib.cm as cm
 import sys
+import seaborn as sns
 
 # Import plot_common for consistent styling
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import plot_common
+
+# Use mako color palette
+palette = sns.color_palette("mako")
+
+# Unified font sizes
+TEXT_SIZE_XYLABEL = 17
+TEXT_SIZE_XYAXIS = 17
+TEXT_SIZE_ANNOTATE = 14
+TEXT_SIZE_LEGEND = 17
 
 def apply_paper_style(ax):
     ax.spines['top'].set_visible(False)
@@ -31,6 +41,45 @@ def percent_formatter(x, pos):
         return ''  # 或者 return ' ' 如果你希望保留一点空隙
     return f'{int(x * 100)}%'
 
+def read_cases_data(file_path):
+    """Read cases data from cases.txt file
+    Format: IOPS/s, slowdown%
+    Example: 320316/s, 2%
+    Returns: list of tuples [(iops, slowdown), ...]
+    """
+    cases_data = []
+    if not os.path.exists(file_path):
+        print(f"Warning: File {file_path} not found.")
+        return cases_data
+    
+    with open(file_path, 'r') as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            
+            # Parse format: "320316/s, 2%"
+            # Remove /s and % symbols
+            parts = line.split(',')
+            if len(parts) != 2:
+                continue
+            
+            try:
+                # Extract IOPS (remove /s)
+                iops_str = parts[0].strip().replace('/s', '').replace(',', '')
+                iops = int(iops_str)
+                
+                # Extract slowdown (remove %)
+                slowdown_str = parts[1].strip().replace('%', '').replace(',', '')
+                slowdown = float(slowdown_str) / 100.0  # Convert percentage to decimal
+                
+                cases_data.append((iops, slowdown))
+            except ValueError:
+                print(f"Warning: Could not parse line: {line}")
+                continue
+    
+    return cases_data
+
 # --- 2. 数据读取与处理 (Data Parsing & Calculation) ---
 # [用户指定] 从 100,000 开始
 start_iops = 100_000 
@@ -40,10 +89,14 @@ step = 100_000      # 步长调整为 100k 以匹配起点
 data_dir = os.path.dirname(os.path.abspath(__file__))
 data_dir += "/data"
 
+# Read cases data
+cases_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'cases.txt')
+cases_data = read_cases_data(cases_file)
+
 # [自动化] 扫描目录下所有的 delay 值
 detected_delays = set()
-# 匹配文件名格式: base_2_100000.txt 或 xk_5_200000.txt
-filename_pattern = re.compile(r'(?:base|xk)_(\d+)_(\d+)\.txt')
+# 匹配文件名格式: base_2_100000.txt, xk_5_200000.txt, 或 xkint3_20_100000.txt
+filename_pattern = re.compile(r'(?:base|xk|xkint3)_(\d+)_(\d+)\.txt')
 
 print(f"正在扫描数据目录: {data_dir}")
 if os.path.exists(data_dir):
@@ -64,15 +117,17 @@ else:
     # 存储所有 delay 的绘图数据
     # 结构: { delay_val: {'iops': [], 'slowdown_p50': [], 'slowdown_p99': []} }
     plot_data_map = {}
+    plot_data_map_xkint3 = {}  # 存储 xkint3 的数据
 
     for delay in sorted_delays:
         print(f"正在处理 Delay = {delay} us 的数据...")
         
         raw_data = {
             'base': {'p50': {}, 'p99': {}}, 
-            'xk':   {'p50': {}, 'p99': {}}
+            'xk':   {'p50': {}, 'p99': {}},
+            'xkint3': {'p50': {}, 'p99': {}}
         }
-        prefixes = ['base', 'xk']
+        prefixes = ['base', 'xk', 'xkint3']
         
         # 读取该 delay 下的所有 iops 数据
         for prefix in prefixes:
@@ -85,13 +140,19 @@ else:
                     
                     p50_match = re.search(r'P50[:\s]+(\d+)', content, re.IGNORECASE)
                     if p50_match:
-                        raw_data[prefix]['p50'][iops] = int(p50_match.group(1))
+                        p50_value = int(p50_match.group(1))
+                        raw_data[prefix]['p50'][iops] = p50_value
+                        if prefix == 'xkint3':
+                            print(f"  Read {prefix}_{delay}_{iops}.txt: P50 = {p50_value}")
+                    else:
+                        if prefix == 'xkint3':
+                            print(f"  Warning: Could not find P50 in {filename}")
                         
                     p99_match = re.search(r'P99[:\s]+(\d+)', content, re.IGNORECASE)
                     if p99_match:
                         raw_data[prefix]['p99'][iops] = int(p99_match.group(1))
 
-        # 计算该 delay 的 Slowdown
+        # 计算该 delay 的 Slowdown (xk 相对于 base)
         current_plot_data = {
             'iops': [],
             'slowdown_p50': [],
@@ -116,13 +177,43 @@ else:
             plot_data_map[delay] = current_plot_data
             sd = (current_plot_data['slowdown_p50'][-1] * 100)
             print(f"Slowdown for {delay}us {iops/1_000_000}M: {sd:.0f}%")
+        
+        # 计算 xkint3 相对于 base 的 Slowdown
+        current_plot_data_xkint3 = {
+            'iops': [],
+            'slowdown_p50': [],
+            'slowdown_p99': []
+        }
+        
+        common_iops_xkint3 = sorted(list(set(raw_data['base']['p50'].keys()) & set(raw_data['xkint3']['p50'].keys())))
+        
+        for iops in common_iops_xkint3:
+            if iops in raw_data['base']['p99'] and iops in raw_data['xkint3']['p99']:
+                base_p50 = raw_data['base']['p50'][iops]
+                xkint3_p50 = raw_data['xkint3']['p50'][iops]
+                base_p99 = raw_data['base']['p99'][iops]
+                xkint3_p99 = raw_data['xkint3']['p99'][iops]
+                
+                if base_p50 > 0 and base_p99 > 0:
+                    slowdown_p50 = (xkint3_p50 - base_p50) / base_p50
+                    current_plot_data_xkint3['iops'].append(iops)
+                    current_plot_data_xkint3['slowdown_p50'].append(slowdown_p50)
+                    current_plot_data_xkint3['slowdown_p99'].append((xkint3_p99 - base_p99) / base_p99)
+                    print(f"    xkint3 IOPS={iops}: base_p50={base_p50}, xkint3_p50={xkint3_p50}, slowdown={slowdown_p50*100:.2f}%")
+        
+        if current_plot_data_xkint3['iops']:
+            plot_data_map_xkint3[delay] = current_plot_data_xkint3
+            sd = (current_plot_data_xkint3['slowdown_p50'][-1] * 100)
+            print(f"Slowdown (xkint3) for {delay}us {iops/1_000_000}M: {sd:.0f}%")
 
 # --- 3. 绘图 (Plotting) ---
+colors = sns.color_palette("mako")
+colors = [colors[4], colors[3], colors[1], colors[0]]
 if plot_data_map:
-    fig, ax = plt.subplots(figsize=(8, 4)) # 稍微加宽一点以容纳图例
+    fig, ax = plt.subplots(figsize=(8, 3.5)) # 稍微加宽一点以容纳图例
 
     line_width = 2
-    marker_size = 7.5
+    marker_size = 2
     
     # 遍历每个 delay 进行绘图
     for idx, delay in enumerate(sorted_delays):
@@ -130,20 +221,33 @@ if plot_data_map:
             continue
             
         data = plot_data_map[delay]
-        color = plot_common.colors[idx % len(plot_common.colors)]
-        marker = plot_common.markers[idx % len(plot_common.markers)]
+        color = colors[idx % len(colors)]
+        marker = 'o'
         
         # 绘制 P50 (虚线)
+
         ax.plot(data['iops'], data['slowdown_p50'], 
                 color=color, linestyle='--', linewidth=line_width,
                 marker=marker, markersize=marker_size, markevery=1,
-                label=f'{delay}us P50')
+                label=f'{delay}us')
+    
+    # 绘制 xkint3 数据
+    for delay in sorted_delays:
+        if delay not in plot_data_map_xkint3:
+            continue
+        
+        data = plot_data_map_xkint3[delay]
+        # 使用不同的线型和颜色来区分 xkint3
+        ax.plot(data['iops'], data['slowdown_p50'], 
+                color='orange', linestyle=':', linewidth=line_width,
+                marker='o', markersize=marker_size, markevery=1,
+                label=f'{delay}us (INT3)', zorder=5)
 
     # --- 4. 样式调整 (Styling) ---
     apply_paper_style(ax)
 
-    ax.set_xlabel(r'Offered IOPS ($\times10^6$/s)') 
-    ax.set_ylabel('Slowdown (%)')
+    ax.set_xlabel(r'Offered IOPS ($\times10^6$/s)', fontsize=TEXT_SIZE_XYLABEL) 
+    ax.set_ylabel('Slowdown (%)', fontsize=TEXT_SIZE_XYLABEL)
 
     # Y 轴范围
     ax.set_ylim(0, 0.20)  # 稍微扩大一点范围到 15% 以防重叠
@@ -196,23 +300,58 @@ if plot_data_map:
             
             # （可选）让次要刻度线更短、更细，区别于主刻度
             ax.tick_params(axis='x', which='minor', length=4, width=1, color='gray')
+    
+    # Set tick label font sizes
+    ax.tick_params(axis='x', labelsize=TEXT_SIZE_XYAXIS)
+    ax.tick_params(axis='y', labelsize=TEXT_SIZE_XYAXIS)
 
-    # 在 X 轴 1M 和 1.9M 处添加箭头和文本 "saturated"
-    saturated_positions = [1_000_000, 1_900_000]
-    saturated_y_positions = [0.03, 0.05]
-    for pos, y_pos in zip(saturated_positions, saturated_y_positions):
+    # 在 X 轴添加箭头和文本 "saturated"
+    # 获取各个 delay 对应的颜色
+    color_10us = colors[2] if len(colors) > 2 else 'black'
+    color_5us = colors[1] if len(colors) > 1 else 'black'
+    color_xkint3 = 'orange'  # xkint3 的颜色
+    
+    # 获取 20us 的颜色
+    color_20us = 'black'  # 默认值
+    if 20 in sorted_delays:
+        idx_20us = sorted_delays.index(20)
+        color_20us = colors[idx_20us % len(colors)]
+    
+    saturated_positions = [200_000, 500_000, 1_000_000, 1_900_000]
+    saturated_y_positions = [0.015, 0.009, 0.03, 0.055]
+    saturated_colors = [color_xkint3, color_20us, color_10us if color_10us else 'black', color_5us if color_5us else 'black']
+    
+    for pos, y_pos, sat_color in zip(saturated_positions, saturated_y_positions, saturated_colors):
         if pos >= min_iops and pos <= max_iops:
-            ax.annotate('Saturated', xy=(pos, y_pos), xytext=(pos, y_pos + 0.015),
-                        arrowprops=dict(arrowstyle='->', color='black', lw=1.5,
+            text_x = pos + 180_000
+            offset = 0.035
+            if (y_pos == 0.015):
+                text_x = text_x - 70_000
+                offset = 0.022
+            elif (y_pos == 0.009):
+                offset = 0.048
+            ax.annotate('Saturated', xy=(pos, y_pos), xytext=(text_x, y_pos + offset),
+                        arrowprops=dict(arrowstyle='->', color=sat_color, lw=1.5,
                                        shrinkA=0, shrinkB=0),
-                        ha='center', va='bottom', fontsize=20, color='black')
+                        ha='center', va='bottom', fontsize=TEXT_SIZE_ANNOTATE, color=sat_color)
 
-    # 图例设置 (分列显示以节省空间)
-    legend = ax.legend(loc='upper left', ncol=3, 
-                       frameon=True, facecolor='white', framealpha=1.0, fontsize=20,
-                       handlelength=2.0)
+    # Plot cases data with prominent markers
+    if cases_data:
+        case_iops = [case[0] for case in cases_data]
+        case_slowdown = [case[1] for case in cases_data]
+        
+        # Use prominent marker: solid triangle (^) with mako color
+        ax.scatter(case_iops, case_slowdown, 
+                  marker='^', s=100, color=sns.color_palette("rocket")[2], 
+                  linewidths=2,
+                  zorder=10, label='Cases')
+    
+    # 图例设置 (放在图外的正上方)
+    legend = ax.legend(loc='lower center', bbox_to_anchor=(0.45, 1.02), 
+                       ncol=6, frameon=False, fontsize=TEXT_SIZE_LEGEND,
+                       handlelength=1.2)
 
-    plt.tight_layout()
+    plt.tight_layout(rect=[0, 0, 1, 0.96])  # 为图例留出上方空间
     script_dir = os.path.dirname(os.path.abspath(__file__))
     plot_common.save_fig(script_dir, 'slowdown')
     plt.close()

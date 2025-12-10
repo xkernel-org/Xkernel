@@ -1,0 +1,9 @@
+__io_arm_poll_handler,0xffffffffacaeaed0,0x2c6,0x1148
+io_poll_wake,0xffffffffacaeb150,0x46,0xec8
+io_poll_can_finish_inline,0xffffffffacaeb150,0x36,0x11c8
+io_poll_remove,0xffffffffacaebf90,0x85,0x88
+
+1156293/1156745/1157943, 6394048/s, 1
+1169848/1169931/1171020, 24893816/s, 4
+1158832/1158840/1158697, 11650540/s, 8
+1274745/1275985/1276680, 90108588/s, 16

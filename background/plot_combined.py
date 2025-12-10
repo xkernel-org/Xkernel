@@ -1,0 +1,362 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+import re
+import sys
+import os
+import matplotlib.pyplot as plt
+import numpy as np
+import matplotlib.gridspec as gridspec  # 引入 GridSpec 用于精细控制布局
+import seaborn as sns
+
+# 假设 plot_common 在你的环境中可用
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import plot_common
+
+TEXT_SIZE = 18
+
+# Text sizes
+TEXT_SIZE_XYLABEL = 20
+TEXT_SIZE_XYAXIS = 20
+TEXT_SIZE_LEGEND = 20
+
+# Tick parameters
+TICK_LENGTH_X = 5  # Set to 0 to hide ticks, or a positive value to show ticks
+TICK_WIDTH_X = 1
+
+palette = sns.color_palette("rocket")
+user_color = palette[2]
+kernel_color = palette[3]
+iowait_color = palette[4]
+palette = sns.color_palette("mako")
+COLOR_128 = palette[2]
+COLOR_32 = palette[3]
+COLOR_1 = palette[5]
+
+# ==========================================
+# 1. 数据准备 (保持不变)
+# ==========================================
+
+# --- Part A: Throughput 数据 ---
+t_32_read = 28.1
+t_128_read = 201
+t_32_write = 3.8
+t_128_write = 205
+tp_values_32 = [t_32_read, t_32_write]
+tp_values_128 = [t_128_read, t_128_write]
+tp_labels = ['Read', 'Write']
+
+# --- Part B: Latency & CPU 数据 ---
+try:
+    with open('nvme_1.txt', 'r') as f: content_1 = f.read()
+    with open('nvme_32.txt', 'r') as f: content_32 = f.read()
+    with open('nvme_1_cpu.txt', 'r') as f: cpu_content_1 = f.read()
+    with open('nvme_32_cpu.txt', 'r') as f: cpu_content_32 = f.read()
+
+    # Extract percentiles
+    p50_match_1 = re.search(r'P50:\s+([\d.]+)', content_1)
+    p75_match_1 = re.search(r'P75:\s+([\d.]+)', content_1)
+    p50_1 = float(p50_match_1.group(1)) if p50_match_1 else 0
+    p75_1 = float(p75_match_1.group(1)) if p75_match_1 else 0
+
+    p50_match_32 = re.search(r'P50:\s+([\d.]+)', content_32)
+    p75_match_32 = re.search(r'P75:\s+([\d.]+)', content_32)
+    p50_32 = float(p50_match_32.group(1)) if p50_match_32 else 0
+    p75_32 = float(p75_match_32.group(1)) if p75_match_32 else 0
+
+    # Extract CPU usage Helper
+    def get_avg_cpu(content):
+        cpu_lines = [line for line in content.split('\n') if line.strip() and 'CPU' not in line and (line.strip().startswith('08:') or line.strip()[0].isdigit())]
+        u_vals, s_vals, w_vals = [], [], []
+        for line in cpu_lines:
+            parts = line.split()
+            if len(parts) >= 6:
+                u_vals.append(float(parts[2]))
+                s_vals.append(float(parts[4]))
+                w_vals.append(float(parts[5]))
+        return (np.mean(u_vals) if u_vals else 0, 
+                np.mean(s_vals) if s_vals else 0, 
+                np.mean(w_vals) if w_vals else 0)
+
+    user_1, sys_1, iowait_1 = get_avg_cpu(cpu_content_1)
+    user_32, sys_32, iowait_32 = get_avg_cpu(cpu_content_32)
+
+except FileNotFoundError:
+    print("Warning: Log files not found. Using dummy data.")
+    p50_1, p75_1, p50_32, p75_32 = 100, 150, 200, 250
+    user_1, sys_1, iowait_1 = 10, 20, 5
+    user_32, sys_32, iowait_32 = 15, 25, 10
+
+# ==========================================
+# 2. 绘图设置
+# ==========================================
+
+fig = plt.figure(figsize=(11.5, 3))
+
+# --- 修改布局逻辑 ---
+# 使用嵌套 GridSpec 来实现右侧两图靠近的需求
+# 外层：将画布分为 [左侧, (中间+右侧)] 两部分
+# width_ratios=[1, 2.2]: 右侧区域稍微宽一点，因为它包含两个子图
+# wspace=0.5: 增加左侧图与右侧整体区域的间距
+gs_outer = fig.add_gridspec(1, 2, width_ratios=[1, 2.2], wspace=0.4)
+
+# 内层：在右侧区域内，分为 [中间, 右侧]
+# wspace=0.5: 增加间距，让中间图和右侧图之间有更多空间
+gs_inner = gs_outer[1].subgridspec(1, 2, width_ratios=[1, 1], wspace=0.65)
+
+# 创建 Axes
+ax1 = fig.add_subplot(gs_outer[0]) # 左图 (Throughput)
+ax2 = fig.add_subplot(gs_inner[0]) # 中图 (Latency)
+ax3 = fig.add_subplot(gs_inner[1]) # 右图 (CPU) - 高度将在后面手动调整
+
+# 通用样式变量
+common_width = 0.18       
+group_spacing = 0.45      
+
+# ----------------------------------------------------------------
+# --- 图 1: Throughput ---
+# ----------------------------------------------------------------
+x_tp = np.array([0, group_spacing]) 
+width_tp = common_width
+
+rects1 = ax1.bar(x_tp - width_tp/2, tp_values_32, width_tp, label='32', color=COLOR_32, zorder=2)
+rects2 = ax1.bar(x_tp + width_tp/2, tp_values_128, width_tp, label='128', color=COLOR_128, zorder=2)
+
+ax1.set_ylabel('Tput. (MB/s)', fontsize=TEXT_SIZE_XYLABEL)
+
+ax1.set_xticks(x_tp)
+ax1.set_xticklabels(tp_labels, fontsize=TEXT_SIZE_XYAXIS)
+ax1.set_yticklabels([0, 100, 200], fontsize=TEXT_SIZE_XYAXIS)
+ax1.set_ylim(0, 250)
+ax1.set_xlim(-0.3, group_spacing + 0.3)
+
+# 修改：去除X轴向下突出的刻度线 (保留文字)
+ax1.tick_params(axis='x', length=TICK_LENGTH_X, width=TICK_WIDTH_X)
+
+# Remove top and right spines
+ax1.spines['top'].set_visible(False)
+ax1.spines['right'].set_visible(False)
+
+for rect in rects1 + rects2:
+    height = rect.get_height()
+    ax1.text(rect.get_x() + rect.get_width()/2, height + 2,
+             f'{height}', ha='center', va='bottom', fontsize=TEXT_SIZE, rotation=90)
+
+# ----------------------------------------------------------------
+# --- 图 2: Latency ---
+# ----------------------------------------------------------------
+percentile_labels = ['P50', 'P75']
+x_lat = np.array([0, group_spacing]) 
+width_lat = common_width
+
+lat_1 = [p50_1, p75_1]
+lat_32 = [p50_32, p75_32]
+
+bars2_1 = ax2.bar(x_lat - width_lat/2, lat_1, width_lat, label='1',
+                  color=COLOR_1, zorder=2)
+bars2_32 = ax2.bar(x_lat + width_lat/2, lat_32, width_lat, label='32',
+                   color=COLOR_32, zorder=2)
+
+ax2.set_ylabel('Latency (us)', fontsize=TEXT_SIZE_XYLABEL)
+
+ax2.set_xticks(x_lat)
+ax2.set_xticklabels(percentile_labels, fontsize=TEXT_SIZE_XYAXIS)
+ax2.set_yticklabels([0, 500, 1000], fontsize=TEXT_SIZE_XYAXIS)
+ax2.set_ylim(0, 1100)
+ax2.set_xlim(-0.3, group_spacing + 0.3) 
+ax2.spines['top'].set_visible(False)
+ax2.spines['right'].set_visible(False)
+
+# 修改：去除X轴向下突出的刻度线
+ax2.tick_params(axis='x', length=TICK_LENGTH_X, width=TICK_WIDTH_X)
+
+for bars, values in [(bars2_1, lat_1), (bars2_32, lat_32)]:
+    for bar, value in zip(bars, values):
+        height = bar.get_height()
+        ax2.text(bar.get_x() + bar.get_width()/2., height + 10,
+                 f'{value:.0f}', ha='center', va='bottom', fontsize=TEXT_SIZE, rotation=90)
+
+# ----------------------------------------------------------------
+# --- 图 3: CPU Usage ---
+# ----------------------------------------------------------------
+cpu_categories = ['V=1', 'V=32']
+x_cpu = np.array([0, group_spacing]) 
+width_cpu = 0.3
+
+user_data = [user_1, user_32]
+sys_data = [sys_1, sys_32]
+iowait_data = [iowait_1, iowait_32]
+
+user_hatch = "///"
+kernel_hatch = "\\\\"
+iowait_hatch = "x"
+
+# Stacked Bar 1 (value=1) - using hatch instead of color
+ax3.bar(x_cpu[0], user_data[0], width_cpu, label='user',
+         hatch=user_hatch, zorder=2, edgecolor='black', linewidth=1, color="white")
+ax3.bar(x_cpu[0], sys_data[0], width_cpu, bottom=user_data[0],
+        label='kernel',  hatch=kernel_hatch, zorder=2, edgecolor='black', linewidth=1, color="white")
+ax3.bar(x_cpu[0], iowait_data[0], width_cpu, bottom=user_data[0] + sys_data[0],
+        label='iowait',  hatch=iowait_hatch, zorder=2, edgecolor='black', linewidth=1, color="white")
+
+# Stacked Bar 2 (value=32) - using hatch instead of color
+ax3.bar(x_cpu[1], user_data[1], width_cpu,
+         hatch=user_hatch, zorder=2, edgecolor='black', linewidth=1, color="white")
+ax3.bar(x_cpu[1], sys_data[1], width_cpu, bottom=user_data[1],
+         hatch=kernel_hatch, zorder=2, edgecolor='black', linewidth=1, color="white")
+ax3.bar(x_cpu[1], iowait_data[1], width_cpu, bottom=user_data[1] + sys_data[1],
+         hatch=iowait_hatch, zorder=2, edgecolor='black', linewidth=1, color="white")
+
+ax3.set_ylabel('CPU Usage (%)', fontsize=TEXT_SIZE_XYLABEL)
+ax3.set_xticks(x_cpu)
+ax3.set_xticklabels(cpu_categories, fontsize=TEXT_SIZE_XYAXIS)
+ax3.set_yticklabels([0, 50, 100], fontsize=TEXT_SIZE_XYAXIS)
+ax3.set_ylim(0, 100)
+ax3.set_xlim(-0.3, group_spacing + 0.3) 
+ax3.spines['top'].set_visible(False)
+ax3.spines['right'].set_visible(False)
+
+# 修改：去除X轴向下突出的刻度线
+ax3.tick_params(axis='x', length=TICK_LENGTH_X, width=TICK_WIDTH_X)
+
+# 数值标签 - using black text since background is white
+# for i, (user_val, sys_val, iowait_val) in enumerate(zip(user_data, sys_data, iowait_data)):
+#     pos = x_cpu[i]
+#     if user_val > 8:
+#         ax3.text(pos, user_val/2, f'{user_val:.0f}%', ha='center', va='center', color='black', fontweight='bold', fontsize=TEXT_SIZE)
+#     if sys_val > 8:
+#         ax3.text(pos, user_val + sys_val/2, f'{sys_val:.0f}%', ha='center', va='center', color='black', fontweight='bold', fontsize=TEXT_SIZE)
+#     if iowait_val > 8:
+#         ax3.text(pos, user_val + sys_val + iowait_val/2, f'{iowait_val:.0f}%', ha='center', va='center', color='black', fontweight='bold', fontsize=TEXT_SIZE)
+
+# ----------------------------------------------------------------
+# --- 统一 Legend (放置在顶部) ---
+# ----------------------------------------------------------------
+# 获取所有 axes 的 handle 和 label
+h1, l1 = ax1.get_legend_handles_labels()
+h2, l2 = ax2.get_legend_handles_labels()
+h3, l3 = ax3.get_legend_handles_labels()
+
+# 合并图例元素，包含 1, 32, 128 和 CPU 图例项
+# 需要确保顺序：1, 32, 128, user, kernel, iowait
+all_handles = []
+all_labels = []
+
+# 从 Latency 图获取 '1' 和 '32'
+for handle, label in zip(h2, l2):
+    if label == '1':
+        all_handles.append(handle)
+        all_labels.append('1')
+    elif label == '32':
+        all_handles.append(handle)
+        all_labels.append('32')
+
+# 从 Throughput 图获取 '32' 和 '128'，但 '32' 已存在，只添加 '128'
+for handle, label in zip(h1, l1):
+    if label == '128':
+        all_handles.append(handle)
+        all_labels.append('128')
+
+# 创建统一的图例，显示 1, 32, 128（不包含 user, kernel, iowait）
+# 32 变成 32 (default)
+all_labels[all_labels.index('32')] = '32 (default)'
+fig.legend(all_handles, all_labels, loc='upper center', bbox_to_anchor=(0.5, 1.1),
+           ncol=3, frameon=False, fontsize=TEXT_SIZE_LEGEND)
+
+# 为 ax3 单独创建图例，放在它的上方
+cpu_handles = []
+cpu_labels = []
+seen_cpu_labels = set()
+for handle, label in zip(h3, l3):
+    if label not in seen_cpu_labels:
+        cpu_handles.append(handle)
+        cpu_labels.append(label)
+        seen_cpu_labels.add(label)
+ax3.legend(cpu_handles, cpu_labels, loc='upper center', bbox_to_anchor=(0.49, 1.8),
+           ncol=1, frameon=False, fontsize=TEXT_SIZE_LEGEND)
+
+# 调整布局，rect 参数为图例留出顶部空间 [left, bottom, right, top]
+# 增加顶部空间从0.92到0.88，确保图例可见
+plt.tight_layout(rect=[0, 0, 1, 0.88])
+
+# 调整ax3的高度，让它比ax2更矮，但底部与ax1和ax2对齐
+ax1_bbox = ax1.get_position()
+ax2_bbox = ax2.get_position()
+ax3_bbox = ax3.get_position()
+# 让ax3的高度为ax2的70%，底部与ax1和ax2对齐
+height_ratio = 0.7
+new_height = ax2_bbox.height * height_ratio
+# 底部对齐：ax3的y0应该等于ax2的y0
+new_bottom = ax2_bbox.y0
+ax3.set_position([ax3_bbox.x0, new_bottom, ax3_bbox.width, new_height])
+
+# 在最左图和中间图之间画一条灰色实线
+# 获取两个 axes 的位置（在 tight_layout 之后）
+ax1_bbox = ax1.get_position()
+ax2_bbox = ax2.get_position()
+# 计算分隔线的 x 位置（两个图之间的中点）
+x_line = (ax1_bbox.x1 + ax2_bbox.x0) / 2 - 0.047
+# 使用 figure 坐标系统画线
+fig.add_artist(plt.Line2D([x_line, x_line], [ax1_bbox.y0-0.09, ax1_bbox.y1+0.04], 
+                          color='gray', linewidth=3, transform=fig.transFigure))
+
+SUBFIG_SPACE = 0.2
+SUBFIG_TEXT_SIZE =29
+
+# Add subplot labels in USENIX style (Times New Roman font)
+# Use matplotlib's textpath to measure text width accurately
+from matplotlib.textpath import TextPath
+from matplotlib import font_manager
+
+# Label for left subplot - centered below ax1
+ax1_bbox = ax1.get_position()
+label_x = ax1_bbox.x0 + ax1_bbox.width / 2  # Center of ax1
+label_y = ax1_bbox.y0 - SUBFIG_SPACE
+
+# Measure widths using TextPath
+prop = font_manager.FontProperties(family='Times New Roman', size=SUBFIG_TEXT_SIZE)
+# Measure the full text to get accurate total width
+path_a_full = TextPath((0, 0), '(a) FIO on HDD', prop=prop, size=SUBFIG_TEXT_SIZE)
+path_a_label = TextPath((0, 0), '(a) ', prop=prop, size=SUBFIG_TEXT_SIZE)
+bbox_a_full = path_a_full.get_extents()
+bbox_a_label = path_a_label.get_extents()
+total_width_a = bbox_a_full.width / fig.dpi / fig.get_figwidth()
+width_a_label = bbox_a_label.width / fig.dpi / fig.get_figwidth()
+
+# Draw "(a) " without bold - start from left edge of centered text
+fig.text(label_x - total_width_a-0.14, label_y + 0.01, '(a) ', 
+         ha='left', va='top', fontsize=SUBFIG_TEXT_SIZE, 
+         family='Times New Roman', weight='normal')
+# Draw "FIO on HDD" with bold - positioned right after "(a) "
+fig.text(label_x - total_width_a-0.14 + width_a_label+0.05, label_y, 'FIO on HDD', 
+         ha='left', va='top', fontsize=SUBFIG_TEXT_SIZE, 
+         family='Times New Roman', weight='bold')
+
+# Label for right two subplots - centered below ax2 and ax3
+ax2_bbox = ax2.get_position()
+ax3_bbox = ax3.get_position()
+# Calculate the center x position between ax2 and ax3
+center_x = (ax2_bbox.x0 + ax3_bbox.x1) / 2
+# Use the bottom of ax2 (or ax3, they should be aligned)
+bottom_y = ax2_bbox.y0 - SUBFIG_SPACE
+
+# Measure widths for "(b) RocksDB on NVMe SSD"
+# Measure the full text to get accurate total width
+path_b_full = TextPath((0, 0), '(b) RocksDB on NVMe SSD', prop=prop, size=SUBFIG_TEXT_SIZE)
+path_b_label = TextPath((0, 0), '(b) ', prop=prop, size=SUBFIG_TEXT_SIZE)
+bbox_b_full = path_b_full.get_extents()
+bbox_b_label = path_b_label.get_extents()
+total_width_b = bbox_b_full.width / fig.dpi / fig.get_figwidth()
+width_b_label = bbox_b_label.width / fig.dpi / fig.get_figwidth()
+
+# Draw "(b) " without bold - start from left edge of centered text
+fig.text(center_x - total_width_b - 0.22, bottom_y + 0.01, '(b) ', 
+         ha='left', va='top', fontsize=SUBFIG_TEXT_SIZE, 
+         family='Times New Roman', weight='normal')
+# Draw "RocksDB on NVMe SSD" with bold - positioned right after "(b) "
+fig.text(center_x - total_width_b- 0.22 + width_b_label+0.05, bottom_y, 'RocksDB on NVMe SSD', 
+         ha='left', va='top', fontsize=SUBFIG_TEXT_SIZE, 
+         family='Times New Roman', weight='bold')
+
+script_dir = os.path.dirname(os.path.abspath(__file__))
+plot_common.save_fig(script_dir, 'background')
+# plt.show()

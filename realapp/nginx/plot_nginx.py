@@ -2,10 +2,20 @@ import matplotlib.pyplot as plt
 import numpy as np
 import sys
 import os
+import seaborn as sns
 
 # Import plot_common for consistent styling
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 import plot_common
+
+# Unified color palette
+palette = sns.color_palette("mako")
+
+# Text sizes
+TEXT_SIZE_XLABEL = 18
+TEXT_SIZE_YLABEL = 18
+TEXT_SIZE_XYAXIS = 18
+TEXT_SIZE_LEGEND = 18
 
 def parse_histogram_file(file_path):
     """Parse HistogramLogProcessor output file"""
@@ -88,10 +98,10 @@ def plot_histogram_tail():
     }
 
     datasets = {
-        'Vanilla (20ms RTT)': (values_vanilla_20ms, percentiles_vanilla_20ms),
-        'Vanilla (80ms RTT)': (values_vanilla_80ms, percentiles_vanilla_80ms),
-        'Adaptive SF (20ms RTT)': (values_xkernel_20ms, percentiles_xkernel_20ms),
-        'Adaptive SF (80ms RTT)': (values_xkernel_80ms, percentiles_xkernel_80ms),
+        'Vanilla (20ms)': (values_vanilla_20ms, percentiles_vanilla_20ms),
+        'Vanilla (80ms)': (values_vanilla_80ms, percentiles_vanilla_80ms),
+        'Adaptive SF (20ms)': (values_xkernel_20ms, percentiles_xkernel_20ms),
+        'Adaptive SF (80ms)': (values_xkernel_80ms, percentiles_xkernel_80ms),
     }
 
     print("\n=== Tail Latency (FCT in seconds) ===")
@@ -122,7 +132,7 @@ def plot_histogram_tail():
     x_xkernel_80ms, y_xkernel_80ms = apply_mask(values_xkernel_80ms, percentiles_xkernel_80ms, inv_p_xkernel_80ms, p9999_inv_p_max)
 
     # Create figure with two subplots
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(8, 6))
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(8, 5))
     
     # Top subplot: Static - up to p99.999 (three 9s)
     ax1.set_xscale('log')
@@ -138,35 +148,37 @@ def plot_histogram_tail():
     static_key_inv_p = [1.0, 10.0, 100.0, 1000.0, 10000.0, 100000.0]
     static_key_labels = ['0', 'p90', 'p99', 'p99.9', 'p99.99', 'p99.999']
     ax1.set_xticks(static_key_inv_p)
-    ax1.set_xticklabels(static_key_labels)  # Show x-axis labels for top subplot
+    ax1.set_xticklabels(static_key_labels, fontsize=TEXT_SIZE_XYAXIS)  # Show x-axis labels for top subplot
     
     static_y_ticks = np.arange(0, 13, 4)
     ax1.set_yticks(static_y_ticks)
     ax1.set_ylim([0, 12])
+    ax1.tick_params(axis='both', labelsize=TEXT_SIZE_XYAXIS)
     
     # Plot static data
+    # SF=3: deep color (palette[4] for 20ms, palette[5] for 80ms)
+    # SF=1: light color (palette[0] for 20ms, palette[1] for 80ms)
     if len(static_x_vanilla_20ms) > 0 and len(static_y_vanilla_20ms) > 0:
         ax1.plot(static_x_vanilla_20ms, static_y_vanilla_20ms, 
-                color=plot_common.colors[2], linewidth=2, label='SF=3 (20ms RTT)', zorder=2, marker=plot_common.markers[0], markersize=8, markevery=10)
+                color=palette[3], linewidth=2, label='SF=3 (20ms)', zorder=2, marker=plot_common.markers[0], markersize=8, markevery=5)
     if len(static_x_xkernel_20ms) > 0 and len(static_y_xkernel_20ms) > 0:
         ax1.plot(static_x_xkernel_20ms, static_y_xkernel_20ms, 
-                color=plot_common.colors[2], linestyle='--', linewidth=2, label='SF=1 (20ms RTT)', zorder=2, marker=plot_common.markers[1], markersize=8, markevery=10)
+                color=palette[0], linestyle='--', linewidth=2, label='SF=1 (20ms)', zorder=2, marker=plot_common.markers[2], markersize=8, markevery=5)
     if len(static_x_vanilla_80ms) > 0 and len(static_y_vanilla_80ms) > 0:
         ax1.plot(static_x_vanilla_80ms, static_y_vanilla_80ms, 
-                color=plot_common.colors[4], linewidth=2, label='SF=3 (80ms RTT)', zorder=2, marker=plot_common.markers[0], markersize=8, markevery=10)
+                color=palette[4], linewidth=2, label='SF=3 (80ms)', zorder=2, marker=plot_common.markers[0], markersize=8, markevery=5)
     if len(static_x_xkernel_80ms) > 0 and len(static_y_xkernel_80ms) > 0:
         ax1.plot(static_x_xkernel_80ms, static_y_xkernel_80ms, 
-                color=plot_common.colors[4], linestyle='--', linewidth=2, label='SF=1 (80ms RTT)', zorder=2, marker=plot_common.markers[1], markersize=8, markevery=10)
+                color=palette[1], linestyle='--', linewidth=2, label='SF=1 (80ms)', zorder=2, marker=plot_common.markers[2], markersize=8, markevery=5)
     
     # No xlabel for top subplot
     ax1.set_xlabel('')
-    ax1.set_ylabel('FCT (ms)')
+    ax1.set_ylabel('FCT (ms)', fontsize=TEXT_SIZE_YLABEL)
     ax1.grid(True, alpha=0.3, axis='y', linestyle='--', zorder=0)
     ax1.spines['top'].set_visible(False)
     ax1.spines['right'].set_visible(False)
     ax1.spines['left'].set_linewidth(1)
     ax1.spines['bottom'].set_linewidth(1)
-    ax1.legend(loc='best', frameon=True, facecolor='white', framealpha=1.0, fontsize=16)
     
     # Bottom subplot: Adaptive
     ax2.set_xscale('log')
@@ -182,37 +194,77 @@ def plot_histogram_tail():
     key_inv_p = [1.0, 10.0, 100.0, 1000.0, 10000.0]
     key_labels = ['0', 'p90', 'p99', 'p99.9', 'p99.99']
     ax2.set_xticks(key_inv_p)
-    ax2.set_xticklabels(key_labels)
+    ax2.set_xticklabels(key_labels, fontsize=TEXT_SIZE_XYAXIS)
     
     # Set y-ticks: every 20ms
     y_ticks = np.arange(0, y_max + 20, 20)
     ax2.set_yticks(y_ticks)
+    ax2.tick_params(axis='both', labelsize=TEXT_SIZE_XYAXIS)
     
     # Plot data - ensure we have data points
+    # SF=3: deep color (palette[4] for 20ms, palette[5] for 80ms)
+    # Adaptive SF: medium color (palette[2] for 20ms, palette[3] for 80ms)
     if len(x_vanilla_20ms) > 0 and len(y_vanilla_20ms) > 0:
         ax2.plot(x_vanilla_20ms, y_vanilla_20ms, 
-                color=plot_common.colors[2], linewidth=2, label='SF=3 (20ms RTT)', zorder=2, marker=plot_common.markers[0], markersize=8, markevery=10)
+                color=palette[3], linewidth=2, label='SF=3 (20ms)', zorder=2, marker=plot_common.markers[0], markersize=8, markevery=5)
     if len(x_xkernel_20ms) > 0 and len(y_xkernel_20ms) > 0:
         ax2.plot(x_xkernel_20ms, y_xkernel_20ms, 
-                color=plot_common.colors[2], linestyle='--', linewidth=2, label='Adaptive SF (20ms RTT)', zorder=2, marker=plot_common.markers[1], markersize=8, markevery=10)
+                color=palette[2], linestyle='--', linewidth=2, label='Adaptive SF (20ms)', zorder=2, marker=plot_common.markers[1], markersize=8, markevery=5)
     if len(x_vanilla_80ms) > 0 and len(y_vanilla_80ms) > 0:
         ax2.plot(x_vanilla_80ms, y_vanilla_80ms, 
-                color=plot_common.colors[4], linewidth=2, label='SF=3 (80ms RTT)', zorder=2, marker=plot_common.markers[0], markersize=8, markevery=10)
+                color=palette[4], linewidth=2, label='SF=3 (80ms)', zorder=2, marker=plot_common.markers[0], markersize=8, markevery=5)
     if len(x_xkernel_80ms) > 0 and len(y_xkernel_80ms) > 0:
         ax2.plot(x_xkernel_80ms, y_xkernel_80ms, 
-                color=plot_common.colors[4], linestyle='--', linewidth=2, label='Adaptive SF (80ms RTT)', zorder=2, marker=plot_common.markers[1], markersize=8, markevery=10)
+                color=palette[3], linestyle='--', linewidth=2, label='Adaptive SF (80ms)', zorder=2, marker=plot_common.markers[1], markersize=8, markevery=5)
     
-    ax2.set_xlabel('Percentile')
-    ax2.set_ylabel('FCT (ms)')
+    ax2.set_xlabel('Percentile', fontsize=TEXT_SIZE_XLABEL)
+    ax2.set_ylabel('FCT (ms)', fontsize=TEXT_SIZE_YLABEL)
     ax2.grid(True, alpha=0.3, axis='y', linestyle='--', zorder=0)
     ax2.spines['top'].set_visible(False)
     ax2.spines['right'].set_visible(False)
     ax2.spines['left'].set_linewidth(1)
     ax2.spines['bottom'].set_linewidth(1)
-    ax2.legend(loc='best', frameon=True, facecolor='white', framealpha=1.0, fontsize=16)
+    
+    # Combine legends from both subplots and place at the top
+    handles1, labels1 = ax1.get_legend_handles_labels()
+    handles2, labels2 = ax2.get_legend_handles_labels()
+    
+    # Create a mapping from label to handle (prefer ax2 for Adaptive SF labels)
+    label_to_handle = {}
+    for handle, label in zip(handles1, labels1):
+        label_to_handle[label] = handle
+    for handle, label in zip(handles2, labels2):
+        label_to_handle[label] = handle
+    
+    # Arrange in specified order for ncol=3:
+    # Column 1: SF=3 (20ms), SF=3 (80ms)
+    # Column 2: Adaptive SF (20ms), Adaptive SF (80ms)
+    # Column 3: SF=1 (20ms), SF=1 (80ms)
+    # For ncol=3, matplotlib fills row by row, so order is:
+    # Row 1: [col1_row1, col2_row1, col3_row1]
+    # Row 2: [col1_row2, col2_row2, col3_row2]
+    ordered_labels = [
+        'SF=3 (20ms)',        # Column 1, Row 1
+        'SF=3 (80ms)',        # Column 1, Row 2
+        'Adaptive SF (80ms)', # Column 2, Row 2
+        'Adaptive SF (20ms)', # Column 2, Row 1
+        'SF=1 (20ms)',        # Column 3, Row 1
+        'SF=1 (80ms)'         # Column 3, Row 2
+    ]
+    
+    all_handles = []
+    all_labels = []
+    for label in ordered_labels:
+        if label in label_to_handle:
+            all_handles.append(label_to_handle[label])
+            all_labels.append(label)
+    
+    # Create unified legend at the top
+    fig.legend(all_handles, all_labels, loc='upper center', bbox_to_anchor=(0.5, 1.1), 
+               ncol=3, frameon=False, fontsize=TEXT_SIZE_LEGEND)
     
     plt.tight_layout()
-    plt.subplots_adjust(hspace=0.25)
+    plt.subplots_adjust(hspace=0.4, top=0.92)
     plot_common.save_fig(script_dir, 'nginx_tail')
     plt.close()
     
