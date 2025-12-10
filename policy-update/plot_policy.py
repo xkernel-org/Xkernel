@@ -163,7 +163,7 @@ for idx, cat in enumerate(all_categories):
                     y_pos = bar.get_height() / 20
                 else:
                     y_pos = bar.get_height() / 2
-                text_color = 'lightgray'
+                text_color = 'white'
                 va_align = 'center'
             else:
                 y_pos = bar.get_height()
