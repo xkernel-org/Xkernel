@@ -1,0 +1,98 @@
+No kprobe:
+
+(base) yltang@node-0:~/Xkernel/Experiment/mm/nr_max_batched_migration/scripts$ ./run-high.sh
+Mapping 2097152 pages (8192.000 MiB), src=1 dst=0, workers=24, migrates=2, batch=8192, hot=20% p=80% rotate=1s, step=full, drain=0, only-src=1, restat=1
+[start] residency: node0=0 node1=2097152
+[end] residency: node0=836722 node1=1260430
+=== Results ===
+Total ops: 655748970
+Query throughput: 21858299.00 ops/s
+Migration calls: 198
+Avg migration latency: 46.423 ms
+Per-successful-page latency: 10.780 us/page
+Pages migrated (succ/fail): 852681 / 356776
+Page migration throughput: 28422.70 pages/s
+QPS window (10 ms): min=10628700.00 p50=22619200.00 p90=22827340.00 p95=22857080.00 p99=22898012.00 max=22972700.00 ops/s (n=2969)
+Probe latency (N=2000 ops): min=343.26 p50=520.11 p90=587.88 p95=1622.81 p99=6614.17 max=13766.55 us (n=574)
+
+(base) yltang@node-0:~/Xkernel/Experiment/mm/nr_max_batched_migration/scripts$ ./run-high.sh
+Mapping 2097152 pages (8192.000 MiB), src=1 dst=0, workers=24, migrates=2, batch=8192, hot=20% p=80% rotate=1s, step=full, drain=0, only-src=1, restat=1
+[start] residency: node0=0 node1=2097152
+[end] residency: node0=845649 node1=1251503
+=== Results ===
+Total ops: 651556066
+Query throughput: 21718535.53 ops/s
+Migration calls: 201
+Avg migration latency: 46.400 ms
+Per-successful-page latency: 10.781 us/page
+Pages migrated (succ/fail): 865048 / 355673
+Page migration throughput: 28834.93 pages/s
+QPS window (10 ms): min=15205600.00 p50=22402600.00 p90=22573120.00 p95=22597620.00 p99=22630696.00 max=22668000.00 ops/s (n=2969)
+Probe latency (N=2000 ops): min=353.76 p50=520.70 p90=823.55 p95=3260.67 p99=7413.23 max=9960.95 us (n=574)
+
+(base) yltang@node-0:~/Xkernel/Experiment/mm/nr_max_batched_migration/scripts$ ./run-high.sh
+Mapping 2097152 pages (8192.000 MiB), src=1 dst=0, workers=24, migrates=2, batch=8192, hot=20% p=80% rotate=1s, step=full, drain=0, only-src=1, restat=1
+[start] residency: node0=0 node1=2097152
+[end] residency: node0=856128 node1=1241024
+=== Results ===
+Total ops: 650737675
+Query throughput: 21691255.83 ops/s
+Migration calls: 201
+Avg migration latency: 46.206 ms
+Per-successful-page latency: 10.637 us/page
+Pages migrated (succ/fail): 873157 / 363872
+Page migration throughput: 29105.23 pages/s
+QPS window (10 ms): min=14800600.00 p50=22414050.00 p90=22587030.00 p95=22607430.00 p99=22636966.00 max=22674800.00 ops/s (n=2968)
+Probe latency (N=2000 ops): min=363.02 p50=518.86 p90=896.83 p95=3086.70 p99=8101.81 max=10970.01 us (n=573)
+
+With kprobe:
+
+(base) yltang@node-0:~/Xkernel/Experiment/mm/nr_max_batched_migration/scripts$ ./run-high.sh
+Mapping 2097152 pages (8192.000 MiB), src=1 dst=0, workers=24, migrates=2, batch=8192, hot=20% p=80% rotate=1s, step=full, drain=0, only-src=1, restat=1
+[start] residency: node0=0 node1=2097152
+[end] residency: node0=861913 node1=1235239
+=== Results ===
+Total ops: 631946084
+Query throughput: 21064869.47 ops/s
+Migration calls: 201
+Avg migration latency: 49.764 ms
+Per-successful-page latency: 11.404 us/page
+Pages migrated (succ/fail): 877098 / 374978
+Page migration throughput: 29236.60 pages/s
+QPS window (10 ms): min=14796200.00 p50=21603200.00 p90=21781560.00 p95=21820530.00 p99=21896215.00 max=22027400.00 ops/s (n=2978)
+Probe latency (N=2000 ops): min=350.29 p50=461.07 p90=520.45 p95=1728.65 p99=6147.98 max=11317.95 us (n=577)
+
+(base) yltang@node-0:~/Xkernel/Experiment/mm/nr_max_batched_migration/scripts$ ./run-high.sh
+Mapping 2097152 pages (8192.000 MiB), src=1 dst=0, workers=24, migrates=2, batch=8192, hot=20% p=80% rotate=1s, step=full, drain=0, only-src=1, restat=1
+[start] residency: node0=0 node1=2097152
+[end] residency: node0=834810 node1=1262342
+=== Results ===
+Total ops: 643681277
+Query throughput: 21456042.57 ops/s
+Migration calls: 196
+Avg migration latency: 49.195 ms
+Per-successful-page latency: 11.337 us/page
+Pages migrated (succ/fail): 850547 / 346682
+Page migration throughput: 28351.57 pages/s
+QPS window (10 ms): min=15794200.00 p50=21972600.00 p90=22149060.00 p95=22187320.00 p99=22263698.00 max=22372000.00 ops/s (n=2979)
+Probe latency (N=2000 ops): min=331.76 p50=448.04 p90=502.10 p95=1542.71 p99=6479.85 max=11056.28 us (n=577)
+
+(base) yltang@node-0:~/Xkernel/Experiment/mm/nr_max_batched_migration/scripts$ ./run-high.sh
+Mapping 2097152 pages (8192.000 MiB), src=1 dst=0, workers=24, migrates=2, batch=8192, hot=20% p=80% rotate=1s, step=full, drain=0, only-src=1, restat=1
+[start] residency: node0=0 node1=2097152
+[end] residency: node0=839450 node1=1257702
+=== Results ===
+Total ops: 653194020
+Query throughput: 21773134.00 ops/s
+Migration calls: 193
+Avg migration latency: 50.036 ms
+Per-successful-page latency: 11.290 us/page
+Pages migrated (succ/fail): 855351 / 335090
+Page migration throughput: 28511.70 pages/s
+QPS window (10 ms): min=14671600.00 p50=22370600.00 p90=22571720.00 p95=22621190.00 p99=22692710.00 max=22798000.00 ops/s (n=2979)
+Probe latency (N=2000 ops): min=315.95 p50=448.56 p90=501.30 p95=1941.62 p99=4908.11 max=7461.93 us (n=577)
+(base) yltang@node-0:~/Xkernel/Experiment/mm/nr_max_batched_migration/scripts$ 
+
+Overhead(based on change of `Query throughput`):
+(21858299 + 21718535 + 21691255) - (21064869 + 21456042 + 21773134) / (21858299 + 21718535 + 21691255)
+= 0.014924 =  1.5%

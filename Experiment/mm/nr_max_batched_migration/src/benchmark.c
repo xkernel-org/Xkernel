@@ -34,6 +34,7 @@ typedef struct {
     int hot_rotate_sec;         // Hot window rotation period (seconds), 0=no rotation
     int verify_residency;       // Print page residency distribution at start/end
     int use_move_all;           // Use MPOL_MF_MOVE_ALL (requires CAP_SYS_NICE)
+    unsigned long target_ops;   // 
 
     // === Migration Strategy Enhancements ===
     int rotate_step_full;       // Rotation step size: 1=full window width, 0=1/4 window
@@ -77,6 +78,7 @@ static Config CFG = {
     .qps_sample_ms = 10,
     .probe_ops = 0,
     .probe_period_ms = 50,
+    .target_ops = 0, 
 };
 
 static size_t PAGE_SZ;
@@ -501,6 +503,7 @@ static int parse_args(int argc, char **argv) {
         else if (!strcmp(argv[i], "--probe") && i+2<argc) { CFG.probe_ops = atoi(argv[++i]); CFG.probe_period_ms = atoi(argv[++i]); }
         else if (!strcmp(argv[i], "--move-all")) CFG.use_move_all = 1;
         else if (!strcmp(argv[i], "--no-verify")) CFG.verify_residency = 0;
+        else if (!strcmp(argv[i], "--ops") && i+1<argc) CFG.target_ops = atol(argv[++i]);
         else { usage(argv[0]); return -1; }
     }
     if (CFG.pages <= 0) CFG.pages = 1;
@@ -568,9 +571,20 @@ int main(int argc, char **argv) {
     // 6) Run until duration ends
     uint64_t t0 = nsec_now();
     while (1) {
-        sleep(1);
-        uint64_t dt = (nsec_now() - t0) / 1000000000ull;
-        if ((int)dt >= CFG.duration_sec) break;
+        usleep(10000); // 10ms check interval 
+        
+        // Fixed Workload
+        if (CFG.target_ops > 0) {
+            unsigned long current_ops = atomic_load(&WSTAT.ops);
+            if (current_ops >= CFG.target_ops) {
+                break;
+            }
+        } 
+        // Fixed Time
+        else {
+            uint64_t dt = (nsec_now() - t0) / 1000000000ull;
+            if ((int)dt >= CFG.duration_sec) break;
+        }
     }
     STOP = 1;
 

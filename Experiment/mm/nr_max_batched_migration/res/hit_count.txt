@@ -1,0 +1,227 @@
+batch = 1024
+(base) yltang@node-0:~$ sudo bpftool map lookup id 105 key 0 0 0 0 -p
+{
+    "key": ["0x00","0x00","0x00","0x00"
+    ],
+    "value": ["0xe3","0x57","0x0d","0x00","0x00","0x00","0x00","0x00"
+    ],
+    "formatted": {
+        "key": 0,
+        "value": 874467
+    }
+}
+
+(base) yltang@node-0:~$ sudo bpftool map lookup id 170 key 0 0 0 0 -p
+{
+    "key": ["0x00","0x00","0x00","0x00"
+    ],
+    "value": ["0xaa","0x3a","0x0d","0x00","0x00","0x00","0x00","0x00"
+    ],
+    "formatted": {
+        "key": 0,
+        "value": 866986
+    }
+}
+
+(base) yltang@node-0:~$ sudo bpftool map lookup id 183 key 0 0 0 0 -p
+{
+    "key": ["0x00","0x00","0x00","0x00"
+    ],
+    "value": ["0x55","0x7c","0x0d","0x00","0x00","0x00","0x00","0x00"
+    ],
+    "formatted": {
+        "key": 0,
+        "value": 883797
+    }
+}
+avg: 875083
+
+batch = 512
+(base) yltang@node-0:~$ sudo bpftool map lookup id 122 key 0 0 0 0 -p
+{
+    "key": ["0x00","0x00","0x00","0x00"
+    ],
+    "value": ["0xc8","0x1a","0x0d","0x00","0x00","0x00","0x00","0x00"
+    ],
+    "formatted": {
+        "key": 0,
+        "value": 858824
+    }
+}
+
+(base) yltang@node-0:~$ sudo bpftool map lookup id 135 key 0 0 0 0 -p
+{
+    "key": ["0x00","0x00","0x00","0x00"
+    ],
+    "value": ["0x5f","0x44","0x0c","0x00","0x00","0x00","0x00","0x00"
+    ],
+    "formatted": {
+        "key": 0,
+        "value": 803935
+    }
+}
+
+(base) yltang@node-0:~$ sudo bpftool map lookup id 148 key 0 0 0 0 -p
+{
+    "key": ["0x00","0x00","0x00","0x00"
+    ],
+    "value": ["0xa0","0xad","0x0c","0x00","0x00","0x00","0x00","0x00"
+    ],
+    "formatted": {
+        "key": 0,
+        "value": 830880
+    }
+}
+avg: 831219
+
+batch = 256
+(base) yltang@node-0:~$ sudo bpftool map lookup id 196 key 0 0 0 0 -p
+{
+    "key": ["0x00","0x00","0x00","0x00"
+    ],
+    "value": ["0xbd","0xae","0x0c","0x00","0x00","0x00","0x00","0x00"
+    ],
+    "formatted": {
+        "key": 0,
+        "value": 831165
+    }
+}
+
+(base) yltang@node-0:~$ sudo bpftool map lookup id 209 key 0 0 0 0 -p
+{
+    "key": ["0x00","0x00","0x00","0x00"
+    ],
+    "value": ["0x0a","0x93","0x0c","0x00","0x00","0x00","0x00","0x00"
+    ],
+    "formatted": {
+        "key": 0,
+        "value": 824074
+    }
+}
+
+(base) yltang@node-0:~$ sudo bpftool map lookup id 222 key 0 0 0 0 -p
+{
+    "key": ["0x00","0x00","0x00","0x00"
+    ],
+    "value": ["0xef","0x55","0x0c","0x00","0x00","0x00","0x00","0x00"
+    ],
+    "formatted": {
+        "key": 0,
+        "value": 808431
+    }
+}
+avg: 821223
+
+batch = 128
+(base) yltang@node-0:~$ sudo bpftool map lookup id 235 key 0 0 0 0 -p
+{
+    "key": ["0x00","0x00","0x00","0x00"
+    ],
+    "value": ["0x9a","0x31","0x0c","0x00","0x00","0x00","0x00","0x00"
+    ],
+    "formatted": {
+        "key": 0,
+        "value": 799130
+    }
+}
+
+(base) yltang@node-0:~$ sudo bpftool map lookup id 248 key 0 0 0 0 -p
+{
+    "key": ["0x00","0x00","0x00","0x00"
+    ],
+    "value": ["0xdd","0x59","0x0c","0x00","0x00","0x00","0x00","0x00"
+    ],
+    "formatted": {
+        "key": 0,
+        "value": 809437
+    }
+}
+
+(base) yltang@node-0:~$ sudo bpftool map lookup id 261 key 0 0 0 0 -p
+{
+    "key": ["0x00","0x00","0x00","0x00"
+    ],
+    "value": ["0x1d","0x3b","0x0b","0x00","0x00","0x00","0x00","0x00"
+    ],
+    "formatted": {
+        "key": 0,
+        "value": 736029
+    }
+}
+avg: 781532
+
+batch = 64
+(base) yltang@node-0:~$ sudo bpftool map lookup id 274 key 0 0 0 0 -p
+{
+    "key": ["0x00","0x00","0x00","0x00"
+    ],
+    "value": ["0xc8","0xbf","0x0b","0x00","0x00","0x00","0x00","0x00"
+    ],
+    "formatted": {
+        "key": 0,
+        "value": 769992
+    }
+}
+
+(base) yltang@node-0:~$ sudo bpftool map lookup id 287 key 0 0 0 0 -p
+{
+    "key": ["0x00","0x00","0x00","0x00"
+    ],
+    "value": ["0xd5","0x57","0x0b","0x00","0x00","0x00","0x00","0x00"
+    ],
+    "formatted": {
+        "key": 0,
+        "value": 743381
+    }
+}
+
+(base) yltang@node-0:~$ sudo bpftool map lookup id 300 key 0 0 0 0 -p
+{
+    "key": ["0x00","0x00","0x00","0x00"
+    ],
+    "value": ["0xea","0x30","0x0c","0x00","0x00","0x00","0x00","0x00"
+    ],
+    "formatted": {
+        "key": 0,
+        "value": 798954
+    }
+}
+avg: 770776
+
+batch = 32
+(base) yltang@node-0:~$ sudo bpftool map lookup id 313 key 0 0 0 0 -p
+{
+    "key": ["0x00","0x00","0x00","0x00"
+    ],
+    "value": ["0x0e","0x6d","0x0b","0x00","0x00","0x00","0x00","0x00"
+    ],
+    "formatted": {
+        "key": 0,
+        "value": 748814
+    }
+}
+
+(base) yltang@node-0:~$ sudo bpftool map lookup id 326 key 0 0 0 0 -p
+{
+    "key": ["0x00","0x00","0x00","0x00"
+    ],
+    "value": ["0x3f","0x55","0x0b","0x00","0x00","0x00","0x00","0x00"
+    ],
+    "formatted": {
+        "key": 0,
+        "value": 742719
+    }
+}
+
+(base) yltang@node-0:~$ sudo bpftool map lookup id 335 key 0 0 0 0 -p
+{
+    "key": ["0x00","0x00","0x00","0x00"
+    ],
+    "value": ["0xe8","0xe5","0x0b","0x00","0x00","0x00","0x00","0x00"
+    ],
+    "formatted": {
+        "key": 0,
+        "value": 779752
+    }
+}
+avg: 757095
