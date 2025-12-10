@@ -14,7 +14,7 @@ import plot_common
 # Unified font sizes
 TEXT_SIZE_XYLABEL = 18
 TEXT_SIZE_XYAXIS = 18
-TEXT_SIZE_TITLE = 17.5
+TEXT_SIZE_TITLE = 17
 TEXT_SIZE_TEXT = 18
 
 # File paths
@@ -101,7 +101,7 @@ category_data['Sum'][2] = round(category_data['Sum'][2])
 
 # 3. Plotting
 # [修改1] 进一步压缩整体宽度
-fig, axes = plt.subplots(1, 4, figsize=(8, 2.5))
+fig, axes = plt.subplots(1, 4, figsize=(8, 2))
 
 palette = sns.color_palette("mako")
 colors = [palette[5], palette[3], palette[2]]
@@ -123,7 +123,7 @@ for idx, cat in enumerate(all_categories):
     else:
         ax.set_ylabel('')
         
-    ax.set_title(cat, fontsize=TEXT_SIZE_TITLE, pad=35)  # Negative pad moves title upward
+    ax.set_title(cat, fontsize=TEXT_SIZE_TITLE, pad=10)  # Negative pad moves title upward
     ax.set_xticks(x)
     
     # [修改2] 旋转X轴标签 90度
@@ -153,11 +153,40 @@ for idx, cat in enumerate(all_categories):
             else:
                 val_str = f'{val:.1f}'
             # [修改3] 旋转数值标签 90度
-            y_pos = bar.get_height()
+            # For the last bar, place label inside with light gray color
+            is_last_bar = (i == len(bars) - 1)
+            if is_last_bar:
+                # For last two subplots (idx >= 2), place label lower
+                if idx == 3:
+                    y_pos = bar.get_height() / 16
+                elif idx == 2:
+                    y_pos = bar.get_height() / 20
+                else:
+                    y_pos = bar.get_height() / 2
+                text_color = 'lightgray'
+                va_align = 'center'
+            else:
+                y_pos = bar.get_height()
+                text_color = 'black'
+                va_align = 'bottom'
             ax.text(bar.get_x() + bar.get_width()/2, y_pos,
                    val_str,
-                   ha='center', va='bottom', rotation=90,
-                   fontsize=TEXT_SIZE_TEXT, fontweight='bold')
+                   ha='center', va=va_align, rotation=90,
+                   fontsize=TEXT_SIZE_TEXT, fontweight='bold',
+                   color=text_color)
+    
+    # Set y-axis ticks for first two subplots
+    if idx == 0:
+        ax.set_yticks([0, 2.5, 5])
+        # Format y-axis labels: 0 as integer, others as one decimal
+        def format_func(x, pos):
+            if x == 0:
+                return '0'
+            else:
+                return f'{x:.1f}'
+        ax.yaxis.set_major_formatter(FuncFormatter(format_func))
+    elif idx == 1:
+        ax.set_yticks([0, 5, 10])
 
 # [修改4] 调整布局参数，进一步压缩宽度
 plt.tight_layout(pad=0.2, w_pad=0.1, h_pad=0.5)

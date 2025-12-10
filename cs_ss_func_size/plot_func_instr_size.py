@@ -13,9 +13,9 @@ import plot_common
 palette = sns.color_palette("mako")
 
 # Text sizes
-TEXT_SIZE_XYLABEL = 18
-TEXT_SIZE_XYAXIS = 18
-TEXT_SIZE_LEGEND = 18
+TEXT_SIZE_XYLABEL = 20
+TEXT_SIZE_XYAXIS = 20
+TEXT_SIZE_LEGEND = 20
 
 def parse_func_instr_size_data(file_path):
     """Parse function instruction size data from file"""
@@ -71,7 +71,7 @@ cs_sorted, cs_cdf = calculate_cdf(cs_data)
 ss_sorted, ss_cdf = calculate_cdf(ss_data)
 
 # 3. Plot all CDFs on the same figure
-fig, ax = plt.subplots(figsize=(8, 4))
+fig, ax = plt.subplots(figsize=(8, 2.95))
 
 ax.plot(cs_sorted, cs_cdf * 100, color=palette[4], linewidth=2.5, label='Critical Span', zorder=2)
 ax.plot(ss_sorted, ss_cdf * 100, color=palette[2], linewidth=2.5, label='Safe Span', zorder=2)
