@@ -69,6 +69,12 @@ xkernel_data = parse_xkernel_data(xkernel_file)
 linux_klp_sorted, linux_klp_cdf = calculate_cdf(linux_klp_data)
 xkernel_sorted, xkernel_cdf = calculate_cdf(xkernel_data)
 
+# Calculate and print P50 (median) for both datasets
+linux_klp_p50 = np.median(linux_klp_data)
+xkernel_p50 = np.median(xkernel_data)
+print(f'Linux KLP P50: {linux_klp_p50:.2f} μs')
+print(f'Xkernel P50: {xkernel_p50:.2f} μs')
+
 # 3. Plot both CDFs on the same figure
 fig, ax = plt.subplots(figsize=(9.5, 4))
 
@@ -105,6 +111,28 @@ ax.annotate('load time: 2.7ms', xy=(2650, 0.9), xytext=(2750 * 1.5, 0.9),
 ax.annotate('load time: 24ms', xy=(24000, 0.9), xytext=(24000 * 1.5, 0.9),
             arrowprops=dict(arrowstyle='->', color=palette[1], lw=1.5),
             fontsize=TEXT_SIZE_ANNOTATE, color=palette[1], ha='left', va='center')
+
+# Add vertical dashed lines and arrows for P50 values
+ax.axvline(x=linux_klp_p50, color=palette[1], linestyle=':', linewidth=2, alpha=0.7, zorder=1)
+ax.axvline(x=xkernel_p50, color=palette[3], linestyle=':', linewidth=2, alpha=0.7, zorder=1)
+
+# Add arrows and text for P50 values
+# Format P50 text: convert to ms if >= 1000, otherwise keep as μs
+if linux_klp_p50 >= 1000:
+    linux_klp_p50_text = f'P50: {linux_klp_p50/1000:.1f}ms'
+else:
+    linux_klp_p50_text = f'P50: {linux_klp_p50:.1f}μs'
+ax.annotate(linux_klp_p50_text, xy=(linux_klp_p50, 0.5), xytext=(linux_klp_p50 * 1.5, 0.5),
+            arrowprops=dict(arrowstyle='->', color=palette[1], lw=1.5),
+            fontsize=TEXT_SIZE_ANNOTATE, color=palette[1], ha='left', va='center')
+
+if xkernel_p50 >= 1000:
+    xkernel_p50_text = f'P50: {xkernel_p50/1000:.1f}ms'
+else:
+    xkernel_p50_text = f'P50: {xkernel_p50:.1f}μs'
+ax.annotate(xkernel_p50_text, xy=(xkernel_p50, 0.5), xytext=(xkernel_p50 * 1.5, 0.5),
+            arrowprops=dict(arrowstyle='->', color=palette[3], lw=1.5),
+            fontsize=TEXT_SIZE_ANNOTATE, color=palette[3], ha='left', va='center')
 
 # Remove top and right spines
 ax.spines['top'].set_visible(False)

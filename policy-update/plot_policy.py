@@ -82,7 +82,8 @@ data_15['JMP Optimization'] = data_15['JMP-Prepare'] + data_15['JMP-Apply']
 
 categories = ['BPF verify', 'JMP Optimization', 'Kprobe Register']
 # x_labels = ['1 SS-Best', '1 SS-Worst', '15 SS-Worst']
-x_labels = ['C1', 'C2', 'C3']
+x_labels = ['1 SS\nBest', '1 SS\nWorst', '15 SS\nWorst']
+# x_labels = ['C1', 'C2', 'C3']
 
 category_data = {}
 for cat in categories:
@@ -101,7 +102,7 @@ category_data['Sum'][2] = round(category_data['Sum'][2])
 
 # 3. Plotting
 # [修改1] 进一步压缩整体宽度
-fig, axes = plt.subplots(1, 4, figsize=(8, 2))
+fig, axes = plt.subplots(1, 4, figsize=(12, 2.5))
 
 palette = sns.color_palette("mako")
 colors = [palette[5], palette[3], palette[2]]

@@ -62,7 +62,7 @@ for case_name in cases:
                         }
 
 # Create bar chart
-fig, ax = plt.subplots(1, 1, figsize=(4, 2.3))
+fig, ax = plt.subplots(1, 1, figsize=(4.5, 2.3))
 x = np.arange(len(cases))
 n_threads = len(threads)
 width = 0.8 / n_threads  # Width for each bar
@@ -112,14 +112,15 @@ for i, thread_count in enumerate(threads):
 
 # Create labels with trigger frequency annotations and SS values
 ss_values = [1, 2, 4, 4]
-case_labels = [f'Case{i+1}' for i, (freq, ss) in enumerate(zip(['1K/s', '10K/s', '100K/s', '1M/s'], ss_values))]
+
+xlabels = ['1K trig/s\n1SS', '10K trig/s\n2SS', '100K trig/s\n4SS', '1M trig/s\n4SS']   
 
 # Set empty ylabel to preserve padding space
 ax.set_ylabel('', fontsize=TEXT_SIZE_XYLABEL)
 ax.set_yticks([0, 5, 10, 15, 20])
 ax.set_ylim(0, 23)
 ax.set_xticks(x)
-ax.set_xticklabels(case_labels, fontsize=TEXT_SIZE_XYAXIS)
+ax.set_xticklabels(xlabels, fontsize=TEXT_SIZE_XYAXIS)
 ax.tick_params(axis='x', length=TICK_LENGTH_X, width=TICK_WIDTH_X, labelsize=TEXT_SIZE_XYAXIS)
 ax.tick_params(axis='y', labelsize=TEXT_SIZE_XYAXIS)
 # ax.legend(loc='upper left', frameon=False, ncol=1, fontsize=TEXT_SIZE_LEGEND)
