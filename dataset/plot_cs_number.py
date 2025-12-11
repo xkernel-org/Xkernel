@@ -48,8 +48,9 @@ def get_ss_number_dist():
     ]
 
     # TODO choose what we want to present in terms of SS 
-    input_data = 'disjoint_sses.txt'
+    # input_data = 'disjoint_sses.txt'
     # input_data = 'disjoint_sses_asm.txt'
+    input_data = 'disjoint_sses_xyz.txt'
 
     with open(os.path.join(script_dir, input_data), 'r') as f:
         lines = f.readlines()
