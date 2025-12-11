@@ -329,7 +329,7 @@ fig.text(label_x - total_width_a-0.14, label_y + 0.01, '(a) ',
 # Draw "FIO on HDD" with bold - positioned right after "(a) "
 fig.text(label_x - total_width_a-0.14 + width_a_label+0.05, label_y, 'FIO on HDD', 
          ha='left', va='top', fontsize=SUBFIG_TEXT_SIZE, 
-         family='Times New Roman', weight='bold')
+         family='Times New Roman', weight='normal')
 
 # Label for right two subplots - centered below ax2 and ax3
 ax2_bbox = ax2.get_position()
@@ -355,7 +355,7 @@ fig.text(center_x - total_width_b - 0.22, bottom_y + 0.01, '(b) ',
 # Draw "RocksDB on NVMe SSD" with bold - positioned right after "(b) "
 fig.text(center_x - total_width_b- 0.22 + width_b_label+0.05, bottom_y, 'RocksDB on NVMe SSD', 
          ha='left', va='top', fontsize=SUBFIG_TEXT_SIZE, 
-         family='Times New Roman', weight='bold')
+         family='Times New Roman', weight='normal')
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 plot_common.save_fig(script_dir, 'background')

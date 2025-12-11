@@ -276,7 +276,7 @@ def plot_combined():
     # Draw "Subsystem" with bold
     fig.text(label_x1 - total_width_a / 2 + width_a_label + 0.02, label_y1 - 0.005, 'Subsystem', 
              ha='left', va='top', fontsize=SUBFIG_TEXT_SIZE, 
-             family='Times New Roman', weight='bold')
+             family='Times New Roman', weight='normal')
     
     # Label for second subplot (b) Source form
     ax2_bbox = ax2.get_position()
@@ -298,7 +298,7 @@ def plot_combined():
     # Draw "Source form" with bold - move down a bit
     fig.text(label_x2 - total_width_b / 2 + width_b_label+ 0.05, label_y2 - 0.01, 'Source form', 
              ha='left', va='top', fontsize=SUBFIG_TEXT_SIZE, 
-             family='Times New Roman', weight='bold')
+             family='Times New Roman', weight='normal')
     
     # Label for third subplot (c) Semantics - swapped from first
     ax3_bbox = ax3.get_position()
@@ -320,7 +320,7 @@ def plot_combined():
     # Draw "Semantics" with bold - move down a bit
     fig.text(label_x3 - total_width_c / 2 + width_c_label+ 0.08, label_y3 - 0.015, 'Semantics', 
              ha='left', va='top', fontsize=SUBFIG_TEXT_SIZE, 
-             family='Times New Roman', weight='bold')
+             family='Times New Roman', weight='normal')
     
     plot_common.save_fig(script_dir, 'dataset_distribution')
     plt.close(fig)
