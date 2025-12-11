@@ -127,13 +127,15 @@ def run_plot_script(script_path):
         os.chdir(original_cwd)
 
 def collect_pdf_files():
-    """收集所有生成的PDF文件"""
+    """收集所有生成的PDF文件（排除-crop.pdf文件）"""
     pdf_files = []
     
-    # 查找所有PDF文件（排除BUILD目录）
+    # 查找所有PDF文件（排除BUILD目录和-crop.pdf文件）
     for pdf_path in PROJECT_ROOT.rglob("*.pdf"):
         if "BUILD" not in str(pdf_path):
-            pdf_files.append(pdf_path)
+            # 过滤掉已经是-crop.pdf的文件
+            if "-crop.pdf" not in pdf_path.name:
+                pdf_files.append(pdf_path)
     
     return pdf_files
 
@@ -150,6 +152,50 @@ def copy_pdf_to_build(pdf_path):
     # 复制文件
     shutil.copy2(pdf_path, target_path)
     return target_path
+
+def crop_pdf(pdf_path):
+    """使用 pdf-crop-margins 裁剪PDF文件"""
+    # 如果已经是-crop.pdf文件，跳过
+    if "-crop.pdf" in pdf_path.name:
+        return None
+    
+    pdf_crop_path = Path.home() / "plot" / "python" / "bin" / "pdf-crop-margins"
+    
+    # 检查 pdf-crop-margins 是否存在
+    if not pdf_crop_path.exists():
+        with print_lock:
+            print(f"  ⚠ pdf-crop-margins 未找到: {pdf_crop_path}")
+        return None
+    
+    # 生成裁剪后的文件名
+    pdf_dir = pdf_path.parent
+    pdf_name = pdf_path.stem
+    cropped_pdf_path = pdf_dir / f"{pdf_name}-crop.pdf"
+    
+    try:
+        # 运行 pdf-crop-margins 命令
+        result = subprocess.run(
+            [str(pdf_crop_path), "-a0", str(pdf_path), "-o", str(cropped_pdf_path)],
+            capture_output=True,
+            text=True,
+            timeout=60  # 60秒超时
+        )
+        
+        if result.returncode == 0 and cropped_pdf_path.exists():
+            return cropped_pdf_path
+        else:
+            with print_lock:
+                if result.stderr:
+                    print(f"  ⚠ 裁剪失败: {pdf_path.name}")
+            return None
+    except subprocess.TimeoutExpired:
+        with print_lock:
+            print(f"  ⚠ 裁剪超时: {pdf_path.name}")
+        return None
+    except Exception as e:
+        with print_lock:
+            print(f"  ⚠ 裁剪异常: {pdf_path.name}, 错误: {str(e)}")
+        return None
 
 def main():
     """主函数"""
@@ -218,17 +264,32 @@ def main():
     else:
         print(f"找到 {len(pdf_files)} 个PDF文件:")
         copied_count = 0
+        cropped_count = 0
         
         for pdf_path in pdf_files:
             try:
+                # 复制原始PDF文件
                 target_path = copy_pdf_to_build(pdf_path)
                 print(f"  ✓ {pdf_path.relative_to(PROJECT_ROOT)} -> {target_path.relative_to(BUILD_DIR)}")
                 copied_count += 1
+                
+                # 裁剪PDF文件
+                cropped_pdf_path = crop_pdf(pdf_path)
+                if cropped_pdf_path:
+                    # 复制裁剪后的PDF文件到BUILD目录
+                    try:
+                        cropped_target_path = copy_pdf_to_build(cropped_pdf_path)
+                        print(f"  ✓ {cropped_pdf_path.relative_to(PROJECT_ROOT)} -> {cropped_target_path.relative_to(BUILD_DIR)}")
+                        cropped_count += 1
+                    except Exception as e:
+                        print(f"  ✗ 复制裁剪文件失败: {cropped_pdf_path.relative_to(PROJECT_ROOT)}")
+                        print(f"    错误: {str(e)}")
             except Exception as e:
                 print(f"  ✗ 复制失败: {pdf_path.relative_to(PROJECT_ROOT)}")
                 print(f"    错误: {str(e)}")
         
-        print(f"\n成功复制 {copied_count}/{len(pdf_files)} 个PDF文件到BUILD目录")
+        print(f"\n成功复制 {copied_count}/{len(pdf_files)} 个原始PDF文件到BUILD目录")
+        print(f"成功裁剪并复制 {cropped_count}/{len(pdf_files)} 个PDF文件到BUILD目录")
     
     # 输出总结
     print(f"\n{'='*60}")

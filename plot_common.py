@@ -46,7 +46,7 @@ params_line = {
     "ytick.minor.size": 5,
     "ytick.minor.width": 1,
     "font.size": 16,
-    "font.family": "Arial",
+    "font.family": "helvetica",
     "xtick.labelsize": "x-large",
     "ytick.labelsize": "x-large",
     "figure.autolayout": True,

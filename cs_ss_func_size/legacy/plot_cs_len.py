@@ -3,8 +3,7 @@ import os
 from collections import Counter
 
 # --- 1. 设置全局绘图风格 ---
-plt.rcParams['font.family'] = 'sans-serif'
-plt.rcParams['font.sans-serif'] = ['Helvetica', 'Arial', 'DejaVu Sans']
+plt.rcParams['font.family'] = 'helvetica'
 plt.rcParams['font.size'] = 34
 
 def parse_data(file_path):

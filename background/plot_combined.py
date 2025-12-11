@@ -300,7 +300,7 @@ fig.add_artist(plt.Line2D([x_line, x_line], [ax1_bbox.y0-0.09, ax1_bbox.y1+0.04]
                           color='gray', linewidth=3, transform=fig.transFigure))
 
 SUBFIG_SPACE = 0.2
-SUBFIG_TEXT_SIZE =29
+SUBFIG_TEXT_SIZE =26
 
 # Add subplot labels in USENIX style (Times New Roman font)
 # Use matplotlib's textpath to measure text width accurately

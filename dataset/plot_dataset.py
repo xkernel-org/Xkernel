@@ -252,7 +252,7 @@ def plot_combined():
     
     # Add subplot labels in USENIX style (Times New Roman font)
     SUBFIG_SPACE = 0.2
-    SUBFIG_TEXT_SIZE = 26
+    SUBFIG_TEXT_SIZE = 21
     
     # Label for first subplot (a) Subsystem - swapped from third
     ax1_bbox = ax1.get_position()
