@@ -14,6 +14,7 @@ class Span:
     start_inst: int
     end_bb: int
     end_inst: int
+    source_file: Optional[int] = None  # Index of source file
 
     def __repr__(self):
         return f"BB{self.start_bb}:I{self.start_inst} -> BB{self.end_bb}:I{self.end_inst}"
@@ -25,6 +26,7 @@ class FunctionInfo:
     name: str
     full_span: bool
     spans: List[Span] = None  # Multiple spans
+    source_file: Optional[int] = None  # Index of source file for full_span
 
     def __post_init__(self):
         if self.spans is None:
@@ -42,9 +44,42 @@ class FunctionInfo:
             return f"{self.name}: [{spans_str}]"
 
 
-def parse_span_details(output_file: str) -> Dict[str, FunctionInfo]:
+class UnionFind:
+    """Union-Find data structure to track file groupings."""
+    def __init__(self, n: int):
+        self.parent = list(range(n))
+        self.rank = [0] * n
+
+    def find(self, x: int) -> int:
+        if self.parent[x] != x:
+            self.parent[x] = self.find(self.parent[x])
+        return self.parent[x]
+
+    def union(self, x: int, y: int):
+        root_x = self.find(x)
+        root_y = self.find(y)
+
+        if root_x != root_y:
+            if self.rank[root_x] < self.rank[root_y]:
+                self.parent[root_x] = root_y
+            elif self.rank[root_x] > self.rank[root_y]:
+                self.parent[root_y] = root_x
+            else:
+                self.parent[root_y] = root_x
+                self.rank[root_x] += 1
+
+    def count_groups(self) -> int:
+        """Count the number of distinct groups."""
+        return len(set(self.find(i) for i in range(len(self.parent))))
+
+
+def parse_span_details(output_file: str, file_index: Optional[int] = None) -> Dict[str, FunctionInfo]:
     """
     Parse the Data Flow Span Details section from analysis output.
+
+    Args:
+        output_file: Path to the output file
+        file_index: Index of this file in the batch (for tracking source files)
 
     Returns:
         Dictionary mapping function name to FunctionInfo
@@ -71,13 +106,14 @@ def parse_span_details(output_file: str) -> Dict[str, FunctionInfo]:
                 func_name = parts[0]
 
                 if len(parts) == 2 and parts[1] == "full span":
-                    results[func_name] = FunctionInfo(func_name, full_span=True, spans=[])
+                    results[func_name] = FunctionInfo(func_name, full_span=True, spans=[], source_file=file_index)
                 elif len(parts) == 5:
                     span = Span(
                         start_bb=int(parts[1]),
                         start_inst=int(parts[2]),
                         end_bb=int(parts[3]),
-                        end_inst=int(parts[4])
+                        end_inst=int(parts[4]),
+                        source_file=file_index
                     )
                     results[func_name] = FunctionInfo(func_name, full_span=False, spans=[span])
 
@@ -133,6 +169,7 @@ def merge_two_spans(span1: Span, span2: Span) -> Span:
     """
     Merge two overlapping or adjacent spans into one.
     Takes the earliest start and latest end.
+    Source file is set to None for merged spans.
     """
     # Determine earliest start
     if compare_position(span1.start_bb, span1.start_inst,
@@ -148,14 +185,16 @@ def merge_two_spans(span1: Span, span2: Span) -> Span:
     else:
         end_bb, end_inst = span2.end_bb, span2.end_inst
 
-    return Span(start_bb, start_inst, end_bb, end_inst)
+    return Span(start_bb, start_inst, end_bb, end_inst, source_file=None)
 
 
-def union_span_lists(span_lists: List[List[Span]]) -> List[Span]:
+def union_span_lists(span_lists: List[List[Span]], file_union_find: Optional[UnionFind] = None) -> List[Span]:
     """
     Union multiple lists of spans, keeping non-overlapping spans separate.
 
     Example: [1-2], [5-8], [7-9] becomes [[1-2], [5-9]]
+
+    If file_union_find is provided, it will union files whose spans get merged.
     """
     # Collect all spans
     all_spans = []
@@ -170,6 +209,8 @@ def union_span_lists(span_lists: List[List[Span]]) -> List[Span]:
 
     # Merge overlapping/adjacent spans
     merged = [all_spans[0]]
+    # Track which source files contributed to each merged span
+    merged_sources = [{all_spans[0].source_file} if all_spans[0].source_file is not None else set()]
 
     for current_span in all_spans[1:]:
         last_merged = merged[-1]
@@ -177,14 +218,24 @@ def union_span_lists(span_lists: List[List[Span]]) -> List[Span]:
         if spans_overlap_or_adjacent(last_merged, current_span):
             # Merge with the last span in merged list
             merged[-1] = merge_two_spans(last_merged, current_span)
+            # Track that current_span's source file is now part of this merged span
+            if current_span.source_file is not None:
+                merged_sources[-1].add(current_span.source_file)
+                # Union files in the union-find structure
+                if file_union_find is not None and len(merged_sources[-1]) > 1:
+                    # Union all files in this merged span
+                    sources_list = list(merged_sources[-1])
+                    for i in range(1, len(sources_list)):
+                        file_union_find.union(sources_list[0], sources_list[i])
         else:
             # Add as a separate span
             merged.append(current_span)
+            merged_sources.append({current_span.source_file} if current_span.source_file is not None else set())
 
     return merged
 
 
-def union_results(results_list: List[Dict[str, FunctionInfo]]) -> Dict[str, FunctionInfo]:
+def union_results(results_list: List[Dict[str, FunctionInfo]]) -> Tuple[Dict[str, FunctionInfo], int, int, int]:
     """
     Union multiple analysis results.
 
@@ -193,28 +244,51 @@ def union_results(results_list: List[Dict[str, FunctionInfo]]) -> Dict[str, Func
     - Otherwise, union all partial spans, keeping non-overlapping spans separate
 
     Example: [1-2] U [5-8] U [7-9] becomes [[1-2], [5-9]]
+
+    Returns:
+        Tuple of (union_dict, total_input_spans, total_output_clusters, num_virtual_files)
     """
+    num_files = len(results_list)
+    file_uf = UnionFind(num_files)
+
     all_functions = set()
     for results in results_list:
         all_functions.update(results.keys())
 
     union = {}
+    total_input_spans = 0
+    total_output_clusters = 0
 
     for func_name in all_functions:
         # Collect all info for this function across runs
         func_infos = [r[func_name] for r in results_list if func_name in r]
 
+        # Count input spans for this function across all files
+        for fi in func_infos:
+            if fi.full_span:
+                total_input_spans += 1
+            else:
+                total_input_spans += len(fi.spans)
+
         # If any result has full span, the union is full span
         if any(fi.full_span for fi in func_infos):
             union[func_name] = FunctionInfo(func_name, full_span=True, spans=[])
+            total_output_clusters += 1
+
+            # Union all files that have this function with full span
+            full_span_files = [fi.source_file for fi in func_infos if fi.full_span and fi.source_file is not None]
+            for i in range(1, len(full_span_files)):
+                file_uf.union(full_span_files[0], full_span_files[i])
         else:
             # Collect all span lists
             span_lists = [fi.spans for fi in func_infos if fi.spans]
             if span_lists:
-                merged_spans = union_span_lists(span_lists)
+                merged_spans = union_span_lists(span_lists, file_uf)
                 union[func_name] = FunctionInfo(func_name, full_span=False, spans=merged_spans)
+                total_output_clusters += len(merged_spans)
 
-    return union
+    num_virtual_files = file_uf.count_groups()
+    return union, total_input_spans, total_output_clusters, num_virtual_files
 
 
 def print_results(results: Dict[str, FunctionInfo], title: str = "Results"):
@@ -235,17 +309,25 @@ if __name__ == "__main__":
         print(f"Directory {dir_name} does not exist")
         sys.exit(1)
 
-    result_files = glob.glob(os.path.join(dir_name, "*.output.txt"))
+    result_files = sorted(glob.glob(os.path.join(dir_name, "*.output.txt")))
     if (len(result_files) == 0):
         print(f"No result files found in {dir_name}")
         sys.exit(1)
 
     results = []
-    for result_file in result_files:
-
-        results.append(parse_span_details(result_file))
+    for file_idx, result_file in enumerate(result_files):
+        results.append(parse_span_details(result_file, file_index=file_idx))
         # print_results(results[-1])
 
-    union = union_results(results)
+    union, total_input_spans, total_output_clusters, num_virtual_files = union_results(results)
+
+    print(f"Input files: {len(result_files)}")
+    print(f"Total input spans: {total_input_spans}")
+    print(f"Total output clusters: {total_output_clusters}")
+    print(f"Reduction: {total_input_spans - total_output_clusters} spans merged")
+    print(f"Virtual files (after merging): {num_virtual_files}")
+    print(f"File reduction: {len(result_files) - num_virtual_files} files merged into groups")
+    print()
+
     print_results(union)
 
