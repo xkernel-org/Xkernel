@@ -130,7 +130,7 @@ def plot_combined():
     # Control spacing between subplots: wspace controls horizontal spacing (as fraction of subplot width)
     subplot_wspace = 0.08  # Adjust this value to control spacing between subplots (smaller = closer)
     # Control width ratios: 30%, 30%, 40%
-    width_ratios = [3.2, 3, 3.8]  # 30%:30%:40%
+    width_ratios = [3.8, 3, 3.2]  # Swapped first and third
     fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(10, 2.2), 
                                         gridspec_kw={'wspace': subplot_wspace, 'width_ratios': width_ratios})
     
@@ -138,11 +138,47 @@ def plot_combined():
     x_spacing = 0.4  # Reduce spacing between bars (smaller = closer)
     bar_width = 0.3  # Reduce bar width (smaller = narrower)
     
-    x1 = np.arange(len(cat1_labels)) * x_spacing
-    bars1 = ax1.bar(x1, cat1_values, width=bar_width, color=palette[4], zorder=2)
+    # Plot subsystem (left) - moved from third position
+    # Merge block, io, fs into storage with stacked bars
+    
+    # Process subsystem data
+    plot_labels, plot_values, storage_stack = process_subsystem_data(sub_labels, sub_values)
+    
+    x1 = np.arange(len(plot_labels)) * x_spacing
+    
+    # Draw stacked bar for storage
+    storage_idx = None
+    storage_x_pos = None
+    if 'storage' in plot_labels:
+        storage_idx = plot_labels.index('storage')
+        storage_x_pos = x1[storage_idx]  # Get actual x position
+        bottom = 0
+        storage_color = palette[2]  # Use same color for all components
+        storage_component_labels = ['block', 'io', 'fs']
+        for i, (comp_label, comp_value) in enumerate(zip(storage_component_labels, storage_stack)):
+            if comp_value > 0:
+                ax1.bar(storage_x_pos, comp_value, width=bar_width, bottom=bottom, 
+                       color=storage_color, edgecolor='black', linewidth=1, zorder=2)
+                # Add label on each stacked component
+                mid_y = bottom + comp_value / 2
+                # ax1.text(storage_x_pos, mid_y, f'{comp_label}:{comp_value}',
+                ax1.text(storage_x_pos, mid_y, f'{comp_label}',
+                        ha='center', va='center', fontsize=TEXT_SIZE_TEXT - 5, fontweight='bold',
+                        color='white' if comp_value > 5 else 'black')
+                bottom += comp_value
+    
+    # Draw regular bars for others
+    for i, (label, value) in enumerate(zip(plot_labels, plot_values)):
+        if label != 'storage' and value is not None:
+            ax1.bar(x1[i], value, width=bar_width, color=palette[2], zorder=2)
+    
     ax1.set_xticks(x1)
-    ax1.set_xticklabels(cat1_labels, rotation=0, ha='center', fontsize=TEXT_SIZE_XYAXIS)
+    ax1.set_xticklabels(plot_labels, rotation=0, ha='center', fontsize=TEXT_SIZE_XYAXIS)
     ax1.set_ylabel('Count', fontsize=TEXT_SIZE_XYLABEL)
+    
+    # Calculate storage_total for labels (still needed for text labels)
+    storage_total = sum(storage_stack)
+    
     # Set unified y-axis ticks
     yticks_unified = [0, 25, 50, 75, 100, 125]
     ax1.set_ylim(0, 126)
@@ -153,12 +189,18 @@ def plot_combined():
     ax1.spines['bottom'].set_linewidth(1)
     ax1.tick_params(axis='x', length=6, width=1, direction='out', labelsize=TEXT_SIZE_XYAXIS)
     ax1.tick_params(axis='y', length=8, width=2, labelsize=TEXT_SIZE_XYAXIS)
+    
     # Add value labels on bars
-    for bar, value in zip(bars1, cat1_values):
-        height = bar.get_height()
-        ax1.text(bar.get_x() + bar.get_width()/2., height,
-                f'{value}',
-                ha='center', va='bottom', fontsize=TEXT_SIZE_TEXT)
+    # For storage stacked bar, show total on top
+    if storage_total > 0 and storage_idx is not None and storage_x_pos is not None:
+        ax1.text(storage_x_pos, storage_total, f'{storage_total}',
+                ha='center', va='bottom', fontsize=TEXT_SIZE_TEXT, fontweight='bold')
+    
+    # For other bars
+    for i, (label, value) in enumerate(zip(plot_labels, plot_values)):
+        if label != 'storage' and value is not None:
+            ax1.text(x1[i], value, f'{value}',
+                    ha='center', va='bottom', fontsize=TEXT_SIZE_TEXT)
     
     # Plot category2 (middle)
     x2 = np.arange(len(cat2_labels)) * x_spacing
@@ -183,47 +225,12 @@ def plot_combined():
                 f'{value}',
                 ha='center', va='bottom', fontsize=TEXT_SIZE_TEXT)
     
-    # Plot subsystem (right)
-    # Merge block, io, fs into storage with stacked bars
-    
-    # Process subsystem data
-    plot_labels, plot_values, storage_stack = process_subsystem_data(sub_labels, sub_values)
-    
-    x3 = np.arange(len(plot_labels)) * x_spacing
-    
-    # Draw stacked bar for storage
-    storage_idx = None
-    storage_x_pos = None
-    if 'storage' in plot_labels:
-        storage_idx = plot_labels.index('storage')
-        storage_x_pos = x3[storage_idx]  # Get actual x position
-        bottom = 0
-        storage_color = palette[2]  # Use same color for all components
-        storage_component_labels = ['block', 'io', 'fs']
-        for i, (comp_label, comp_value) in enumerate(zip(storage_component_labels, storage_stack)):
-            if comp_value > 0:
-                ax3.bar(storage_x_pos, comp_value, width=bar_width, bottom=bottom, 
-                       color=storage_color, edgecolor='black', linewidth=1, zorder=2)
-                # Add label on each stacked component
-                mid_y = bottom + comp_value / 2
-                # ax3.text(storage_x_pos, mid_y, f'{comp_label}:{comp_value}',
-                ax3.text(storage_x_pos, mid_y, f'{comp_label}',
-                        ha='center', va='center', fontsize=TEXT_SIZE_TEXT - 5, fontweight='bold',
-                        color='white' if comp_value > 5 else 'black')
-                bottom += comp_value
-    
-    # Draw regular bars for others
-    for i, (label, value) in enumerate(zip(plot_labels, plot_values)):
-        if label != 'storage' and value is not None:
-            ax3.bar(x3[i], value, width=bar_width, color=palette[2], zorder=2)
-    
+    # Plot category1 (right) - moved from first position
+    x3 = np.arange(len(cat1_labels)) * x_spacing
+    bars3 = ax3.bar(x3, cat1_values, width=bar_width, color=palette[4], zorder=2)
     ax3.set_xticks(x3)
-    ax3.set_xticklabels(plot_labels, rotation=0, ha='center', fontsize=TEXT_SIZE_XYAXIS)
+    ax3.set_xticklabels(cat1_labels, rotation=0, ha='center', fontsize=TEXT_SIZE_XYAXIS)
     ax3.set_ylabel('')
-    
-    # Calculate storage_total for labels (still needed for text labels)
-    storage_total = sum(storage_stack)
-    
     # Set unified y-axis ticks
     ax3.set_ylim(0, 126)
     ax3.set_yticks(yticks_unified)
@@ -234,18 +241,12 @@ def plot_combined():
     ax3.spines['bottom'].set_linewidth(1)
     ax3.tick_params(axis='x', length=6, width=1, direction='out', labelsize=TEXT_SIZE_XYAXIS)
     ax3.tick_params(axis='y', length=8, width=2, labelsize=TEXT_SIZE_XYAXIS)
-    
     # Add value labels on bars
-    # For storage stacked bar, show total on top
-    if storage_total > 0 and storage_idx is not None and storage_x_pos is not None:
-        ax3.text(storage_x_pos, storage_total, f'{storage_total}',
-                ha='center', va='bottom', fontsize=TEXT_SIZE_TEXT, fontweight='bold')
-    
-    # For other bars
-    for i, (label, value) in enumerate(zip(plot_labels, plot_values)):
-        if label != 'storage' and value is not None:
-            ax3.text(x3[i], value, f'{value}',
-                    ha='center', va='bottom', fontsize=TEXT_SIZE_TEXT)
+    for bar, value in zip(bars3, cat1_values):
+        height = bar.get_height()
+        ax3.text(bar.get_x() + bar.get_width()/2., height,
+                f'{value}',
+                ha='center', va='bottom', fontsize=TEXT_SIZE_TEXT)
     
     fig.tight_layout()
     
@@ -253,15 +254,15 @@ def plot_combined():
     SUBFIG_SPACE = 0.2
     SUBFIG_TEXT_SIZE = 26
     
-    # Label for first subplot (a) Semantics
+    # Label for first subplot (a) Subsystem - swapped from third
     ax1_bbox = ax1.get_position()
     label_x1 = ax1_bbox.x0 + ax1_bbox.width / 2  # Center of ax1
-    label_x1 -= 0.13
+    label_x1 -= 0.1
     label_y1 = ax1_bbox.y0 - SUBFIG_SPACE
     
     # Measure widths using TextPath
     prop = font_manager.FontProperties(family='Times New Roman', size=SUBFIG_TEXT_SIZE)
-    path_a_full = TextPath((0, 0), '(a) Semantics', prop=prop, size=SUBFIG_TEXT_SIZE)
+    path_a_full = TextPath((0, 0), '(a) Subsystem', prop=prop, size=SUBFIG_TEXT_SIZE)
     path_a_label = TextPath((0, 0), '(a) ', prop=prop, size=SUBFIG_TEXT_SIZE)
     bbox_a_full = path_a_full.get_extents()
     bbox_a_label = path_a_label.get_extents()
@@ -269,11 +270,11 @@ def plot_combined():
     width_a_label = bbox_a_label.width / fig.dpi / fig.get_figwidth()
     
     # Draw "(a) " without bold
-    fig.text(label_x1 - total_width_a / 2, label_y1, '(a) ', 
+    fig.text(label_x1 - total_width_a / 2 - 0.03, label_y1, '(a) ', 
              ha='left', va='top', fontsize=SUBFIG_TEXT_SIZE, 
              family='Times New Roman', weight='normal')
-    # Draw "Semantics" with bold
-    fig.text(label_x1 - total_width_a / 2 + width_a_label + 0.05, label_y1, 'Semantics', 
+    # Draw "Subsystem" with bold
+    fig.text(label_x1 - total_width_a / 2 + width_a_label + 0.02, label_y1 - 0.005, 'Subsystem', 
              ha='left', va='top', fontsize=SUBFIG_TEXT_SIZE, 
              family='Times New Roman', weight='bold')
     
@@ -294,18 +295,18 @@ def plot_combined():
     fig.text(label_x2 - total_width_b / 2, label_y2, '(b) ', 
              ha='left', va='top', fontsize=SUBFIG_TEXT_SIZE, 
              family='Times New Roman', weight='normal')
-    # Draw "Source form" with bold
-    fig.text(label_x2 - total_width_b / 2 + width_b_label+ 0.05, label_y2, 'Source form', 
+    # Draw "Source form" with bold - move down a bit
+    fig.text(label_x2 - total_width_b / 2 + width_b_label+ 0.05, label_y2 - 0.01, 'Source form', 
              ha='left', va='top', fontsize=SUBFIG_TEXT_SIZE, 
              family='Times New Roman', weight='bold')
     
-    # Label for third subplot (c) Subsystem
+    # Label for third subplot (c) Semantics - swapped from first
     ax3_bbox = ax3.get_position()
     label_x3 = ax3_bbox.x0 + ax3_bbox.width / 2  # Center of ax3
-    label_x3 -= 0.1
+    label_x3 -= 0.13
     label_y3 = ax3_bbox.y0 - SUBFIG_SPACE
     
-    path_c_full = TextPath((0, 0), '(c) Subsystem', prop=prop, size=SUBFIG_TEXT_SIZE)
+    path_c_full = TextPath((0, 0), '(c) Semantics', prop=prop, size=SUBFIG_TEXT_SIZE)
     path_c_label = TextPath((0, 0), '(c) ', prop=prop, size=SUBFIG_TEXT_SIZE)
     bbox_c_full = path_c_full.get_extents()
     bbox_c_label = path_c_label.get_extents()
@@ -313,11 +314,11 @@ def plot_combined():
     width_c_label = bbox_c_label.width / fig.dpi / fig.get_figwidth()
     
     # Draw "(c) " without bold
-    fig.text(label_x3 - total_width_c / 2, label_y3, '(c) ', 
+    fig.text(label_x3 - total_width_c / 2 + 0.03, label_y3, '(c) ', 
              ha='left', va='top', fontsize=SUBFIG_TEXT_SIZE, 
              family='Times New Roman', weight='normal')
-    # Draw "Subsystem" with bold
-    fig.text(label_x3 - total_width_c / 2 + width_c_label+ 0.05, label_y3, 'Subsystem', 
+    # Draw "Semantics" with bold - move down a bit
+    fig.text(label_x3 - total_width_c / 2 + width_c_label+ 0.08, label_y3 - 0.015, 'Semantics', 
              ha='left', va='top', fontsize=SUBFIG_TEXT_SIZE, 
              family='Times New Roman', weight='bold')
     
