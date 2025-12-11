@@ -121,6 +121,14 @@ def process_ss_size1_file(ss_size1_file, bb_sizes, function_totals, output_file)
             if not line:
                 continue
 
+            if line.startswith("Input files: ") or \
+               line.startswith("Total input spans: ") or \
+               line.startswith("Total output clusters: ") or \
+               line.startswith("Reduction: ") or \
+               line.startswith("Virtual files (after merging): ") or \
+               line.startswith("File reduction: "):
+                continue
+
             # Parse line: "  function_name: full span"
             full_span_match = re.match(r'\s*(\S+):\s+full span', line)
             if full_span_match:
