@@ -159,6 +159,9 @@ has_reduction_total = 0
 
 for f in glob.glob('kernel-results/*/ss-size1.txt'):
     with open(f, 'r') as f2:
+        my_label = f.split('/')[1]
+        if my_label in skip_macro_list:
+            continue
         for line in f2:
             if "Reduction: " in line:
                 reduction_total += int(line.split(" ")[1])
