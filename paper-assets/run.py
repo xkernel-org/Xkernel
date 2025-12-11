@@ -190,6 +190,58 @@ with open('TaintTrackerPass.cpp', 'r') as f:
     total = "{:,.0f}".format(total)
     latex_macros.append(f"\\newcommand{{\\wentaoNumbersNumLinesLlvmPass}}{{{total}\\xspace}}")
 
+# In[10]:
+
+import os
+import csv
+
+input_data = 'cs.csv'
+
+zj_keys = set()
+cs_num = {}
+
+with open('paper-assets/cs.csv', 'r') as f:
+    lines = f.readlines()
+    csv_reader = csv.reader(lines)
+    for row in csv_reader:
+        key = row[0]
+        zj_keys.add(key)
+        cs_num[key] = int(row[1])
+
+import glob
+
+translate_label = {
+    'ca__delay_min': 'ca->delay_min >> 3',
+    'delta__4': 'delta *= 4;',
+    'delta__freeable__2': 'delta = freeable / 2;',
+    'group_faults': 'group_faults(p, dst_nid) * 4',
+    'node_stamp__2__TICK_NSEC': 'p->node_stamp += 2 * TICK_NSEC;',
+    'node_stamp__32__diff': 'p->node_stamp += 32 * diff;',
+    'numa_scan_seq': 'p->numa_scan_seq <= 4',
+    'tcp_min_rtt': 'tcp_min_rtt(tp) >> 2',
+}
+
+ss_reduce = {}
+
+for f in glob.glob('kernel-results/*/ss-size1.txt'):
+    my_label = f.split('/')[1]
+    if my_label in skip_macro_list:
+        continue
+    if my_label in translate_label:
+        my_label = translate_label[my_label]
+    assert my_label in zj_keys, f"Key {my_label} not found in zj_keys"
+    with open(f, 'r') as f2:
+        for line in f2:
+            if 'files merged into groups' in line:
+                ss_reduce[my_label] = int(line.strip().split()[2])
+
+with open('paper-assets/disjoint_sses_xyz.txt', 'w') as f:
+    for my_label, count in ss_reduce.items():
+        xyz_count = max(cs_num[my_label] - ss_reduce[my_label], 1)
+        f.write(f"{xyz_count}\n")
+
+print("Don't forget to move disjoint_sses_xyz.txt to plot repo ./dataset/")
+
 # In[3]:
 
 with open('paper-assets/numbers_auto.tex', 'w') as f:
