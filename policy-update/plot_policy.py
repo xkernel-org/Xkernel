@@ -102,15 +102,15 @@ category_data['Sum'][2] = round(category_data['Sum'][2])
 
 # 3. Plotting
 # [修改1] 进一步压缩整体宽度
-fig, axes = plt.subplots(1, 4, figsize=(12, 2.5))
+fig, axes = plt.subplots(1, 4, figsize=(10.3, 2.5))
 
 palette = sns.color_palette("mako")
 colors = [palette[5], palette[3], palette[2]]
 
 # Compress x positions to reduce gap between bars
-x_spacing = 0.35  # Reduce spacing between bar groups
+x_spacing = 0.25  # Reduce spacing between bar groups
 x = np.arange(len(x_labels)) * x_spacing
-width = 0.35
+width = 0.1
 
 all_categories = categories + ['Sum']
 for idx, cat in enumerate(all_categories):
