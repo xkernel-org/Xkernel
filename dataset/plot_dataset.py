@@ -252,7 +252,7 @@ def plot_combined():
     
     # Add subplot labels in USENIX style (Times New Roman font)
     SUBFIG_SPACE = 0.2
-    SUBFIG_TEXT_SIZE = 21
+    SUBFIG_TEXT_SIZE = 23
     
     # Label for first subplot (a) Subsystem - swapped from third
     ax1_bbox = ax1.get_position()
@@ -306,7 +306,7 @@ def plot_combined():
     label_x3 -= 0.13
     label_y3 = ax3_bbox.y0 - SUBFIG_SPACE
     
-    path_c_full = TextPath((0, 0), '(c) Semantics', prop=prop, size=SUBFIG_TEXT_SIZE)
+    path_c_full = TextPath((0, 0), '(c) Semantic', prop=prop, size=SUBFIG_TEXT_SIZE)
     path_c_label = TextPath((0, 0), '(c) ', prop=prop, size=SUBFIG_TEXT_SIZE)
     bbox_c_full = path_c_full.get_extents()
     bbox_c_label = path_c_label.get_extents()
@@ -318,7 +318,7 @@ def plot_combined():
              ha='left', va='top', fontsize=SUBFIG_TEXT_SIZE, 
              family='Times New Roman', weight='normal')
     # Draw "Semantics" with bold - move down a bit
-    fig.text(label_x3 - total_width_c / 2 + width_c_label+ 0.08, label_y3 - 0.015, 'Semantics', 
+    fig.text(label_x3 - total_width_c / 2 + width_c_label+ 0.08, label_y3 - 0.012, 'Semantic', 
              ha='left', va='top', fontsize=SUBFIG_TEXT_SIZE, 
              family='Times New Roman', weight='normal')
     
