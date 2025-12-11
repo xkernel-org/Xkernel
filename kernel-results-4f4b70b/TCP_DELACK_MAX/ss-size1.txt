@@ -1,3 +1,10 @@
+Input files: 6
+Total input spans: 6
+Total output clusters: 5
+Reduction: 1 spans merged
+Virtual files (after merging): 5
+File reduction: 1 files merged into groups
+
   bpf_sol_tcp_setsockopt: BB7:I1 -> BB7:I3
   dccp_send_ack: BB2:I14 -> BB2:I18
   tcp_disconnect: BB29:I44 -> BB29:I44

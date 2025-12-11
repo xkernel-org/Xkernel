@@ -1,2 +1,9 @@
+Input files: 3
+Total input spans: 3
+Total output clusters: 3
+Reduction: 0 spans merged
+Virtual files (after merging): 3
+File reduction: 0 files merged into groups
+
   blk_alloc_queue: BB5:I1 -> BB5:I1
   blk_mq_init_sched: [BB0:I9 -> BB0:I11, BB1:I0 -> BB1:I4]

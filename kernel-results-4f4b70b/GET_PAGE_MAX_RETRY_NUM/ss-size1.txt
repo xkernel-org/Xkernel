@@ -1,1 +1,8 @@
+Input files: 3
+Total input spans: 3
+Total output clusters: 3
+Reduction: 0 spans merged
+Virtual files (after merging): 3
+File reduction: 0 files merged into groups
+
   get_hwpoison_page: [BB110:I0 -> BB110:I1, BB120:I0 -> BB120:I1, BB159:I0 -> BB159:I4]

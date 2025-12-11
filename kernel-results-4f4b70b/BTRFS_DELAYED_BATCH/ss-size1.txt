@@ -1,3 +1,10 @@
+Input files: 12
+Total input spans: 12
+Total output clusters: 7
+Reduction: 5 spans merged
+Virtual files (after merging): 7
+File reduction: 5 files merged into groups
+
   __btrfs_kill_delayed_node: [BB7:I15 -> BB7:I18, BB13:I16 -> BB13:I19]
   __btrfs_update_delayed_inode: [BB10:I16 -> BB10:I19, BB15:I17 -> BB15:I20]
   btrfs_balance_delayed_items: [BB4:I10 -> BB9:I6, BB13:I4 -> BB13:I4]

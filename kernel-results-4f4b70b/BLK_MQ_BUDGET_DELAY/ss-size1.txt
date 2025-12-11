@@ -1,1 +1,8 @@
+Input files: 2
+Total input spans: 2
+Total output clusters: 2
+Reduction: 0 spans merged
+Virtual files (after merging): 2
+File reduction: 0 files merged into groups
+
   __blk_mq_sched_dispatch_requests: [BB33:I0 -> BB33:I0, BB63:I0 -> BB63:I0]

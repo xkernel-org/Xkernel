@@ -1,2 +1,9 @@
+Input files: 3
+Total input spans: 3
+Total output clusters: 3
+Reduction: 0 spans merged
+Virtual files (after merging): 3
+File reduction: 0 files merged into groups
+
   dccp_delack_timer: BB1:I7 -> BB1:I8
   tcp_send_delayed_ack: [BB0:I4 -> BB0:I5, BB5:I4 -> BB14:I8]

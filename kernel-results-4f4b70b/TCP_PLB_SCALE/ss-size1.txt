@@ -1,2 +1,9 @@
+Input files: 2
+Total input spans: 2
+Total output clusters: 2
+Reduction: 0 spans merged
+Virtual files (after merging): 2
+File reduction: 0 files merged into groups
+
   dctcp_update_alpha: BB3:I0 -> BB4:I2
   tcp_sk_init: BB7:I23 -> BB7:I23

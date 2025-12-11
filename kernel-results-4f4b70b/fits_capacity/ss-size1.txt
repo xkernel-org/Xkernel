@@ -1,3 +1,10 @@
+Input files: 8
+Total input spans: 8
+Total output clusters: 8
+Reduction: 0 spans merged
+Virtual files (after merging): 8
+File reduction: 0 files merged into groups
+
   sched_balance_find_dst_cpu: BB48:I11 -> BB48:I13
   sched_balance_rq: BB239:I16 -> BB239:I18
   select_task_rq_fair: [BB61:I7 -> BB61:I9, BB67:I7 -> BB67:I9, BB76:I7 -> BB76:I9, BB83:I7 -> BB83:I9, BB98:I2 -> BB98:I4]

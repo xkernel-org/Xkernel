@@ -1,3 +1,10 @@
+Input files: 6
+Total input spans: 13
+Total output clusters: 6
+Reduction: 7 spans merged
+Virtual files (after merging): 4
+File reduction: 2 files merged into groups
+
   blk_mq_alloc_tag_set: full span
   dm_mq_init_request_queue: BB1:I1 -> BB1:I1
   loop_add: full span

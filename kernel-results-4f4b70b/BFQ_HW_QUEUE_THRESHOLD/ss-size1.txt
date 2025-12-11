@@ -1,1 +1,8 @@
+Input files: 4
+Total input spans: 4
+Total output clusters: 3
+Reduction: 1 spans merged
+Virtual files (after merging): 3
+File reduction: 1 files merged into groups
+
   bfq_finish_requeue_request: [BB25:I3 -> BB25:I4, BB28:I8 -> BB28:I11, BB30:I0 -> BB30:I11]

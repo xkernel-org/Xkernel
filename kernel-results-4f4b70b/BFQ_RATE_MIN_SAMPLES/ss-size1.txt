@@ -1,1 +1,8 @@
+Input files: 1
+Total input spans: 1
+Total output clusters: 1
+Reduction: 0 spans merged
+Virtual files (after merging): 1
+File reduction: 0 files merged into groups
+
   bfq_update_rate_reset: BB0:I2 -> BB0:I3

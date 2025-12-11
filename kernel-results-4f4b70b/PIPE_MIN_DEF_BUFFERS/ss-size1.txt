@@ -1,1 +1,8 @@
+Input files: 2
+Total input spans: 2
+Total output clusters: 1
+Reduction: 1 spans merged
+Virtual files (after merging): 1
+File reduction: 1 files merged into groups
+
   alloc_pipe_info: BB10:I0 -> BB16:I1

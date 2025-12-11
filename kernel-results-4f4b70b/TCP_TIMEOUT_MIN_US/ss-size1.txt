@@ -1,3 +1,10 @@
+Input files: 2
+Total input spans: 3
+Total output clusters: 3
+Reduction: 0 spans merged
+Virtual files (after merging): 2
+File reduction: 0 files merged into groups
+
   tcp_fastretrans_alert: BB97:I2 -> BB170:I3
   tcp_rack_mark_lost: full span
   tcp_schedule_loss_probe: BB8:I0 -> BB18:I11

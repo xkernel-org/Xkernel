@@ -1,3 +1,10 @@
+Input files: 6
+Total input spans: 12
+Total output clusters: 7
+Reduction: 5 spans merged
+Virtual files (after merging): 3
+File reduction: 3 files merged into groups
+
   init_numa_balancing: BB8:I2 -> BB8:I9
   migrate_task_rq_fair: BB15:I0 -> BB15:I2
   task_numa_fault: BB42:I1 -> BB116:I32

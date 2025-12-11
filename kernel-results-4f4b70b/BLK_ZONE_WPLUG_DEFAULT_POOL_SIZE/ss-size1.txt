@@ -1,1 +1,8 @@
+Input files: 2
+Total input spans: 2
+Total output clusters: 2
+Reduction: 0 spans merged
+Virtual files (after merging): 2
+File reduction: 0 files merged into groups
+
   blk_revalidate_disk_zones: [BB8:I6 -> BB12:I5, BB27:I7 -> BB33:I2]

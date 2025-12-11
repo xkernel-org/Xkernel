@@ -1,3 +1,10 @@
+Input files: 22
+Total input spans: 22
+Total output clusters: 22
+Reduction: 0 spans merged
+Virtual files (after merging): 22
+File reduction: 0 files merged into groups
+
   __nfs3_proc_lookup: [BB3:I1 -> BB3:I1, BB11:I1 -> BB11:I1]
   do_proc_fsinfo: BB2:I1 -> BB2:I1
   do_proc_get_root: [BB2:I1 -> BB2:I1, BB9:I1 -> BB9:I1]

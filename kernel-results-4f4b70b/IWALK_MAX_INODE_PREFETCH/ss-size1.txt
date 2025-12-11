@@ -1,2 +1,9 @@
+Input files: 4
+Total input spans: 4
+Total output clusters: 2
+Reduction: 2 spans merged
+Virtual files (after merging): 2
+File reduction: 2 files merged into groups
+
   xfs_iwalk: BB0:I17 -> BB0:I25
   xfs_iwalk_threaded: BB1:I3 -> BB4:I14

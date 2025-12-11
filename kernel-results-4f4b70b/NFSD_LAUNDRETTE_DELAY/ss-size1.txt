@@ -1,2 +1,9 @@
+Input files: 2
+Total input spans: 2
+Total output clusters: 2
+Reduction: 0 spans merged
+Virtual files (after merging): 2
+File reduction: 0 files merged into groups
+
   nfsd_file_gc_worker: BB32:I1 -> BB32:I1
   nfsd_file_put: BB18:I1 -> BB18:I1

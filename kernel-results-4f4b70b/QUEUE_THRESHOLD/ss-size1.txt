@@ -1,1 +1,8 @@
+Input files: 3
+Total input spans: 3
+Total output clusters: 3
+Reduction: 0 spans merged
+Virtual files (after merging): 3
+File reduction: 0 files merged into groups
+
   pie_process_dequeue: [BB4:I0 -> BB4:I4, BB8:I7 -> BB8:I8, BB10:I12 -> BB10:I13]

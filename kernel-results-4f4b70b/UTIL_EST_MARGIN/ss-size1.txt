@@ -1,1 +1,8 @@
+Input files: 2
+Total input spans: 2
+Total output clusters: 2
+Reduction: 0 spans merged
+Virtual files (after merging): 2
+File reduction: 0 files merged into groups
+
   dequeue_task_fair: [BB11:I1 -> BB11:I2, BB13:I0 -> BB13:I4]

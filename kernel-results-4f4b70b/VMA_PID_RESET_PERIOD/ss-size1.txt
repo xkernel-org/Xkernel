@@ -1,1 +1,8 @@
+Input files: 2
+Total input spans: 2
+Total output clusters: 2
+Reduction: 0 spans merged
+Virtual files (after merging): 2
+File reduction: 0 files merged into groups
+
   task_numa_work: [BB45:I12 -> BB45:I17, BB55:I1 -> BB55:I6]

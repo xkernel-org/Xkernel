@@ -1,3 +1,10 @@
+Input files: 5
+Total input spans: 13
+Total output clusters: 5
+Reduction: 8 spans merged
+Virtual files (after merging): 4
+File reduction: 1 files merged into groups
+
   count_partial_free_approx: full span
   dump_unreclaimable_slab: BB5:I2 -> BB6:I10
   get_slabinfo: full span

@@ -1,2 +1,9 @@
+Input files: 3
+Total input spans: 3
+Total output clusters: 3
+Reduction: 0 spans merged
+Virtual files (after merging): 3
+File reduction: 0 files merged into groups
+
   tcp_fastretrans_alert: [BB87:I3 -> BB87:I6, BB160:I3 -> BB160:I6]
   tcp_rack_update_reo_wnd: BB5:I9 -> BB5:I9

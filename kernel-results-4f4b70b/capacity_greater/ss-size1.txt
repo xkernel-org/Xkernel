@@ -1,1 +1,8 @@
+Input files: 3
+Total input spans: 3
+Total output clusters: 3
+Reduction: 0 spans merged
+Virtual files (after merging): 3
+File reduction: 0 files merged into groups
+
   sched_balance_rq: [BB85:I12 -> BB85:I17, BB102:I12 -> BB102:I14, BB180:I8 -> BB180:I12]

@@ -1,3 +1,10 @@
+Input files: 4
+Total input spans: 6
+Total output clusters: 6
+Reduction: 0 spans merged
+Virtual files (after merging): 4
+File reduction: 0 files merged into groups
+
   bpf_sol_tcp_setsockopt: [BB7:I2 -> BB7:I3, BB9:I2 -> BB9:I3]
   tcp_ack: BB196:I10 -> BB198:I11
   tcp_clamp_probe0_to_user_timeout: full span

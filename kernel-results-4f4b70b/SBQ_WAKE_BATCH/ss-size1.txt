@@ -1,3 +1,10 @@
+Input files: 8
+Total input spans: 104
+Total output clusters: 52
+Reduction: 52 spans merged
+Virtual files (after merging): 4
+File reduction: 4 files merged into groups
+
   __blk_mq_sched_dispatch_requests: full span
   __nvme_submit_sync_cmd: full span
   blk_mq_alloc_request_hctx: full span

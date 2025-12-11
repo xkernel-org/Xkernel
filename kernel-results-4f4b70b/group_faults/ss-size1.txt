@@ -1,2 +1,9 @@
+Input files: 1
+Total input spans: 2
+Total output clusters: 2
+Reduction: 0 spans merged
+Virtual files (after merging): 1
+File reduction: 0 files merged into groups
+
   mpol_misplaced: BB36:I2 -> BB36:I3
   should_numa_migrate_memory: full span

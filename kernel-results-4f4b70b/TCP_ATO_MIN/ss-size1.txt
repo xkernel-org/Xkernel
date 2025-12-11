@@ -1,3 +1,10 @@
+Input files: 13
+Total input spans: 13
+Total output clusters: 11
+Reduction: 2 spans merged
+Virtual files (after merging): 11
+File reduction: 2 files merged into groups
+
   __tcp_send_ack: BB4:I7 -> BB4:I7
   __tcp_transmit_skb: BB96:I4 -> BB96:I4
   dccp_delack_timer: BB9:I4 -> BB9:I4

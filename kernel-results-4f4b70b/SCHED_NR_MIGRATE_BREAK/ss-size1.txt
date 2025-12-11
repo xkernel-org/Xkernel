@@ -1,1 +1,8 @@
+Input files: 4
+Total input spans: 4
+Total output clusters: 1
+Reduction: 3 spans merged
+Virtual files (after merging): 1
+File reduction: 3 files merged into groups
+
   sched_balance_rq: BB0:I41 -> BB272:I1

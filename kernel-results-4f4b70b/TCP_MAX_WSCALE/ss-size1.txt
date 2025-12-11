@@ -1,3 +1,10 @@
+Input files: 16
+Total input spans: 35
+Total output clusters: 21
+Reduction: 14 spans merged
+Virtual files (after merging): 10
+File reduction: 6 files merged into groups
+
   bpf_sk_assign_tcp_reqsk: [BB13:I2 -> BB13:I3, BB14:I2 -> BB14:I3]
   cookie_v4_check: [BB14:I5 -> BB22:I5, BB39:I5 -> BB44:I4]
   cookie_v6_check: [BB13:I5 -> BB14:I9, BB29:I14 -> BB45:I6]

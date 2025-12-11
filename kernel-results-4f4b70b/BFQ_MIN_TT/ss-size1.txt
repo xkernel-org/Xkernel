@@ -1,3 +1,10 @@
+Input files: 4
+Total input spans: 4
+Total output clusters: 4
+Reduction: 0 spans merged
+Virtual files (after merging): 4
+File reduction: 0 files merged into groups
+
   bfq_bfqq_expire: BB9:I5 -> BB24:I3
   bfq_dispatch_request: BB251:I3 -> BB251:I4
   bfq_finish_requeue_request: [BB44:I8 -> BB44:I9, BB70:I0 -> BB78:I8]

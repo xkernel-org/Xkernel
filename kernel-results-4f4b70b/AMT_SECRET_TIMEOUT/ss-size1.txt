@@ -1,2 +1,9 @@
+Input files: 2
+Total input spans: 2
+Total output clusters: 2
+Reduction: 0 spans merged
+Virtual files (after merging): 2
+File reduction: 0 files merged into groups
+
   amt_dev_open: BB5:I1 -> BB5:I4
   amt_secret_work: BB0:I6 -> BB0:I6

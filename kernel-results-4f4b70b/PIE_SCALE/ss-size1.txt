@@ -1,3 +1,10 @@
+Input files: 3
+Total input spans: 3
+Total output clusters: 3
+Reduction: 0 spans merged
+Virtual files (after merging): 3
+File reduction: 0 files merged into groups
+
   pie_calculate_probability: BB2:I0 -> BB18:I11
   pie_dump_stats: BB1:I4 -> BB1:I6
   pie_process_dequeue: BB10:I1 -> BB10:I10

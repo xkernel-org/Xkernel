@@ -1,3 +1,10 @@
+Input files: 4
+Total input spans: 4
+Total output clusters: 4
+Reduction: 0 spans merged
+Virtual files (after merging): 4
+File reduction: 0 files merged into groups
+
   __se_sys_io_uring_enter: [BB39:I3 -> BB46:I0, BB82:I0 -> BB82:I4]
   io_run_local_work_locked: BB2:I0 -> BB2:I1
   io_run_task_work_sig: BB2:I7 -> BB2:I11

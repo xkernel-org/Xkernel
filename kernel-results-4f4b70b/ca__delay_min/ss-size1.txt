@@ -1,1 +1,8 @@
+Input files: 3
+Total input spans: 3
+Total output clusters: 1
+Reduction: 2 spans merged
+Virtual files (after merging): 1
+File reduction: 2 files merged into groups
+
   cubictcp_acked: BB21:I1 -> BB21:I7

@@ -1,1 +1,8 @@
+Input files: 1
+Total input spans: 1
+Total output clusters: 1
+Reduction: 0 spans merged
+Virtual files (after merging): 1
+File reduction: 0 files merged into groups
+
   bfq_get_queue: BB48:I2 -> BB48:I7

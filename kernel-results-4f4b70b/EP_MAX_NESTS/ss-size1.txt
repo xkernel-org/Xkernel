@@ -1,2 +1,9 @@
+Input files: 2
+Total input spans: 2
+Total output clusters: 2
+Reduction: 0 spans merged
+Virtual files (after merging): 2
+File reduction: 0 files merged into groups
+
   ep_loop_check_proc: BB1:I0 -> BB4:I3
   reverse_path_check_proc: BB0:I0 -> BB0:I1

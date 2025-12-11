@@ -1,2 +1,9 @@
+Input files: 2
+Total input spans: 2
+Total output clusters: 2
+Reduction: 0 spans merged
+Virtual files (after merging): 2
+File reduction: 0 files merged into groups
+
   amt_discovery_work: BB2:I2 -> BB2:I2
   amt_event_work: BB72:I1 -> BB72:I1

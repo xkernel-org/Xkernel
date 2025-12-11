@@ -1,3 +1,10 @@
+Input files: 3
+Total input spans: 69
+Total output clusters: 34
+Reduction: 35 spans merged
+Virtual files (after merging): 2
+File reduction: 1 files merged into groups
+
   __do_fast_syscall_32: full span
   __ia32_sys_madvise: full span
   __ia32_sys_mbind: full span

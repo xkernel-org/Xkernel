@@ -1,3 +1,10 @@
+Input files: 3
+Total input spans: 3
+Total output clusters: 3
+Reduction: 0 spans merged
+Virtual files (after merging): 3
+File reduction: 0 files merged into groups
+
   sched_balance_find_dst_cpu: BB88:I8 -> BB88:I15
   sched_balance_rq: BB159:I8 -> BB268:I3
   task_numa_find_cpu: BB1:I11 -> BB1:I15

@@ -1,3 +1,10 @@
+Input files: 2
+Total input spans: 10
+Total output clusters: 5
+Reduction: 5 spans merged
+Virtual files (after merging): 1
+File reduction: 1 files merged into groups
+
   io_buffers_peek: full span
   io_buffers_select: full span
   io_recv: BB0:I9 -> BB55:I3

@@ -1,2 +1,9 @@
+Input files: 3
+Total input spans: 3
+Total output clusters: 3
+Reduction: 0 spans merged
+Virtual files (after merging): 3
+File reduction: 0 files merged into groups
+
   bsg_ioctl: BB21:I1 -> BB27:I0
   sg_io: [BB13:I1 -> BB13:I2, BB14:I0 -> BB14:I1]

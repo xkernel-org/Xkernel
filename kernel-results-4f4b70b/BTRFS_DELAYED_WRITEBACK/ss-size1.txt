@@ -1,2 +1,9 @@
+Input files: 2
+Total input spans: 2
+Total output clusters: 2
+Reduction: 0 spans merged
+Virtual files (after merging): 2
+File reduction: 0 files merged into groups
+
   btrfs_async_run_delayed_root: BB11:I5 -> BB11:I9
   btrfs_balance_delayed_items: BB2:I1 -> BB2:I2

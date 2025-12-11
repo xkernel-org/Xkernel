@@ -1,3 +1,10 @@
+Input files: 2
+Total input spans: 30
+Total output clusters: 29
+Reduction: 1 spans merged
+Virtual files (after merging): 2
+File reduction: 0 files merged into groups
+
   __create_dir: BB3:I0 -> BB3:I3
   __debugfs_create_file: BB7:I0 -> BB7:I3
   __rpc_create_common: BB1:I0 -> BB1:I3

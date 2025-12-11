@@ -1,2 +1,9 @@
+Input files: 2
+Total input spans: 2
+Total output clusters: 2
+Reduction: 0 spans merged
+Virtual files (after merging): 2
+File reduction: 0 files merged into groups
+
   create_io_worker: BB11:I4 -> BB11:I5
   create_worker_cont: BB9:I4 -> BB9:I5

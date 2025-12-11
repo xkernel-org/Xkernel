@@ -1,2 +1,9 @@
+Input files: 3
+Total input spans: 3
+Total output clusters: 3
+Reduction: 0 spans merged
+Virtual files (after merging): 3
+File reduction: 0 files merged into groups
+
   master_wakeup_work_handler: [BB1:I2 -> BB1:I3, BB2:I6 -> BB2:I6]
   sb_queue_tail: BB4:I14 -> BB4:I15

@@ -1,3 +1,10 @@
+Input files: 10
+Total input spans: 10
+Total output clusters: 8
+Reduction: 2 spans merged
+Virtual files (after merging): 8
+File reduction: 2 files merged into groups
+
   do_try_to_free_pages: BB35:I1 -> BB35:I2
   kswapd: BB42:I0 -> BB91:I5
   shrink_all_memory: BB0:I12 -> BB0:I12

@@ -1,3 +1,10 @@
+Input files: 5
+Total input spans: 95
+Total output clusters: 55
+Reduction: 40 spans merged
+Virtual files (after merging): 3
+File reduction: 2 files merged into groups
+
   nfs41_find_root_sec: full span
   nfs41_free_stateid_done: BB4:I6 -> BB4:I10
   nfs41_test_and_free_expired_stateid: full span

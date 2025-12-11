@@ -1,3 +1,10 @@
+Input files: 3
+Total input spans: 3
+Total output clusters: 3
+Reduction: 0 spans merged
+Virtual files (after merging): 3
+File reduction: 0 files merged into groups
+
   param_set_first_fqs_jiffies: BB2:I5 -> BB3:I0
   param_set_next_fqs_jiffies: BB2:I5 -> BB3:I0
   rcu_init_geometry: BB3:I4 -> BB9:I1

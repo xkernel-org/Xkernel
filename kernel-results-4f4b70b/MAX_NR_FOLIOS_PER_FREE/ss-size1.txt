@@ -1,2 +1,9 @@
+Input files: 2
+Total input spans: 3
+Total output clusters: 2
+Reduction: 1 spans merged
+Virtual files (after merging): 2
+File reduction: 0 files merged into groups
+
   madvise_vma_behavior: BB46:I8 -> BB101:I2
   tlb_flush_mmu: full span

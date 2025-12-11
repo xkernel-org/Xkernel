@@ -1,3 +1,10 @@
+Input files: 5
+Total input spans: 5
+Total output clusters: 5
+Reduction: 0 spans merged
+Virtual files (after merging): 5
+File reduction: 0 files merged into groups
+
   __io_napi_busy_loop: [BB11:I5 -> BB11:I5, BB13:I6 -> BB13:I6]
   do_epoll_wait: BB46:I5 -> BB50:I0
   io_napi_sqpoll_busy_poll: [BB6:I5 -> BB6:I5, BB9:I6 -> BB9:I6]

@@ -1,1 +1,8 @@
+Input files: 1
+Total input spans: 1
+Total output clusters: 1
+Reduction: 0 spans merged
+Virtual files (after merging): 1
+File reduction: 0 files merged into groups
+
   f2fs_start_gc_thread: BB1:I1 -> BB1:I1

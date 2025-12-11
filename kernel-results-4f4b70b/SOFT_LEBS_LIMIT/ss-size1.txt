@@ -1,1 +1,8 @@
+Input files: 2
+Total input spans: 2
+Total output clusters: 2
+Reduction: 0 spans merged
+Virtual files (after merging): 2
+File reduction: 0 files merged into groups
+
   ubifs_garbage_collect: [BB10:I2 -> BB10:I3, BB24:I0 -> BB24:I1]
