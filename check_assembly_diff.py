@@ -647,6 +647,285 @@ def find_function_for_address(functions, addr_str, disas_file, line_number=None)
     return None
 
 
+def parse_instructions_from_disassembly(disas_file):
+    """Parse disassembly file to extract all instructions with their addresses.
+    
+    Returns a list of (address, instruction_line, line_number) tuples, sorted by address.
+    """
+    instructions = []
+    labels = set()  # Set of addresses that are labels (function starts)
+    
+    with open(disas_file, "r") as f:
+        lines = f.readlines()
+    
+    # First pass: identify function labels
+    for line in lines:
+        func_match = re.match(r'^\s*([0-9a-fA-F]+)\s+<([^>]+)>:', line)
+        if func_match:
+            addr = func_match.group(1)
+            labels.add(addr)
+    
+    # Second pass: extract instructions
+    for line_num, line in enumerate(lines, 1):
+        # Match section header (skip)
+        section_match = re.match(r'^Disassembly of section', line)
+        if section_match:
+            continue
+        
+        # Match function definition (skip, already handled)
+        func_match = re.match(r'^\s*([0-9a-fA-F]+)\s+<([^>]+)>:', line)
+        if func_match:
+            continue
+        
+        # Match instruction line: "  address:  bytes  mnemonic operands"
+        inst_match = re.match(r'^\s+([0-9a-fA-F]+):\s+(.+)', line)
+        if inst_match:
+            addr = inst_match.group(1)
+            inst_line = inst_match.group(2).strip()
+            is_label = addr in labels
+            instructions.append((addr, inst_line, is_label, line_num))
+    
+    return instructions
+
+
+def is_basic_block_terminator(mnemonic):
+    """Check if an instruction is a basic block terminator.
+    
+    Basic block terminators include:
+    - Unconditional jumps (jmp)
+    - Conditional jumps (je, jne, ja, etc.)
+    - Calls (call)
+    - Returns (ret, retq)
+    """
+    if not mnemonic:
+        return False
+    
+    # Unconditional jumps
+    if mnemonic == 'jmp':
+        return True
+    
+    # Conditional jumps (all start with 'j' except jmp)
+    if mnemonic.startswith('j') and mnemonic != 'jmp':
+        return True
+    
+    # Calls
+    if mnemonic == 'call':
+        return True
+    
+    # Returns
+    if mnemonic in ['ret', 'retq', 'retn']:
+        return True
+    
+    return False
+
+
+def find_instruction_line_in_file(disas_file, addr_str, function_name=None):
+    """Find the line number in disassembly file for a given address.
+    
+    Returns (line_number, instruction_line) or (None, None) if not found.
+    """
+    try:
+        target_addr = int(addr_str, 16)
+    except ValueError:
+        return None, None
+    
+    instructions = parse_instructions_from_disassembly(disas_file)
+    if not instructions:
+        return None, None
+    
+    # If function_name is provided, find the function first
+    if function_name:
+        # Find function start
+        func_start_idx = None
+        for i, (addr, inst_line, is_label, line_num) in enumerate(instructions):
+            if is_label:
+                # Check if this is the target function
+                with open(disas_file, "r") as f:
+                    lines = f.readlines()
+                    if line_num <= len(lines):
+                        func_match = re.match(
+                            r'^\s*([0-9a-fA-F]+)\s+<([^>]+)>:',
+                            lines[line_num - 1]
+                        )
+                        if func_match and func_match.group(2) == function_name:
+                            func_start_idx = i
+                            break
+        
+        if func_start_idx is None:
+            return None, None
+        
+        # Find function end (next label or end of instructions)
+        func_end_idx = len(instructions)
+        for i in range(func_start_idx + 1, len(instructions)):
+            addr, inst_line, is_label, line_num = instructions[i]
+            if is_label:
+                func_end_idx = i
+                break
+        
+        # Search only within this function
+        func_instructions = instructions[func_start_idx:func_end_idx]
+    else:
+        func_instructions = instructions
+    
+    # Find the instruction at the target address
+    for addr, inst_line, is_label, line_num in func_instructions:
+        try:
+            inst_addr = int(addr, 16)
+            if inst_addr == target_addr:
+                return line_num, inst_line
+            elif inst_addr > target_addr:
+                # Address not found
+                return None, None
+        except ValueError:
+            continue
+    
+    return None, None
+
+
+def find_basic_block_for_address(disas_file, addr_str, function_name=None):
+    """Find the basic block containing the given address.
+    
+    If function_name is provided, searches only within that function.
+    Otherwise, searches all functions (addresses are relative to function start).
+    
+    Returns a list of (address, instruction_line) tuples representing the basic block,
+    or None if the address is not found.
+    """
+    try:
+        target_addr = int(addr_str, 16)
+    except ValueError:
+        return None
+    
+    instructions = parse_instructions_from_disassembly(disas_file)
+    if not instructions:
+        return None
+    
+    # If function_name is provided, find the function first
+    if function_name:
+        # Find function start
+        func_start_idx = None
+        for i, (addr, inst_line, is_label, line_num) in enumerate(instructions):
+            if is_label:
+                # Check if this is the target function
+                # We need to check the original file for function name
+                with open(disas_file, "r") as f:
+                    lines = f.readlines()
+                    if line_num <= len(lines):
+                        func_match = re.match(
+                            r'^\s*([0-9a-fA-F]+)\s+<([^>]+)>:',
+                            lines[line_num - 1]
+                        )
+                        if func_match and func_match.group(2) == function_name:
+                            func_start_idx = i
+                            break
+        
+        if func_start_idx is None:
+            return None
+        
+        # Find function end (next label or end of instructions)
+        func_end_idx = len(instructions)
+        for i in range(func_start_idx + 1, len(instructions)):
+            addr, inst_line, is_label, line_num = instructions[i]
+            if is_label:
+                func_end_idx = i
+                break
+        
+        # Search only within this function
+        func_instructions = instructions[func_start_idx:func_end_idx]
+    else:
+        func_instructions = instructions
+    
+    # Find the instruction at the target address within the function
+    target_idx = None
+    for i, (addr, inst_line, is_label, line_num) in enumerate(func_instructions):
+        try:
+            inst_addr = int(addr, 16)
+            if inst_addr == target_addr:
+                target_idx = i
+                break
+            elif inst_addr > target_addr:
+                # Address not found in this function
+                return None
+        except ValueError:
+            continue
+    
+    if target_idx is None:
+        return None
+    
+    # Use function instructions for searching, but track absolute indices
+    if function_name:
+        # Search within function, but need to map back to absolute indices
+        func_target_idx = target_idx
+        search_start = func_start_idx
+        search_end = func_end_idx
+    else:
+        func_target_idx = target_idx
+        search_start = 0
+        search_end = len(func_instructions)
+    
+    # Find basic block start (go backwards until we find a label or terminator)
+    start_idx = func_target_idx
+    for i in range(func_target_idx, -1, -1):
+        addr, inst_line, is_label, line_num = func_instructions[i]
+        
+        # If this is a label (function start), it's a basic block start
+        if is_label:
+            start_idx = i
+            break
+        
+        # Extract mnemonic
+        mnemonic = extract_mnemonic(f"  {addr}: {inst_line}")
+        
+        # Check if this is a basic block terminator
+        if is_basic_block_terminator(mnemonic):
+            # This instruction ends a basic block, start from next one
+            if i + 1 < len(func_instructions):
+                start_idx = i + 1
+            else:
+                return None
+            break
+        
+        start_idx = i
+    
+    # Find basic block end (go forwards until we find a terminator or label)
+    end_idx = start_idx
+    for i in range(start_idx, len(func_instructions)):
+        addr, inst_line, is_label, line_num = func_instructions[i]
+        
+        # If this is a label and it's not the start, it's a new basic block
+        if is_label and i > start_idx:
+            end_idx = i - 1
+            break
+        
+        # Extract mnemonic
+        mnemonic = extract_mnemonic(f"  {addr}: {inst_line}")
+        
+        # Check if this is a basic block terminator
+        if is_basic_block_terminator(mnemonic):
+            end_idx = i
+            break
+        
+        end_idx = i
+    
+    # Extract the basic block
+    basic_block = []
+    for i in range(start_idx, end_idx + 1):
+        addr, inst_line, is_label, line_num = func_instructions[i]
+        basic_block.append((addr, inst_line))
+    
+    return basic_block if basic_block else None
+
+
+def get_basic_block_key(basic_block):
+    """Generate a unique key for a basic block to identify duplicates.
+    
+    Uses the first and last addresses as the key.
+    """
+    if not basic_block:
+        return None
+    return (basic_block[0][0], basic_block[-1][0])
+
+
 # ============================================================================
 # File Modification Functions
 # ============================================================================
@@ -973,12 +1252,32 @@ def main():
             )
             changed_instructions = []
             current_diff_line_number = None
+            current_hunk_start = None  # Starting line number in original file for current hunk
+            current_hunk_line_offset = 0  # Offset within current hunk (only counting - and context lines)
             
             for line in diff_result.stdout.splitlines():
                 if line.startswith("@@"):
-                    match = re.search(r'@@\s+-(\d+)', line)
+                    # Parse @@ -old_start,old_count +new_start,new_count @@
+                    match = re.search(r'@@\s+-(\d+)(?:,(\d+))?\s+\+(\d+)(?:,(\d+))?\s+@@', line)
                     if match:
-                        current_diff_line_number = int(match.group(1))
+                        current_hunk_start = int(match.group(1))
+                        current_hunk_line_offset = 0
+                        current_diff_line_number = current_hunk_start
+                
+                # Track line numbers: - lines are from original file, + lines are from new file
+                # Context lines (starting with space) are in both files
+                if line.startswith(' ') or line.startswith('-'):
+                    # This line exists in original file
+                    if current_hunk_start is not None:
+                        original_line_num = current_hunk_start + current_hunk_line_offset
+                        current_hunk_line_offset += 1
+                    else:
+                        original_line_num = None
+                elif line.startswith('+'):
+                    # This line only exists in new file, don't increment original file counter
+                    original_line_num = None
+                else:
+                    original_line_num = None
                 
                 flag = "+" if args.reverse else "-"
                 if line.startswith(flag):
@@ -987,18 +1286,163 @@ def main():
                     
                     offset = line.split()[1].rstrip(':')
                     obj = target_recomp_obj if args.reverse else target_orig_obj
+                    # Store original file line number along with instruction info
                     changed_instructions = process_addr2line(
                         obj, offset, line, args.lines, changed_instructions,
-                        current_diff_line_number
+                        original_line_num  # Pass the actual line number in original file
                     )
             
-            # Find function information for each changed instruction
+            # Extract Basic Blocks for changed instructions from step 10
             if changed_instructions:
                 print_color(
-                    "\n11. Finding function information for changed instructions...",
+                    "\n11. Extracting Basic Blocks for changed instructions...",
                     "blue"
                 )
                 original_disas_file = original_disas[source_file]
+                seen_blocks = {}  # Map (start_addr, end_addr) -> basic_block
+                seen_line_ranges = []  # List of (start_line, end_line) tuples for already output Basic Blocks
+                
+                # Read the original disassembly file to get line-by-line access
+                with open(original_disas_file, "r") as f:
+                    original_lines = f.readlines()
+                
+                for line, offset, original_line_num in changed_instructions:
+                    # Skip diff header lines (---, +++, @@, etc.)
+                    if (line.startswith('---') or line.startswith('+++') or 
+                        line.startswith('@@') or not line.strip()):
+                        continue
+                    
+                    # Extract address from the line (format: "-   3:  be c8 00 00 00")
+                    addr_match = re.search(r'^\s*[-+]\s+([0-9a-fA-F]+):', line)
+                    if not addr_match:
+                        continue
+                    
+                    addr_str = addr_match.group(1)
+                    
+                    # Use the line number from step 8's diff output
+                    if original_line_num is None or original_line_num < 1 or original_line_num > len(original_lines):
+                        print_color(
+                            f"Invalid line number {original_line_num} for address 0x{addr_str}",
+                            "yellow"
+                        )
+                        continue
+                    
+                    # Check if this line is already covered by a previously output Basic Block
+                    already_covered = False
+                    for start_line, end_line in seen_line_ranges:
+                        if start_line <= original_line_num <= end_line:
+                            already_covered = True
+                            break
+                    
+                    if already_covered:
+                        # Skip this instruction as it's already in a Basic Block we've output
+                        continue
+                    
+                    # Step 1: Get the instruction line from original file using line number from diff
+                    inst_line_content = original_lines[original_line_num - 1].strip()
+                    print_color(
+                        f"\nInstruction at 0x{addr_str} found at line {original_line_num}",
+                        "blue"
+                    )
+                    
+                    # Step 2: Find basic block starting from this specific line number
+                    # Parse all instructions with their line numbers
+                    instructions = parse_instructions_from_disassembly(original_disas_file)
+                    
+                    # Find the instruction at the target line number
+                    target_inst_idx = None
+                    for i, (addr, inst_line, is_label, line_num) in enumerate(instructions):
+                        if line_num == original_line_num:
+                            target_inst_idx = i
+                            break
+                    
+                    if target_inst_idx is None:
+                        print_color(
+                            f"Could not find instruction at line {original_line_num}",
+                            "yellow"
+                        )
+                        continue
+                    
+                    # Find basic block boundaries starting from this instruction
+                    # Go backwards to find basic block start
+                    start_idx = target_inst_idx
+                    for i in range(target_inst_idx, -1, -1):
+                        addr, inst_line, is_label, line_num = instructions[i]
+                        
+                        # If this is a label (function start), it's a basic block start
+                        if is_label:
+                            start_idx = i
+                            break
+                        
+                        # Extract mnemonic
+                        mnemonic = extract_mnemonic(f"  {addr}: {inst_line}")
+                        
+                        # Check if this is a basic block terminator
+                        if is_basic_block_terminator(mnemonic):
+                            # This instruction ends a basic block, start from next one
+                            if i + 1 < len(instructions):
+                                start_idx = i + 1
+                            else:
+                                start_idx = target_inst_idx
+                            break
+                        
+                        start_idx = i
+                    
+                    # Go forwards to find basic block end
+                    end_idx = start_idx
+                    for i in range(start_idx, len(instructions)):
+                        addr, inst_line, is_label, line_num = instructions[i]
+                        
+                        # If this is a label and it's not the start, it's a new basic block
+                        if is_label and i > start_idx:
+                            end_idx = i - 1
+                            break
+                        
+                        # Extract mnemonic
+                        mnemonic = extract_mnemonic(f"  {addr}: {inst_line}")
+                        
+                        # Check if this is a basic block terminator
+                        if is_basic_block_terminator(mnemonic):
+                            end_idx = i
+                            break
+                        
+                        end_idx = i
+                    
+                    # Extract the basic block
+                    basic_block = []
+                    bb_start_line = None
+                    bb_end_line = None
+                    for i in range(start_idx, end_idx + 1):
+                        addr, inst_line, is_label, line_num = instructions[i]
+                        basic_block.append((addr, inst_line))
+                        if bb_start_line is None:
+                            bb_start_line = line_num
+                        bb_end_line = line_num
+                    
+                    if basic_block:
+                        block_key = get_basic_block_key(basic_block)
+                        if block_key and block_key not in seen_blocks:
+                            seen_blocks[block_key] = basic_block
+                            # Record the line number range for this Basic Block
+                            if bb_start_line and bb_end_line:
+                                seen_line_ranges.append((bb_start_line, bb_end_line))
+                            print_color(
+                                f"Basic Block: lines {bb_start_line}-{bb_end_line}",
+                                "yellow"
+                            )
+                            for addr, inst_line in basic_block:
+                                print(f"  {addr}:  {inst_line}")
+                    else:
+                        print_color(
+                            f"Could not find Basic Block for line {original_line_num}",
+                            "yellow"
+                        )
+                
+                # Find function information for each changed instruction
+                print_color(
+                    "\n12. Finding function information for changed instructions...",
+                    "blue"
+                )
                 functions = parse_functions_from_disassembly(original_disas_file)
                 
                 for line, offset, diff_line_number in changed_instructions:
