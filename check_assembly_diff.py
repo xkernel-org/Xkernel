@@ -2,20 +2,26 @@
 # -*- coding: utf-8 -*-
 
 import argparse
+import difflib
 import os
+import re
 import shutil
 import subprocess
 import sys
 from pathlib import Path
-import re
 
 # --- Configuration ---
 DEFAULT_LINUX_PATH = "~/linux-6.14.0-xkernel"
-REQUIRED_TOOLS = ["gcc", "make", "objdump", "sed", "diff", "grep"]  # Added grep
-BUILD_DIR_NAME = "BUILDO"  # Directory for all output files
+REQUIRED_TOOLS = ["gcc", "make", "objdump", "sed", "diff", "grep"]
+BUILD_DIR_NAME = "BUILDO"
+
+
+# ============================================================================
+# Utility Functions
+# ============================================================================
 
 def print_color(text, color="green"):
-    """Prints colored text to the terminal."""
+    """Print colored text to the terminal."""
     colors = {
         "red": "\033[91m",
         "green": "\033[92m",
@@ -25,13 +31,18 @@ def print_color(text, color="green"):
     }
     print(f"{colors.get(color, '')}{text}{colors['end']}")
 
+
 def check_tools():
-    """Checks if the required toolchain is present."""
+    """Check if the required toolchain is present."""
     print_color("1. Checking for required toolchain...", "blue")
     all_found = True
     for tool in REQUIRED_TOOLS:
         if not shutil.which(tool):
-            print_color(f"   - Error: Command '{tool}' not found. Please ensure it is installed and in your system's PATH.", "red")
+            print_color(
+                f"   - Error: Command '{tool}' not found. "
+                f"Please ensure it is installed and in your system's PATH.",
+                "red"
+            )
             all_found = False
         else:
             print_color(f"   - Found: {tool}", "green")
@@ -41,7 +52,7 @@ def check_tools():
 
 
 def run_command(command, cwd, capture_output=False):
-    """Executes a shell command and handles errors."""
+    """Execute a shell command and handle errors."""
     print_color(f"--> Executing: {' '.join(command)}", "yellow")
     try:
         result = subprocess.run(
@@ -58,7 +69,10 @@ def run_command(command, cwd, capture_output=False):
         print_color(f"Error: Command '{command[0]}' not found.", "red")
         return False
     except subprocess.CalledProcessError as e:
-        print_color(f"Error: Command '{' '.join(command)}' failed to execute.", "red")
+        print_color(
+            f"Error: Command '{' '.join(command)}' failed to execute.",
+            "red"
+        )
         print_color(f"Return code: {e.returncode}", "red")
         if e.stdout:
             print(f"--- STDOUT ---\n{e.stdout}")
@@ -66,12 +80,18 @@ def run_command(command, cwd, capture_output=False):
             print(f"--- STDERR ---\n{e.stderr}")
         return False
 
+
+# ============================================================================
+# File Processing Functions
+# ============================================================================
+
 def get_file_hash(file_path):
-    """Create a safe hash from file path for unique naming"""
+    """Create a safe hash from file path for unique naming."""
     return str(file_path).replace("/", "_").replace(".", "_")
 
+
 def process_file(kernel_path, build_path, file_path, is_original=True):
-    """Process a single file: compile, disassemble, and manage artifacts"""
+    """Process a single file: compile, disassemble, and manage artifacts."""
     rel_path = file_path.relative_to(kernel_path)
     obj_rel_path = rel_path.with_suffix(".o")
     obj_abs_path = kernel_path / obj_rel_path
@@ -82,7 +102,10 @@ def process_file(kernel_path, build_path, file_path, is_original=True):
     orig_obj_file = build_path / f"{file_hash}_{'original' if is_original else 'recompiled'}.orig.o"
 
     print_color(f"Compiling {rel_path}...", "blue")
-    if not run_command(["make", "KCFLAGS=-ffunction-sections -fdata-sections", str(obj_rel_path)], cwd=kernel_path):
+    if not run_command(
+        ["make", "KCFLAGS=-ffunction-sections -fdata-sections", str(obj_rel_path)],
+        cwd=kernel_path
+    ):
         raise RuntimeError(f"Compilation failed for {rel_path}")
     
     if obj_abs_path.exists():
@@ -105,14 +128,14 @@ def process_file(kernel_path, build_path, file_path, is_original=True):
     
     return dest_obj_file, disas_file, orig_obj_file
 
+
 def search_macro_usage(kernel_path, macro_name):
-    """Search for files using the specified macro"""
+    """Search for files using the specified macro."""
     print_color(f"\nSearching for macro '{macro_name}' in kernel source...", "blue")
-    # Use grep to find C files containing the macro (whole word match)
     grep_cmd = [
-        "grep", 
-        "-rwn", 
-        "--include=*.c", 
+        "grep",
+        "-rwn",
+        "--include=*.c",
         "--include=*.h",
         "-e", f"\\b{macro_name}\\b",
         str(kernel_path)
@@ -129,12 +152,10 @@ def search_macro_usage(kernel_path, macro_name):
         print_color(f"No files found using macro '{macro_name}'", "yellow")
         return []
 
-    # Parse results and extract unique C files
     files = set()
     for line in result.stdout.splitlines():
-        # Extract file path (before first colon)
         file_path = line.split(":")[0]
-        if file_path.endswith(".c") or file_path.endswith(".h"):  # Only process C source files or header files
+        if file_path.endswith((".c", ".h")):
             files.add(Path(file_path))
     
     print_color(f"Found {len(files)} files using macro '{macro_name}':", "green")
@@ -143,41 +164,323 @@ def search_macro_usage(kernel_path, macro_name):
     
     return sorted(files)
 
+
+# ============================================================================
+# Diff Analysis Functions
+# ============================================================================
+
 def strip_leading_number_colon(line):
     """Remove leading numbers followed by a colon (e.g., '3833:') from a line."""
     return re.sub(r'^\s*\d+:\s*', '', line)
+
+
+def extract_instruction_bytes(line):
+    """Extract instruction bytes from objdump line.
+    
+    For line like: "  e1:  66 41 39 c6             cmp    %ax,%r14w"
+    Or diff line: "-  e1:  66 41 39 c6             cmp    %ax,%r14w"
+    Returns: "66 41 39 c6" or None if not an instruction line.
+    """
+    # Match pattern: address:  bytes  mnemonic
+    # Handle both normal lines and diff lines (with - or + prefix)
+    match = re.match(r'^\s*[-+]?\s*[0-9a-fA-F]+:\s+([0-9a-fA-F\s]+)', line)
+    if match:
+        # Extract and normalize bytes (remove extra spaces)
+        bytes_str = ' '.join(match.group(1).split())
+        return bytes_str
+    return None
+
+
+def extract_mnemonic(line):
+    """Extract mnemonic (instruction name) from objdump line.
+    
+    For line like: "  e1:  66 41 39 c6             cmp    %ax,%r14w"
+    Returns: "cmp" or None if not an instruction line.
+    """
+    # Match pattern: address:  bytes  mnemonic operands
+    # Extract mnemonic (word after bytes, before operands)
+    # Handle both normal lines and diff lines (with - or + prefix)
+    match = re.search(r'^\s*[-+]?\s*[0-9a-fA-F]+:\s+[0-9a-fA-F\s]+\s+([a-z]+)', line)
+    if match:
+        return match.group(1)
+    return None
+
+
+def extract_operand_types(line):
+    """Extract operand type pattern from instruction line.
+    
+    For line like: "  e1:  66 41 39 c6             cmp    %ax,%r14w"
+    Returns: ["reg", "reg"] - indicating two register operands.
+    
+    Operand types:
+    - "imm": immediate value (e.g., $0xc8, $0xa)
+    - "reg": register (e.g., %eax, %r8d, %rbx)
+    - "mem": memory access (e.g., 0x4e8(%rbx), (%r12))
+    - "label": label/symbol (e.g., function_name)
+    """
+    # Extract the operand part (after mnemonic)
+    # Pattern: mnemonic operands (operands may contain spaces, commas, etc.)
+    match = re.search(r'^\s*[-+]?\s*[0-9a-fA-F]+:\s+[0-9a-fA-F\s]+\s+[a-z]+\s+(.+)', line)
+    if not match:
+        return []
+    
+    operands_str = match.group(1).strip()
+    if not operands_str:
+        return []
+    
+    # Remove comments (everything after #)
+    operands_str = operands_str.split('#')[0].strip()
+    
+    # Split by comma to get individual operands
+    operands = [op.strip() for op in operands_str.split(',')]
+    
+    operand_types = []
+    for op in operands:
+        op = op.strip()
+        if not op:
+            continue
+        
+        # Check for immediate value (starts with $)
+        if op.startswith('$'):
+            operand_types.append('imm')
+        # Check for memory access (contains ( or [)
+        elif '(' in op or '[' in op:
+            # For memory access, we want to preserve the offset if present
+            # e.g., 0x4e8(%rbx) -> mem:0x4e8, (%rbx) -> mem:0
+            mem_match = re.match(r'([0-9a-fA-Fx]+)?\s*\(', op)
+            if mem_match:
+                offset = mem_match.group(1) or '0'
+                operand_types.append(f'mem:{offset}')
+            else:
+                operand_types.append('mem')
+        # Check for label (contains < or >, or is a symbol name)
+        elif '<' in op or '>' in op or (not op.startswith('%') and not any(c in op for c in '0123456789')):
+            operand_types.append('label')
+        # Otherwise, it's likely a register (starts with %)
+        elif op.startswith('%'):
+            operand_types.append('reg')
+        else:
+            # Default to reg for unknown patterns
+            operand_types.append('reg')
+    
+    return operand_types
+
+
+def normalize_instruction_for_comparison(line):
+    """Normalize instruction for comparison, ignoring address offsets and register differences.
+    
+    For jump/call instructions, only compare opcode, not offset.
+    For other instructions, compare mnemonic and operand type pattern (ignore register names).
+    For continuation lines (no mnemonic), compare bytes only.
+    Returns normalized instruction signature or None.
+    """
+    bytes_str = extract_instruction_bytes(line)
+    if not bytes_str:
+        return None
+    
+    mnemonic = extract_mnemonic(line)
+    
+    # If no mnemonic, this is likely a continuation line (e.g., "  fe:  00")
+    # Compare bytes directly
+    if not mnemonic:
+        return f"bytes:{bytes_str}"
+    
+    # List of instructions that contain relative offsets/addresses
+    offset_instructions = ['j', 'call', 'loop']
+    
+    # Check if this is a jump/call instruction
+    is_offset_inst = any(mnemonic.startswith(prefix) for prefix in offset_instructions)
+    
+    if is_offset_inst:
+        # For jump/call instructions, extract opcode (first 1-2 bytes typically)
+        # and ignore the offset bytes (last 1-4 bytes)
+        bytes_list = bytes_str.split()
+        if len(bytes_list) >= 2:
+            # Most jump/call instructions: opcode (1-2 bytes) + offset (1-4 bytes)
+            # Try to identify opcode length based on first byte
+            first_byte = bytes_list[0].lower()
+            
+            # Common patterns:
+            # - 0x0f prefix: 2-byte opcode (e.g., 0f 87 = ja, 0f 85 = jne, 0f 84 = je)
+            # - 0xe8, 0xe9: call/jmp with 1-byte opcode
+            # - 0x70-0x7f: conditional jumps with 1-byte opcode
+            try:
+                if first_byte == '0f' and len(bytes_list) >= 3:
+                    # Two-byte opcode (0f + opcode)
+                    opcode = ' '.join(bytes_list[:2])
+                elif first_byte in ['e8', 'e9', 'eb'] or (len(first_byte) == 2 and 
+                                                           int(first_byte, 16) >= 0x70 and 
+                                                           int(first_byte, 16) <= 0x7f):
+                    # One-byte opcode
+                    opcode = bytes_list[0]
+                else:
+                    # Fallback: use first 2 bytes as opcode
+                    opcode = ' '.join(bytes_list[:min(2, len(bytes_list))])
+            except (ValueError, IndexError):
+                # If parsing fails, use first 2 bytes as fallback
+                opcode = ' '.join(bytes_list[:min(2, len(bytes_list))])
+            
+            return f"{mnemonic}:{opcode}"
+    else:
+        # For non-jump instructions, compare mnemonic and operand type pattern
+        # This allows us to ignore register differences (e.g., %eax vs %r8d)
+        operand_types = extract_operand_types(line)
+        operand_pattern = ','.join(operand_types) if operand_types else 'none'
+        
+        # Also extract immediate values for comparison (if any)
+        # This helps distinguish instructions with different immediate values
+        imm_values = []
+        match = re.search(r'^\s*[-+]?\s*[0-9a-fA-F]+:\s+[0-9a-fA-F\s]+\s+[a-z]+\s+(.+)', line)
+        if match:
+            operands_str = match.group(1).split('#')[0].strip()
+            # Extract immediate values (e.g., $0xc8, $0xa)
+            imm_matches = re.findall(r'\$0x([0-9a-fA-F]+)', operands_str)
+            imm_values = imm_matches
+        
+        # Build signature: mnemonic + operand pattern + immediate values
+        if imm_values:
+            return f"{mnemonic}:{operand_pattern}:imm={','.join(imm_values)}"
+        else:
+            return f"{mnemonic}:{operand_pattern}"
+
+
+def filter_address_offset_diff(diff_lines):
+    """Filter out differences that are only due to address offset.
+    
+    When instructions change length, all subsequent addresses shift.
+    This function identifies and filters out lines where only the address
+    changed but the instruction bytes are the same (or for jumps, only offset changed).
+    
+    Returns filtered diff lines.
+    """
+    filtered = []
+    i = 0
+    
+    # First pass: collect all '-' and '+' lines with their signatures
+    minus_lines = []
+    plus_lines = []
+    line_map = {}  # Map line index to whether it should be kept
+    
+    while i < len(diff_lines):
+        line = diff_lines[i]
+        
+        # Keep non-instruction lines (headers, context, etc.)
+        if not (line.startswith('-') or line.startswith('+')):
+            line_map[i] = True
+            i += 1
+            continue
+        
+        if line.startswith('-'):
+            # Pass the full line, function will handle the '-' prefix
+            sig = normalize_instruction_for_comparison(line)
+            if sig:
+                minus_lines.append((i, sig, line))
+            else:
+                line_map[i] = True
+        elif line.startswith('+'):
+            # Pass the full line, function will handle the '+' prefix
+            sig = normalize_instruction_for_comparison(line)
+            if sig:
+                plus_lines.append((i, sig, line))
+            else:
+                line_map[i] = True
+        
+        i += 1
+    
+    # Match minus and plus lines by signature
+    matched_plus = set()
+    
+    for minus_idx, minus_sig, minus_line in minus_lines:
+        # Find matching plus line with same signature
+        matched = False
+        for plus_idx, plus_sig, plus_line in plus_lines:
+            if plus_idx not in matched_plus and minus_sig == plus_sig:
+                # Found a match - mark both as filtered
+                line_map[minus_idx] = False
+                line_map[plus_idx] = False
+                matched_plus.add(plus_idx)
+                matched = True
+                break
+        
+        if not matched:
+            # No match found - keep the minus line
+            line_map[minus_idx] = True
+    
+    # Mark unmatched plus lines as kept
+    for plus_idx, _, _ in plus_lines:
+        if plus_idx not in matched_plus:
+            line_map[plus_idx] = True
+    
+    # Second pass: build filtered output and clean up isolated @@ lines
+    i = 0
+    while i < len(diff_lines):
+        line = diff_lines[i]
+        
+        # Check if this is a @@ line
+        if line.startswith('@@'):
+            # Look ahead to see if there are any kept - or + lines in this hunk
+            has_kept_changes = False
+            j = i + 1
+            while j < len(diff_lines) and not (diff_lines[j].startswith('@@') or 
+                                                diff_lines[j].startswith('---') or
+                                                diff_lines[j].startswith('+++')):
+                if line_map.get(j, True) and (diff_lines[j].startswith('-') or 
+                                              diff_lines[j].startswith('+')):
+                    has_kept_changes = True
+                    break
+                j += 1
+            
+            # Only keep @@ line if there are kept changes in this hunk
+            if has_kept_changes:
+                filtered.append(line)
+        else:
+            # For other lines, use the line_map decision
+            if line_map.get(i, True):
+                filtered.append(line)
+        
+        i += 1
+    
+    return filtered
+
 
 def diff_ignore_number_colon(file1, file2):
     """Diff two files, ignoring lines that only differ by leading numbers and colon."""
     with open(file1, "r") as f1, open(file2, "r") as f2:
         lines1 = [strip_leading_number_colon(l.rstrip('\n')) for l in f1]
         lines2 = [strip_leading_number_colon(l.rstrip('\n')) for l in f2]
-    import difflib
-    diff = list(difflib.unified_diff(lines1, lines2, fromfile=str(file1), tofile=str(file2), lineterm=''))
+    diff = list(difflib.unified_diff(
+        lines1, lines2,
+        fromfile=str(file1),
+        tofile=str(file2),
+        lineterm=''
+    ))
     return diff
+
+
+# ============================================================================
+# Disassembly Analysis Functions
+# ============================================================================
 
 def parse_functions_from_disassembly(disas_file):
     """Parse disassembly file to extract function information.
+    
     Returns a dict mapping function name to (start_addr, end_addr, size).
     Handles sections where each function has its own section.
     """
     functions = {}
     current_section = None
-    section_functions = []  # List of (start_addr, func_name) within current section
-    section_last_addr = None  # Last instruction address in current section
+    section_functions = []
+    section_last_addr = None
     
     with open(disas_file, "r") as f:
         for line in f:
-            # Match section header: "Disassembly of section .text.function_name:"
             section_match = re.match(r'^Disassembly of section (\.text[^:]+):', line)
             if section_match:
-                # Save previous section's functions
                 if section_functions:
                     for i, (start_addr, func_name) in enumerate(section_functions):
                         if i + 1 < len(section_functions):
                             end_addr = section_functions[i + 1][0]
                         else:
-                            # Last function in section: use section's last address
                             end_addr = section_last_addr if section_last_addr else start_addr
                         
                         start_int = int(start_addr, 16)
@@ -190,22 +493,18 @@ def parse_functions_from_disassembly(disas_file):
                 section_last_addr = None
                 continue
             
-            # Match function definition: "0000000000000000 <function_name>:"
             func_match = re.match(r'^([0-9a-fA-F]+)\s+<([^>]+)>:', line)
             if func_match:
                 start_addr = func_match.group(1)
                 func_name = func_match.group(2)
-                # Skip prefix functions like __pfx_* and .cold variants
                 if not func_name.startswith('__pfx_') and not func_name.endswith('.cold'):
                     section_functions.append((start_addr, func_name))
             
-            # Track last instruction address in section
             if current_section:
                 inst_match = re.match(r'^\s+([0-9a-fA-F]+):', line)
                 if inst_match:
                     section_last_addr = inst_match.group(1)
     
-    # Handle last section's functions
     if section_functions:
         for i, (start_addr, func_name) in enumerate(section_functions):
             if i + 1 < len(section_functions):
@@ -220,8 +519,10 @@ def parse_functions_from_disassembly(disas_file):
     
     return functions
 
+
 def find_function_for_address_in_file(disas_file, addr_str, line_number=None):
     """Find which function contains the given address by searching in the disassembly file.
+    
     This is more accurate because it considers the section context.
     If line_number is provided, it will prioritize matches near that line number.
     Returns (function_name, start_addr, end_addr, size, instruction_count) or None.
@@ -234,89 +535,71 @@ def find_function_for_address_in_file(disas_file, addr_str, line_number=None):
     current_section = None
     current_func = None
     current_func_start = None
-    last_inst_addr = None
-    best_match = None  # Store the best match
-    best_match_line = None  # Store the line number of the best match
+    best_match = None
+    best_match_line = None
     
     with open(disas_file, "r") as f:
         lines = f.readlines()
     
     for i, line in enumerate(lines):
-        # Match section header
         section_match = re.match(r'^Disassembly of section (\.text[^:]+):', line)
         if section_match:
-            # Reset for new section
             current_section = section_match.group(1)
             current_func = None
             current_func_start = None
-            last_inst_addr = None
             continue
         
-        # Match function definition
         func_match = re.match(r'^([0-9a-fA-F]+)\s+<([^>]+)>:', line)
         if func_match:
             func_start = func_match.group(1)
             func_name = func_match.group(2)
-            # Skip prefix functions
             if not func_name.startswith('__pfx_') and not func_name.endswith('.cold'):
-                # Start new function
                 current_func = func_name
                 current_func_start = func_start
-                last_inst_addr = None
             continue
         
-        # Match instruction line
         if current_func and current_func_start:
             inst_match = re.match(r'^\s+([0-9a-fA-F]+):', line)
             if inst_match:
                 inst_addr_str = inst_match.group(1)
                 inst_addr = int(inst_addr_str, 16)
-                last_inst_addr = inst_addr_str  # Update last seen instruction
                 
-                # Check if this is the target address
                 if inst_addr == addr:
-                    # Found the address! Verify it's in the current function's range and section matches
                     func_start_int = int(current_func_start, 16)
-                    # Address must be >= function start (it's an instruction in the function)
                     if func_start_int <= addr:
-                        # Verify section name matches function name (section is usually .text.function_name)
-                        section_matches = True  # Default to True if no section info
+                        section_matches = True
                         if current_section:
-                            # Extract function name from section
-                            # Section format: .text.function_name or .text.unlikely.function_name
                             section_func_name = current_section
-                            # Remove .text. or .text.unlikely. prefix
                             if section_func_name.startswith('.text.unlikely.'):
                                 section_func_name = section_func_name[len('.text.unlikely.'):]
                             elif section_func_name.startswith('.text.'):
                                 section_func_name = section_func_name[len('.text.'):]
-                            
-                            # Check if section function name matches current function
                             section_matches = (section_func_name == current_func)
                         
-                        # Only process if section matches (to avoid false matches in other sections)
                         if section_matches:
-                            # Now find the function's end by reading ahead
                             func_end_int = inst_addr
                             func_start_line_idx = None
                             func_end_line_idx = i
                             
-                            # Find function start line index
                             for j in range(i, -1, -1):
                                 prev_line = lines[j]
-                                prev_func_match = re.match(r'^([0-9a-fA-F]+)\s+<([^>]+)>:', prev_line)
-                                if prev_func_match and prev_func_match.group(1) == current_func_start:
+                                prev_func_match = re.match(
+                                    r'^([0-9a-fA-F]+)\s+<([^>]+)>:', prev_line
+                                )
+                                if (prev_func_match and
+                                    prev_func_match.group(1) == current_func_start):
                                     func_start_line_idx = j
                                     break
                             
-                            # Read ahead to find function end
                             for j in range(i + 1, len(lines)):
                                 next_line = lines[j]
-                                # Check if we hit next function or section
-                                next_func_match = re.match(r'^([0-9a-fA-F]+)\s+<([^>]+)>:', next_line)
-                                next_section_match = re.match(r'^Disassembly of section', next_line)
+                                next_func_match = re.match(
+                                    r'^([0-9a-fA-F]+)\s+<([^>]+)>:', next_line
+                                )
+                                next_section_match = re.match(
+                                    r'^Disassembly of section', next_line
+                                )
                                 if next_func_match or next_section_match:
-                                    # Use the last instruction address we saw
                                     break
                                 
                                 next_inst_match = re.match(r'^\s+([0-9a-fA-F]+):', next_line)
@@ -324,7 +607,6 @@ def find_function_for_address_in_file(disas_file, addr_str, line_number=None):
                                     func_end_int = int(next_inst_match.group(1), 16)
                                     func_end_line_idx = j
                             
-                            # Count instructions from function start to end
                             instruction_count = 0
                             if func_start_line_idx is not None:
                                 for j in range(func_start_line_idx + 1, func_end_line_idx + 1):
@@ -333,49 +615,151 @@ def find_function_for_address_in_file(disas_file, addr_str, line_number=None):
                                         instruction_count += 1
                             
                             size = func_end_int - func_start_int
-                            # Store this match
-                            # If line_number is provided, prioritize matches near that line number
                             if line_number is not None:
-                                # Calculate distance from target line number
-                                distance = abs(i + 1 - line_number)  # i+1 because line numbers are 1-based
-                                if best_match is None or (best_match_line is not None and distance < abs(best_match_line - line_number)):
-                                    best_match = (current_func, current_func_start, f"{func_end_int:x}", size, instruction_count)
+                                distance = abs(i + 1 - line_number)
+                                if (best_match is None or
+                                    (best_match_line is not None and
+                                     distance < abs(best_match_line - line_number))):
+                                    best_match = (
+                                        current_func, current_func_start,
+                                        f"{func_end_int:x}", size, instruction_count
+                                    )
                                     best_match_line = i + 1
                             else:
-                                # If no line_number provided, use the last match (as diff usually shows the last occurrence)
-                                best_match = (current_func, current_func_start, f"{func_end_int:x}", size, instruction_count)
+                                best_match = (
+                                    current_func, current_func_start,
+                                    f"{func_end_int:x}", size, instruction_count
+                                )
                                 best_match_line = i + 1
     
-    # Return the best match found
-    # If line_number was provided, return the match closest to that line number
-    # Otherwise, return the last match found
     return best_match
 
-def find_function_for_address(functions, addr_str, disas_file=None, line_number=None):
+
+def find_function_for_address(functions, addr_str, disas_file, line_number=None):
     """Find which function contains the given address.
-    If disas_file is provided, uses more accurate section-aware search.
+    
+    Uses section-aware search for accurate function matching.
     If line_number is provided, it will prioritize matches near that line number.
     Returns (function_name, start_addr, end_addr, size, instruction_count) or None.
     """
-    # If disas_file is provided, use the more accurate method
     if disas_file:
         return find_function_for_address_in_file(disas_file, addr_str, line_number)
-    
-    # Fallback to simple search
-    try:
-        addr = int(addr_str, 16)
-    except ValueError:
-        return None
-    
-    # Find function that contains this address
-    for func_name, (start_str, end_str, size) in functions.items():
-        start_addr = int(start_str, 16)
-        end_addr = int(end_str, 16)
-        if start_addr <= addr <= end_addr:
-            # Return 0 for instruction_count as we don't have file access in fallback mode
-            return (func_name, start_str, end_str, size, 0)
-    
     return None
+
+
+# ============================================================================
+# File Modification Functions
+# ============================================================================
+
+def macro_to_pattern(line):
+    """Convert macro definition line to regex pattern."""
+    m = re.match(r"^#define\s+(\w+)\s+(.+)$", line)
+    if m:
+        macro, value = m.group(1), m.group(2)
+        pattern = rf"#define\s+{re.escape(macro)}\s+{re.escape(value.strip())}"
+        pattern = pattern.replace(r"\s+", r"[ \t]+")
+        return pattern
+    return re.escape(line)
+
+
+def modify_file_with_sed(source_file, from_code, to_code):
+    """Modify file using sed and return restore expression."""
+    from_pattern = macro_to_pattern(from_code)
+    to_code_stripped = to_code.strip()
+    from_code_stripped = from_code.strip()
+    sed_expr = f"s|{from_pattern}|{to_code_stripped}|g"
+    
+    if not run_command(["sed", "-i", "-E", sed_expr, str(source_file)], cwd=source_file.parent):
+        raise RuntimeError("Failed to modify file using sed.")
+    
+    sed_expr_for_restoring = f"s|{to_code_stripped}|{from_code_stripped}|g"
+    return sed_expr_for_restoring, to_code_stripped, from_code_stripped
+
+
+def restore_file_from_backup(source_file, backup_file, sed_expr_for_restoring,
+                              to_code_stripped, from_code_stripped):
+    """Restore original file from backup or using sed."""
+    if backup_file.exists():
+        shutil.copy2(str(backup_file), str(source_file))
+        print_color("   Original file restored from backup successfully.", "green")
+        backup_file.unlink()
+        print_color("   Backup file cleaned up.", "green")
+    else:
+        print_color(
+            f"   Backup not found, using sed restore pattern: {sed_expr_for_restoring}",
+            "yellow"
+        )
+        if not run_command(
+            ["sed", "-i", "-E", sed_expr_for_restoring, str(source_file)],
+            cwd=source_file.parent
+        ):
+            print_color(
+                "   Warning: sed restore failed, trying alternative method...",
+                "yellow"
+            )
+            if "|" in to_code_stripped or "|" in from_code_stripped:
+                alt_sed_expr = f"s#{to_code_stripped}#{from_code_stripped}#g"
+                print_color(f"   Trying alternative pattern: {alt_sed_expr}", "yellow")
+                if not run_command(
+                    ["sed", "-i", "-E", alt_sed_expr, str(source_file)],
+                    cwd=source_file.parent
+                ):
+                    raise RuntimeError(
+                        "Failed to restore the original file with alternative method."
+                    )
+            else:
+                raise RuntimeError("Failed to restore the original file.")
+        print_color("   Original file restored successfully via sed.", "green")
+
+
+# ============================================================================
+# Main Function
+# ============================================================================
+
+def parse_lines_argument(lines_str):
+    """Parse lines argument to support formats like xxx-xxx,xxx,xxx-xxx,xxx."""
+    line_set = set()
+    for part in lines_str.split(","):
+        part = part.strip()
+        if "-" in part:
+            try:
+                start, end = part.split("-")
+                start, end = int(start), int(end)
+                if start > end:
+                    start, end = end, start
+                line_set.update(range(start, end + 1))
+            except ValueError:
+                continue
+        else:
+            try:
+                line_set.add(int(part))
+            except ValueError:
+                continue
+    return sorted(line_set)
+
+
+def process_addr2line(obj_file, offset, line, lines_filter, changed_instructions,
+                       current_diff_line_number):
+    """Process addr2line for a single offset."""
+    addr2line_cmd = ["addr2line", "-e", str(obj_file), offset]
+    result = subprocess.run(addr2line_cmd, capture_output=True, text=True)
+    
+    if result.stdout:
+        if lines_filter:
+            line_number_str = result.stdout.split(":")[1].split(" ")[0].rstrip("\n")
+            try:
+                line_number = int(line_number_str)
+                if line_number in lines_filter:
+                    print(line + "\t" + result.stdout, end="")
+                    changed_instructions.append((line, offset, current_diff_line_number))
+            except ValueError:
+                pass
+        else:
+            print(line + "\t" + result.stdout, end="")
+            changed_instructions.append((line, offset, current_diff_line_number))
+    
+    return changed_instructions
+
 
 def main():
     """Main execution function."""
@@ -390,6 +774,7 @@ def main():
     )
     parser.add_argument(
         "-f", "--file",
+        required=True,
         help="Target C file to operate on (relative to kernel root).\nExample: mm/vmscan.c"
     )
     parser.add_argument(
@@ -417,114 +802,80 @@ def main():
         help="Check diff against the post-modification object file."
     )
     args = parser.parse_args()
+    
     kernel_path = Path(args.path).resolve()
-
+    
     if args.lines:
-        # Parse args.lines to support formats like xxx-xxx,xxx,xxx-xxx,xxx
-        line_set = set()
-        for part in args.lines.split(","):
-            part = part.strip()
-            if "-" in part:
-                try:
-                    start, end = part.split("-")
-                    start = int(start)
-                    end = int(end)
-                    if start > end:
-                        start, end = end, start
-                    line_set.update(range(start, end + 1))
-                except ValueError:
-                    continue  # skip invalid range
-            else:
-                try:
-                    line_set.add(int(part))
-                except ValueError:
-                    continue  # skip invalid single line
-        args.lines = sorted(line_set)
-    # --- Validate required arguments ---
-    if not args.file:
-        parser.error("Error: The --file argument is required when not using --clean.")
-
-    # --- Step 1: Environment Check ---
+        args.lines = parse_lines_argument(args.lines)
+    
+    # Environment check
     check_tools()
     source_file = kernel_path / args.file
     build_path = kernel_path / BUILD_DIR_NAME
 
     print_color("2. Checking paths and files...", "blue")
     if not kernel_path.is_dir():
-        print_color(f"Error: Kernel source path '{kernel_path}' does not exist or is not a directory.", "red")
+        print_color(
+            f"Error: Kernel source path '{kernel_path}' does not exist or is not a directory.",
+            "red"
+        )
         sys.exit(1)
     
     if not source_file.is_file():
         print_color(f"Error: Source file '{source_file}' does not exist.", "red")
         sys.exit(1)
     
-    # Create build directory
     build_path.mkdir(exist_ok=True)
     
     print_color(f"   - Kernel Path: {kernel_path}", "green")
     print_color(f"   - Target File: {source_file}", "green")
     print_color(f"   - Output Dir: {build_path}\n", "green")
 
-    # --- Track files for processing ---
-    macro_files = []
     original_disas = {}
     recompiled_disas = {}
+    diff_result = None
 
     try:
-        # --- Step 3: Initial Compilation for Target File ---
+        # Initial compilation for target file
         print_color("3. Performing initial compilation for target file...", "blue")
         target_obj, target_orig_disas, target_orig_obj = process_file(
             kernel_path, build_path, source_file, is_original=True
         )
         original_disas[source_file] = target_orig_disas
 
-        # --- Step 4: Find macro-using files (if specified) ---
+        # Find macro-using files (if specified)
+        macro_files = []
         if args.macro:
             macro_files = search_macro_usage(kernel_path, args.macro)
-            # Process initial compilation for macro files
             for file in macro_files:
-                if file != source_file:  # Skip if it's our target file
+                if file != source_file:
                     obj, disas, orig_obj = process_file(
                         kernel_path, build_path, file, is_original=True
                     )
                     original_disas[file] = disas
 
-        # --- Step 5: Modify File (if --sed is provided) ---
+        # Modify file (if --sed is provided)
         if args.sed:
             print_color("\n5. Modifying file using sed...", "blue")
             from_code, to_code = args.sed
             
-            # Create backup of original file
             backup_file = build_path / f"{source_file.name}.backup"
             shutil.copy2(str(source_file), str(backup_file))
             print_color(f"   Created backup: {backup_file}", "green")
             
-            def macro_to_pattern(line):
-                m = re.match(r"^#define\s+(\w+)\s+(.+)$", line)
-                if m:
-                    macro, value = m.group(1), m.group(2)
-                    pattern = rf"#define\s+{re.escape(macro)}\s+{re.escape(value.strip())}"
-                    pattern = pattern.replace(r"\s+", r"[ \t]+")
-                    return pattern
-                return re.escape(line)
-            from_pattern = macro_to_pattern(from_code)
-            to_code_stripped = to_code.strip()
-            from_code_stripped = from_code.strip()
-            sed_expr = f"s|{from_pattern}|{to_code_stripped}|g"
-            if not run_command(["sed", "-i", "-E", sed_expr, str(source_file)], cwd=kernel_path):
-                raise RuntimeError("Failed to modify file using sed.")
-            # for future restoring
-            sed_expr_for_restoring = f"s|{to_code_stripped}|{from_code_stripped}|g"
+            sed_expr_for_restoring, to_code_stripped, from_code_stripped = (
+                modify_file_with_sed(source_file, from_code, to_code)
+            )
             print_color("   File modified successfully.\n", "yellow")
 
-            # --- Step 6: Recompilation for Target File ---
+            # Recompilation for target file
             print_color("6. Recompiling modified target file...", "blue")
             _, target_recomp_disas, target_recomp_obj = process_file(
                 kernel_path, build_path, source_file, is_original=False
             )
             recompiled_disas[source_file] = target_recomp_disas
 
-            # --- Step 7: Recompile macro-using files ---
+            # Recompile macro-using files
             if args.macro and macro_files:
                 print_color("\n7. Recompiling files using specified macro...", "blue")
                 for file in macro_files:
@@ -533,130 +884,141 @@ def main():
                     )
                     recompiled_disas[file] = disas
 
-            # --- Step 8: Always perform diff comparison ---
+            # Diff comparison
             print_color("\n8. Comparing disassembly results...", "blue")
-            diff_result = None
             for file in original_disas:
                 if file in recompiled_disas:
-                    print_color(f"\n--- Diff for {file.relative_to(kernel_path)} ---", "yellow")
+                    print_color(
+                        f"\n--- Diff for {file.relative_to(kernel_path)} ---",
+                        "yellow"
+                    )
                     if args.ignore_number_colon:
-                        diff = diff_ignore_number_colon(original_disas[file], recompiled_disas[file])
+                        diff = diff_ignore_number_colon(
+                            original_disas[file], recompiled_disas[file]
+                        )
                         if diff:
-                            for line in diff:
-                                print(line)
-                            # Create a mock diff_result object for step 10
-                            class MockDiffResult:
-                                def __init__(self, diff_lines):
-                                    self.stdout = '\n'.join(diff_lines)
-                            diff_result = MockDiffResult(diff)
+                            # Filter out address offset differences
+                            filtered_diff = filter_address_offset_diff(diff)
+                            if filtered_diff:
+                                print_color(
+                                    "\nFiltered diff (address offset differences removed):",
+                                    "blue"
+                                )
+                                for line in filtered_diff:
+                                    print(line)
+                                class MockDiffResult:
+                                    def __init__(self, diff_lines):
+                                        self.stdout = '\n'.join(diff_lines)
+                                diff_result = MockDiffResult(filtered_diff)
+                            else:
+                                print_color(
+                                    "No real differences found (only address offsets changed)",
+                                    "green"
+                                )
+                                diff_result = None
                         else:
                             print_color("No differences found", "green")
+                            diff_result = None
                     else:
-                        diff_cmd = ["diff", str(original_disas[file]), str(recompiled_disas[file]), "-U0"]
-                        diff_result = subprocess.run(diff_cmd, capture_output=True, text=True)
+                        diff_cmd = [
+                            "diff", str(original_disas[file]),
+                            str(recompiled_disas[file]), "-U0"
+                        ]
+                        diff_result = subprocess.run(
+                            diff_cmd, capture_output=True, text=True
+                        )
                         if diff_result.stdout:
-                            print(diff_result.stdout)
+                            # Filter out address offset differences
+                            diff_lines = diff_result.stdout.splitlines()
+                            filtered_diff = filter_address_offset_diff(diff_lines)
+                            if filtered_diff:
+                                print_color(
+                                    "\nFiltered diff (address offset differences removed):",
+                                    "blue"
+                                )
+                                print('\n'.join(filtered_diff))
+                                # Update diff_result with filtered output
+                                class FilteredDiffResult:
+                                    def __init__(self, diff_lines):
+                                        self.stdout = '\n'.join(diff_lines)
+                                diff_result = FilteredDiffResult(filtered_diff)
+                            else:
+                                print_color(
+                                    "No real differences found (only address offsets changed)",
+                                    "green"
+                                )
+                                diff_result = None
                         else:
                             print_color("No differences found", "green")
+                            diff_result = None
             
-            # --- Step 9: Restore original file ---
+            # Restore original file
             print_color("\n9. Restoring the original file...", "blue")
-            backup_file = build_path / f"{source_file.name}.backup"
-            if backup_file.exists():
-                # Use backup file for reliable restoration
-                shutil.copy2(str(backup_file), str(source_file))
-                print_color("   Original file restored from backup successfully.", "green")
-                # Clean up backup file
-                backup_file.unlink()
-                print_color("   Backup file cleaned up.", "green")
-            else:
-                # Fallback to sed method
-                print_color(f"   Backup not found, using sed restore pattern: {sed_expr_for_restoring}", "yellow")
-                if not run_command(["sed", "-i", "-E", sed_expr_for_restoring, str(source_file)], cwd=kernel_path):
-                    print_color("   Warning: sed restore failed, trying alternative method...", "yellow")
-                    # Alternative: use a different delimiter if | is in the content
-                    if "|" in to_code_stripped or "|" in from_code_stripped:
-                        alt_sed_expr = f"s#{to_code_stripped}#{from_code_stripped}#g"
-                        print_color(f"   Trying alternative pattern: {alt_sed_expr}", "yellow")
-                        if not run_command(["sed", "-i", "-E", alt_sed_expr, str(source_file)], cwd=kernel_path):
-                            raise RuntimeError("Failed to restore the original file with alternative method.")
-                    else:
-                        raise RuntimeError("Failed to restore the original file.")
-                print_color("   Original file restored successfully via sed.", "green")
+            restore_file_from_backup(
+                source_file, backup_file, sed_expr_for_restoring,
+                to_code_stripped, from_code_stripped
+            )
             print_color("   Original file restored successfully.\n", "green")
         else:
-            print_color("Skipping modification, recompilation, and diff steps because --sed was not provided.", "yellow")
+            print_color(
+                "Skipping modification, recompilation, and diff steps because --sed was not provided.",
+                "yellow"
+            )
 
-        # --- Step 10: Use addr2line to get all source-code lines for the instructions that have changed
+        # Use addr2line to get source-code lines for changed instructions
         if args.sed and diff_result and diff_result.stdout:
-            print_color("\n10. Using addr2line to get all source-code lines for the instructions that have changed...", "blue")
-            changed_instructions = []  # Store (line, offset, line_number) for step 11
-            current_diff_line_number = None  # Track line number from @@ -line_number
+            print_color(
+                "\n10. Using addr2line to get all source-code lines for the instructions that have changed...",
+                "blue"
+            )
+            changed_instructions = []
+            current_diff_line_number = None
+            
             for line in diff_result.stdout.splitlines():
-                # Track line number from diff header: @@ -line_number
                 if line.startswith("@@"):
                     match = re.search(r'@@\s+-(\d+)', line)
                     if match:
                         current_diff_line_number = int(match.group(1))
+                
                 flag = "+" if args.reverse else "-"
                 if line.startswith(flag):
                     if len(line.split()) < 2:
                         continue
-                    offset = line.split()[1].rstrip(':')  # Remove colon if present
+                    
+                    offset = line.split()[1].rstrip(':')
                     obj = target_recomp_obj if args.reverse else target_orig_obj
-                    addr2line_cmd = ["addr2line", "-e", str(obj), offset]
-                    result = subprocess.run(addr2line_cmd, capture_output=True, text=True)
-                    if result.stdout:
-                        if args.lines:
-                            line_number = result.stdout.split(":")[1]
-                            line_number = line_number.split(" ")[0]
-                            line_number = line_number.rstrip("\n")
-                            try:
-                                line_number = int(line_number)
-                            except ValueError:
-                                continue
-                            if line_number in args.lines:
-                                print(line+"\t"+result.stdout, end="")
-                                changed_instructions.append((line, offset, current_diff_line_number))
-                        else:
-                            print(line+"\t"+result.stdout, end="")
-                            changed_instructions.append((line, offset, current_diff_line_number))
-                    else:
-                        print_color("No differences found", "green")
+                    changed_instructions = process_addr2line(
+                        obj, offset, line, args.lines, changed_instructions,
+                        current_diff_line_number
+                    )
             
-            # --- Step 11: Find function information for each changed instruction
+            # Find function information for each changed instruction
             if changed_instructions:
-                print_color("\n11. Finding function information for changed instructions...", "blue")
-                # Parse functions from original disassembly file
+                print_color(
+                    "\n11. Finding function information for changed instructions...",
+                    "blue"
+                )
                 original_disas_file = original_disas[source_file]
                 functions = parse_functions_from_disassembly(original_disas_file)
                 
                 for line, offset, diff_line_number in changed_instructions:
-                    # Try to extract address from the line if offset is not valid
-                    # Handle diff format: "- 4bc:  41 be 03 00 00 00"
                     if not offset or offset == '':
-                        # Extract address from line (format: "- 4bc:" or "+ 4bc:")
                         addr_match = re.search(r'^\s*[-+]\s+([0-9a-fA-F]+):', line)
                         if addr_match:
                             offset = addr_match.group(1)
                     
-                    # Use section-aware search for accurate function matching
-                    # Pass diff_line_number to help locate the correct function
-                    func_info = find_function_for_address(functions, offset, original_disas_file, diff_line_number)
+                    func_info = find_function_for_address(
+                        functions, offset, original_disas_file, diff_line_number
+                    )
                     if func_info:
                         func_name, start_addr, end_addr, size, instruction_count = func_info
-                        print(f"{line}\tFunction: {func_name}, Start: 0x{start_addr}, End: 0x{end_addr}, Size: {size} bytes, Instructions: {instruction_count}")
+                        print(
+                            f"{line}\tFunction: {func_name}, Start: 0x{start_addr}, "
+                            f"End: 0x{end_addr}, Size: {size} bytes, "
+                            f"Instructions: {instruction_count}"
+                        )
                     else:
                         print(f"{line}\tFunction: Not found (offset: {offset})")
-
-        # --- Step 11: Cleanup intermediate object files ---
-        # print_color("\n10. Cleaning up intermediate object files...", "blue")
-        # for obj_file in build_path.glob("*.o"):
-        #     try:
-        #         obj_file.unlink()
-        #         print_color(f"   - Removed: {obj_file.name}", "green")
-        #     except OSError as e:
-        #         print_color(f"   - Error: Failed to remove {obj_file.name}: {e}", "red")
 
     except (RuntimeError, KeyboardInterrupt) as e:
         if isinstance(e, RuntimeError):
@@ -667,6 +1029,7 @@ def main():
 
     print_color("\nScript finished successfully.", "blue")
     print_color(f"All disassembly files saved to: {build_path}", "green")
+
 
 if __name__ == "__main__":
     main()
