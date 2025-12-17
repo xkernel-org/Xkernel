@@ -42,12 +42,12 @@ while IFS= read -r line || [ -n "$line" ]; do
     
     # Extract step 11 output
     # Step 11 starts with "11. Extracting Basic Blocks for changed instructions..."
-    # and continues until step 12 starts or end of output
+    # Skip the header line and "Instruction at..." lines, only output Basic Block content
     # Remove ANSI color codes for cleaner output
     step11_output=$(echo "$output" | sed 's/\x1b\[[0-9;]*m//g' | awk '
         /11\. Extracting Basic Blocks for changed instructions\.\.\./ {
             in_step11 = 1
-            print
+            # Skip the header line
             next
         }
         in_step11 {
@@ -55,6 +55,10 @@ while IFS= read -r line || [ -n "$line" ]; do
             if (/^12\./ || /^Script finished successfully\./ || /^All disassembly files saved to/) {
                 in_step11 = 0
                 exit
+            }
+            # Skip "Instruction at..." lines
+            if (/^Instruction at 0x/ && /found at line/) {
+                next
             }
             print
         }

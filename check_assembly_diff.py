@@ -1302,10 +1302,34 @@ def main():
                 seen_blocks = {}  # Map (start_addr, end_addr) -> basic_block
                 seen_line_ranges = []  # List of (start_line, end_line) tuples for already output Basic Blocks
                 
+                # Collect all changed instruction addresses for marking
+                changed_addresses_int = set()  # Store as integers for reliable comparison
+                changed_line_numbers = set()
+                
                 # Read the original disassembly file to get line-by-line access
                 with open(original_disas_file, "r") as f:
                     original_lines = f.readlines()
                 
+                # First pass: collect all changed addresses and line numbers
+                for line, offset, original_line_num in changed_instructions:
+                    # Skip diff header lines (---, +++, @@, etc.)
+                    if (line.startswith('---') or line.startswith('+++') or 
+                        line.startswith('@@') or not line.strip()):
+                        continue
+                    
+                    # Extract address from the line
+                    addr_match = re.search(r'^\s*[-+]\s+([0-9a-fA-F]+):', line)
+                    if addr_match:
+                        addr_str = addr_match.group(1)
+                        try:
+                            addr_int = int(addr_str, 16)
+                            changed_addresses_int.add(addr_int)
+                            if original_line_num:
+                                changed_line_numbers.add(original_line_num)
+                        except ValueError:
+                            pass
+                
+                # Second pass: extract Basic Blocks
                 for line, offset, original_line_num in changed_instructions:
                     # Skip diff header lines (---, +++, @@, etc.)
                     if (line.startswith('---') or line.startswith('+++') or 
@@ -1340,10 +1364,6 @@ def main():
                     
                     # Step 1: Get the instruction line from original file using line number from diff
                     inst_line_content = original_lines[original_line_num - 1].strip()
-                    print_color(
-                        f"\nInstruction at 0x{addr_str} found at line {original_line_num}",
-                        "blue"
-                    )
                     
                     # Step 2: Find basic block starting from this specific line number
                     # Parse all instructions with their line numbers
@@ -1426,12 +1446,69 @@ def main():
                             # Record the line number range for this Basic Block
                             if bb_start_line and bb_end_line:
                                 seen_line_ranges.append((bb_start_line, bb_end_line))
+                            
+                            # Find the function name for this Basic Block
+                            # Look backwards from bb_start_line in the file to find function definition
+                            function_name = None
+                            section_name = None
+                            
+                            # Search backwards from bb_start_line to find function definition
+                            for line_idx in range(bb_start_line - 1, -1, -1):
+                                if line_idx >= len(original_lines):
+                                    break
+                                line_content = original_lines[line_idx]
+                                
+                                # Check for function definition: "  address: <function_name>:"
+                                func_match = re.match(
+                                    r'^\s*([0-9a-fA-F]+)\s+<([^>]+)>:',
+                                    line_content
+                                )
+                                if func_match:
+                                    func_addr = func_match.group(1)
+                                    func_name = func_match.group(2)
+                                    # Skip prefix functions
+                                    # if not func_name.startswith('__pfx_') and not func_name.endswith('.cold'):
+                                    function_name = func_name
+                                    
+                                    # Also try to find section name
+                                    # Look backwards for section header
+                                    for j in range(line_idx - 1, -1, -1):
+                                        if j < len(original_lines):
+                                            section_line = original_lines[j]
+                                            section_match = re.match(
+                                                r'^Disassembly of section (\.text[^:]+):',
+                                                section_line
+                                            )
+                                            if section_match:
+                                                section_name = section_match.group(1)
+                                                break
+                                    break
+                                
+                                # Stop if we hit a section header (went too far back)
+                                if re.match(r'^Disassembly of section', line_content):
+                                    break
+                            
                             print_color(
                                 f"Basic Block: lines {bb_start_line}-{bb_end_line}",
                                 "yellow"
                             )
+                            if function_name:
+                                print(f"Function: {function_name}")
+                            else:
+                                print(f"Function: Not found")
+                            
                             for addr, inst_line in basic_block:
-                                print(f"  {addr}:  {inst_line}")
+                                # Mark changed instructions with [*]
+                                # Convert address to integer for comparison
+                                try:
+                                    addr_int = int(addr, 16)
+                                    if addr_int in changed_addresses_int:
+                                        print(f"  [*] {addr}:  {inst_line}")
+                                    else:
+                                        print(f"  {addr}:  {inst_line}")
+                                except ValueError:
+                                    # If address parsing fails, output without mark
+                                    print(f"  {addr}:  {inst_line}")
                     else:
                         print_color(
                             f"Could not find Basic Block for line {original_line_num}",
