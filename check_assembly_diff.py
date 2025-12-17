@@ -1251,9 +1251,12 @@ def main():
                 "blue"
             )
             changed_instructions = []
+            changed_instructions_recompiled = []  # For recompiled file instructions
             current_diff_line_number = None
             current_hunk_start = None  # Starting line number in original file for current hunk
             current_hunk_line_offset = 0  # Offset within current hunk (only counting - and context lines)
+            current_hunk_start_recompiled = None  # Starting line number in recompiled file for current hunk
+            current_hunk_line_offset_recompiled = 0  # Offset within current hunk for recompiled file
             
             for line in diff_result.stdout.splitlines():
                 if line.startswith("@@"):
@@ -1263,22 +1266,30 @@ def main():
                         current_hunk_start = int(match.group(1))
                         current_hunk_line_offset = 0
                         current_diff_line_number = current_hunk_start
+                        current_hunk_start_recompiled = int(match.group(3))
+                        current_hunk_line_offset_recompiled = 0
                 
                 # Track line numbers: - lines are from original file, + lines are from new file
                 # Context lines (starting with space) are in both files
+                original_line_num = None
+                recompiled_line_num = None
+                
                 if line.startswith(' ') or line.startswith('-'):
                     # This line exists in original file
                     if current_hunk_start is not None:
                         original_line_num = current_hunk_start + current_hunk_line_offset
                         current_hunk_line_offset += 1
-                    else:
-                        original_line_num = None
+                    # Context lines also exist in recompiled file
+                    if line.startswith(' ') and current_hunk_start_recompiled is not None:
+                        recompiled_line_num = current_hunk_start_recompiled + current_hunk_line_offset_recompiled
+                        current_hunk_line_offset_recompiled += 1
                 elif line.startswith('+'):
-                    # This line only exists in new file, don't increment original file counter
-                    original_line_num = None
-                else:
-                    original_line_num = None
+                    # This line only exists in recompiled file
+                    if current_hunk_start_recompiled is not None:
+                        recompiled_line_num = current_hunk_start_recompiled + current_hunk_line_offset_recompiled
+                        current_hunk_line_offset_recompiled += 1
                 
+                # Process original file instructions (- lines)
                 flag = "+" if args.reverse else "-"
                 if line.startswith(flag):
                     if len(line.split()) < 2:
@@ -1290,6 +1301,20 @@ def main():
                     changed_instructions = process_addr2line(
                         obj, offset, line, args.lines, changed_instructions,
                         original_line_num  # Pass the actual line number in original file
+                    )
+                
+                # Process recompiled file instructions (+ lines)
+                flag_recompiled = "-" if args.reverse else "+"
+                if line.startswith(flag_recompiled):
+                    if len(line.split()) < 2:
+                        continue
+                    
+                    offset = line.split()[1].rstrip(':')
+                    obj = target_orig_obj if args.reverse else target_recomp_obj
+                    # Store recompiled file line number along with instruction info
+                    changed_instructions_recompiled = process_addr2line(
+                        obj, offset, line, args.lines, changed_instructions_recompiled,
+                        recompiled_line_num  # Pass the actual line number in recompiled file
                     )
             
             # Extract Basic Blocks for changed instructions from step 10
@@ -1514,6 +1539,229 @@ def main():
                             f"Could not find Basic Block for line {original_line_num}",
                             "yellow"
                         )
+                
+                # Extract Basic Blocks for recompiled file instructions
+                if changed_instructions_recompiled:
+                    print_color(
+                        "\n11b. Extracting Basic Blocks for changed instructions (recompiled)...",
+                        "blue"
+                    )
+                    recompiled_disas_file = recompiled_disas[source_file]
+                    seen_blocks_recompiled = {}  # Map (start_addr, end_addr) -> basic_block
+                    seen_line_ranges_recompiled = []  # List of (start_line, end_line) tuples for already output Basic Blocks
+                    
+                    # Collect all changed instruction addresses for marking
+                    changed_addresses_int_recompiled = set()  # Store as integers for reliable comparison
+                    changed_line_numbers_recompiled = set()
+                    
+                    # Read the recompiled disassembly file to get line-by-line access
+                    with open(recompiled_disas_file, "r") as f:
+                        recompiled_lines = f.readlines()
+                    
+                    # First pass: collect all changed addresses and line numbers
+                    for line, offset, recompiled_line_num in changed_instructions_recompiled:
+                        # Skip diff header lines (---, +++, @@, etc.)
+                        if (line.startswith('---') or line.startswith('+++') or 
+                            line.startswith('@@') or not line.strip()):
+                            continue
+                        
+                        # Extract address from the line
+                        addr_match = re.search(r'^\s*[-+]\s+([0-9a-fA-F]+):', line)
+                        if addr_match:
+                            addr_str = addr_match.group(1)
+                            try:
+                                addr_int = int(addr_str, 16)
+                                changed_addresses_int_recompiled.add(addr_int)
+                                if recompiled_line_num:
+                                    changed_line_numbers_recompiled.add(recompiled_line_num)
+                            except ValueError:
+                                pass
+                    
+                    # Second pass: extract Basic Blocks
+                    for line, offset, recompiled_line_num in changed_instructions_recompiled:
+                        # Skip diff header lines (---, +++, @@, etc.)
+                        if (line.startswith('---') or line.startswith('+++') or 
+                            line.startswith('@@') or not line.strip()):
+                            continue
+                        
+                        # Extract address from the line (format: "+   3:  be c8 00 00 00")
+                        addr_match = re.search(r'^\s*[-+]\s+([0-9a-fA-F]+):', line)
+                        if not addr_match:
+                            continue
+                        
+                        addr_str = addr_match.group(1)
+                        
+                        # Use the line number from recompiled file
+                        if recompiled_line_num is None or recompiled_line_num < 1 or recompiled_line_num > len(recompiled_lines):
+                            print_color(
+                                f"Invalid line number {recompiled_line_num} for address 0x{addr_str}",
+                                "yellow"
+                            )
+                            continue
+                        
+                        # Check if this line is already covered by a previously output Basic Block
+                        already_covered = False
+                        for start_line, end_line in seen_line_ranges_recompiled:
+                            if start_line <= recompiled_line_num <= end_line:
+                                already_covered = True
+                                break
+                        
+                        if already_covered:
+                            # Skip this instruction as it's already in a Basic Block we've output
+                            continue
+                        
+                        # Step 1: Get the instruction line from recompiled file using line number from diff
+                        inst_line_content = recompiled_lines[recompiled_line_num - 1].strip()
+                        
+                        # Step 2: Find basic block starting from this specific line number
+                        # Parse all instructions with their line numbers
+                        instructions = parse_instructions_from_disassembly(recompiled_disas_file)
+                        
+                        # Find the instruction at the target line number
+                        target_inst_idx = None
+                        for i, (addr, inst_line, is_label, line_num) in enumerate(instructions):
+                            if line_num == recompiled_line_num:
+                                target_inst_idx = i
+                                break
+                        
+                        if target_inst_idx is None:
+                            print_color(
+                                f"Could not find instruction at line {recompiled_line_num}",
+                                "yellow"
+                            )
+                            continue
+                        
+                        # Find basic block boundaries starting from this instruction
+                        # Go backwards to find basic block start
+                        start_idx = target_inst_idx
+                        for i in range(target_inst_idx, -1, -1):
+                            addr, inst_line, is_label, line_num = instructions[i]
+                            
+                            # If this is a label (function start), it's a basic block start
+                            if is_label:
+                                start_idx = i
+                                break
+                            
+                            # Extract mnemonic
+                            mnemonic = extract_mnemonic(f"  {addr}: {inst_line}")
+                            
+                            # Check if this is a basic block terminator
+                            if is_basic_block_terminator(mnemonic):
+                                # This instruction ends a basic block, start from next one
+                                if i + 1 < len(instructions):
+                                    start_idx = i + 1
+                                else:
+                                    start_idx = target_inst_idx
+                                break
+                            
+                            start_idx = i
+                        
+                        # Go forwards to find basic block end
+                        end_idx = start_idx
+                        for i in range(start_idx, len(instructions)):
+                            addr, inst_line, is_label, line_num = instructions[i]
+                            
+                            # If this is a label and it's not the start, it's a new basic block
+                            if is_label and i > start_idx:
+                                end_idx = i - 1
+                                break
+                            
+                            # Extract mnemonic
+                            mnemonic = extract_mnemonic(f"  {addr}: {inst_line}")
+                            
+                            # Check if this is a basic block terminator
+                            if is_basic_block_terminator(mnemonic):
+                                end_idx = i
+                                break
+                            
+                            end_idx = i
+                        
+                        # Extract the basic block
+                        basic_block = []
+                        bb_start_line = None
+                        bb_end_line = None
+                        for i in range(start_idx, end_idx + 1):
+                            addr, inst_line, is_label, line_num = instructions[i]
+                            basic_block.append((addr, inst_line))
+                            if bb_start_line is None:
+                                bb_start_line = line_num
+                            bb_end_line = line_num
+                        
+                        if basic_block:
+                            block_key = get_basic_block_key(basic_block)
+                            if block_key and block_key not in seen_blocks_recompiled:
+                                seen_blocks_recompiled[block_key] = basic_block
+                                # Record the line number range for this Basic Block
+                                if bb_start_line and bb_end_line:
+                                    seen_line_ranges_recompiled.append((bb_start_line, bb_end_line))
+                                
+                                # Find the function name for this Basic Block
+                                # Look backwards from bb_start_line in the file to find function definition
+                                function_name = None
+                                section_name = None
+                                
+                                # Search backwards from bb_start_line to find function definition
+                                for line_idx in range(bb_start_line - 1, -1, -1):
+                                    if line_idx >= len(recompiled_lines):
+                                        break
+                                    line_content = recompiled_lines[line_idx]
+                                    
+                                    # Check for function definition: "  address: <function_name>:"
+                                    func_match = re.match(
+                                        r'^\s*([0-9a-fA-F]+)\s+<([^>]+)>:',
+                                        line_content
+                                    )
+                                    if func_match:
+                                        func_addr = func_match.group(1)
+                                        func_name = func_match.group(2)
+                                        # Skip prefix functions
+                                        # if not func_name.startswith('__pfx_') and not func_name.endswith('.cold'):
+                                        function_name = func_name
+                                        
+                                        # Also try to find section name
+                                        # Look backwards for section header
+                                        for j in range(line_idx - 1, -1, -1):
+                                            if j < len(recompiled_lines):
+                                                section_line = recompiled_lines[j]
+                                                section_match = re.match(
+                                                    r'^Disassembly of section (\.text[^:]+):',
+                                                    section_line
+                                                )
+                                                if section_match:
+                                                    section_name = section_match.group(1)
+                                                    break
+                                        break
+                                    
+                                    # Stop if we hit a section header (went too far back)
+                                    if re.match(r'^Disassembly of section', line_content):
+                                        break
+                                
+                                print_color(
+                                    f"Basic Block: lines {bb_start_line}-{bb_end_line}",
+                                    "yellow"
+                                )
+                                if function_name:
+                                    print(f"Function: {function_name}")
+                                else:
+                                    print(f"Function: Not found")
+                                
+                                for addr, inst_line in basic_block:
+                                    # Mark changed instructions with [*]
+                                    # Convert address to integer for comparison
+                                    try:
+                                        addr_int = int(addr, 16)
+                                        if addr_int in changed_addresses_int_recompiled:
+                                            print(f"  [*] {addr}:  {inst_line}")
+                                        else:
+                                            print(f"  {addr}:  {inst_line}")
+                                    except ValueError:
+                                        # If address parsing fails, output without mark
+                                        print(f"  {addr}:  {inst_line}")
+                        else:
+                            print_color(
+                                f"Could not find Basic Block for line {recompiled_line_num}",
+                                "yellow"
+                            )
                 
                 # Find function information for each changed instruction
                 print_color(
