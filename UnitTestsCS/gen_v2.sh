@@ -16,12 +16,40 @@ fi
 test_num=0
 cmd1=""
 cmd2=""
+first_line=true
+accumulating_cmd=""
 
 # Read cmd_v2.sh line by line
 while IFS= read -r line || [ -n "$line" ]; do
     # Skip empty lines and comments
     if [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]]; then
         continue
+    fi
+    
+    # Skip first line if it contains V1,V2,V3 (format: number,number,number)
+    if [ "$first_line" = true ]; then
+        first_line=false
+        # Check if line matches pattern: digits,digits,digits
+        if [[ "$line" =~ ^[[:space:]]*[0-9]+[[:space:]]*,[[:space:]]*[0-9]+[[:space:]]*,[[:space:]]*[0-9]+[[:space:]]*$ ]]; then
+            continue
+        fi
+    fi
+    
+    # Check if line ends with backslash (command continuation)
+    if [[ "$line" =~ \\[[:space:]]*$ ]]; then
+        # Remove trailing backslash and whitespace, add to accumulating command
+        if [ -z "$accumulating_cmd" ]; then
+            accumulating_cmd="${line%\\}"
+        else
+            accumulating_cmd="${accumulating_cmd} ${line%\\}"
+        fi
+        continue
+    fi
+    
+    # If we were accumulating a command, complete it
+    if [ -n "$accumulating_cmd" ]; then
+        line="${accumulating_cmd} ${line}"
+        accumulating_cmd=""
     fi
     
     # Store first command
