@@ -173,6 +173,24 @@ static __always_inline bool transition_done(struct pt_regs *ctx) {
     return false;
 }
 
+// X_TUNE context structure for user policy
+struct x_ctx {
+    struct pt_regs *regs;
+    void (*set_fn)(struct pt_regs *regs, u64 val);
+};
+
+// Wrapper for transition_done that takes x_ctx
+static __always_inline bool x_transition_done(struct x_ctx *x_ctx) {
+    if (!x_ctx || !x_ctx->regs) return false;
+    return transition_done(x_ctx->regs);
+}
+
+// Helper to set value using the set_fn callback
+static __always_inline void x_set(struct x_ctx *x_ctx, u64 val) {
+    if (!x_ctx || !x_ctx->set_fn || !x_ctx->regs) return;
+    x_ctx->set_fn(x_ctx->regs, val);
+}
+
 #define BPF_ONESHOT_INIT(name) \
     SEC("syscall") \
     int oneshot_init_##name(void *ctx) \

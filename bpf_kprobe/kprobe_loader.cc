@@ -17,6 +17,7 @@
 #include <chrono>
 #include <filesystem>
 #include <cstdlib>
+#include <fstream>
 
 #include "loader_common.h"
 
@@ -66,10 +67,39 @@ int main(int argc, char *argv[]) {
   fprintf(stderr, "Current working directory: %s\n", current_path.c_str());
   fprintf(stderr, "Output BPF header path: %s\n", bpf_header_path.c_str());
   
-  int ret = generate_cs_artifact_bpf_header(cs_path, bpf_header_path.c_str());
-  if (ret) {
-    fprintf(stderr, "Failed to generate cs_artifact.bpf.h\n");
-    return 1;
+  // Check if cs_path exists and is not empty
+  bool cs_file_valid = false;
+  if (std::filesystem::exists(cs_path)) {
+    std::ifstream cs_file(cs_path);
+    if (cs_file.is_open()) {
+      std::string line;
+      if (std::getline(cs_file, line)) {
+        // Check if line is not empty (after trimming whitespace)
+        if (!line.empty() && line.find_first_not_of(" \t\n\r") != std::string::npos) {
+          cs_file_valid = true;
+        }
+      }
+      cs_file.close();
+    }
+  }
+  
+  if (cs_file_valid) {
+    int ret = generate_cs_artifact_bpf_header(cs_path, bpf_header_path.c_str());
+    if (ret) {
+      fprintf(stderr, "Warning: Failed to generate cs_artifact.bpf.h, continuing anyway\n");
+    }
+  } else {
+    fprintf(stderr, "CS file %s does not exist or is empty, skipping cs_artifact.bpf.h generation\n", cs_path);
+    // Create an empty cs_artifact.bpf.h file to avoid compilation errors
+    std::ofstream empty_header(bpf_header_path, std::ios::out | std::ios::trunc);
+    if (empty_header.is_open()) {
+      empty_header << "// Empty cs_artifact.bpf.h - no critical spans defined\n";
+      empty_header << "#ifndef __CS_ARTIFACT_BPF_H__\n";
+      empty_header << "#define __CS_ARTIFACT_BPF_H__\n";
+      empty_header << "#endif\n";
+      empty_header.close();
+      fprintf(stderr, "Created empty cs_artifact.bpf.h\n");
+    }
   }
   
   // Recompile BPF files in bpf_kprobe directory
@@ -108,10 +138,32 @@ int main(int argc, char *argv[]) {
 
     loaders.push_back(new XKernelLoader(BPF_FILE.c_str(), FLAGS_pin));
 
-    ret = loaders.back()->load_cricial_spans(cs_path);
-    if (ret) {
-      fprintf(stderr, "Failed to load critical spans\n");
-      return 1;
+    // Only load critical spans if cs_path exists and is not empty
+    if (std::filesystem::exists(cs_path)) {
+      std::ifstream cs_file(cs_path);
+      if (cs_file.is_open()) {
+        std::string line;
+        bool has_content = false;
+        if (std::getline(cs_file, line)) {
+          if (!line.empty() && line.find_first_not_of(" \t\n\r") != std::string::npos) {
+            has_content = true;
+          }
+        }
+        cs_file.close();
+        
+        if (has_content) {
+          int ret = loaders.back()->load_cricial_spans(cs_path);
+          if (ret) {
+            fprintf(stderr, "Warning: Failed to load critical spans, continuing anyway\n");
+          }
+        } else {
+          fprintf(stderr, "CS file %s is empty, skipping critical spans loading\n", cs_path);
+        }
+      } else {
+        fprintf(stderr, "Warning: Cannot open CS file %s, skipping critical spans loading\n", cs_path);
+      }
+    } else {
+      fprintf(stderr, "CS file %s does not exist, skipping critical spans loading\n", cs_path);
     }
 
     if (loaders.back()->attach_all_progs()) {

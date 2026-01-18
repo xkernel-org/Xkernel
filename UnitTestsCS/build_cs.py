@@ -1068,6 +1068,60 @@ def extract_source_values(cmd_file: str) -> Dict[str, Tuple[int, int, int]]:
     return source_values
 
 
+def extract_file_paths(cmd_file: str) -> Dict[str, str]:
+    """Extract file paths from cmd_v2.sh commands.
+    
+    Args:
+        cmd_file: Path to cmd_v2.sh
+    
+    Returns:
+        Dictionary mapping test group prefix to file path
+    """
+    file_paths = {}
+    
+    if not os.path.exists(cmd_file):
+        return file_paths
+    
+    with open(cmd_file, 'r') as f:
+        lines = f.readlines()
+    
+    if not lines:
+        return file_paths
+    
+    # Find commands and extract -f parameter
+    test_group = 1
+    cmd_count = 0
+    
+    for line in lines:
+        line = line.strip()
+        if not line or line.startswith('#'):
+            continue
+        
+        # Skip V1,V2,V3 lines
+        if re.match(r'^\d+,\d+,\d+$', line):
+            continue
+        
+        # Check if it's a command line with -f parameter
+        if 'check_assembly_diff.py' in line and '-f' in line:
+            # Extract file path from -f parameter
+            # Pattern: -f path/to/file.c
+            match = re.search(r'-f\s+(\S+)', line)
+            if match:
+                file_path = match.group(1)
+                cmd_count += 1
+                if cmd_count == 1:
+                    # First command of a test group
+                    file_paths[str(test_group)] = file_path
+                elif cmd_count == 2:
+                    # Second command of a test group, verify it's the same file
+                    if str(test_group) in file_paths and file_paths[str(test_group)] != file_path:
+                        print(f"Warning: Test group {test_group} has different file paths")
+                    test_group += 1
+                    cmd_count = 0
+    
+    return file_paths
+
+
 def extract_immediate_values(inst_line: str) -> List[int]:
     """Extract immediate values from an instruction line.
     
@@ -1317,7 +1371,8 @@ def generate_insertion_instruction(target_type: str, target_name: str, a: float,
 
 def analyze_linear_relationship(prefix: str, v1_file: str, v2_file: str, v3_file: str, 
                                 source_values: Dict[str, Tuple[int, int, int]],
-                                seq1: List[Tuple] = None, diff_v1_v2: List[Tuple] = None):
+                                seq1: List[Tuple] = None, diff_v1_v2: List[Tuple] = None,
+                                file_path: str = None, output_dir: str = None):
     """Analyze linear relationship between source values and immediate values.
     
     Args:
@@ -1447,6 +1502,14 @@ def analyze_linear_relationship(prefix: str, v1_file: str, v2_file: str, v3_file
                         if line.strip():
                             print(f"      {line}")
                     print(f"    {'─'*70}")
+                    
+                    # Generate BPF file
+                    result = generate_bpf_file_for_group(prefix, v1_file, relationship, actual_reg_name, insertion_info, file_path, output_dir)
+                    if result:
+                        internal_file, user_policy_file = result
+                        print(f"\n    Generated BPF file: {internal_file}")
+                        if user_policy_file:
+                            print(f"    Generated user policy file: {user_policy_file}")
         else:
             print(f"  ✗ No linear relationship found")
         print()
@@ -1455,13 +1518,335 @@ def analyze_linear_relationship(prefix: str, v1_file: str, v2_file: str, v3_file
         print("Error: No linear relationship found for any immediate value")
 
 
+def extract_function_info_from_bb_file(filepath: str) -> Optional[Tuple[str, str, str, str]]:
+    """Extract function name, first instruction address, changed instruction address, and kprobe offset address from BB file.
+    
+    Args:
+        filepath: Path to *_bb_v1.txt file
+    
+    Returns:
+        Tuple of (function_name, first_addr, changed_addr, kprobe_addr) or None
+        kprobe_addr is the address of the instruction after changed instruction (for kprobe attachment)
+    """
+    if not os.path.exists(filepath):
+        return None
+    
+    function_name = None
+    first_addr = None
+    changed_addr = None
+    kprobe_addr = None
+    
+    with open(filepath, 'r') as f:
+        lines = f.readlines()
+        found_changed = False
+        
+        for i, line in enumerate(lines):
+            line = line.strip()
+            
+            # Extract function name
+            if line.startswith('Function:'):
+                func_match = re.match(r'^Function:\s+(.+)$', line)
+                if func_match:
+                    function_name = func_match.group(1)
+            
+            # Extract first instruction address (first non-empty instruction line)
+            if not first_addr and re.match(r'^\s*([0-9a-fA-F]+):', line):
+                match = re.match(r'^\s*([0-9a-fA-F]+):', line)
+                if match:
+                    first_addr = match.group(1)
+            
+            # Extract changed instruction address (line with [*])
+            if '[*]' in line and not found_changed:
+                match = re.match(r'^\s*\[\*\]\s*([0-9a-fA-F]+):', line)
+                if match:
+                    changed_addr = match.group(1)
+                    found_changed = True
+                    
+                    # Get the next instruction address (for kprobe offset)
+                    # kprobe executes before the attached instruction, so we attach to the instruction after changed
+                    for j in range(i + 1, len(lines)):
+                        next_line = lines[j].strip()
+                        # Look for next instruction address
+                        next_match = re.match(r'^\s*([0-9a-fA-F]+):', next_line)
+                        if next_match:
+                            kprobe_addr = next_match.group(1)
+                            break
+                    break
+    
+    if function_name and first_addr and changed_addr and kprobe_addr:
+        return (function_name, first_addr, changed_addr, kprobe_addr)
+    return None
+
+
+def generate_bpf_user_policy_file(prefix: str, function_name: str, file_path: str, 
+                                  offset: int) -> str:
+    """Generate BPF user policy file with X_TUNE macro.
+    
+    Args:
+        prefix: Test group prefix
+        function_name: Function name
+        file_path: Source file path
+        offset: Kprobe offset (hex value like 0x22a)
+    
+    Returns:
+        Generated BPF code as string
+    """
+    # Extract offset from location string format
+    # Format should be "+0x<offset>" for SEC("kprobe/function+0x<offset>")
+    location_str = f'"+0x{offset:x}"'
+    
+    # location_str is now "+0x<offset>", but X_TUNE expects the full location string
+    # We need to pass the location string that includes file path for documentation
+    # But the SEC() macro only needs the offset part
+    location_str_for_sec = f'"+0x{offset:x}"'
+    location_str_for_comment = f'"{file_path}:L<line>:<col>:0x{offset:x}"'
+    
+    bpf_code = f"""#include "my_policy_{prefix}.internal.bpf.h"
+
+X_TUNE({function_name}, {location_str_for_sec}) {{
+    // 1. Safety guard (mandatory)
+    if (!x_transition_done(x_ctx)) return 0;
+    // 2. User policy logic
+    // TODO: Implement your policy logic here
+    return 0;
+}} /* my_policy_{prefix}.bpf.c */
+"""
+    return bpf_code
+
+
+def generate_bpf_kprobe_file(prefix: str, v1_file: str, relationship: Tuple[float, float],
+                             target_reg: str, insertion_info: Tuple) -> Optional[str]:
+    """Generate BPF kprobe file based on analysis results.
+    
+    Args:
+        prefix: Test group prefix (e.g., "1")
+        v1_file: Path to v1 Basic Block file
+        relationship: (a, b) tuple representing IV = a * V + b
+        target_reg: Target register name (e.g., "eax")
+        insertion_info: Tuple from find_insertion_point_for_linear_relationship
+    
+    Returns:
+        Generated BPF code as string or None
+    """
+    # Extract function info
+    func_info = extract_function_info_from_bb_file(v1_file)
+    if not func_info:
+        return None
+    
+    function_name, first_addr, changed_addr, kprobe_addr = func_info
+    
+    # kprobe_addr is already the offset (e.g., "22a" means offset 0x22a)
+    # kprobe executes before the attached instruction, so we attach to the instruction after changed
+    try:
+        offset = int(kprobe_addr, 16)
+    except ValueError:
+        return None
+    
+    a, b = relationship
+    
+    # Generate helper function name
+    helper_name = f"impl_sie_logic_cs{prefix}"
+    kprobe_name = f"impl_cs_{prefix}"
+    
+    # Map register names to pt_regs field names
+    reg_to_ptregs = {
+        'rax': 'ax', 'rbx': 'bx', 'rcx': 'cx', 'rdx': 'dx',
+        'rsi': 'si', 'rdi': 'di', 'rbp': 'bp', 'rsp': 'sp',
+        'r8': 'r8', 'r9': 'r9', 'r10': 'r10', 'r11': 'r11',
+        'r12': 'r12', 'r13': 'r13', 'r14': 'r14', 'r15': 'r15',
+        'eax': 'ax', 'ebx': 'bx', 'ecx': 'cx', 'edx': 'dx',
+        'esi': 'si', 'edi': 'di', 'ebp': 'bp', 'esp': 'sp',
+    }
+    
+    # Get base register
+    base_reg = target_reg
+    if target_reg in ['eax', 'ebx', 'ecx', 'edx', 'esi', 'edi', 'ebp', 'esp']:
+        # Map 32-bit to 64-bit
+        reg32_to_64 = {
+            'eax': 'rax', 'ebx': 'rbx', 'ecx': 'rcx', 'edx': 'rdx',
+            'esi': 'rsi', 'edi': 'rdi', 'ebp': 'rbp', 'esp': 'rsp',
+        }
+        base_reg = reg32_to_64.get(target_reg, target_reg)
+    
+    ptregs_field = reg_to_ptregs.get(base_reg, base_reg)
+    
+    # Generate the expression for new value
+    # IV = a * V + b, where V is the parameter
+    if abs(a - int(a)) < 0.001 and abs(b - int(b)) < 0.001:
+        a_int = int(a)
+        b_int = int(b)
+        
+        if b_int == 0:
+            if a_int == 1:
+                expr = "val"
+            elif a_int == -1:
+                expr = "-val"
+            else:
+                expr = f"(val * {a_int})"
+        elif a_int == 1:
+            expr = f"(val + {b_int})"
+        elif a_int == -1:
+            expr = f"(-val + {b_int})"
+        else:
+            expr = f"((val * {a_int}) + {b_int})"
+    else:
+        # Non-integer coefficients - use floating point (may need adjustment)
+        expr = f"((val * {a:.6f}) + {b:.6f})"
+    
+    # Format relationship string for comments
+    if abs(a - int(a)) < 0.001 and abs(b - int(b)) < 0.001:
+        a_int = int(a)
+        b_int = int(b)
+        if b_int == 0:
+            if a_int == 1:
+                rel_str = "IV = V"
+            elif a_int == -1:
+                rel_str = "IV = -V"
+            else:
+                rel_str = f"IV = {a_int} * V"
+        elif a_int == 1:
+            rel_str = f"IV = V + {b_int}"
+        elif a_int == -1:
+            rel_str = f"IV = -V + {b_int}"
+        else:
+            rel_str = f"IV = {a_int} * V + {b_int}"
+    else:
+        rel_str = f"IV = {a:.6f} * V + {b:.6f}"
+    
+    # Format relationship string for comments
+    if abs(a - int(a)) < 0.001 and abs(b - int(b)) < 0.001:
+        a_int = int(a)
+        b_int = int(b)
+        if b_int == 0:
+            if a_int == 1:
+                rel_str = "IV = V"
+            elif a_int == -1:
+                rel_str = "IV = -V"
+            else:
+                rel_str = f"IV = {a_int} * V"
+        elif a_int == 1:
+            rel_str = f"IV = V + {b_int}"
+        elif a_int == -1:
+            rel_str = f"IV = -V + {b_int}"
+        else:
+            rel_str = f"IV = {a_int} * V + {b_int}"
+    else:
+        rel_str = f"IV = {a:.6f} * V + {b:.6f}"
+    
+    # Generate comment for expression (replace IV with target_reg, V with val)
+    expr_comment = rel_str.replace('IV', target_reg).replace('V', 'val')
+    
+    # Generate BPF header code
+    bpf_code = f"""// Generated BPF kprobe header for test group {prefix}
+// Function: {function_name}
+// Offset: 0x{offset:X} (changed instruction at 0x{changed_addr}, kprobe attach at offset 0x{kprobe_addr})
+// Linear relationship: {rel_str}
+// Target register: %{target_reg} (base: %{base_reg})
+
+#include "vmlinux.h"
+#include <bpf/bpf_helpers.h>
+#include <bpf/bpf_tracing.h>
+
+#include "xkernel.bpf.h"
+
+// 1. Helper: SIE Indirection
+static __always_inline void {helper_name}(
+    struct pt_regs *regs, u64 val) {{
+    // Recovered symbolic state expression
+    // {expr_comment}
+    u64 new_{ptregs_field} = {expr};
+    
+    // Writing back to pt_regs using the kfunc
+    sie_write_kernel(&regs->{ptregs_field}, sizeof(regs->{ptregs_field}), &new_{ptregs_field});
+}}
+
+// 2. X_TUNE macro: wraps BPF_KPROBE and calls user policy
+// Usage: X_TUNE(function_name, "file_path:L<line>:<col>:0x<offset>") {{ ... }}
+// The macro expands to:
+//   - A forward declaration of __user_policy_<func_name>
+//   - A BPF_KPROBE function that sets up x_ctx and calls __user_policy_<func_name>
+//   - The actual __user_policy_<func_name> function definition (user provides body)
+#define X_TUNE(func_name, location_str) \\
+    static int __user_policy_##func_name(struct x_ctx *x_ctx, struct pt_regs *ctx); \\
+    SEC("kprobe/" #func_name location_str) \\
+    int BPF_KPROBE(impl_cs_{prefix}) {{ \\
+        struct x_ctx x_ctx_local = {{ \\
+            .regs = ctx, \\
+            .set_fn = &{helper_name}, \\
+        }}; \\
+        return __user_policy_##func_name(&x_ctx_local, ctx); \\
+    }} \\
+    static int __user_policy_##func_name(struct x_ctx *x_ctx, struct pt_regs *ctx)
+"""
+    # Note: This generates my_policy_{prefix}.internal.bpf.h
+    
+    return bpf_code
+
+
+def generate_bpf_file_for_group(prefix: str, v1_file: str, relationship: Optional[Tuple[float, float]],
+                                target_reg: str, insertion_info: Optional[Tuple],
+                                file_path: str = None, output_dir: str = None) -> Optional[Tuple[str, str]]:
+    """Generate BPF kprobe files for a test group.
+    
+    Args:
+        prefix: Test group prefix
+        v1_file: Path to v1 Basic Block file
+        relationship: Linear relationship (a, b) or None
+        target_reg: Target register name
+        insertion_info: Insertion point info or None
+        file_path: Source file path (for user policy file)
+        output_dir: Output directory (default: same as v1_file directory)
+    
+    Returns:
+        Tuple of (internal_file_path, user_policy_file_path) or None
+    """
+    if not relationship or not insertion_info:
+        return None
+    
+    bpf_code = generate_bpf_kprobe_file(prefix, v1_file, relationship, target_reg, insertion_info)
+    if not bpf_code:
+        return None
+    
+    # Determine output path
+    if output_dir is None:
+        output_dir = os.path.dirname(os.path.abspath(v1_file))
+    
+    # Write internal BPF header file
+    internal_file = os.path.join(output_dir, f"my_policy_{prefix}.internal.bpf.h")
+    with open(internal_file, 'w') as f:
+        f.write(bpf_code)
+    
+    # Generate and write user policy BPF file
+    if file_path:
+        func_info = extract_function_info_from_bb_file(v1_file)
+        if func_info:
+            function_name, first_addr, changed_addr, kprobe_addr = func_info
+            try:
+                offset = int(kprobe_addr, 16)
+                user_policy_code = generate_bpf_user_policy_file(prefix, function_name, file_path, offset)
+                user_policy_file = os.path.join(output_dir, f"my_policy_{prefix}.bpf.c")
+                with open(user_policy_file, 'w') as f:
+                    f.write(user_policy_code)
+                return (internal_file, user_policy_file)
+            except ValueError:
+                pass
+    
+    return (internal_file, None)
+
+
 def main():
     """Main function."""
     script_dir = os.path.dirname(os.path.abspath(__file__))
     
-    # Extract source values from cmd_v2.sh
+    # Determine output directory for BPF files (bpf_kprobe/bpf/examples/)
+    project_root = os.path.dirname(script_dir)  # Go up from UnitTestsCS to Xkernel
+    bpf_output_dir = os.path.join(project_root, 'bpf_kprobe', 'bpf', 'examples')
+    os.makedirs(bpf_output_dir, exist_ok=True)
+    
+    # Extract source values and file paths from cmd_v2.sh
     cmd_file = os.path.join(script_dir, 'cmd_v2.sh')
     source_values = extract_source_values(cmd_file)
+    file_paths = extract_file_paths(cmd_file)
     
     # Find all *_bb_v1.txt, *_bb_v2.txt, *_bb_v3.txt files
     v1_files = sorted(glob.glob(os.path.join(script_dir, '*_bb_v1.txt')))
@@ -1551,8 +1936,9 @@ def main():
             if seq_v1 and seq_v2:
                 diff_v1_v2_for_insertion = compare_expressions(seq_v1, seq_v2, "v1", "v2")
             
+            file_path = file_paths.get(prefix)
             analyze_linear_relationship(prefix, files['v1'], files['v2'], files['v3'], 
-                                      source_values, seq_v1, diff_v1_v2_for_insertion)
+                                      source_values, seq_v1, diff_v1_v2_for_insertion, file_path, bpf_output_dir)
 
 
 if __name__ == '__main__':

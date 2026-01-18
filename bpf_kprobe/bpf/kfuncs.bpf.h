@@ -8,4 +8,10 @@ extern int kfuncs_text_poke(void *addr__ign, void *insn__ign, __u32 insn_len__sz
 extern bool kfuncs_is_ir_kprobes_on(void) __ksym;
 
 extern int kfuncs_get_consistency_mode(void) __ksym;
+
+// Wrapper for bpf_probe_write_kernel: SIE write helper
+static __always_inline long sie_write_kernel(void *dst, __u32 size, const void *src) {
+    return bpf_probe_write_kernel(dst, size, src);
+}
+
 #endif
