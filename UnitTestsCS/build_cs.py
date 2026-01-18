@@ -22,6 +22,10 @@ class SymbolicExecutor:
         # Symbolic state: anonymous register -> expression
         self.state: Dict[str, str] = {}
         
+        # Alternative symbolic state: for shift instructions, store mul/div version
+        # anonymous register -> expression (alternative version)
+        self.state_alt: Dict[str, str] = {}
+        
         # Memory state (simplified: address -> expression)
         self.memory: Dict[str, str] = {}
         
@@ -196,17 +200,21 @@ class SymbolicExecutor:
                     if src_type == 'imm':
                         # mov $imm, %reg
                         self.state[dst_anon] = src_val
+                        self.state_alt[dst_anon] = src_val  # Same for both versions
                         return f"{dst_anon} = {src_val}"
                     elif src_type == 'reg' and src_reg:
                         # mov %reg1, %reg2
                         src_anon = self.get_anonymous_reg(src_reg)
                         src_expr = self.state.get(src_anon, src_anon)
+                        src_expr_alt = self.state_alt.get(src_anon, src_expr)
                         self.state[dst_anon] = src_expr
+                        self.state_alt[dst_anon] = src_expr_alt  # Copy alternative version too
                         return f"{dst_anon} = {src_expr}"
                     elif src_type == 'mem':
                         # mov [mem], %reg
                         mem_expr = f"mem{src_val}"
                         self.state[dst_anon] = mem_expr
+                        self.state_alt[dst_anon] = mem_expr  # Same for both versions
                         return f"{dst_anon} = {mem_expr}"
                 elif dst_type == 'mem' and src_type == 'reg' and src_reg:
                     # mov %reg, [mem]
@@ -228,15 +236,22 @@ class SymbolicExecutor:
                     
                     if src_type == 'imm':
                         # add $imm, %reg
+                        dst_expr_alt = self.state_alt.get(dst_anon, dst_expr)
                         new_expr = f"({dst_expr} + {src_val})"
+                        new_expr_alt = f"({dst_expr_alt} + {src_val})"
                         self.state[dst_anon] = new_expr
+                        self.state_alt[dst_anon] = new_expr_alt
                         return f"{dst_anon} = {new_expr}"
                     elif src_type == 'reg' and src_reg:
                         # add %reg1, %reg2
                         src_anon = self.get_anonymous_reg(src_reg)
                         src_expr = self.state.get(src_anon, src_anon)
+                        src_expr_alt = self.state_alt.get(src_anon, src_expr)
+                        dst_expr_alt = self.state_alt.get(dst_anon, dst_expr)
                         new_expr = f"({dst_expr} + {src_expr})"
+                        new_expr_alt = f"({dst_expr_alt} + {src_expr_alt})"
                         self.state[dst_anon] = new_expr
+                        self.state_alt[dst_anon] = new_expr_alt
                         return f"{dst_anon} = {new_expr}"
         
         # SUB: sub src, dst
@@ -251,15 +266,22 @@ class SymbolicExecutor:
                     
                     if src_type == 'imm':
                         # sub $imm, %reg
+                        dst_expr_alt = self.state_alt.get(dst_anon, dst_expr)
                         new_expr = f"({dst_expr} - {src_val})"
+                        new_expr_alt = f"({dst_expr_alt} - {src_val})"
                         self.state[dst_anon] = new_expr
+                        self.state_alt[dst_anon] = new_expr_alt
                         return f"{dst_anon} = {new_expr}"
                     elif src_type == 'reg' and src_reg:
                         # sub %reg1, %reg2
                         src_anon = self.get_anonymous_reg(src_reg)
                         src_expr = self.state.get(src_anon, src_anon)
+                        src_expr_alt = self.state_alt.get(src_anon, src_expr)
+                        dst_expr_alt = self.state_alt.get(dst_anon, dst_expr)
                         new_expr = f"({dst_expr} - {src_expr})"
+                        new_expr_alt = f"({dst_expr_alt} - {src_expr_alt})"
                         self.state[dst_anon] = new_expr
+                        self.state_alt[dst_anon] = new_expr_alt
                         return f"{dst_anon} = {new_expr}"
         
         # AND: and src, dst
@@ -336,18 +358,40 @@ class SymbolicExecutor:
                 if dst_type == 'reg' and dst_reg:
                     dst_anon = self.get_anonymous_reg(dst_reg)
                     dst_expr = self.state.get(dst_anon, dst_anon)
+                    dst_expr_alt = self.state_alt.get(dst_anon, dst_expr)
                     
                     if src_type == 'imm':
                         # shl $imm, %reg
-                        new_expr = f"({dst_expr} << {src_val})"
-                        self.state[dst_anon] = new_expr
-                        return f"{dst_anon} = {new_expr}"
+                        # Parse shift amount
+                        try:
+                            if src_val.startswith('0x') or src_val.startswith('0X'):
+                                shift_amt = int(src_val, 16)
+                            else:
+                                shift_amt = int(src_val, 10)
+                            
+                            # Shift version
+                            new_expr = f"({dst_expr} << {src_val})"
+                            self.state[dst_anon] = new_expr
+                            
+                            # Multiplication version: x << n = x * (2^n)
+                            multiplier = 2 ** shift_amt
+                            new_expr_alt = f"({dst_expr_alt} * {multiplier})"
+                            self.state_alt[dst_anon] = new_expr_alt
+                            
+                            return f"{dst_anon} = {new_expr} (alt: {new_expr_alt})"
+                        except (ValueError, TypeError):
+                            # If we can't parse the shift amount, just use shift version
+                            new_expr = f"({dst_expr} << {src_val})"
+                            self.state[dst_anon] = new_expr
+                            return f"{dst_anon} = {new_expr}"
                     elif src_type == 'reg' and src_reg:
-                        # shl %reg, %reg
+                        # shl %reg, %reg (variable shift, can't convert to mul)
                         src_anon = self.get_anonymous_reg(src_reg)
                         src_expr = self.state.get(src_anon, src_anon)
                         new_expr = f"({dst_expr} << {src_expr})"
                         self.state[dst_anon] = new_expr
+                        # Clear alternative version for variable shifts
+                        self.state_alt.pop(dst_anon, None)
                         return f"{dst_anon} = {new_expr}"
         
         # SHR: shr %cl, %reg or shr $imm, %reg
@@ -359,18 +403,40 @@ class SymbolicExecutor:
                 if dst_type == 'reg' and dst_reg:
                     dst_anon = self.get_anonymous_reg(dst_reg)
                     dst_expr = self.state.get(dst_anon, dst_anon)
+                    dst_expr_alt = self.state_alt.get(dst_anon, dst_expr)
                     
                     if src_type == 'imm':
                         # shr $imm, %reg
-                        new_expr = f"({dst_expr} >> {src_val})"
-                        self.state[dst_anon] = new_expr
-                        return f"{dst_anon} = {new_expr}"
+                        # Parse shift amount
+                        try:
+                            if src_val.startswith('0x') or src_val.startswith('0X'):
+                                shift_amt = int(src_val, 16)
+                            else:
+                                shift_amt = int(src_val, 10)
+                            
+                            # Shift version
+                            new_expr = f"({dst_expr} >> {src_val})"
+                            self.state[dst_anon] = new_expr
+                            
+                            # Division version: x >> n = x / (2^n) (integer division)
+                            divisor = 2 ** shift_amt
+                            new_expr_alt = f"({dst_expr_alt} / {divisor})"
+                            self.state_alt[dst_anon] = new_expr_alt
+                            
+                            return f"{dst_anon} = {new_expr} (alt: {new_expr_alt})"
+                        except (ValueError, TypeError):
+                            # If we can't parse the shift amount, just use shift version
+                            new_expr = f"({dst_expr} >> {src_val})"
+                            self.state[dst_anon] = new_expr
+                            return f"{dst_anon} = {new_expr}"
                     elif src_type == 'reg' and src_reg:
-                        # shr %reg, %reg
+                        # shr %reg, %reg (variable shift, can't convert to div)
                         src_anon = self.get_anonymous_reg(src_reg)
                         src_expr = self.state.get(src_anon, src_anon)
                         new_expr = f"({dst_expr} >> {src_expr})"
                         self.state[dst_anon] = new_expr
+                        # Clear alternative version for variable shifts
+                        self.state_alt.pop(dst_anon, None)
                         return f"{dst_anon} = {new_expr}"
         
         # MOVZBL: movzbl src, dst (zero-extend byte to long)
@@ -444,13 +510,91 @@ class SymbolicExecutor:
         return f"{mnemonic} {', '.join(operands)} (not fully supported)"
     
     def get_all_expressions(self) -> Dict[str, str]:
-        """Get all current symbolic expressions."""
+        """Get all current symbolic expressions (main version)."""
         return dict(self.state)
+    
+    def get_all_expressions_alt(self) -> Dict[str, str]:
+        """Get all current symbolic expressions (alternative version for shifts)."""
+        return dict(self.state_alt)
+    
+    def get_written_effects(self, mnemonic: str, operands: List[str]) -> Tuple[Set[str], Set[str]]:
+        """Get written registers and memory locations (effects produced).
+        
+        Args:
+            mnemonic: Instruction mnemonic
+            operands: List of operands
+        
+        Returns:
+            Tuple of (written_registers, written_memory) sets
+        """
+        written_regs = set()
+        written_mem = set()
+        
+        if not operands:
+            return (written_regs, written_mem)
+        
+        mnemonic_lower = mnemonic.lower()
+        
+        # Instructions that write to destination operand
+        if mnemonic_lower in ['mov', 'add', 'sub', 'and', 'or', 'xor', 'shl', 'shr', 'movzbl', 'sbb']:
+            if len(operands) >= 2:
+                dst_type, dst_val, dst_reg = self.parse_operand(operands[-1])  # Last operand is usually destination
+                if dst_type == 'reg' and dst_reg:
+                    base_reg = self.get_base_register(dst_reg)
+                    anon_reg = self.get_anonymous_reg(base_reg)
+                    written_regs.add(anon_reg)
+                elif dst_type == 'mem':
+                    written_mem.add(dst_val)
+        
+        return (written_regs, written_mem)
+    
+    def get_read_effects(self, mnemonic: str, operands: List[str]) -> Tuple[Set[str], Set[str]]:
+        """Get read registers and memory locations (effects consumed).
+        
+        Args:
+            mnemonic: Instruction mnemonic
+            operands: List of operands
+        
+        Returns:
+            Tuple of (read_registers, read_memory) sets
+        """
+        read_regs = set()
+        read_mem = set()
+        
+        if not operands:
+            return (read_regs, read_mem)
+        
+        mnemonic_lower = mnemonic.lower()
+        
+        # For most instructions, source operands are read
+        if mnemonic_lower in ['mov', 'add', 'sub', 'and', 'or', 'xor', 'shl', 'shr', 'movzbl', 'sbb', 'cmp', 'test']:
+            # All operands except the last (destination) are typically read
+            for i in range(len(operands) - 1):
+                src_type, src_val, src_reg = self.parse_operand(operands[i])
+                if src_type == 'reg' and src_reg:
+                    base_reg = self.get_base_register(src_reg)
+                    anon_reg = self.get_anonymous_reg(base_reg)
+                    read_regs.add(anon_reg)
+                elif src_type == 'mem':
+                    read_mem.add(src_val)
+            
+            # For cmp/test, both operands are read
+            if mnemonic_lower in ['cmp', 'test'] and len(operands) >= 2:
+                dst_type, dst_val, dst_reg = self.parse_operand(operands[-1])
+                if dst_type == 'reg' and dst_reg:
+                    base_reg = self.get_base_register(dst_reg)
+                    anon_reg = self.get_anonymous_reg(base_reg)
+                    read_regs.add(anon_reg)
+                elif dst_type == 'mem':
+                    read_mem.add(dst_val)
+        
+        return (read_regs, read_mem)
     
     def reset(self):
         """Reset the symbolic executor state."""
         self.reg_map.clear()
         self.state.clear()
+        self.state_alt.clear()
         self.memory.clear()
         self.reg_counter = 0
         self.used_regs.clear()
@@ -499,7 +643,7 @@ def process_res_file(filepath: str, return_expressions: bool = False):
         return_expressions: If True, return list of (instruction, expressions) tuples
     
     Returns:
-        If return_expressions is True: list of (instruction_line, address, expressions_dict) tuples
+        If return_expressions is True: list of (instruction_line, address, expressions_dict, expressions_dict_alt) tuples
         Otherwise: None
     """
     print(f"\n{'='*80}")
@@ -524,7 +668,7 @@ def process_res_file(filepath: str, return_expressions: bool = False):
     if current_block_lines:
         blocks.append(current_block_lines)
     
-    expression_sequence = []  # List of (instruction_line, address, expressions_dict)
+    expression_sequence = []  # List of (instruction_line, address, expressions_dict, expressions_dict_alt)
     
     # Process each Basic Block
     for block_idx, block_lines in enumerate(blocks):
@@ -563,17 +707,24 @@ def process_res_file(filepath: str, return_expressions: bool = False):
             result = executor.execute_instruction(mnemonic, operands)
             print(f"    -> {result}")
             
-            # Get all current expressions
+            # Get all current expressions (both versions)
             expressions = executor.get_all_expressions()
+            expressions_alt = executor.get_all_expressions_alt()
             expressions_dict = dict(sorted(expressions.items()))
+            expressions_dict_alt = dict(sorted(expressions_alt.items()))
             
             if return_expressions:
-                expression_sequence.append((inst_line, address, expressions_dict))
+                # Store both versions: (instruction, address, expressions_main, expressions_alt)
+                expression_sequence.append((inst_line, address, expressions_dict, expressions_dict_alt))
             
             if expressions:
                 print(f"    Expressions after this instruction:")
                 for reg, expr in sorted(expressions.items()):
-                    print(f"      {reg} = {expr}")
+                    alt_expr = expressions_alt.get(reg)
+                    if alt_expr and alt_expr != expr:
+                        print(f"      {reg} = {expr} (alt: {alt_expr})")
+                    else:
+                        print(f"      {reg} = {expr}")
             print()
     
     if return_expressions:
@@ -581,14 +732,14 @@ def process_res_file(filepath: str, return_expressions: bool = False):
     return None
 
 
-def compare_expressions(seq1: List[Tuple[str, str, Dict[str, str]]], 
-                       seq2: List[Tuple[str, str, Dict[str, str]]],
+def compare_expressions(seq1: List[Tuple], 
+                       seq2: List[Tuple],
                        name1: str = "v1", name2: str = "v2") -> List[Tuple[int, str, str, Dict[str, str], Dict[str, str]]]:
     """Compare two expression sequences and find differences.
     
     Args:
-        seq1: First sequence of (instruction, address, expressions)
-        seq2: Second sequence of (instruction, address, expressions)
+        seq1: First sequence of (instruction, address, expressions, expressions_alt)
+        seq2: Second sequence of (instruction, address, expressions, expressions_alt)
         name1: Name for first sequence
         name2: Name for second sequence
     
@@ -601,17 +752,27 @@ def compare_expressions(seq1: List[Tuple[str, str, Dict[str, str]]],
     for i in range(max_len):
         if i >= len(seq1):
             # seq1 ended, seq2 continues
-            inst2, addr2, expr2 = seq2[i]
-            differences.append((i, None, inst2, {}, expr2))
+            if len(seq2[i]) >= 3:
+                inst2, addr2, expr2 = seq2[i][:3]
+                differences.append((i, None, inst2, {}, expr2))
         elif i >= len(seq2):
             # seq2 ended, seq1 continues
-            inst1, addr1, expr1 = seq1[i]
-            differences.append((i, inst1, None, expr1, {}))
+            if len(seq1[i]) >= 3:
+                inst1, addr1, expr1 = seq1[i][:3]
+                differences.append((i, inst1, None, expr1, {}))
         else:
-            inst1, addr1, expr1 = seq1[i]
-            inst2, addr2, expr2 = seq2[i]
+            # Unpack: (instruction, address, expressions, expressions_alt)
+            if len(seq1[i]) >= 3:
+                inst1, addr1, expr1 = seq1[i][:3]
+            else:
+                inst1, addr1, expr1 = seq1[i][0], seq1[i][1] if len(seq1[i]) > 1 else "", {}
             
-            # Compare expressions
+            if len(seq2[i]) >= 3:
+                inst2, addr2, expr2 = seq2[i][:3]
+            else:
+                inst2, addr2, expr2 = seq2[i][0], seq2[i][1] if len(seq2[i]) > 1 else "", {}
+            
+            # Compare expressions (use main version for comparison)
             if expr1 != expr2:
                 differences.append((i, inst1, inst2, expr1, expr2))
     
@@ -651,6 +812,105 @@ def find_changed_ranges(differences: List[Tuple[int, str, str, Dict[str, str], D
     return ranges
 
 
+def get_instruction_effects(inst_line: str, executor: SymbolicExecutor) -> Tuple[Set[str], Set[str], Set[str], Set[str]]:
+    """Get written and read effects from an instruction.
+    
+    Args:
+        inst_line: Instruction line
+        executor: SymbolicExecutor instance for parsing (will create a temporary one)
+    
+    Returns:
+        Tuple of (written_regs, written_mem, read_regs, read_mem)
+    """
+    # Create a temporary executor to avoid modifying the original state
+    temp_executor = SymbolicExecutor()
+    
+    clean_line = re.sub(r'^\s*\[\*\]\s*', '', inst_line)
+    parsed = temp_executor.parse_instruction(clean_line)
+    if not parsed:
+        return (set(), set(), set(), set())
+    
+    address, mnemonic, operands = parsed
+    written_regs, written_mem = temp_executor.get_written_effects(mnemonic, operands)
+    read_regs, read_mem = temp_executor.get_read_effects(mnemonic, operands)
+    
+    return (written_regs, written_mem, read_regs, read_mem)
+
+
+def filter_changed_instructions_by_effects(differences: List[Tuple[int, str, str, Dict[str, str], Dict[str, str]]],
+                                           full_sequence: List[Tuple[str, str, Dict[str, str]]],
+                                           use_seq1: bool = True) -> List[Tuple[int, str]]:
+    """Filter changed instructions until all effects are consumed.
+    
+    Args:
+        differences: List of (index, inst1, inst2, expr1, expr2) tuples
+        full_sequence: Full sequence of (instruction, address, expressions)
+        use_seq1: If True, use inst1 from differences; otherwise use inst2
+    
+    Returns:
+        List of (index, instruction) tuples for changed instructions to output
+    """
+    if not differences:
+        return []
+    
+    # Create a temporary executor for parsing (won't modify state)
+    temp_executor = SymbolicExecutor()
+    pending_effects = set()  # Set of (type, name) where type is 'R' or 'M'
+    changed_instructions = []
+    
+    # Get the starting index of the first changed instruction
+    first_changed_idx = differences[0][0]
+    
+    # Create a map of changed instruction indices
+    changed_indices = {diff[0]: diff for diff in differences}
+    
+    # Process instructions from the first changed instruction onwards
+    for i in range(first_changed_idx, len(full_sequence)):
+        # Unpack: (instruction, address, expressions, expressions_alt)
+        if len(full_sequence[i]) >= 3:
+            inst_line, address, expressions = full_sequence[i][:3]
+        else:
+            inst_line = full_sequence[i][0]
+            address = full_sequence[i][1] if len(full_sequence[i]) > 1 else ""
+            expressions = {}
+        
+        # Check if this is a changed instruction
+        is_changed = False
+        inst_to_use = None
+        
+        if i in changed_indices:
+            diff_idx, inst1, inst2, expr1, expr2 = changed_indices[i]
+            is_changed = True
+            inst_to_use = inst1 if use_seq1 else inst2
+            
+            if inst_to_use:
+                changed_instructions.append((i + 1, inst_to_use.strip()))
+                
+                # Get effects produced by this changed instruction
+                written_regs, written_mem, read_regs, read_mem = get_instruction_effects(inst_to_use, temp_executor)
+                
+                # Add written effects to pending list
+                for reg in written_regs:
+                    pending_effects.add(('R', reg))
+                for mem in written_mem:
+                    pending_effects.add(('M', mem))
+        
+        # Get effects consumed by this instruction (use the instruction from sequence)
+        written_regs, written_mem, read_regs, read_mem = get_instruction_effects(inst_line, temp_executor)
+        
+        # Remove consumed effects from pending list
+        for reg in read_regs:
+            pending_effects.discard(('R', reg))
+        for mem in read_mem:
+            pending_effects.discard(('M', mem))
+        
+        # If all effects are consumed and we've processed at least one changed instruction, stop
+        if is_changed and not pending_effects and changed_instructions:
+            break
+    
+    return changed_instructions
+
+
 def print_expression_diff(prefix: str, seq1: List[Tuple[str, str, Dict[str, str]]],
                          seq2: List[Tuple[str, str, Dict[str, str]]],
                          seq3: List[Tuple[str, str, Dict[str, str]]] = None):
@@ -674,16 +934,9 @@ def print_expression_diff(prefix: str, seq1: List[Tuple[str, str, Dict[str, str]
         print(f"Changed instruction ranges: {ranges_v1_v2}")
         print()
         
-        # Collect changed instructions from v1
-        changed_v1 = []
-        # Collect changed instructions from v2
-        changed_v2 = []
-        
-        for idx, inst1, inst2, expr1, expr2 in diff_v1_v2:
-            if inst1:
-                changed_v1.append((idx + 1, inst1.strip()))
-            if inst2:
-                changed_v2.append((idx + 1, inst2.strip()))
+        # Filter changed instructions until all effects are consumed
+        changed_v1 = filter_changed_instructions_by_effects(diff_v1_v2, seq1, use_seq1=True)
+        changed_v2 = filter_changed_instructions_by_effects(diff_v1_v2, seq2, use_seq1=False)
         
         print("Changed instructions in v1:")
         for idx, inst in changed_v1:
@@ -706,16 +959,9 @@ def print_expression_diff(prefix: str, seq1: List[Tuple[str, str, Dict[str, str]
             print(f"Changed instruction ranges: {ranges_v2_v3}")
             print()
             
-            # Collect changed instructions from v2
-            changed_v2 = []
-            # Collect changed instructions from v3
-            changed_v3 = []
-            
-            for idx, inst2, inst3, expr2, expr3 in diff_v2_v3:
-                if inst2:
-                    changed_v2.append((idx + 1, inst2.strip()))
-                if inst3:
-                    changed_v3.append((idx + 1, inst3.strip()))
+            # Filter changed instructions until all effects are consumed
+            changed_v2 = filter_changed_instructions_by_effects(diff_v2_v3, seq2, use_seq1=True)
+            changed_v3 = filter_changed_instructions_by_effects(diff_v2_v3, seq3, use_seq1=False)
             
             print("Changed instructions in v2:")
             for idx, inst in changed_v2:
@@ -737,16 +983,9 @@ def print_expression_diff(prefix: str, seq1: List[Tuple[str, str, Dict[str, str]
             print(f"Changed instruction ranges: {ranges_v1_v3}")
             print()
             
-            # Collect changed instructions from v1
-            changed_v1 = []
-            # Collect changed instructions from v3
-            changed_v3 = []
-            
-            for idx, inst1, inst3, expr1, expr3 in diff_v1_v3:
-                if inst1:
-                    changed_v1.append((idx + 1, inst1.strip()))
-                if inst3:
-                    changed_v3.append((idx + 1, inst3.strip()))
+            # Filter changed instructions until all effects are consumed
+            changed_v1 = filter_changed_instructions_by_effects(diff_v1_v3, seq1, use_seq1=True)
+            changed_v3 = filter_changed_instructions_by_effects(diff_v1_v3, seq3, use_seq1=False)
             
             print("Changed instructions in v1:")
             for idx, inst in changed_v1:
@@ -782,21 +1021,25 @@ def extract_source_values(cmd_file: str) -> Dict[str, Tuple[int, int, int]]:
     if not lines:
         return source_values
     
-    # First line should contain V1,V2,V3
-    first_line = lines[0].strip()
-    if not first_line or first_line.startswith('#'):
-        return source_values
+    # Find first non-comment line that matches "num,num,num" pattern
+    v1, v2, v3 = None, None, None
+    for line in lines:
+        line = line.strip()
+        if not line or line.startswith('#'):
+            continue
+        
+        # Check if line matches "num,num,num" pattern
+        match = re.match(r'^(\d+),(\d+),(\d+)$', line)
+        if match:
+            try:
+                v1 = int(match.group(1))
+                v2 = int(match.group(2))
+                v3 = int(match.group(3))
+                break
+            except ValueError:
+                continue
     
-    # Parse V1,V2,V3 from first line
-    v_parts = [part.strip() for part in first_line.split(',')]
-    if len(v_parts) != 3:
-        return source_values
-    
-    try:
-        v1 = int(v_parts[0])
-        v2 = int(v_parts[1])
-        v3 = int(v_parts[2])
-    except ValueError:
+    if v1 is None or v2 is None or v3 is None:
         return source_values
     
     # Count command pairs to determine test groups
@@ -923,8 +1166,158 @@ def find_linear_relationship(v_values: List[int], iv_values: List[int]) -> Optio
     return None
 
 
+def find_insertion_point_for_linear_relationship(differences: List[Tuple[int, str, str, Dict[str, str], Dict[str, str]]],
+                                                  full_sequence: List[Tuple],
+                                                  relationship: Tuple[float, float]) -> Optional[Tuple[int, str, str, str, str]]:
+    """Find where to insert an instruction to modify R/M value based on linear relationship.
+    
+    Args:
+        differences: List of (index, inst1, inst2, expr1, expr2) tuples
+        full_sequence: Full sequence of (instruction, address, expressions, expressions_alt)
+        relationship: (a, b) tuple representing IV = a * V + b
+    
+    Returns:
+        Tuple of (insertion_index, effect_type, effect_name, first_inst, actual_reg_name) or None
+        effect_type is 'R' for register or 'M' for memory
+        actual_reg_name is the actual register name from the instruction (e.g., "eax")
+    """
+    if not differences:
+        return None
+    
+    temp_executor = SymbolicExecutor()
+    
+    # Get the first changed instruction
+    first_diff = differences[0]
+    first_idx = first_diff[0]
+    first_inst = first_diff[1]  # Use inst1 (from v1)
+    
+    if not first_inst:
+        return None
+    
+    # Get effects produced by the first changed instruction
+    written_regs, written_mem, read_regs, read_mem = get_instruction_effects(first_inst, temp_executor)
+    
+    if not written_regs and not written_mem:
+        return None
+    
+    # Find the first consumption of these effects
+    # We need to find where the first written reg/mem is consumed
+    target_effect = None
+    target_type = None
+    target_name = None
+    actual_reg_name = None
+    
+    # Parse the first instruction to get the actual register name
+    parsed = temp_executor.parse_instruction(first_inst)
+    if parsed:
+        address, mnemonic, operands = parsed
+        # Usually the destination operand is the last one
+        if operands and len(operands) >= 2:
+            dst_operand = operands[-1]
+            # Extract register name from operand (e.g., "%eax" -> "eax")
+            if dst_operand.startswith('%'):
+                actual_reg_name = dst_operand[1:]
+                # Get base register for anonymous name
+                base_reg = temp_executor.get_base_register(actual_reg_name)
+                target_name = base_reg
+    
+    # Prefer register over memory (usually easier to modify)
+    if written_regs:
+        target_effect = list(written_regs)[0]
+        target_type = 'R'
+        if not target_name:
+            target_name = target_effect
+    elif written_mem:
+        target_effect = list(written_mem)[0]
+        target_type = 'M'
+        if not target_name:
+            target_name = target_effect
+    
+    if not target_effect:
+        return None
+    
+    # Find where this effect is first consumed
+    insertion_idx = None
+    for i in range(first_idx + 1, len(full_sequence)):
+        inst_line = full_sequence[i][0] if len(full_sequence[i]) > 0 else ""
+        written_regs_curr, written_mem_curr, read_regs_curr, read_mem_curr = get_instruction_effects(inst_line, temp_executor)
+        
+        # Check if this instruction consumes our target effect
+        if target_type == 'R' and target_effect in read_regs_curr:
+            insertion_idx = i
+            break
+        elif target_type == 'M' and target_effect in read_mem_curr:
+            insertion_idx = i
+            break
+    
+    if insertion_idx is None:
+        # If not found, insert right after the first changed instruction
+        insertion_idx = first_idx + 1
+    
+    return (insertion_idx, target_type, target_name, first_inst, actual_reg_name or target_name)
+
+
+def generate_insertion_instruction(target_type: str, target_name: str, a: float, b: float, 
+                                   new_value_name: str = "X") -> str:
+    """Generate an instruction to modify R/M value based on linear relationship.
+    
+    Args:
+        target_type: 'R' for register or 'M' for memory
+        target_name: Name of register or memory location
+        a: Coefficient in IV = a * V + b
+        b: Constant in IV = a * V + b
+        new_value_name: Name of the new source value (default: "X")
+    
+    Returns:
+        Suggested instruction as string
+    """
+    # Calculate the new immediate value: a * X + b
+    # Since we don't know X, we'll generate a symbolic instruction
+    if abs(a - int(a)) < 0.001 and abs(b - int(b)) < 0.001:
+        a_int = int(a)
+        b_int = int(b)
+        
+        if target_type == 'R':
+            # Generate mov instruction: mov $imm, %reg
+            if b_int == 0:
+                if a_int == 1:
+                    # IV = X, so we need to set reg to X
+                    # This is tricky - we'd need the actual value of X
+                    # For now, generate a placeholder
+                    return f"mov ${new_value_name}, %{target_name}  # Set {target_name} = {new_value_name}"
+                else:
+                    # IV = a * X, need to multiply
+                    return f"# To set {target_name} = {a_int} * {new_value_name}:\n" \
+                           f"#   mov ${new_value_name}, %{target_name}\n" \
+                           f"#   imul ${a_int}, %{target_name}"
+            elif a_int == 1:
+                # IV = X + b
+                return f"# To set {target_name} = {new_value_name} + {b_int}:\n" \
+                       f"#   mov ${new_value_name}, %{target_name}\n" \
+                       f"#   add ${b_int}, %{target_name}"
+            elif a_int == -1:
+                # IV = -X + b
+                return f"# To set {target_name} = -{new_value_name} + {b_int}:\n" \
+                       f"#   mov ${new_value_name}, %{target_name}\n" \
+                       f"#   neg %{target_name}\n" \
+                       f"#   add ${b_int}, %{target_name}"
+            else:
+                # IV = a * X + b
+                return f"# To set {target_name} = {a_int} * {new_value_name} + {b_int}:\n" \
+                       f"#   mov ${new_value_name}, %{target_name}\n" \
+                       f"#   imul ${a_int}, %{target_name}\n" \
+                       f"#   add ${b_int}, %{target_name}"
+        else:
+            # Memory - similar logic but with memory addressing
+            return f"# To modify memory {target_name} = {a_int} * {new_value_name} + {b_int}"
+    else:
+        # Non-integer coefficients - more complex
+        return f"# To set {target_name} = {a:.6f} * {new_value_name} + {b:.6f} (non-integer, complex calculation needed)"
+
+
 def analyze_linear_relationship(prefix: str, v1_file: str, v2_file: str, v3_file: str, 
-                                source_values: Dict[str, Tuple[int, int, int]]):
+                                source_values: Dict[str, Tuple[int, int, int]],
+                                seq1: List[Tuple] = None, diff_v1_v2: List[Tuple] = None):
     """Analyze linear relationship between source values and immediate values.
     
     Args:
@@ -933,6 +1326,8 @@ def analyze_linear_relationship(prefix: str, v1_file: str, v2_file: str, v3_file
         v2_file: Path to v2 Basic Block file
         v3_file: Path to v3 Basic Block file
         source_values: Dictionary of source values
+        seq1: v1 sequence (optional, for finding insertion point)
+        diff_v1_v2: Differences between v1 and v2 (optional, for finding insertion point)
     """
     print(f"\n{'='*80}")
     print(f"Test Group {prefix} - Linear Relationship Analysis")
@@ -1019,6 +1414,39 @@ def analyze_linear_relationship(prefix: str, v1_file: str, v2_file: str, v3_file
             
             if all_match:
                 print(f"    ✓ All values match the linear relationship")
+            
+            # Generate insertion instruction suggestion
+            if seq1 and diff_v1_v2:
+                insertion_info = find_insertion_point_for_linear_relationship(diff_v1_v2, seq1, relationship)
+                if insertion_info:
+                    insertion_idx, target_type, target_name, first_inst, actual_reg_name = insertion_info
+                    print(f"\n    {'─'*70}")
+                    print(f"    Insertion Point Analysis")
+                    print(f"    {'─'*70}")
+                    
+                    # Clean up the first instruction line for better readability
+                    clean_first_inst = first_inst.strip()
+                    if clean_first_inst.startswith('[*]'):
+                        clean_first_inst = clean_first_inst[3:].strip()
+                    
+                    print(f"    First changed instruction:")
+                    print(f"      {clean_first_inst}")
+                    print()
+                    print(f"    Target register: %{actual_reg_name}")
+                    if actual_reg_name != target_name:
+                        print(f"      (64-bit base: %{target_name})")
+                    print()
+                    print(f"    Insert position: Before instruction {insertion_idx + 1}")
+                    print()
+                    
+                    # Generate suggested instruction
+                    suggested_inst = generate_insertion_instruction(target_type, actual_reg_name, a, b)
+                    print(f"    Suggested instruction to insert:")
+                    print(f"    {'─'*70}")
+                    for line in suggested_inst.split('\n'):
+                        if line.strip():
+                            print(f"      {line}")
+                    print(f"    {'─'*70}")
         else:
             print(f"  ✗ No linear relationship found")
         print()
@@ -1118,7 +1546,13 @@ def main():
         
         # Analyze linear relationship
         if 'v1' in files and 'v2' in files and 'v3' in files:
-            analyze_linear_relationship(prefix, files['v1'], files['v2'], files['v3'], source_values)
+            # Get differences between v1 and v2 for insertion point analysis
+            diff_v1_v2_for_insertion = None
+            if seq_v1 and seq_v2:
+                diff_v1_v2_for_insertion = compare_expressions(seq_v1, seq_v2, "v1", "v2")
+            
+            analyze_linear_relationship(prefix, files['v1'], files['v2'], files['v3'], 
+                                      source_values, seq_v1, diff_v1_v2_for_insertion)
 
 
 if __name__ == '__main__':
