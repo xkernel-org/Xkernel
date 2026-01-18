@@ -4,14 +4,20 @@ show_help() {
     echo "Usage: $0 <command> [options]"
     echo
     echo "Commands:"
-    echo "  load      Load BPF kprobes for specified files"
+    echo "  load      Load BPF kprobes for specified ConstIDs or files"
     echo "  unload    Unload all loaded BPF kprobes"
     echo "  trace     Trace the kernel logs"
     echo
     echo "Options for 'load' command:"
     echo "  [0:Immediate, 1:Per-task, 2:Global]   (required) Mode of consistency guarantee"
-    echo "  [file1,file2,...]                     (required) List of BPF files to load"
+    echo "  [ConstID1,ConstID2,...] or [file1,file2,...]  (required) List of ConstIDs (uint64_t) or BPF files to load"
     echo "  [Timeout seconds]                     (optional) Timeout duration in seconds"
+    echo
+    echo "Examples:"
+    echo "  # Load by ConstID (uint64_t, from Scope Table)"
+    echo "  $0 load 0 1,2"
+    echo "  # Load by file path (legacy mode)"
+    echo "  $0 load 0 bpf_kprobe/bpf/examples/my_policy_1.bpf.o"
     echo
     exit 1
 }
@@ -24,7 +30,7 @@ COMMAND=$1
 
 if [ "$COMMAND" = "load" ]; then
     if [ -z "$2" ] || [ -z "$3" ]; then
-        echo "Missing argument: [0:Immediate, 1:Per-task, 2:Global] [file1,file2,...] [Timeout seconds]"
+        echo "Missing argument: [0:Immediate, 1:Per-task, 2:Global] [ConstID1,ConstID2,...] or [file1,file2,...] [Timeout seconds]"
         exit 1
     fi
     MODE=$2
@@ -32,9 +38,9 @@ if [ "$COMMAND" = "load" ]; then
         echo "Invalid mode: $MODE"
         exit 1
     fi
-    FILES=$3
-    if [ -z "$FILES" ]; then
-        echo "Missing argument: [file1,file2,...]"
+    INPUT=$3
+    if [ -z "$INPUT" ]; then
+        echo "Missing argument: [ConstID1,ConstID2,...] or [file1,file2,...]"
         exit 1
     fi
     LOADER="./bpf_kprobe/kprobe_loader"
@@ -43,11 +49,80 @@ if [ "$COMMAND" = "load" ]; then
         exit 1
     fi
 
+    # Check if input is ConstID(s) or file path(s)
+    # ConstID format: uint64_t (numeric, e.g., 1, 2, etc.)
+    # File path format: contains '/' or ends with '.bpf.o'
+    RESOLVED_FILES=""
+    IFS=',' read -ra ITEMS <<< "$INPUT"
+    for item in "${ITEMS[@]}"; do
+        item=$(echo "$item" | xargs)  # trim whitespace
+        if [[ "$item" =~ ^[0-9]+$ ]]; then
+            # It's a ConstID (uint64_t), resolve from Scope Table
+            SCOPE_TABLE="/dev/shm/xkernel/scope_table"
+            if [ ! -f "$SCOPE_TABLE" ]; then
+                echo "Error: Scope Table not found at $SCOPE_TABLE"
+                exit 1
+            fi
+            
+            # ConstID is uint64_t (numeric)
+            CONST_ID="$item"
+            
+            # Read BPF_File from Scope Table
+            BPF_FILE=$(awk -F'\t' -v const_id="$CONST_ID" '
+                NR==1 { 
+                    for(i=1; i<=NF; i++) {
+                        if($i=="ConstID") constid_col=i
+                        if($i=="BPF_File") bpf_col=i
+                    }
+                }
+                NR>1 && $constid_col==const_id {
+                    print $bpf_col
+                    exit
+                }
+            ' "$SCOPE_TABLE")
+            
+            if [ -z "$BPF_FILE" ]; then
+                echo "Error: ConstID $CONST_ID not found in Scope Table"
+                exit 1
+            fi
+            
+            # Build full path: bpf_kprobe/bpf/examples/BPF_FILE
+            FULL_PATH="bpf_kprobe/bpf/examples/$BPF_FILE"
+            if [ ! -f "$FULL_PATH" ]; then
+                echo "Error: BPF file not found: $FULL_PATH (for ConstID $CONST_ID)"
+                exit 1
+            fi
+            
+            if [ -z "$RESOLVED_FILES" ]; then
+                RESOLVED_FILES="$FULL_PATH"
+            else
+                RESOLVED_FILES="$RESOLVED_FILES,$FULL_PATH"
+            fi
+        else
+            # It's a file path, use as-is
+            if [ ! -f "$item" ]; then
+                echo "Error: File not found: $item"
+                exit 1
+            fi
+            if [ -z "$RESOLVED_FILES" ]; then
+                RESOLVED_FILES="$item"
+            else
+                RESOLVED_FILES="$RESOLVED_FILES,$item"
+            fi
+        fi
+    done
+    
+    if [ -z "$RESOLVED_FILES" ]; then
+        echo "Error: No valid files to load"
+        exit 1
+    fi
+
     echo "Loading kfuncs module..."
     sudo insmod ./kernel_module/kfuncs/xk-kfuncs.ko kMode=$MODE
     
     echo "Successfully loading BPF Kprobes:"
-    sudo "$LOADER" --files "$FILES" --pin
+    echo "  Files: $RESOLVED_FILES"
+    sudo "$LOADER" --files "$RESOLVED_FILES" --pin
     STATUS=$?
     if [ $STATUS -ne 0 ]; then
         echo "Failed to load kprobes. You can try xkernel-tool unload and load again."

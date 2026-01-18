@@ -1533,6 +1533,17 @@ def analyze_linear_relationship(prefix: str, v1_file: str, v2_file: str, v3_file
                         if user_policy_file:
                             print(f"    Generated user policy file: {user_policy_file}")
                         
+                        # Extract BPF file name (e.g., "my_policy_1.bpf.c" -> "my_policy_1.bpf.o")
+                        bpf_file_name = ""
+                        if user_policy_file:
+                            # Get just the filename without path
+                            bpf_base_name = os.path.basename(user_policy_file)
+                            # Change extension from .bpf.c to .bpf.o
+                            if bpf_base_name.endswith('.bpf.c'):
+                                bpf_file_name = bpf_base_name[:-6] + '.bpf.o'
+                            else:
+                                bpf_file_name = bpf_base_name
+                        
                         # Add entry to Scope Table
                         # Build SS (Symbolic State) from expression
                         # Create expr_comment from rel_str by replacing IV with target_reg and V with val
@@ -1547,15 +1558,22 @@ def analyze_linear_relationship(prefix: str, v1_file: str, v2_file: str, v3_file
                             ss_info = f"{actual_reg_name}={expr_comment_local}"
                         
                         # Use source value V1 as Val
+                        # ConstID is uint64_t, use prefix as numeric value
+                        try:
+                            const_id_value = int(prefix)
+                        except ValueError:
+                            const_id_value = 0
+                        
                         add_scope_table_entry(
-                            const_id=f"CS{prefix}",
+                            const_id=str(const_id_value),
                             val=v1_src,
                             expression=rel_str,
                             cs_content=cs_info,
                             ss_content=ss_info,
+                            bpf_file=bpf_file_name,
                             status="active"
                         )
-                        print(f"    Added entry to Scope Table: CS{prefix}, V={v1_src}, {rel_str}")
+                        print(f"    Added entry to Scope Table: ConstID={const_id_value}, V={v1_src}, {rel_str}")
         else:
             print(f"  ✗ No linear relationship found")
         print()
@@ -1568,7 +1586,7 @@ SCOPE_TABLE_PATH = "/dev/shm/xkernel/scope_table"
 CS_TABLE_PATH = "/dev/shm/xkernel/cs_table"
 SS_TABLE_PATH = "/dev/shm/xkernel/ss_table"
 
-SCOPE_TABLE_HEADER = ["ConstID", "Val", "Expression", "CS_Index", "SS_Index", "Status"]
+SCOPE_TABLE_HEADER = ["ConstID", "Val", "Expression", "CS_Index", "SS_Index", "BPF_File", "Status"]
 CS_TABLE_HEADER = ["Index", "CS_Content"]
 SS_TABLE_HEADER = ["Index", "SS_Content"]
 
@@ -1685,15 +1703,16 @@ def get_or_add_ss_index(ss_content: str) -> int:
     return new_index
 
 
-def add_scope_table_entry(const_id: str, val: int, expression: str, cs_content: str, ss_content: str, status: str = "active"):
+def add_scope_table_entry(const_id: str, val: int, expression: str, cs_content: str, ss_content: str, bpf_file: str = "", status: str = "active"):
     """Add a new entry to the Scope Table.
     
     Args:
-        const_id: Constant ID (e.g., test group prefix)
+        const_id: Constant ID as uint64_t (numeric string, e.g., "1", "2")
         val: Source value V
         expression: Linear relationship expression (e.g., "IV = V" or "IV = a * V + b")
         cs_content: CS content (instruction string)
         ss_content: SS content (symbolic state string) - currently not used, set to empty string
+        bpf_file: BPF file name (e.g., "my_policy_1.bpf.o")
         status: Status of the entry (default: "active")
     """
     init_all_tables()
@@ -1719,7 +1738,8 @@ def add_scope_table_entry(const_id: str, val: int, expression: str, cs_content: 
             entry[2] = expression
             entry[3] = str(cs_index)
             entry[4] = str(ss_index)
-            entry[5] = status if len(entry) > 5 else status
+            entry[5] = bpf_file if len(entry) > 5 else bpf_file
+            entry[6] = status if len(entry) > 6 else status
             # Write back
             with open(SCOPE_TABLE_PATH, 'w', newline='') as f:
                 writer = csv.writer(f, delimiter='\t')
@@ -1728,7 +1748,7 @@ def add_scope_table_entry(const_id: str, val: int, expression: str, cs_content: 
             return
     
     # Add new entry
-    new_entry = [const_id, str(val), expression, str(cs_index), str(ss_index), status]
+    new_entry = [const_id, str(val), expression, str(cs_index), str(ss_index), bpf_file, status]
     with open(SCOPE_TABLE_PATH, 'a', newline='') as f:
         writer = csv.writer(f, delimiter='\t')
         writer.writerow(new_entry)

@@ -21,7 +21,7 @@ SCOPE_TABLE_PATH = "/dev/shm/xkernel/scope_table"
 CS_TABLE_PATH = "/dev/shm/xkernel/cs_table"
 SS_TABLE_PATH = "/dev/shm/xkernel/ss_table"
 
-SCOPE_TABLE_HEADER = ["ConstID", "Val", "Expression", "CS_Index", "SS_Index", "Status"]
+SCOPE_TABLE_HEADER = ["ConstID", "Val", "Expression", "CS_Index", "SS_Index", "BPF_File", "Status"]
 CS_TABLE_HEADER = ["Index", "CS_Content"]
 SS_TABLE_HEADER = ["Index", "SS_Content"]
 
@@ -117,7 +117,8 @@ def read_scope_table() -> List[Dict[str, str]]:
                     'SS_Index': ss_index,
                     'CS': cs_content,
                     'SS': ss_content,
-                    'Status': row[5].strip() if len(row) > 5 else ""
+                    'BPF_File': row[5].strip() if len(row) > 5 else "",
+                    'Status': row[6].strip() if len(row) > 6 else ""
                 })
     
     return entries
@@ -144,6 +145,7 @@ def write_scope_table(entries: List[Dict[str, str]]):
                 entry.get('Expression', ''),
                 entry.get('CS_Index', ''),
                 entry.get('SS_Index', ''),
+                entry.get('BPF_File', ''),
                 entry.get('Status', '')
             ])
 
@@ -262,6 +264,7 @@ def print_entries(entries: List[Dict[str, str]], show_header: bool = True, show_
             'Expression': max(len('Expression'), max(len(e.get('Expression', '')) for e in entries)),
             'CS': max(len('CS'), max(len(e.get('CS', '')) for e in entries), 50),
             'SS': max(len('SS'), max(len(e.get('SS', '')) for e in entries), 30),
+            'BPF_File': max(len('BPF_File'), max(len(e.get('BPF_File', '')) for e in entries), 20),
             'Status': max(len('Status'), max(len(e.get('Status', '')) for e in entries))
         }
     else:
@@ -271,15 +274,16 @@ def print_entries(entries: List[Dict[str, str]], show_header: bool = True, show_
             'Expression': max(len('Expression'), max(len(e.get('Expression', '')) for e in entries)),
             'CS_Index': max(len('CS_Index'), max(len(e.get('CS_Index', '')) for e in entries)),
             'SS_Index': max(len('SS_Index'), max(len(e.get('SS_Index', '')) for e in entries)),
+            'BPF_File': max(len('BPF_File'), max(len(e.get('BPF_File', '')) for e in entries), 20),
             'Status': max(len('Status'), max(len(e.get('Status', '')) for e in entries))
         }
     
     # Print header
     if show_header:
         if show_content:
-            header = f"{'ConstID':<{widths['ConstID']}}  {'Val':<{widths['Val']}}  {'Expression':<{widths['Expression']}}  {'CS':<{widths['CS']}}  {'SS':<{widths['SS']}}  {'Status':<{widths['Status']}}"
+            header = f"{'ConstID':<{widths['ConstID']}}  {'Val':<{widths['Val']}}  {'Expression':<{widths['Expression']}}  {'CS':<{widths['CS']}}  {'SS':<{widths['SS']}}  {'BPF_File':<{widths['BPF_File']}}  {'Status':<{widths['Status']}}"
         else:
-            header = f"{'ConstID':<{widths['ConstID']}}  {'Val':<{widths['Val']}}  {'Expression':<{widths['Expression']}}  {'CS_Index':<{widths['CS_Index']}}  {'SS_Index':<{widths['SS_Index']}}  {'Status':<{widths['Status']}}"
+            header = f"{'ConstID':<{widths['ConstID']}}  {'Val':<{widths['Val']}}  {'Expression':<{widths['Expression']}}  {'CS_Index':<{widths['CS_Index']}}  {'SS_Index':<{widths['SS_Index']}}  {'BPF_File':<{widths['BPF_File']}}  {'Status':<{widths['Status']}}"
         print(header)
         print('-' * len(header))
     
@@ -299,6 +303,7 @@ def print_entries(entries: List[Dict[str, str]], show_header: bool = True, show_
                   f"{entry.get('Expression', ''):<{widths['Expression']}}  "
                   f"{cs_display:<{widths['CS']}}  "
                   f"{ss_display:<{widths['SS']}}  "
+                  f"{entry.get('BPF_File', ''):<{widths['BPF_File']}}  "
                   f"{entry.get('Status', ''):<{widths['Status']}}")
         else:
             print(f"{entry.get('ConstID', ''):<{widths['ConstID']}}  "
@@ -306,6 +311,7 @@ def print_entries(entries: List[Dict[str, str]], show_header: bool = True, show_
                   f"{entry.get('Expression', ''):<{widths['Expression']}}  "
                   f"{entry.get('CS_Index', ''):<{widths['CS_Index']}}  "
                   f"{entry.get('SS_Index', ''):<{widths['SS_Index']}}  "
+                  f"{entry.get('BPF_File', ''):<{widths['BPF_File']}}  "
                   f"{entry.get('Status', ''):<{widths['Status']}}")
 
 
@@ -451,7 +457,8 @@ Examples:
                             'Expression': row[2].strip() if len(row) > 2 else "",
                             'CS_Index': row[3].strip() if len(row) > 3 else "",
                             'SS_Index': row[4].strip() if len(row) > 4 else "",
-                            'Status': row[5].strip() if len(row) > 5 else ""
+                            'BPF_File': row[5].strip() if len(row) > 5 else "",
+                            'Status': row[6].strip() if len(row) > 6 else ""
                         })
         
         print(f"\n{'='*80}")
