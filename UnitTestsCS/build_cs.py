@@ -7,6 +7,8 @@ Reads res_*.txt files, parses Basic Blocks, and performs symbolic execution.
 import re
 import os
 import glob
+import csv
+import json
 from collections import OrderedDict
 from typing import Dict, List, Tuple, Optional, Set
 
@@ -1443,20 +1445,26 @@ def analyze_linear_relationship(prefix: str, v1_file: str, v2_file: str, v3_file
         if relationship:
             a, b = relationship
             found_relationship = True
-            # Format the relationship nicely
+            
+            # Format the relationship string for display and storage
             if abs(a - int(a)) < 0.001 and abs(b - int(b)) < 0.001:
                 a_int = int(a)
                 b_int = int(b)
                 if b_int == 0:
-                    print(f"  ✓ Linear relationship found: IV = {a_int} * V")
+                    rel_str = f"IV = {a_int} * V" if a_int != 1 else "IV = V"
+                    if a_int == -1:
+                        rel_str = "IV = -V"
                 elif a_int == 1:
-                    print(f"  ✓ Linear relationship found: IV = V + {b_int}")
+                    rel_str = f"IV = V + {b_int}"
                 elif a_int == -1:
-                    print(f"  ✓ Linear relationship found: IV = -V + {b_int}")
+                    rel_str = f"IV = -V + {b_int}"
                 else:
-                    print(f"  ✓ Linear relationship found: IV = {a_int} * V + {b_int}")
+                    rel_str = f"IV = {a_int} * V + {b_int}"
             else:
-                print(f"  ✓ Linear relationship found: IV = {a:.6f} * V + {b:.6f}")
+                rel_str = f"IV = {a:.6f} * V + {b:.6f}"
+            
+            # Format the relationship nicely for display
+            print(f"  ✓ Linear relationship found: {rel_str}")
             
             print(f"    Verification:")
             all_match = True
@@ -1503,6 +1511,20 @@ def analyze_linear_relationship(prefix: str, v1_file: str, v2_file: str, v3_file
                             print(f"      {line}")
                     print(f"    {'─'*70}")
                     
+                    # Get changed instructions for CS field
+                    changed_v1_instructions = filter_changed_instructions_by_effects(diff_v1_v2, seq1, use_seq1=True)
+                    # Format CS as a semicolon-separated list of instructions
+                    cs_instructions = []
+                    for idx, inst in changed_v1_instructions:
+                        # Clean up instruction: remove [*] marker and normalize whitespace
+                        clean_inst = inst.strip()
+                        if clean_inst.startswith('[*]'):
+                            clean_inst = clean_inst[3:].strip()
+                        # Normalize whitespace: replace multiple spaces/tabs with single space
+                        clean_inst = re.sub(r'\s+', ' ', clean_inst)
+                        cs_instructions.append(clean_inst)
+                    cs_info = "; ".join(cs_instructions) if cs_instructions else first_inst.strip()
+                    
                     # Generate BPF file
                     result = generate_bpf_file_for_group(prefix, v1_file, relationship, actual_reg_name, insertion_info, file_path, output_dir)
                     if result:
@@ -1510,12 +1532,206 @@ def analyze_linear_relationship(prefix: str, v1_file: str, v2_file: str, v3_file
                         print(f"\n    Generated BPF file: {internal_file}")
                         if user_policy_file:
                             print(f"    Generated user policy file: {user_policy_file}")
+                        
+                        # Add entry to Scope Table
+                        # Build SS (Symbolic State) from expression
+                        # Create expr_comment from rel_str by replacing IV with target_reg and V with val
+                        # Example: "IV = V" -> "eax = val", then format as "eax=val"
+                        expr_comment_local = rel_str.replace('IV', actual_reg_name).replace('V', 'val')
+                        # Extract the right-hand side of the equation for SS
+                        # If format is "eax = val", extract "val"
+                        if ' = ' in expr_comment_local:
+                            rhs = expr_comment_local.split(' = ', 1)[1]
+                            ss_info = f"{actual_reg_name}={rhs}"
+                        else:
+                            ss_info = f"{actual_reg_name}={expr_comment_local}"
+                        
+                        # Use source value V1 as Val
+                        add_scope_table_entry(
+                            const_id=f"CS{prefix}",
+                            val=v1_src,
+                            expression=rel_str,
+                            cs_content=cs_info,
+                            ss_content=ss_info,
+                            status="active"
+                        )
+                        print(f"    Added entry to Scope Table: CS{prefix}, V={v1_src}, {rel_str}")
         else:
             print(f"  ✗ No linear relationship found")
         print()
     
     if not found_relationship:
         print("Error: No linear relationship found for any immediate value")
+
+
+SCOPE_TABLE_PATH = "/dev/shm/xkernel/scope_table"
+CS_TABLE_PATH = "/dev/shm/xkernel/cs_table"
+SS_TABLE_PATH = "/dev/shm/xkernel/ss_table"
+
+SCOPE_TABLE_HEADER = ["ConstID", "Val", "Expression", "CS_Index", "SS_Index", "Status"]
+CS_TABLE_HEADER = ["Index", "CS_Content"]
+SS_TABLE_HEADER = ["Index", "SS_Content"]
+
+
+def init_table(table_path: str, header: List[str]):
+    """Initialize a table file if it doesn't exist.
+    
+    Args:
+        table_path: Path to the table file
+        header: List of column names
+    """
+    # Create directory if it doesn't exist
+    table_dir = os.path.dirname(table_path)
+    if table_dir and not os.path.exists(table_dir):
+        os.makedirs(table_dir, exist_ok=True)
+    
+    # Create file with header if it doesn't exist
+    if not os.path.exists(table_path):
+        with open(table_path, 'w', newline='') as f:
+            writer = csv.writer(f, delimiter='\t')
+            writer.writerow(header)
+
+
+def init_all_tables():
+    """Initialize all tables (Scope, CS, SS) if they don't exist."""
+    init_table(SCOPE_TABLE_PATH, SCOPE_TABLE_HEADER)
+    init_table(CS_TABLE_PATH, CS_TABLE_HEADER)
+    init_table(SS_TABLE_PATH, SS_TABLE_HEADER)
+
+
+def get_or_add_cs_index(cs_content: str) -> int:
+    """Get existing CS index or add new CS entry and return its index.
+    
+    Args:
+        cs_content: CS content (instruction string)
+    
+    Returns:
+        Index of the CS entry
+    """
+    init_table(CS_TABLE_PATH, CS_TABLE_HEADER)
+    
+    # Read existing entries
+    entries = []
+    max_index = 0
+    if os.path.exists(CS_TABLE_PATH):
+        with open(CS_TABLE_PATH, 'r', newline='') as f:
+            reader = csv.reader(f, delimiter='\t')
+            header = next(reader, None)
+            if header:
+                for row in reader:
+                    if len(row) >= 2:
+                        index = int(row[0])
+                        content = row[1]
+                        entries.append((index, content))
+                        max_index = max(max_index, index)
+                        # Check if this content already exists
+                        if content == cs_content:
+                            return index
+    
+    # Add new entry
+    new_index = max_index + 1
+    entries.append((new_index, cs_content))
+    
+    # Write back
+    with open(CS_TABLE_PATH, 'w', newline='') as f:
+        writer = csv.writer(f, delimiter='\t')
+        writer.writerow(CS_TABLE_HEADER)
+        for index, content in sorted(entries):
+            writer.writerow([index, content])
+    
+    return new_index
+
+
+def get_or_add_ss_index(ss_content: str) -> int:
+    """Get existing SS index or add new SS entry and return its index.
+    
+    Args:
+        ss_content: SS content (symbolic state string)
+    
+    Returns:
+        Index of the SS entry
+    """
+    init_table(SS_TABLE_PATH, SS_TABLE_HEADER)
+    
+    # Read existing entries
+    entries = []
+    max_index = 0
+    if os.path.exists(SS_TABLE_PATH):
+        with open(SS_TABLE_PATH, 'r', newline='') as f:
+            reader = csv.reader(f, delimiter='\t')
+            header = next(reader, None)
+            if header:
+                for row in reader:
+                    if len(row) >= 2:
+                        index = int(row[0])
+                        content = row[1]
+                        entries.append((index, content))
+                        max_index = max(max_index, index)
+                        # Check if this content already exists
+                        if content == ss_content:
+                            return index
+    
+    # Add new entry
+    new_index = max_index + 1
+    entries.append((new_index, ss_content))
+    
+    # Write back
+    with open(SS_TABLE_PATH, 'w', newline='') as f:
+        writer = csv.writer(f, delimiter='\t')
+        writer.writerow(SS_TABLE_HEADER)
+        for index, content in sorted(entries):
+            writer.writerow([index, content])
+    
+    return new_index
+
+
+def add_scope_table_entry(const_id: str, val: int, expression: str, cs_content: str, ss_content: str, status: str = "active"):
+    """Add a new entry to the Scope Table.
+    
+    Args:
+        const_id: Constant ID (e.g., test group prefix)
+        val: Source value V
+        expression: Linear relationship expression (e.g., "IV = V" or "IV = a * V + b")
+        cs_content: CS content (instruction string)
+        ss_content: SS content (symbolic state string) - currently not used, set to empty string
+        status: Status of the entry (default: "active")
+    """
+    init_all_tables()
+    
+    # Get or add CS index
+    cs_index = get_or_add_cs_index(cs_content)
+    # Temporarily not generating SS, use empty string for SS_Index
+    ss_index = ""
+    
+    # Read existing entries to avoid duplicates
+    existing_entries = []
+    if os.path.exists(SCOPE_TABLE_PATH):
+        with open(SCOPE_TABLE_PATH, 'r', newline='') as f:
+            reader = csv.reader(f, delimiter='\t')
+            header = next(reader, None)
+            if header:
+                existing_entries = list(reader)
+    
+    # Check if entry already exists (same ConstID and Val)
+    for entry in existing_entries:
+        if len(entry) >= 2 and entry[0] == const_id and entry[1] == str(val):
+            # Update existing entry
+            entry[2] = expression
+            entry[3] = str(cs_index)
+            entry[4] = str(ss_index)
+            entry[5] = status if len(entry) > 5 else status
+            # Write back
+            with open(SCOPE_TABLE_PATH, 'w', newline='') as f:
+                writer = csv.writer(f, delimiter='\t')
+                writer.writerow(SCOPE_TABLE_HEADER)
+                writer.writerows(existing_entries)
+            return
+    
+    # Add new entry
+    new_entry = [const_id, str(val), expression, str(cs_index), str(ss_index), status]
+    with open(SCOPE_TABLE_PATH, 'a', newline='') as f:
+        writer = csv.writer(f, delimiter='\t')
+        writer.writerow(new_entry)
 
 
 def extract_function_info_from_bb_file(filepath: str) -> Optional[Tuple[str, str, str, str]]:

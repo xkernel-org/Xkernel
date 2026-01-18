@@ -9,6 +9,7 @@
 *.ko.unsigned
 *.o.d
 !plot/**/*.txt
+*.pyc
 
 compile_commands.json
 .cache

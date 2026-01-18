@@ -5,7 +5,5 @@ X_TUNE(cubictcp_acked, "+0x22a") {
     if (!x_transition_done(x_ctx)) return 0;
     // 2. User policy logic
     // TODO: Implement your policy logic here
-    // Demo: set eax to 1
-    x_set(x_ctx, 1);
     return 0;
-} 
+} /* my_policy_1.bpf.c */
