@@ -1007,66 +1007,54 @@ def extract_source_values(cmd_file: str) -> Dict[str, Tuple[int, int, int]]:
 
     Args:
         cmd_file: Path to testcases.sh
-        Format: First line contains "V1,V2,V3", followed by command pairs
-    
+        Format: Each test group has a "V1,V2,V3" line followed by two command pairs
+
     Returns:
         Dictionary mapping test group prefix to (V1, V2, V3) tuple
     """
     source_values = {}
-    
+
     if not os.path.exists(cmd_file):
         return source_values
-    
+
     with open(cmd_file, 'r') as f:
         lines = f.readlines()
-    
+
     if not lines:
         return source_values
-    
-    # Find first non-comment line that matches "num,num,num" pattern
-    v1, v2, v3 = None, None, None
+
+    # Parse test groups: each group has a V1,V2,V3 line followed by 2 commands
+    test_group = 0
+    current_values = None
+    cmd_count = 0
+
     for line in lines:
         line = line.strip()
         if not line or line.startswith('#'):
             continue
-        
-        # Check if line matches "num,num,num" pattern
+
+        # Check if line matches "num,num,num" pattern (V1,V2,V3 line)
         match = re.match(r'^(\d+),(\d+),(\d+)$', line)
         if match:
             try:
                 v1 = int(match.group(1))
                 v2 = int(match.group(2))
                 v3 = int(match.group(3))
-                break
+                current_values = (v1, v2, v3)
+                cmd_count = 0  # Reset command count for new group
+                continue
             except ValueError:
                 continue
-    
-    if v1 is None or v2 is None or v3 is None:
-        return source_values
-    
-    # Count command pairs to determine test groups
-    # Each test group has 2 commands
-    test_group = 1
-    cmd_count = 0
-    
-    for line in lines[1:]:  # Skip first line
-        line = line.strip()
-        if not line or line.startswith('#'):
-            continue
-        
+
         # Check if it's a command line
         if 'check_assembly_diff.py' in line:
             cmd_count += 1
-            if cmd_count == 2:
+            if cmd_count == 2 and current_values is not None:
                 # Two commands form a test group
-                source_values[str(test_group)] = (v1, v2, v3)
                 test_group += 1
+                source_values[str(test_group)] = current_values
                 cmd_count = 0
-    
-    # If there's only one command pair, use the values
-    if test_group == 1 and cmd_count == 2:
-        source_values['1'] = (v1, v2, v3)
-    
+
     return source_values
 
 
@@ -2006,15 +1994,14 @@ def generate_bpf_kprobe_file(prefix: str, v1_file: str, relationship: Tuple[floa
         'esi': 'si', 'edi': 'di', 'ebp': 'bp', 'esp': 'sp',
     }
     
-    # Get base register
-    base_reg = target_reg
-    if target_reg in ['eax', 'ebx', 'ecx', 'edx', 'esi', 'edi', 'ebp', 'esp']:
-        # Map 32-bit to 64-bit
-        reg32_to_64 = {
-            'eax': 'rax', 'ebx': 'rbx', 'ecx': 'rcx', 'edx': 'rdx',
-            'esi': 'rsi', 'edi': 'rdi', 'ebp': 'rbp', 'esp': 'rsp',
-        }
-        base_reg = reg32_to_64.get(target_reg, target_reg)
+    # Get base register - map 32-bit to 64-bit
+    reg32_to_64 = {
+        'eax': 'rax', 'ebx': 'rbx', 'ecx': 'rcx', 'edx': 'rdx',
+        'esi': 'rsi', 'edi': 'rdi', 'ebp': 'rbp', 'esp': 'rsp',
+        'r8d': 'r8', 'r9d': 'r9', 'r10d': 'r10', 'r11d': 'r11',
+        'r12d': 'r12', 'r13d': 'r13', 'r14d': 'r14', 'r15d': 'r15',
+    }
+    base_reg = reg32_to_64.get(target_reg, target_reg)
     
     ptregs_field = reg_to_ptregs.get(base_reg, base_reg)
     

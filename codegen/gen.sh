@@ -206,6 +206,7 @@ while IFS= read -r line || [ -n "$line" ]; do
         # Reset for next group
         cmd1=""
         cmd2=""
+        first_line=true  # Reset to skip V,V',V'' line of next group
         echo ""
     fi
 done < "$CMD_FILE"
