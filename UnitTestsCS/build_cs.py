@@ -1126,24 +1126,24 @@ def extract_file_paths(cmd_file: str) -> Dict[str, str]:
 
 def extract_immediate_values(inst_line: str) -> List[int]:
     """Extract immediate values from an instruction line.
-    
+
     Args:
         inst_line: Instruction line from Basic Block file
-    
+
     Returns:
         List of immediate values found in the instruction (as unsigned integers)
     """
     immediates = []
-    
+
     # Remove [*] marker
     clean_line = re.sub(r'^\s*\[\*\]\s*', '', inst_line)
-    
+
     # Find all immediate values (hex or decimal)
     # Pattern: $0x123 or $123
     # Also handle negative values like $0xff80 (which might be -128 in 16-bit)
     imm_pattern = r'\$((?:0x[0-9a-fA-F]+)|(?:\d+))'
     matches = re.findall(imm_pattern, clean_line, re.IGNORECASE)
-    
+
     for match in matches:
         try:
             if match.startswith('0x') or match.startswith('0X'):
@@ -1157,7 +1157,26 @@ def extract_immediate_values(inst_line: str) -> List[int]:
                 immediates.append(value)
         except ValueError:
             pass
-    
+
+    # Handle implicit immediate of 1 for shift/rotate instructions
+    # In x86, instructions like "shr %eax" implicitly shift by 1
+    # These instructions are: shr, shl, sar, sal, rol, ror, rcl, rcr
+    if not immediates:
+        # Extract the mnemonic from the instruction
+        # Format: "addr: bytes mnemonic operands"
+        mnemonic_match = re.search(r'\t(\w+)\s+', clean_line)
+        if mnemonic_match:
+            mnemonic = mnemonic_match.group(1).lower()
+            # Check if it's a shift/rotate instruction with implicit immediate 1
+            shift_rotate_ops = {'shr', 'shl', 'sar', 'sal', 'rol', 'ror', 'rcl', 'rcr'}
+            if mnemonic in shift_rotate_ops:
+                # Check if operand is just a register (no explicit immediate)
+                # Pattern: mnemonic %reg (without $imm)
+                operand_match = re.search(r'\t\w+\s+(%\w+)\s*$', clean_line)
+                if operand_match:
+                    # This is a shift/rotate with implicit immediate 1
+                    immediates.append(1)
+
     return immediates
 
 
