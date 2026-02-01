@@ -1,6 +1,6 @@
 #include "my_policy_1.internal.bpf.h"
 
-X_TUNE(cubictcp_acked, "+0x22a") {
+X_TUNE(cubictcp_acked, "+0x1f5") {
     // 1. Safety guard (mandatory)
     if (!x_transition_done(x_ctx)) return 0;
     // 2. User policy logic

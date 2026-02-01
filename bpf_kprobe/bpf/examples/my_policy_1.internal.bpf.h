@@ -1,6 +1,6 @@
 // Generated BPF kprobe header for test group 1
 // Function: cubictcp_acked
-// Offset: 0x22A (changed instruction at 0x227, kprobe attach at offset 0x22a)
+// Offset: 0x1F5 (changed instruction at 0x1f2, kprobe attach at offset 0x1f5)
 // Linear relationship: IV = V
 // Target register: %eax (base: %rax)
 

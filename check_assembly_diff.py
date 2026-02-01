@@ -82,6 +82,143 @@ def run_command(command, cwd, capture_output=False):
 
 
 # ============================================================================
+# Vmlinux Functions
+# ============================================================================
+
+def build_vmlinux(kernel_path, build_path, is_original=True):
+    """Build the entire vmlinux and save it."""
+    vmlinux_path = kernel_path / "vmlinux"
+    suffix = "original" if is_original else "recompiled"
+    dest_vmlinux = build_path / f"vmlinux_{suffix}"
+
+    print_color(f"Building vmlinux ({suffix})...", "blue")
+    # Use parallel build
+    nproc = os.cpu_count() or 4
+    if not run_command(["make", f"-j{nproc}", "vmlinux"], cwd=kernel_path):
+        raise RuntimeError("vmlinux build failed")
+
+    shutil.copy2(str(vmlinux_path), str(dest_vmlinux))
+    print_color(f"   - Saved vmlinux to: {dest_vmlinux}", "green")
+    return dest_vmlinux
+
+
+def disassemble_function_from_vmlinux(vmlinux_path, build_path, func_name, suffix):
+    """Disassemble a specific function from vmlinux."""
+    disas_file = build_path / f"vmlinux_{func_name}_{suffix}.disas.txt"
+
+    # Use objdump --disassemble=<func> for function-specific disassembly
+    objdump_cmd = ["objdump", "-d", f"--disassemble={func_name}", str(vmlinux_path)]
+    disassembly_content = run_command(objdump_cmd, cwd=build_path, capture_output=True)
+
+    if disassembly_content is False:
+        raise RuntimeError(f"Disassembly failed for {func_name}")
+
+    with open(disas_file, "w") as f:
+        f.write(disassembly_content)
+
+    print_color(f"   - Function {func_name} disassembly saved to: {disas_file}", "green")
+    return disas_file
+
+
+def detect_affected_functions_from_diff(diff_result, original_disas_file):
+    """Extract function names from diff result.
+
+    Parses the diff output to find changed addresses, then maps them to function names.
+    """
+    functions = set()
+    if not diff_result or not hasattr(diff_result, 'stdout') or not diff_result.stdout:
+        return functions
+
+    # Parse diff to find changed addresses
+    changed_addresses = []
+    for line in diff_result.stdout.splitlines():
+        if line.startswith('-') or line.startswith('+'):
+            # Skip header lines
+            if line.startswith('---') or line.startswith('+++'):
+                continue
+            addr_match = re.search(r'^\s*[-+]\s+([0-9a-fA-F]+):', line)
+            if addr_match:
+                changed_addresses.append(addr_match.group(1))
+
+    # Find functions for these addresses
+    for addr in changed_addresses:
+        func_info = find_function_for_address_in_file(original_disas_file, addr)
+        if func_info:
+            functions.add(func_info[0])  # func_info[0] is function name
+
+    return functions
+
+
+def extract_function_start_from_vmlinux_disas(disas_file, func_name):
+    """Extract function start address from vmlinux disassembly file.
+
+    Returns the function start address as integer, or None if not found.
+    """
+    with open(disas_file, 'r') as f:
+        for line in f:
+            # Match: "ffffffff821c2ae0 <cubictcp_acked>:"
+            match = re.match(r'^([0-9a-fA-F]+)\s+<' + re.escape(func_name) + r'>:', line)
+            if match:
+                return int(match.group(1), 16)
+    return None
+
+
+def parse_vmlinux_diff_with_offsets(filtered_diff, original_disas_file, func_name):
+    """Parse vmlinux diff and extract changed instructions with proper offsets.
+
+    Returns list of tuples: (offset_hex, instruction_line, is_original)
+    """
+    func_start = extract_function_start_from_vmlinux_disas(original_disas_file, func_name)
+    if func_start is None:
+        return []
+
+    results = []
+    for line in filtered_diff:
+        if line.startswith('-') and not line.startswith('---'):
+            # Match: -ffffffff821c2cd2: or -  e1:
+            addr_match = re.search(r'^-\s*([0-9a-fA-F]+):', line)
+            if addr_match:
+                addr = int(addr_match.group(1), 16)
+                offset = addr - func_start
+                results.append((f"0x{offset:x}", line.strip(), True))
+        elif line.startswith('+') and not line.startswith('+++'):
+            # Match: +ffffffff821c2cd2: or +  e1:
+            addr_match = re.search(r'^\+\s*([0-9a-fA-F]+):', line)
+            if addr_match:
+                addr = int(addr_match.group(1), 16)
+                offset = addr - func_start
+                results.append((f"0x{offset:x}", line.strip(), False))
+
+    return results
+
+
+def find_next_instruction_offset(disas_file, func_name, changed_offset):
+    """Find the offset of the next instruction after the changed one.
+
+    This is needed for kprobe attachment point.
+    """
+    func_start = extract_function_start_from_vmlinux_disas(disas_file, func_name)
+    if func_start is None:
+        return None
+
+    changed_addr = func_start + changed_offset
+    found_changed = False
+
+    with open(disas_file, 'r') as f:
+        for line in f:
+            match = re.match(r'^\s*([0-9a-fA-F]+):\s+', line)
+            if match:
+                addr = int(match.group(1), 16)
+                if found_changed:
+                    # This is the next instruction
+                    return addr - func_start
+                if addr == changed_addr:
+                    found_changed = True
+
+    return None
+
+
+# ============================================================================
 # File Processing Functions
 # ============================================================================
 
@@ -1080,6 +1217,16 @@ def main():
         action="store_true",
         help="Check diff against the post-modification object file."
     )
+    parser.add_argument(
+        "--vmlinux", "-V",
+        action="store_true",
+        help="Diff vmlinux instead of individual .o files. More accurate for cross-file inlining."
+    )
+    parser.add_argument(
+        "--func", "-F",
+        nargs="*",
+        help="Function names to analyze in vmlinux mode. Auto-detected if not specified."
+    )
     args = parser.parse_args()
     
     kernel_path = Path(args.path).resolve()
@@ -1115,6 +1262,190 @@ def main():
     diff_result = None
 
     try:
+        # Vmlinux mode: Two-phase approach
+        if args.vmlinux:
+            if not args.sed:
+                print_color("Error: --vmlinux mode requires --sed to specify the modification.", "red")
+                sys.exit(1)
+
+            from_code, to_code = args.sed
+            affected_functions = set()
+
+            # Phase 1: Quick .o diff to detect affected functions (if --func not specified)
+            if not args.func:
+                print_color("=== Phase 1: Quick .o diff to detect affected functions ===", "blue")
+
+                # Compile original .o
+                print_color("3. Performing initial compilation for target file...", "blue")
+                target_obj, target_orig_disas, target_orig_obj = process_file(
+                    kernel_path, build_path, source_file, is_original=True
+                )
+                original_disas[source_file] = target_orig_disas
+
+                # Modify file
+                print_color("\n4. Modifying file using sed...", "blue")
+                backup_file = build_path / f"{source_file.name}.backup"
+                shutil.copy2(str(source_file), str(backup_file))
+                print_color(f"   Created backup: {backup_file}", "green")
+
+                sed_expr_for_restoring, to_code_stripped, from_code_stripped = (
+                    modify_file_with_sed(source_file, from_code, to_code)
+                )
+                print_color("   File modified successfully.\n", "yellow")
+
+                # Compile modified .o
+                print_color("5. Recompiling modified target file...", "blue")
+                _, target_recomp_disas, target_recomp_obj = process_file(
+                    kernel_path, build_path, source_file, is_original=False
+                )
+                recompiled_disas[source_file] = target_recomp_disas
+
+                # Diff to find affected functions
+                print_color("\n6. Comparing .o disassembly to detect affected functions...", "blue")
+                diff_cmd = [
+                    "diff", str(original_disas[source_file]),
+                    str(recompiled_disas[source_file]), "-U0"
+                ]
+                diff_result = subprocess.run(diff_cmd, capture_output=True, text=True)
+
+                if diff_result.stdout:
+                    diff_lines = diff_result.stdout.splitlines()
+                    filtered_diff = filter_address_offset_diff(diff_lines)
+                    if filtered_diff:
+                        class FilteredDiffResult:
+                            def __init__(self, diff_lines):
+                                self.stdout = '\n'.join(diff_lines)
+                        diff_result = FilteredDiffResult(filtered_diff)
+                        affected_functions = detect_affected_functions_from_diff(
+                            diff_result, original_disas[source_file]
+                        )
+                        print_color(f"   Auto-detected affected functions: {affected_functions}", "green")
+                    else:
+                        print_color("   No real differences found in .o file", "yellow")
+                else:
+                    print_color("   No differences found in .o file", "yellow")
+
+                # Restore original file
+                print_color("\n7. Restoring the original file...", "blue")
+                restore_file_from_backup(
+                    source_file, backup_file, sed_expr_for_restoring,
+                    to_code_stripped, from_code_stripped
+                )
+                print_color("   Original file restored successfully.\n", "green")
+            else:
+                affected_functions = set(args.func)
+                print_color(f"Using user-specified functions: {affected_functions}", "blue")
+
+            if not affected_functions:
+                print_color("No affected functions detected. Nothing to do in vmlinux mode.", "yellow")
+                sys.exit(0)
+
+            # Phase 2: Full vmlinux diff for precise binary
+            print_color("\n=== Phase 2: Building and diffing vmlinux for precise analysis ===", "blue")
+
+            # Build original vmlinux
+            print_color("\n8. Building original vmlinux...", "blue")
+            original_vmlinux = build_vmlinux(kernel_path, build_path, is_original=True)
+
+            # Disassemble affected functions from original vmlinux
+            original_func_disas = {}
+            for func in affected_functions:
+                print_color(f"\n   Disassembling function {func} from original vmlinux...", "blue")
+                original_func_disas[func] = disassemble_function_from_vmlinux(
+                    original_vmlinux, build_path, func, "original"
+                )
+
+            # Modify source and rebuild vmlinux
+            print_color("\n9. Modifying source file for vmlinux rebuild...", "blue")
+            backup_file = build_path / f"{source_file.name}.backup.vmlinux"
+            shutil.copy2(str(source_file), str(backup_file))
+            print_color(f"   Created backup: {backup_file}", "green")
+
+            sed_expr_for_restoring, to_code_stripped, from_code_stripped = (
+                modify_file_with_sed(source_file, from_code, to_code)
+            )
+            print_color("   File modified successfully.\n", "yellow")
+
+            # Build recompiled vmlinux
+            print_color("\n10. Building recompiled vmlinux...", "blue")
+            recompiled_vmlinux = build_vmlinux(kernel_path, build_path, is_original=False)
+
+            # Disassemble affected functions from recompiled vmlinux
+            recompiled_func_disas = {}
+            for func in affected_functions:
+                print_color(f"\n   Disassembling function {func} from recompiled vmlinux...", "blue")
+                recompiled_func_disas[func] = disassemble_function_from_vmlinux(
+                    recompiled_vmlinux, build_path, func, "recompiled"
+                )
+
+            # Restore original file
+            print_color("\n11. Restoring the original file...", "blue")
+            restore_file_from_backup(
+                source_file, backup_file, sed_expr_for_restoring,
+                to_code_stripped, from_code_stripped
+            )
+            print_color("   Original file restored successfully.\n", "green")
+
+            # Diff each function
+            print_color("\n12. Comparing vmlinux function disassemblies...", "blue")
+            for func in affected_functions:
+                print_color(f"\n--- Diff for function {func} (vmlinux) ---", "yellow")
+
+                if func not in original_func_disas or func not in recompiled_func_disas:
+                    print_color(f"   Skipping {func}: disassembly not available", "yellow")
+                    continue
+
+                diff_cmd = [
+                    "diff", str(original_func_disas[func]),
+                    str(recompiled_func_disas[func]), "-U0"
+                ]
+                func_diff_result = subprocess.run(diff_cmd, capture_output=True, text=True)
+
+                if func_diff_result.stdout:
+                    diff_lines = func_diff_result.stdout.splitlines()
+                    filtered_diff = filter_address_offset_diff(diff_lines)
+                    if filtered_diff:
+                        print_color("\nFiltered diff (address offset differences removed):", "blue")
+                        for line in filtered_diff:
+                            print(line)
+
+                        # Parse diff with proper offset calculation
+                        print_color(f"\nChanged instructions in {func} (with offsets from vmlinux):", "blue")
+                        changed_instrs = parse_vmlinux_diff_with_offsets(
+                            filtered_diff, original_func_disas[func], func
+                        )
+
+                        for offset, line, is_original in changed_instrs:
+                            prefix = "Original" if is_original else "Modified"
+                            print(f"  [{prefix}] offset {offset}: {line}")
+
+                        # Show kprobe attachment info for original instructions
+                        print_color(f"\nKprobe attachment info for {func}:", "blue")
+                        for offset, line, is_original in changed_instrs:
+                            if is_original:
+                                changed_offset = int(offset, 16)
+                                kprobe_offset = find_next_instruction_offset(
+                                    original_func_disas[func], func, changed_offset
+                                )
+                                if kprobe_offset is not None:
+                                    print(f"  Changed instruction at offset: {offset}")
+                                    print(f"  Kprobe attach point (next instr): 0x{kprobe_offset:x}")
+                                    print(f"  SEC(\"kprobe/{func}+0x{kprobe_offset:x}\")")
+                    else:
+                        print_color("No real differences found (only address offsets changed)", "green")
+                else:
+                    print_color("No differences found", "green")
+
+            print_color("\nVmlinux analysis complete.", "blue")
+            print_color(f"Vmlinux files saved to: {build_path}", "green")
+            print_color(f"  - Original: vmlinux_original", "green")
+            print_color(f"  - Recompiled: vmlinux_recompiled", "green")
+            for func in affected_functions:
+                print_color(f"  - {func} disassembly: vmlinux_{func}_*.disas.txt", "green")
+
+            sys.exit(0)
+
+        # Normal .o file mode (original behavior)
         # Initial compilation for target file
         print_color("3. Performing initial compilation for target file...", "blue")
         target_obj, target_orig_disas, target_orig_obj = process_file(

@@ -1773,50 +1773,81 @@ def add_scope_table_entry(const_id: str, val: int, expression: str, cs_content: 
         writer.writerow(new_entry)
 
 
-def extract_function_info_from_bb_file(filepath: str) -> Optional[Tuple[str, str, str, str]]:
-    """Extract function name, first instruction address, changed instruction address, and kprobe offset address from BB file.
-    
+def extract_function_base_from_bb_file(filepath: str, function_name: str) -> Optional[int]:
+    """Extract function base address from BB file by parsing symbolic references.
+
+    Looks for patterns like "<function_name+0xOFFSET>" to calculate base address.
+    Example: "jbe 1ae <cubictcp_acked+0x19e>" means address 0x1ae = base + 0x19e, so base = 0x10
+
     Args:
-        filepath: Path to *_bb_v1.txt file
-    
+        filepath: Path to BB file
+        function_name: Function name to look for
+
     Returns:
-        Tuple of (function_name, first_addr, changed_addr, kprobe_addr) or None
-        kprobe_addr is the address of the instruction after changed instruction (for kprobe attachment)
+        Function base address as integer, or None if not found
     """
     if not os.path.exists(filepath):
         return None
-    
+
+    with open(filepath, 'r') as f:
+        for line in f:
+            # Look for pattern: address <function_name+0xOFFSET>
+            # Example: "jbe    1ae <cubictcp_acked+0x19e>"
+            pattern = r'([0-9a-fA-F]+)\s+<' + re.escape(function_name) + r'\+0x([0-9a-fA-F]+)>'
+            match = re.search(pattern, line)
+            if match:
+                addr = int(match.group(1), 16)
+                offset = int(match.group(2), 16)
+                return addr - offset
+
+    return None
+
+
+def extract_function_info_from_bb_file(filepath: str) -> Optional[Tuple[str, str, str, str]]:
+    """Extract function name, first instruction address, changed instruction address, and kprobe offset address from BB file.
+
+    Args:
+        filepath: Path to *_bb_v1.txt file
+
+    Returns:
+        Tuple of (function_name, first_addr, changed_addr, kprobe_addr) or None
+        All addresses are now proper OFFSETS within the function (not raw .o file addresses)
+        kprobe_addr is the offset of the instruction after changed instruction (for kprobe attachment)
+    """
+    if not os.path.exists(filepath):
+        return None
+
     function_name = None
     first_addr = None
     changed_addr = None
     kprobe_addr = None
-    
+
     with open(filepath, 'r') as f:
         lines = f.readlines()
         found_changed = False
-        
+
         for i, line in enumerate(lines):
             line = line.strip()
-            
+
             # Extract function name
             if line.startswith('Function:'):
                 func_match = re.match(r'^Function:\s+(.+)$', line)
                 if func_match:
                     function_name = func_match.group(1)
-            
+
             # Extract first instruction address (first non-empty instruction line)
             if not first_addr and re.match(r'^\s*([0-9a-fA-F]+):', line):
                 match = re.match(r'^\s*([0-9a-fA-F]+):', line)
                 if match:
                     first_addr = match.group(1)
-            
+
             # Extract changed instruction address (line with [*])
             if '[*]' in line and not found_changed:
                 match = re.match(r'^\s*\[\*\]\s*([0-9a-fA-F]+):', line)
                 if match:
                     changed_addr = match.group(1)
                     found_changed = True
-                    
+
                     # Get the next instruction address (for kprobe offset)
                     # kprobe executes before the attached instruction, so we attach to the instruction after changed
                     for j in range(i + 1, len(lines)):
@@ -1827,8 +1858,20 @@ def extract_function_info_from_bb_file(filepath: str) -> Optional[Tuple[str, str
                             kprobe_addr = next_match.group(1)
                             break
                     break
-    
+
     if function_name and first_addr and changed_addr and kprobe_addr:
+        # Calculate function base address and convert raw addresses to offsets
+        func_base = extract_function_base_from_bb_file(filepath, function_name)
+        if func_base is not None:
+            # Convert raw .o addresses to proper function offsets
+            first_addr_int = int(first_addr, 16) - func_base
+            changed_addr_int = int(changed_addr, 16) - func_base
+            kprobe_addr_int = int(kprobe_addr, 16) - func_base
+
+            first_addr = f"{first_addr_int:x}"
+            changed_addr = f"{changed_addr_int:x}"
+            kprobe_addr = f"{kprobe_addr_int:x}"
+
         return (function_name, first_addr, changed_addr, kprobe_addr)
     return None
 
