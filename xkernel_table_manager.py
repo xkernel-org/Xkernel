@@ -15,7 +15,63 @@ import os
 import sys
 import csv
 import argparse
+import re
 from typing import List, Dict, Optional
+
+# ANSI Color codes (subdued palette)
+class Colors:
+    RESET = '\033[0m'
+    BOLD = '\033[1m'
+    DIM = '\033[2m'
+
+    # Foreground colors (standard, not bright)
+    RED = '\033[31m'
+    GREEN = '\033[32m'
+    YELLOW = '\033[33m'
+    BLUE = '\033[34m'
+    MAGENTA = '\033[35m'
+    CYAN = '\033[36m'
+    WHITE = '\033[37m'
+    GRAY = '\033[90m'
+
+    # Background colors
+    BG_BLUE = '\033[44m'
+    BG_GREEN = '\033[42m'
+    BG_YELLOW = '\033[43m'
+
+# Box drawing characters
+class Box:
+    TL = '┌'  # Top left
+    TR = '┐'  # Top right
+    BL = '└'  # Bottom left
+    BR = '┘'  # Bottom right
+    H = '─'   # Horizontal
+    V = '│'   # Vertical
+    LT = '├'  # Left T
+    RT = '┤'  # Right T
+    TT = '┬'  # Top T
+    BT = '┴'  # Bottom T
+    CROSS = '┼'
+
+def colorize(text, *colors):
+    """Apply colors to text."""
+    return ''.join(colors) + str(text) + Colors.RESET
+
+def draw_box_top(width):
+    """Draw top border of a box."""
+    return Box.TL + Box.H * width + Box.TR
+
+def draw_box_bottom(width):
+    """Draw bottom border of a box."""
+    return Box.BL + Box.H * width + Box.BR
+
+def draw_box_separator(width):
+    """Draw separator line inside a box."""
+    return Box.LT + Box.H * width + Box.RT
+
+def draw_box_line(content, width):
+    """Draw a line inside a box with content."""
+    return Box.V + content.ljust(width) + Box.V
 
 SCOPE_TABLE_PATH = "/dev/shm/xkernel/scope_table"
 CS_TABLE_PATH = "/dev/shm/xkernel/cs_table"
@@ -194,18 +250,18 @@ def delete_entries(const_id: Optional[str] = None, val: Optional[str] = None,
         Number of entries deleted
     """
     if not os.path.exists(SCOPE_TABLE_PATH):
-        print("Scope Table does not exist.")
+        print(colorize("  Scope Table does not exist.", Colors.YELLOW))
         return 0
-    
+
     entries = read_scope_table()
-    
+
     if delete_all:
         if not entries:
-            print("Scope Table is already empty.")
+            print(colorize("  Scope Table is already empty.", Colors.YELLOW))
             return 0
         count = len(entries)
         write_scope_table([])
-        print(f"Deleted all {count} entries from Scope Table.")
+        print(colorize(f"  ✓ Deleted all {count} entries from Scope Table.", Colors.GREEN))
         return count
     
     # Filter entries to keep
@@ -237,82 +293,189 @@ def delete_entries(const_id: Optional[str] = None, val: Optional[str] = None,
     
     if deleted_count > 0:
         write_scope_table(to_keep)
-        print(f"Deleted {deleted_count} entry/entries from Scope Table.")
+        print(colorize(f"  ✓ Deleted {deleted_count} entry/entries from Scope Table.", Colors.GREEN))
     else:
-        print("No matching entries found to delete.")
-    
+        print(colorize("  No matching entries found to delete.", Colors.YELLOW))
+
     return deleted_count
 
 
-def print_entries(entries: List[Dict[str, str]], show_header: bool = True, show_content: bool = True):
-    """Print entries in a formatted table.
-    
-    Args:
-        entries: List of entries to print
-        show_header: Whether to show the header row
-        show_content: If True, show CS and SS content; if False, show only indices
-    """
+def print_scope_table_pretty(entries: List[Dict[str, str]]):
+    """Print Scope Table entries in a beautiful formatted table with box drawing."""
     if not entries:
-        print("No entries found.")
+        print(colorize("  No entries found.", Colors.DIM))
         return
-    
-    # Calculate column widths
-    if show_content:
-        widths = {
-            'ConstID': max(len('ConstID'), max(len(e.get('ConstID', '')) for e in entries)),
-            'Val': max(len('Val'), max(len(e.get('Val', '')) for e in entries)),
-            'Expression': max(len('Expression'), max(len(e.get('Expression', '')) for e in entries)),
-            'CS': max(len('CS'), max(len(e.get('CS', '')) for e in entries), 50),
-            'SS': max(len('SS'), max(len(e.get('SS', '')) for e in entries), 30),
-            'BPF_File': max(len('BPF_File'), max(len(e.get('BPF_File', '')) for e in entries), 20),
-            'Status': max(len('Status'), max(len(e.get('Status', '')) for e in entries))
-        }
-    else:
-        widths = {
-            'ConstID': max(len('ConstID'), max(len(e.get('ConstID', '')) for e in entries)),
-            'Val': max(len('Val'), max(len(e.get('Val', '')) for e in entries)),
-            'Expression': max(len('Expression'), max(len(e.get('Expression', '')) for e in entries)),
-            'CS_Index': max(len('CS_Index'), max(len(e.get('CS_Index', '')) for e in entries)),
-            'SS_Index': max(len('SS_Index'), max(len(e.get('SS_Index', '')) for e in entries)),
-            'BPF_File': max(len('BPF_File'), max(len(e.get('BPF_File', '')) for e in entries), 20),
-            'Status': max(len('Status'), max(len(e.get('Status', '')) for e in entries))
-        }
-    
-    # Print header
-    if show_header:
-        if show_content:
-            header = f"{'ConstID':<{widths['ConstID']}}  {'Val':<{widths['Val']}}  {'Expression':<{widths['Expression']}}  {'CS':<{widths['CS']}}  {'SS':<{widths['SS']}}  {'BPF_File':<{widths['BPF_File']}}  {'Status':<{widths['Status']}}"
-        else:
-            header = f"{'ConstID':<{widths['ConstID']}}  {'Val':<{widths['Val']}}  {'Expression':<{widths['Expression']}}  {'CS_Index':<{widths['CS_Index']}}  {'SS_Index':<{widths['SS_Index']}}  {'BPF_File':<{widths['BPF_File']}}  {'Status':<{widths['Status']}}"
-        print(header)
-        print('-' * len(header))
-    
-    # Print entries
+
+    # Define columns with fixed widths for clean alignment
+    columns = [
+        ('ID', 'ConstID', 4),
+        ('Val', 'Val', 6),
+        ('Expression', 'Expression', 20),
+        ('CS', 'CS_Index', 4),
+        ('SS', 'SS_Index', 4),
+        ('BPF File', 'BPF_File', 28),
+        ('Status', 'Status', 10),
+    ]
+
+    # Calculate total width
+    total_inner = sum(w for _, _, w in columns) + (len(columns) - 1) * 3  # 3 = " │ "
+
+    # Print top border
+    print(colorize(Box.TL + Box.H * (total_inner + 2) + Box.TR, Colors.DIM))
+
+    # Print header row
+    header_parts = []
+    for label, _, width in columns:
+        header_parts.append(colorize(label.center(width), Colors.BOLD))
+    header_line = colorize(' ' + Box.V + ' ', Colors.DIM).join(header_parts)
+    print(colorize(Box.V + ' ', Colors.DIM) + header_line + colorize(' ' + Box.V, Colors.DIM))
+
+    # Print separator
+    sep_parts = [Box.H * w for _, _, w in columns]
+    print(colorize(Box.LT + Box.H + (Box.H + Box.TT + Box.H).join(sep_parts) + Box.H + Box.RT, Colors.DIM))
+
+    # Print data rows
     for entry in entries:
-        if show_content:
-            # Truncate long CS/SS content for display
-            cs_display = entry.get('CS', '')
-            ss_display = entry.get('SS', '')
-            if len(cs_display) > 60:
-                cs_display = cs_display[:57] + "..."
-            if len(ss_display) > 30:
-                ss_display = ss_display[:27] + "..."
-            
-            print(f"{entry.get('ConstID', ''):<{widths['ConstID']}}  "
-                  f"{entry.get('Val', ''):<{widths['Val']}}  "
-                  f"{entry.get('Expression', ''):<{widths['Expression']}}  "
-                  f"{cs_display:<{widths['CS']}}  "
-                  f"{ss_display:<{widths['SS']}}  "
-                  f"{entry.get('BPF_File', ''):<{widths['BPF_File']}}  "
-                  f"{entry.get('Status', ''):<{widths['Status']}}")
+        row_parts = []
+        for label, key, width in columns:
+            val = str(entry.get(key, ''))
+            # Truncate if too long
+            if len(val) > width:
+                val = val[:width-2] + '..'
+
+            # Minimal color coding - only highlight Status
+            if key == 'Status':
+                if val.lower() == 'active':
+                    colored_val = colorize(val.center(width), Colors.GREEN)
+                elif val.lower() in ('error', 'failed'):
+                    colored_val = colorize(val.center(width), Colors.RED)
+                else:
+                    colored_val = val.center(width)
+            elif key == 'ConstID':
+                colored_val = colorize(val.center(width), Colors.BOLD)
+            elif key in ('CS_Index', 'SS_Index'):
+                colored_val = val.center(width)
+            elif key in ('BPF_File', 'Expression'):
+                colored_val = val.ljust(width)
+            else:
+                colored_val = val.center(width)
+            row_parts.append(colored_val)
+
+        row_line = colorize(' ' + Box.V + ' ', Colors.DIM).join(row_parts)
+        print(colorize(Box.V + ' ', Colors.DIM) + row_line + colorize(' ' + Box.V, Colors.DIM))
+
+    # Print bottom border
+    print(colorize(Box.BL + Box.H * (total_inner + 2) + Box.BR, Colors.DIM))
+
+
+def print_cs_table_pretty(cs_map: Dict[int, str], single_index: int = None):
+    """Print CS Table entries in a beautiful format."""
+    if not cs_map:
+        print(colorize("  No entries found.", Colors.DIM))
+        return
+
+    indices_to_show = [single_index] if single_index is not None else sorted(cs_map.keys())
+
+    for index in indices_to_show:
+        if index not in cs_map:
+            print(colorize(f"  CS index {index} not found.", Colors.RED))
+            continue
+
+        content = cs_map[index]
+        instructions = [inst.strip() for inst in content.split(';') if inst.strip()]
+
+        # Print CS entry header
+        print(colorize(f"  ╭─ ", Colors.DIM) + colorize(f"CS[{index}]", Colors.BOLD) + colorize(" ─" + "─" * 50, Colors.DIM))
+
+        prefix = colorize("  │  ", Colors.DIM)
+        if instructions:
+            for inst in instructions:
+                # Try to parse as assembly: "addr: bytes instruction"
+                # e.g., "1f2: c1 e8 03 shr $0x3,%eax"
+                asm_match = re.match(r'^([0-9a-fA-F]+):\s+([0-9a-fA-F\s]+)\s+(\S+)\s*(.*)$', inst)
+                if asm_match:
+                    offset = asm_match.group(1)
+                    bytes_hex = asm_match.group(2).strip()
+                    opcode = asm_match.group(3)
+                    operands = asm_match.group(4)
+
+                    # Minimal coloring
+                    line = (f"{prefix}"
+                            f"{'0x' + offset:>10} "
+                            f"{colorize(bytes_hex, Colors.DIM):24} "
+                            f"{opcode:8} "
+                            f"{operands}")
+                    print(line)
+                else:
+                    # Try to parse as "func_name,0xaddr,offset_start,offset_end"
+                    parts = inst.split(',')
+                    if len(parts) >= 4:
+                        func_name = parts[0]
+                        addr = parts[1]
+                        start_off = parts[2]
+                        end_off = parts[3]
+
+                        print(f"{prefix}{colorize('func:', Colors.DIM)} {colorize(func_name, Colors.BOLD)}")
+                        print(f"{prefix}{colorize('addr:', Colors.DIM)} {addr}  "
+                              f"{colorize('range:', Colors.DIM)} [{start_off} -> {end_off}]")
+                    else:
+                        # Fallback for unrecognized format
+                        print(prefix + inst)
         else:
-            print(f"{entry.get('ConstID', ''):<{widths['ConstID']}}  "
-                  f"{entry.get('Val', ''):<{widths['Val']}}  "
-                  f"{entry.get('Expression', ''):<{widths['Expression']}}  "
-                  f"{entry.get('CS_Index', ''):<{widths['CS_Index']}}  "
-                  f"{entry.get('SS_Index', ''):<{widths['SS_Index']}}  "
-                  f"{entry.get('BPF_File', ''):<{widths['BPF_File']}}  "
-                  f"{entry.get('Status', ''):<{widths['Status']}}")
+            print(prefix + content)
+
+        print(colorize("  ╰" + "─" * 60, Colors.DIM))
+
+
+def print_ss_table_pretty(ss_map: Dict[int, str], single_index: int = None):
+    """Print SS Table entries in a beautiful format."""
+    if not ss_map:
+        print(colorize("  No entries found.", Colors.DIM))
+        return
+
+    indices_to_show = [single_index] if single_index is not None else sorted(ss_map.keys())
+
+    for index in indices_to_show:
+        if index not in ss_map:
+            print(colorize(f"  SS index {index} not found.", Colors.RED))
+            continue
+
+        content = ss_map[index]
+
+        # Print SS entry header
+        print(colorize(f"  ╭─ ", Colors.DIM) + colorize(f"SS[{index}]", Colors.BOLD) + colorize(" ─" + "─" * 50, Colors.DIM))
+
+        # Try to parse the expression: "reg = expression"
+        match = re.match(r'^(\w+)\s*=\s*(.+)$', content)
+        if match:
+            reg = match.group(1)
+            expr = match.group(2)
+            prefix = colorize("  │  ", Colors.DIM)
+            print(f"{prefix}{colorize('target:', Colors.DIM)} {colorize(reg, Colors.BOLD)}")
+            print(f"{prefix}{colorize('expr:  ', Colors.DIM)} {expr}")
+        else:
+            # Truncate if too long
+            display = content if len(content) <= 70 else content[:67] + "..."
+            print(colorize(f"  │  ", Colors.DIM) + display)
+
+        print(colorize("  ╰" + "─" * 60, Colors.DIM))
+
+
+def print_section_header(title: str, path: str, count: int, color=Colors.DIM):
+    """Print a section header."""
+    print()
+    print(colorize("  ╔" + "═" * 70 + "╗", Colors.DIM))
+    print(colorize("  ║ ", Colors.DIM) + colorize(f" {title}", Colors.BOLD) + " " * (69 - len(title) - 1) + colorize("║", Colors.DIM))
+    print(colorize("  ╟" + "─" * 70 + "╢", Colors.DIM))
+    print(colorize("  ║ ", Colors.DIM) + colorize(f" Path:   {path}", Colors.DIM) + " " * max(0, 69 - 9 - len(path)) + colorize("║", Colors.DIM))
+    print(colorize("  ║ ", Colors.DIM) + colorize(f" Count:  {count}", Colors.DIM) + " " * max(0, 69 - 9 - len(str(count))) + colorize("║", Colors.DIM))
+    print(colorize("  ╚" + "═" * 70 + "╝", Colors.DIM))
+    print()
+
+
+def print_entries(entries: List[Dict[str, str]], show_header: bool = True, show_content: bool = True):
+    """Print entries in a formatted table (legacy function, calls pretty version)."""
+    print_scope_table_pretty(entries)
 
 
 def main():
@@ -412,7 +575,8 @@ Examples:
                             'Expression': row[2].strip() if len(row) > 2 else "",
                             'CS_Index': row[3].strip() if len(row) > 3 else "",
                             'SS_Index': row[4].strip() if len(row) > 4 else "",
-                            'Status': row[5].strip() if len(row) > 5 else ""
+                            'BPF_File': row[5].strip() if len(row) > 5 else "",
+                            'Status': row[6].strip() if len(row) > 6 else ""
                         }
                         # Apply filters
                         match = True
@@ -424,7 +588,22 @@ Examples:
                             match = False
                         if match:
                             raw_entries.append(entry)
-        print_entries(raw_entries, show_content=False)
+
+        # Print filter info
+        filters = []
+        if args.const_id:
+            filters.append(f"ConstID={args.const_id}")
+        if args.val:
+            filters.append(f"Val={args.val}")
+        if args.status:
+            filters.append(f"Status={args.status}")
+        filter_str = ', '.join(filters) if filters else 'none'
+
+        print()
+        print(colorize(f"  Query Results ", Colors.BOLD) + colorize(f"(filters: {filter_str})", Colors.DIM))
+        print(f"  Found: {len(raw_entries)} entries")
+        print()
+        print_scope_table_pretty(raw_entries)
     
     elif args.command == 'delete':
         # Safety check for --all
@@ -442,8 +621,13 @@ Examples:
         )
     
     elif args.command in ['list', 'show']:
-        # Show Scope Table (always show indices, not content)
-        # Read raw entries without resolving CS/SS content
+        # Print a simple banner
+        print()
+        print(colorize("  ╔══════════════════════════════════════════════════════════════════════╗", Colors.DIM))
+        print(colorize("  ║", Colors.DIM) + colorize("              XKERNEL TABLE MANAGER                                  ", Colors.BOLD) + colorize("║", Colors.DIM))
+        print(colorize("  ╚══════════════════════════════════════════════════════════════════════╝", Colors.DIM))
+
+        # Show Scope Table
         raw_entries = []
         if os.path.exists(SCOPE_TABLE_PATH):
             with open(SCOPE_TABLE_PATH, 'r', newline='') as f:
@@ -460,99 +644,43 @@ Examples:
                             'BPF_File': row[5].strip() if len(row) > 5 else "",
                             'Status': row[6].strip() if len(row) > 6 else ""
                         })
-        
-        print(f"\n{'='*80}")
-        print(f"Scope Table: {SCOPE_TABLE_PATH}")
-        print(f"{'='*80}")
-        print(f"Total entries: {len(raw_entries)}\n")
-        print_entries(raw_entries, show_content=False)
-        
+
+        print_section_header("SCOPE TABLE", SCOPE_TABLE_PATH, len(raw_entries), Colors.BLUE)
+        print_scope_table_pretty(raw_entries)
+
         # Show CS Table
         cs_map = read_cs_table()
-        print(f"\n{'='*80}")
-        print(f"CS Table: {CS_TABLE_PATH}")
-        print(f"{'='*80}")
-        print(f"Total entries: {len(cs_map)}\n")
-        if cs_map:
-            for index in sorted(cs_map.keys()):
-                content = cs_map[index]
-                # Split by semicolon and print each instruction on a separate line
-                instructions = [inst.strip() for inst in content.split(';') if inst.strip()]
-                if instructions:
-                    print(f"  [{index}]")
-                    for inst in instructions:
-                        print(f"      {inst}")
-                else:
-                    print(f"  [{index}] {content}")
-        else:
-            print("No entries found.")
-        
+        print_section_header("CRITICAL SPAN TABLE", CS_TABLE_PATH, len(cs_map), Colors.GREEN)
+        print_cs_table_pretty(cs_map)
+
         # Show SS Table
         ss_map = read_ss_table()
-        print(f"\n{'='*80}")
-        print(f"SS Table: {SS_TABLE_PATH}")
-        print(f"{'='*80}")
-        print(f"Total entries: {len(ss_map)}\n")
-        if ss_map:
-            for index in sorted(ss_map.keys()):
-                content = ss_map[index]
-                if len(content) > 80:
-                    content = content[:77] + "..."
-                print(f"  [{index}] {content}")
-        else:
-            print("No entries found.")
+        print_section_header("SYMBOLIC STATE TABLE", SS_TABLE_PATH, len(ss_map), Colors.MAGENTA)
+        print_ss_table_pretty(ss_map)
+
         print()
     
     elif args.command == 'cs':
         cs_map = read_cs_table()
-        if args.index:
-            if args.index in cs_map:
-                content = cs_map[args.index]
-                # Split by semicolon and print each instruction on a separate line
-                instructions = [inst.strip() for inst in content.split(';') if inst.strip()]
-                if instructions:
-                    print(f"CS[{args.index}]:")
-                    for inst in instructions:
-                        print(f"  {inst}")
-                else:
-                    print(f"CS[{args.index}]: {content}")
-            else:
-                print(f"CS index {args.index} not found.")
+        if args.index is not None:
+            print()
+            print_cs_table_pretty(cs_map, single_index=args.index)
+            print()
         else:
-            print(f"\nCS Table: {CS_TABLE_PATH}")
-            print(f"Total entries: {len(cs_map)}\n")
-            if cs_map:
-                for index in sorted(cs_map.keys()):
-                    content = cs_map[index]
-                    # Split by semicolon and print each instruction on a separate line
-                    instructions = [inst.strip() for inst in content.split(';') if inst.strip()]
-                    if instructions:
-                        print(f"  [{index}]")
-                        for inst in instructions:
-                            print(f"      {inst}")
-                    else:
-                        print(f"  [{index}] {content}")
-            else:
-                print("No entries found.")
+            print_section_header("CRITICAL SPAN TABLE", CS_TABLE_PATH, len(cs_map), Colors.GREEN)
+            print_cs_table_pretty(cs_map)
+            print()
     
     elif args.command == 'ss':
         ss_map = read_ss_table()
-        if args.index:
-            if args.index in ss_map:
-                print(f"SS[{args.index}]: {ss_map[args.index]}")
-            else:
-                print(f"SS index {args.index} not found.")
+        if args.index is not None:
+            print()
+            print_ss_table_pretty(ss_map, single_index=args.index)
+            print()
         else:
-            print(f"\nSS Table: {SS_TABLE_PATH}")
-            print(f"Total entries: {len(ss_map)}\n")
-            if ss_map:
-                for index in sorted(ss_map.keys()):
-                    content = ss_map[index]
-                    if len(content) > 80:
-                        content = content[:77] + "..."
-                    print(f"  [{index}] {content}")
-            else:
-                print("No entries found.")
+            print_section_header("SYMBOLIC STATE TABLE", SS_TABLE_PATH, len(ss_map), Colors.MAGENTA)
+            print_ss_table_pretty(ss_map)
+            print()
     
     else:
         parser.print_help()

@@ -1,6 +1,44 @@
 #!/bin/bash
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCOPE_TABLE="/dev/shm/xkernel/scope_table"
+
+# Update status for a ConstID in the scope table
+update_status() {
+    local const_id="$1"
+    local new_status="$2"
+    if [ -f "$SCOPE_TABLE" ]; then
+        awk -F'\t' -v OFS='\t' -v cid="$const_id" -v status="$new_status" '
+            NR==1 { for(i=1;i<=NF;i++) { if($i=="ConstID") cid_col=i; if($i=="Status") st_col=i } }
+            NR>1 && $cid_col==cid { $st_col=status }
+            { print }
+        ' "$SCOPE_TABLE" > "${SCOPE_TABLE}.tmp" && mv "${SCOPE_TABLE}.tmp" "$SCOPE_TABLE"
+    fi
+}
+
+# Update status for all entries matching a BPF file
+update_status_by_file() {
+    local bpf_file="$1"
+    local new_status="$2"
+    if [ -f "$SCOPE_TABLE" ]; then
+        awk -F'\t' -v OFS='\t' -v bpf="$bpf_file" -v status="$new_status" '
+            NR==1 { for(i=1;i<=NF;i++) { if($i=="BPF_File") bf_col=i; if($i=="Status") st_col=i } }
+            NR>1 && $bf_col==bpf { $st_col=status }
+            { print }
+        ' "$SCOPE_TABLE" > "${SCOPE_TABLE}.tmp" && mv "${SCOPE_TABLE}.tmp" "$SCOPE_TABLE"
+    fi
+}
+
+# Update status for all entries
+update_all_status() {
+    local new_status="$1"
+    if [ -f "$SCOPE_TABLE" ]; then
+        awk -F'\t' -v OFS='\t' -v status="$new_status" '
+            NR==1 { for(i=1;i<=NF;i++) { if($i=="Status") st_col=i } print; next }
+            { $st_col=status; print }
+        ' "$SCOPE_TABLE" > "${SCOPE_TABLE}.tmp" && mv "${SCOPE_TABLE}.tmp" "$SCOPE_TABLE"
+    fi
+}
 
 show_help() {
     echo "Usage: $0 <command> [options]"
@@ -127,12 +165,13 @@ elif [ "$COMMAND" = "load" ]; then
     # ConstID format: uint64_t (numeric, e.g., 1, 2, etc.)
     # File path format: contains '/' or ends with '.bpf.o'
     RESOLVED_FILES=""
+    LOADED_CONST_IDS=()
+    LOADED_BPF_FILES=()
     IFS=',' read -ra ITEMS <<< "$INPUT"
     for item in "${ITEMS[@]}"; do
         item=$(echo "$item" | xargs)  # trim whitespace
         if [[ "$item" =~ ^[0-9]+$ ]]; then
             # It's a ConstID (uint64_t), resolve from Scope Table
-            SCOPE_TABLE="/dev/shm/xkernel/scope_table"
             if [ ! -f "$SCOPE_TABLE" ]; then
                 echo "Error: Scope Table not found at $SCOPE_TABLE"
                 exit 1
@@ -172,6 +211,7 @@ elif [ "$COMMAND" = "load" ]; then
             else
                 RESOLVED_FILES="$RESOLVED_FILES,$FULL_PATH"
             fi
+            LOADED_CONST_IDS+=("$CONST_ID")
         else
             # It's a file path, use as-is
             if [ ! -f "$item" ]; then
@@ -183,6 +223,8 @@ elif [ "$COMMAND" = "load" ]; then
             else
                 RESOLVED_FILES="$RESOLVED_FILES,$item"
             fi
+            # Extract BPF filename for status update
+            LOADED_BPF_FILES+=("$(basename "$item")")
         fi
     done
     
@@ -202,6 +244,14 @@ elif [ "$COMMAND" = "load" ]; then
         echo "Failed to load kprobes. You can try xkernel-tool unload and load again."
         exit $STATUS
     fi
+
+    # Update status to "active" for loaded entries
+    for cid in "${LOADED_CONST_IDS[@]}"; do
+        update_status "$cid" "active"
+    done
+    for bpf in "${LOADED_BPF_FILES[@]}"; do
+        update_status_by_file "$bpf" "active"
+    done
 
     if [ "$MODE" -eq 2 ]; then
         echo "Loading global consistency module for transition..."
@@ -227,7 +277,10 @@ elif [ "$COMMAND" = "unload" ]; then
     sleep 2
     echo "Unloading kfuncs module..."
     sudo rmmod xk-kfuncs
-    
+
+    # Update status to "ready" for all entries
+    update_all_status "ready"
+
     echo "Check dmesg to see if the transition is successful."
 
     exit 0

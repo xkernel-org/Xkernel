@@ -1598,7 +1598,7 @@ def analyze_linear_relationship(prefix: str, v1_file: str, v2_file: str, v3_file
                             cs_content=cs_info,
                             ss_content=ss_info,
                             bpf_file=bpf_file_name,
-                            status="active"
+                            status="ready"
                         )
                         print(f"    Added entry to Scope Table: ConstID={const_id_value}, V={v1_src}, {rel_str}")
         else:
@@ -1730,9 +1730,9 @@ def get_or_add_ss_index(ss_content: str) -> int:
     return new_index
 
 
-def add_scope_table_entry(const_id: str, val: int, expression: str, cs_content: str, ss_content: str, bpf_file: str = "", status: str = "active"):
+def add_scope_table_entry(const_id: str, val: int, expression: str, cs_content: str, ss_content: str, bpf_file: str = "", status: str = "ready"):
     """Add a new entry to the Scope Table.
-    
+
     Args:
         const_id: Constant ID as uint64_t (numeric string, e.g., "1", "2")
         val: Source value V
@@ -1740,7 +1740,7 @@ def add_scope_table_entry(const_id: str, val: int, expression: str, cs_content: 
         cs_content: CS content (instruction string)
         ss_content: SS content (symbolic state string) - currently not used, set to empty string
         bpf_file: BPF file name (e.g., "my_policy_1.bpf.o")
-        status: Status of the entry (default: "active")
+        status: Status of the entry (default: "ready")
     """
     init_all_tables()
     
