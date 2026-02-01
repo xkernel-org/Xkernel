@@ -1,12 +1,12 @@
 #!/bin/bash
-# Script to read cmd_v2.sh and extract Basic Block output
-# Format: every two lines form a group
+# Script to read testcases.sh and extract Basic Block output
+# Format: every two lines form a group (original value -> modified value pairs)
 # Output: *_bb_v1.txt (step 11 from first command), *_bb_v2.txt (step 11b from first command), *_bb_v3.txt (step 11b from second command)
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
-CMD_FILE="cmd_v2.sh"
+CMD_FILE="testcases.sh"
 
 if [ ! -f "$CMD_FILE" ]; then
     echo "Error: $CMD_FILE not found!"

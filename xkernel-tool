@@ -1,23 +1,38 @@
 #!/bin/bash
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 show_help() {
     echo "Usage: $0 <command> [options]"
     echo
     echo "Commands:"
+    echo "  build     Generate BPF code from tests and compile"
     echo "  load      Load BPF kprobes for specified ConstIDs or files"
     echo "  unload    Unload all loaded BPF kprobes"
+    echo "  table     Manage scope tables (list, query, delete, cs, ss)"
     echo "  trace     Trace the kernel logs"
     echo
-    echo "Options for 'load' command:"
-    echo "  [0:Immediate, 1:Per-task, 2:Global]   (required) Mode of consistency guarantee"
-    echo "  [ConstID1,ConstID2,...] or [file1,file2,...]  (required) List of ConstIDs (uint64_t) or BPF files to load"
-    echo "  [Timeout seconds]                     (optional) Timeout duration in seconds"
+    echo "Options for 'build':"
+    echo "  --skip-gen    Skip running gen.sh (only run build_cs.py and make)"
+    echo
+    echo "Options for 'load':"
+    echo "  <MODE>        0=Immediate, 1=Per-task, 2=Global"
+    echo "  <IDs/files>   ConstIDs (e.g., 1,2) or BPF file paths"
+    echo "  [timeout]     Optional timeout in seconds (for Mode 2)"
+    echo
+    echo "Options for 'table':"
+    echo "  list                    List all scope table entries"
+    echo "  query [filters]         Query entries"
+    echo "  delete [filters|--all]  Delete entries"
+    echo "  cs [--index N]          Show Critical Span entries"
+    echo "  ss [--index N]          Show Symbolic State entries"
     echo
     echo "Examples:"
-    echo "  # Load by ConstID (uint64_t, from Scope Table)"
-    echo "  $0 load 0 1,2"
-    echo "  # Load by file path (legacy mode)"
-    echo "  $0 load 0 bpf_kprobe/bpf/examples/my_policy_1.bpf.o"
+    echo "  $0 build                # Full build pipeline"
+    echo "  $0 load 0 1             # Load ConstID 1 in Immediate mode"
+    echo "  $0 table list           # List scope table"
+    echo "  $0 table delete --all   # Clear all tables"
+    echo "  $0 unload               # Unload all kprobes"
     echo
     exit 1
 }
@@ -28,7 +43,66 @@ fi
 
 COMMAND=$1
 
-if [ "$COMMAND" = "load" ]; then
+if [ "$COMMAND" = "build" ]; then
+    SKIP_GEN=false
+    if [ "$2" = "--skip-gen" ]; then
+        SKIP_GEN=true
+    fi
+
+    echo "=========================================="
+    echo "Xkernel Build Pipeline"
+    echo "=========================================="
+
+    # Step 1: Run gen.sh (unless skipped)
+    if [ "$SKIP_GEN" = false ]; then
+        echo ""
+        echo "[Step 1/3] Running gen.sh to generate Basic Block analysis..."
+        echo "=========================================="
+        cd "$SCRIPT_DIR/codegen" || exit 1
+        if ! ./gen.sh; then
+            echo "Error: gen.sh failed"
+            exit 1
+        fi
+        cd "$SCRIPT_DIR" || exit 1
+    else
+        echo ""
+        echo "[Step 1/3] Skipped gen.sh (--skip-gen)"
+    fi
+
+    # Step 2: Run build_cs.py
+    echo ""
+    echo "[Step 2/3] Running build_cs.py to generate BPF code..."
+    echo "=========================================="
+    cd "$SCRIPT_DIR/codegen" || exit 1
+    if ! python3 build_cs.py; then
+        echo "Error: build_cs.py failed"
+        exit 1
+    fi
+    cd "$SCRIPT_DIR" || exit 1
+
+    # Step 3: Compile BPF programs
+    echo ""
+    echo "[Step 3/3] Compiling BPF programs..."
+    echo "=========================================="
+    cd "$SCRIPT_DIR/bpf_kprobe" || exit 1
+    if ! make -j"$(nproc)"; then
+        echo "Error: BPF compilation failed"
+        exit 1
+    fi
+    cd "$SCRIPT_DIR" || exit 1
+
+    echo ""
+    echo "=========================================="
+    echo "Build completed successfully!"
+    echo "=========================================="
+    echo ""
+    echo "Next steps:"
+    echo "  $0 load <MODE> <ConstID>    # Load the BPF program"
+    echo "  $0 unload                   # Unload when done"
+    echo ""
+    exit 0
+
+elif [ "$COMMAND" = "load" ]; then
     if [ -z "$2" ] || [ -z "$3" ]; then
         echo "Missing argument: [0:Immediate, 1:Per-task, 2:Global] [ConstID1,ConstID2,...] or [file1,file2,...] [Timeout seconds]"
         exit 1
@@ -157,6 +231,12 @@ elif [ "$COMMAND" = "unload" ]; then
     echo "Check dmesg to see if the transition is successful."
 
     exit 0
+elif [ "$COMMAND" = "table" ]; then
+    # Pass all remaining arguments to xkernel_table_manager.py
+    shift  # Remove 'table' from arguments
+    python3 "$SCRIPT_DIR/xkernel_table_manager.py" "$@"
+    exit $?
+
 elif [ "$COMMAND" = "trace" ]; then
     sudo bpftool prog tracelog
     exit 0

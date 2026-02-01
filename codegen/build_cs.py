@@ -1003,10 +1003,10 @@ def print_expression_diff(prefix: str, seq1: List[Tuple[str, str, Dict[str, str]
 
 
 def extract_source_values(cmd_file: str) -> Dict[str, Tuple[int, int, int]]:
-    """Extract source-level values V1, V2, V3 from cmd_v2.sh.
-    
+    """Extract source-level values V1, V2, V3 from testcases.sh.
+
     Args:
-        cmd_file: Path to cmd_v2.sh
+        cmd_file: Path to testcases.sh
         Format: First line contains "V1,V2,V3", followed by command pairs
     
     Returns:
@@ -1071,10 +1071,10 @@ def extract_source_values(cmd_file: str) -> Dict[str, Tuple[int, int, int]]:
 
 
 def extract_file_paths(cmd_file: str) -> Dict[str, str]:
-    """Extract file paths from cmd_v2.sh commands.
-    
+    """Extract file paths from testcases.sh commands.
+
     Args:
-        cmd_file: Path to cmd_v2.sh
+        cmd_file: Path to testcases.sh
     
     Returns:
         Dictionary mapping test group prefix to file path
@@ -1532,6 +1532,11 @@ def analyze_linear_relationship(prefix: str, v1_file: str, v2_file: str, v3_file
                     
                     # Get changed instructions for CS field
                     changed_v1_instructions = filter_changed_instructions_by_effects(diff_v1_v2, seq1, use_seq1=True)
+
+                    # Get function base for address conversion
+                    func_name = get_function_name_from_bb_file(v1_file)
+                    func_base = extract_function_base_from_bb_file(v1_file, func_name) if func_name else None
+
                     # Format CS as a semicolon-separated list of instructions
                     cs_instructions = []
                     for idx, inst in changed_v1_instructions:
@@ -1539,6 +1544,9 @@ def analyze_linear_relationship(prefix: str, v1_file: str, v2_file: str, v3_file
                         clean_inst = inst.strip()
                         if clean_inst.startswith('[*]'):
                             clean_inst = clean_inst[3:].strip()
+                        # Convert raw .o address to proper function offset
+                        if func_base is not None:
+                            clean_inst = convert_instruction_address_to_offset(clean_inst, func_base)
                         # Normalize whitespace: replace multiple spaces/tabs with single space
                         clean_inst = re.sub(r'\s+', ' ', clean_inst)
                         cs_instructions.append(clean_inst)
@@ -1800,6 +1808,48 @@ def extract_function_base_from_bb_file(filepath: str, function_name: str) -> Opt
                 offset = int(match.group(2), 16)
                 return addr - offset
 
+    return None
+
+
+def convert_instruction_address_to_offset(instruction: str, func_base: int) -> str:
+    """Convert raw .o file address in instruction string to proper function offset.
+
+    Args:
+        instruction: Instruction string like "202: c1 e8 03 shr $0x3,%eax"
+        func_base: Function base address (e.g., 0x10)
+
+    Returns:
+        Instruction with corrected offset like "1f2: c1 e8 03 shr $0x3,%eax"
+    """
+    # Match leading address: "202:" or "  202:"
+    match = re.match(r'^(\s*)([0-9a-fA-F]+)(:.*)', instruction)
+    if match:
+        prefix = match.group(1)
+        addr = int(match.group(2), 16)
+        rest = match.group(3)
+        offset = addr - func_base
+        return f"{prefix}{offset:x}{rest}"
+    return instruction
+
+
+def get_function_name_from_bb_file(filepath: str) -> Optional[str]:
+    """Extract function name from BB file.
+
+    Args:
+        filepath: Path to BB file
+
+    Returns:
+        Function name or None if not found
+    """
+    if not os.path.exists(filepath):
+        return None
+
+    with open(filepath, 'r') as f:
+        for line in f:
+            if line.strip().startswith('Function:'):
+                match = re.match(r'^Function:\s+(.+)$', line.strip())
+                if match:
+                    return match.group(1)
     return None
 
 
@@ -2141,8 +2191,8 @@ def main():
     bpf_output_dir = os.path.join(project_root, 'bpf_kprobe', 'bpf', 'examples')
     os.makedirs(bpf_output_dir, exist_ok=True)
     
-    # Extract source values and file paths from cmd_v2.sh
-    cmd_file = os.path.join(script_dir, 'cmd_v2.sh')
+    # Extract source values and file paths from testcases.sh
+    cmd_file = os.path.join(script_dir, 'testcases.sh')
     source_values = extract_source_values(cmd_file)
     file_paths = extract_file_paths(cmd_file)
     
