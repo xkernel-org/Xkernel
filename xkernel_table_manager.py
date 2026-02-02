@@ -311,7 +311,7 @@ def print_scope_table_pretty(entries: List[Dict[str, str]]):
         ('ID', 'ConstID', 4),
         ('Val', 'Val', 6),
         ('Expression', 'Expression', 20),
-        ('CS', 'CS_Index', 4),
+        ('CS', 'CS_Index', 12),
         ('SS', 'SS_Index', 4),
         ('BPF File', 'BPF_File', 28),
         ('Status', 'Status', 10),

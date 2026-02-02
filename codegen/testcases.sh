@@ -11,8 +11,8 @@ sudo python check_assembly_diff.py -f net/ipv4/tcp_cubic.c -s "ca->delay_min >> 
 
 # blk-mq: BLK_MQ_RESOURCE_DELAY
 3,5,7
-sudo python check_assembly_diff.py -f block/blk-mq.c -s "BLK_MQ_RESOURCE_DELAY	3" "BLK_MQ_RESOURCE_DELAY	5" --lines 2202
-sudo python check_assembly_diff.py -f block/blk-mq.c -s "BLK_MQ_RESOURCE_DELAY	3" "BLK_MQ_RESOURCE_DELAY	7" --lines 2202
+sudo python check_assembly_diff.py -f block/blk-mq.c -s "BLK_MQ_RESOURCE_DELAY	3" "BLK_MQ_RESOURCE_DELAY	5"
+sudo python check_assembly_diff.py -f block/blk-mq.c -s "BLK_MQ_RESOURCE_DELAY	3" "BLK_MQ_RESOURCE_DELAY	7"
 
 # io_uring: IO_LOCAL_TW_DEFAULT_MAX
 20,32,64

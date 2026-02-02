@@ -1378,12 +1378,14 @@ def generate_insertion_instruction(target_type: str, target_name: str, a: float,
         return f"# To set {target_name} = {a:.6f} * {new_value_name} + {b:.6f} (non-integer, complex calculation needed)"
 
 
-def analyze_linear_relationship(prefix: str, v1_file: str, v2_file: str, v3_file: str, 
+def analyze_linear_relationship(prefix: str, v1_file: str, v2_file: str, v3_file: str,
                                 source_values: Dict[str, Tuple[int, int, int]],
                                 seq1: List[Tuple] = None, diff_v1_v2: List[Tuple] = None,
                                 file_path: str = None, output_dir: str = None):
     """Analyze linear relationship between source values and immediate values.
-    
+
+    Supports multiple basic blocks - each basic block is analyzed independently.
+
     Args:
         prefix: Test group prefix
         v1_file: Path to v1 Basic Block file
@@ -1392,68 +1394,68 @@ def analyze_linear_relationship(prefix: str, v1_file: str, v2_file: str, v3_file
         source_values: Dictionary of source values
         seq1: v1 sequence (optional, for finding insertion point)
         diff_v1_v2: Differences between v1 and v2 (optional, for finding insertion point)
+        file_path: Source file path
+        output_dir: Output directory for BPF files
     """
     print(f"\n{'='*80}")
     print(f"Test Group {prefix} - Linear Relationship Analysis")
     print(f"{'='*80}\n")
-    
+
     # Get source values
     if prefix not in source_values:
         print("Error: Could not find source values for this test group")
         return
-    
+
     v1_src, v2_src, v3_src = source_values[prefix]
-    
-    # Extract immediate values from changed instructions
-    def get_immediates_from_file(filepath: str) -> List[int]:
-        immediates = []
-        with open(filepath, 'r') as f:
-            for line in f:
-                # Only look at lines with [*] marker (changed instructions)
-                if '[*]' in line:
-                    imm_vals = extract_immediate_values(line)
-                    immediates.extend(imm_vals)
-        return immediates
-    
-    iv1_list = get_immediates_from_file(v1_file)
-    iv2_list = get_immediates_from_file(v2_file)
-    iv3_list = get_immediates_from_file(v3_file)
-    
-    print(f"Source values: V1={v1_src}, V2={v2_src}, V3={v3_src}")
-    print(f"Immediate values from changed instructions:")
-    print(f"  IV1: {iv1_list}")
-    print(f"  IV2: {iv2_list}")
-    print(f"  IV3: {iv3_list}")
-    print()
-    
-    # Check if we have matching numbers of immediate values
-    if not (len(iv1_list) == len(iv2_list) == len(iv3_list) and len(iv1_list) > 0):
-        print("Error: Mismatched number of immediate values or no immediate values found")
-        print("Cannot determine linear relationship")
-        return
-    
-    # Try to find linear relationship for each immediate value
     v_values = [v1_src, v2_src, v3_src]
-    found_relationship = False
-    
-    for i in range(len(iv1_list)):
-        iv1 = iv1_list[i]
-        iv2 = iv2_list[i]
-        iv3 = iv3_list[i]
-        
-        print(f"Analyzing immediate value {i+1}:")
+
+    print(f"Source values: V1={v1_src}, V2={v2_src}, V3={v3_src}")
+
+    # Extract all basic blocks from each file
+    bbs_v1 = extract_all_basic_blocks_from_file(v1_file)
+    bbs_v2 = extract_all_basic_blocks_from_file(v2_file)
+    bbs_v3 = extract_all_basic_blocks_from_file(v3_file)
+
+    print(f"Found {len(bbs_v1)} basic block(s) in v1, {len(bbs_v2)} in v2, {len(bbs_v3)} in v3")
+
+    # Match basic blocks by index
+    num_blocks = min(len(bbs_v1), len(bbs_v2), len(bbs_v3))
+    if num_blocks == 0:
+        print("Error: No basic blocks found")
+        return
+
+    found_any_relationship = False
+    generated_kprobes = []  # Track all kprobes to generate
+
+    for bb_idx in range(num_blocks):
+        bb1 = bbs_v1[bb_idx]
+        bb2 = bbs_v2[bb_idx]
+        bb3 = bbs_v3[bb_idx]
+
+        func_name = bb1.get('function_name', 'unknown')
+        print(f"\n--- Basic Block {bb_idx + 1}: {func_name} ---")
+
+        # Get immediate values from changed instructions
+        iv1 = bb1.get('immediate_value')
+        iv2 = bb2.get('immediate_value')
+        iv3 = bb3.get('immediate_value')
+
+        if iv1 is None or iv2 is None or iv3 is None:
+            print(f"  Skipping: missing immediate value (IV1={iv1}, IV2={iv2}, IV3={iv3})")
+            continue
+
         print(f"  IV1={iv1} (0x{iv1:x}), IV2={iv2} (0x{iv2:x}), IV3={iv3} (0x{iv3:x})")
-        
+
         iv_values = [iv1, iv2, iv3]
-        
-        # Check linear relationship with all three values
+
+        # Check linear relationship
         relationship = find_linear_relationship(v_values, iv_values)
-        
+
         if relationship:
             a, b = relationship
-            found_relationship = True
-            
-            # Format the relationship string for display and storage
+            found_any_relationship = True
+
+            # Format the relationship string
             if abs(a - int(a)) < 0.001 and abs(b - int(b)) < 0.001:
                 a_int = int(a)
                 b_int = int(b)
@@ -1469,140 +1471,254 @@ def analyze_linear_relationship(prefix: str, v1_file: str, v2_file: str, v3_file
                     rel_str = f"IV = {a_int} * V + {b_int}"
             else:
                 rel_str = f"IV = {a:.6f} * V + {b:.6f}"
-            
-            # Format the relationship nicely for display
+
             print(f"  ✓ Linear relationship found: {rel_str}")
-            
-            print(f"    Verification:")
+
+            # Verify
             all_match = True
             for v, iv in zip(v_values, iv_values):
                 expected = a * v + b
                 match = abs(expected - iv) < 0.01
                 if not match:
                     all_match = False
-                print(f"      V={v}: IV={iv} (0x{iv:x}), Expected={expected:.2f} (0x{int(expected):x}), Match={match}")
-            
+
             if all_match:
-                print(f"    ✓ All values match the linear relationship")
-            
-            # Generate insertion instruction suggestion
-            if seq1 and diff_v1_v2:
-                insertion_info = find_insertion_point_for_linear_relationship(diff_v1_v2, seq1, relationship)
-                if insertion_info:
-                    insertion_idx, target_type, target_name, first_inst, actual_reg_name = insertion_info
-                    print(f"\n    {'─'*70}")
-                    print(f"    Insertion Point Analysis")
-                    print(f"    {'─'*70}")
-                    
-                    # Clean up the first instruction line for better readability
-                    clean_first_inst = first_inst.strip()
-                    if clean_first_inst.startswith('[*]'):
-                        clean_first_inst = clean_first_inst[3:].strip()
-                    
-                    print(f"    First changed instruction:")
-                    print(f"      {clean_first_inst}")
-                    print()
-                    print(f"    Target register: %{actual_reg_name}")
-                    if actual_reg_name != target_name:
-                        print(f"      (64-bit base: %{target_name})")
-                    print()
-                    print(f"    Insert position: Before instruction {insertion_idx + 1}")
-                    print()
-                    
-                    # Generate suggested instruction
-                    suggested_inst = generate_insertion_instruction(target_type, actual_reg_name, a, b)
-                    print(f"    Suggested instruction to insert:")
-                    print(f"    {'─'*70}")
-                    for line in suggested_inst.split('\n'):
-                        if line.strip():
-                            print(f"      {line}")
-                    print(f"    {'─'*70}")
-                    
-                    # Get changed instructions for CS field
-                    changed_v1_instructions = filter_changed_instructions_by_effects(diff_v1_v2, seq1, use_seq1=True)
+                print(f"  ✓ All values match")
 
-                    # Get function base for address conversion
-                    func_name = get_function_name_from_bb_file(v1_file)
-                    func_base = extract_function_base_from_bb_file(v1_file, func_name) if func_name else None
+            # Extract target register from changed instruction
+            changed_inst = bb1.get('changed_instruction', '')
+            actual_reg_name = None
 
-                    # Format CS as a semicolon-separated list of instructions
-                    cs_instructions = []
-                    for idx, inst in changed_v1_instructions:
-                        # Clean up instruction: remove [*] marker and normalize whitespace
-                        clean_inst = inst.strip()
-                        if clean_inst.startswith('[*]'):
-                            clean_inst = clean_inst[3:].strip()
-                        # Convert raw .o address to proper function offset
-                        if func_base is not None:
-                            clean_inst = convert_instruction_address_to_offset(clean_inst, func_base)
-                        # Normalize whitespace: replace multiple spaces/tabs with single space
-                        clean_inst = re.sub(r'\s+', ' ', clean_inst)
-                        cs_instructions.append(clean_inst)
-                    cs_info = "; ".join(cs_instructions) if cs_instructions else first_inst.strip()
-                    
-                    # Generate BPF file
-                    result = generate_bpf_file_for_group(prefix, v1_file, relationship, actual_reg_name, insertion_info, file_path, output_dir)
-                    if result:
-                        internal_file, user_policy_file = result
-                        print(f"\n    Generated BPF file: {internal_file}")
-                        if user_policy_file:
-                            print(f"    Generated user policy file: {user_policy_file}")
-                        
-                        # Extract BPF file name (e.g., "my_policy_1.bpf.c" -> "my_policy_1.bpf.o")
-                        bpf_file_name = ""
-                        if user_policy_file:
-                            # Get just the filename without path
-                            bpf_base_name = os.path.basename(user_policy_file)
-                            # Change extension from .bpf.c to .bpf.o
-                            if bpf_base_name.endswith('.bpf.c'):
-                                bpf_file_name = bpf_base_name[:-6] + '.bpf.o'
-                            else:
-                                bpf_file_name = bpf_base_name
-                        
-                        # Add entry to Scope Table
-                        # Build SS (Symbolic State) from expression
-                        # Create expr_comment from rel_str by replacing IV with target_reg and V with val
-                        # Example: "IV = V" -> "eax = val", then format as "eax=val"
-                        expr_comment_local = rel_str.replace('IV', actual_reg_name).replace('V', 'val')
-                        # Extract the right-hand side of the equation for SS
-                        # If format is "eax = val", extract "val"
-                        if ' = ' in expr_comment_local:
-                            rhs = expr_comment_local.split(' = ', 1)[1]
-                            ss_info = f"{actual_reg_name}={rhs}"
-                        else:
-                            ss_info = f"{actual_reg_name}={expr_comment_local}"
-                        
-                        # Use source value V1 as Val
-                        # ConstID is uint64_t, use prefix as numeric value
-                        try:
-                            const_id_value = int(prefix)
-                        except ValueError:
-                            const_id_value = 0
-                        
-                        add_scope_table_entry(
-                            const_id=str(const_id_value),
-                            val=v1_src,
-                            expression=rel_str,
-                            cs_content=cs_info,
-                            ss_content=ss_info,
-                            bpf_file=bpf_file_name,
-                            status="ready"
-                        )
-                        print(f"    Added entry to Scope Table: ConstID={const_id_value}, V={v1_src}, {rel_str}")
+            # Try to extract register from instruction like "mov $0x14,%ecx" or "shr $0x2,%r15d"
+            reg_match = re.search(r'%(\w+)\s*$', changed_inst)
+            if reg_match:
+                actual_reg_name = reg_match.group(1)
+
+            if not actual_reg_name:
+                print(f"  Warning: Could not determine target register")
+                continue
+
+            # Get kprobe offset
+            kprobe_offset = bb1.get('kprobe_addr_offset')
+            if kprobe_offset is None:
+                print(f"  Warning: Could not determine kprobe offset")
+                continue
+
+            # Collect kprobe info
+            generated_kprobes.append({
+                'bb_idx': bb_idx,
+                'function_name': func_name,
+                'relationship': relationship,
+                'rel_str': rel_str,
+                'actual_reg_name': actual_reg_name,
+                'kprobe_offset': kprobe_offset,
+                'changed_instruction': changed_inst,
+                'all_instructions': bb1.get('all_instructions', [])
+            })
         else:
             print(f"  ✗ No linear relationship found")
-        print()
-    
-    if not found_relationship:
-        print("Error: No linear relationship found for any immediate value")
+
+    if not found_any_relationship:
+        print("\nError: No linear relationship found for any basic block")
+        return
+
+    # Generate BPF file(s) for all kprobes
+    if generated_kprobes:
+        print(f"\n--- Generating BPF code for {len(generated_kprobes)} kprobe(s) ---")
+
+        result = generate_multi_kprobe_bpf_file(
+            prefix, generated_kprobes, v1_src, file_path, output_dir
+        )
+
+        if result:
+            internal_file, user_policy_file, bpf_file_name = result
+            print(f"  Generated: {internal_file}")
+            if user_policy_file:
+                print(f"  Generated: {user_policy_file}")
+
+            try:
+                const_id_value = int(prefix)
+            except ValueError:
+                const_id_value = 0
+
+            # Collect all CS indices for this ConstID (one CS per kprobe location)
+            cs_indices = []
+            for kp in generated_kprobes:
+                # Clean up instruction for CS
+                clean_inst = kp['changed_instruction'].strip()
+                if clean_inst.startswith('[*]'):
+                    clean_inst = clean_inst[3:].strip()
+                clean_inst = re.sub(r'\s+', ' ', clean_inst)
+                cs_info = clean_inst
+
+                # Add CS entry and get its index
+                cs_index = get_or_add_cs_index(cs_info)
+                cs_indices.append(str(cs_index))
+
+                # Add CS raw entry (function name and basic block offsets)
+                func_name = kp['function_name']
+                all_insts = kp.get('all_instructions', [])
+                if all_insts:
+                    soff, eoff = extract_bb_offsets(all_insts)
+                    if soff is not None and eoff is not None:
+                        add_cs_raw_entry(str(const_id_value), func_name, soff, eoff)
+
+            # Build SS info from first kprobe
+            first_kp = generated_kprobes[0]
+            actual_reg_name = first_kp['actual_reg_name']
+            rel_str = first_kp['rel_str']
+            expr_comment = rel_str.replace('IV', actual_reg_name).replace('V', 'val')
+            if ' = ' in expr_comment:
+                rhs = expr_comment.split(' = ', 1)[1]
+                ss_info = f"{actual_reg_name}={rhs}"
+            else:
+                ss_info = f"{actual_reg_name}={expr_comment}"
+
+            # Add single Scope Table entry with comma-separated CS indices
+            add_scope_table_entry_multi_cs(
+                const_id=str(const_id_value),
+                val=v1_src,
+                expression=rel_str,
+                cs_indices=cs_indices,
+                ss_content=ss_info,
+                bpf_file=bpf_file_name,
+                status="ready"
+            )
+
+            print(f"  Added Scope Table entry: ConstID={const_id_value}, V={v1_src}, CS=[{','.join(cs_indices)}]")
+
+
+def generate_multi_kprobe_bpf_file(prefix: str, kprobes: List[Dict], v1_src: int,
+                                    file_path: str = None, output_dir: str = None) -> Optional[Tuple[str, str, str]]:
+    """Generate BPF file with multiple kprobes.
+
+    Args:
+        prefix: Test group prefix
+        kprobes: List of kprobe info dictionaries
+        v1_src: Source value V1
+        file_path: Source file path
+        output_dir: Output directory
+
+    Returns:
+        Tuple of (internal_file_path, user_policy_file_path, bpf_file_name) or None
+    """
+    if not kprobes:
+        return None
+
+    if output_dir is None:
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        project_root = os.path.dirname(script_dir)
+        output_dir = os.path.join(project_root, 'bpf_kprobe', 'bpf', 'examples')
+
+    os.makedirs(output_dir, exist_ok=True)
+
+    # Map target register to BPF_SET macro name
+    # 32-bit registers use 32-bit macros, 64-bit use 64-bit macros
+    reg_to_set_macro = {
+        # 32-bit registers
+        'eax': 'BPF_SET_EAX', 'ebx': 'BPF_SET_EBX', 'ecx': 'BPF_SET_ECX', 'edx': 'BPF_SET_EDX',
+        'esi': 'BPF_SET_ESI', 'edi': 'BPF_SET_EDI',
+        # Extended 32-bit
+        'r8d': 'BPF_SET_R8', 'r9d': 'BPF_SET_R9', 'r10d': 'BPF_SET_R10', 'r11d': 'BPF_SET_R11',
+        'r12d': 'BPF_SET_R12', 'r13d': 'BPF_SET_R13', 'r14d': 'BPF_SET_R14', 'r15d': 'BPF_SET_R15',
+        # 64-bit registers
+        'rax': 'BPF_SET_RAX', 'rbx': 'BPF_SET_RBX', 'rcx': 'BPF_SET_RCX', 'rdx': 'BPF_SET_RDX',
+        'rsi': 'BPF_SET_RSI', 'rdi': 'BPF_SET_RDI',
+        'r8': 'BPF_SET_R8', 'r9': 'BPF_SET_R9', 'r10': 'BPF_SET_R10', 'r11': 'BPF_SET_R11',
+        'r12': 'BPF_SET_R12', 'r13': 'BPF_SET_R13', 'r14': 'BPF_SET_R14', 'r15': 'BPF_SET_R15',
+    }
+
+    # Generate the BPF file with proper SEC/BPF_KPROBE format
+    code_parts = []
+    code_parts.append('// SPDX-License-Identifier: GPL-2.0')
+    code_parts.append(f'// Auto-generated for test group {prefix}')
+    code_parts.append('')
+    code_parts.append('#include "vmlinux.h"')
+    code_parts.append('#include <bpf/bpf_helpers.h>')
+    code_parts.append('#include <bpf/bpf_tracing.h>')
+    code_parts.append('')
+    code_parts.append('#include "xkernel.bpf.h"')
+    code_parts.append('#include "util.bpf.h"')
+    code_parts.append('')
+
+    # Generate kprobe for each entry
+    for i, kp in enumerate(kprobes):
+        func_name = kp['function_name']
+        offset = kp['kprobe_offset']
+        a, b = kp['relationship']
+        target_reg = kp['actual_reg_name']
+
+        set_macro = reg_to_set_macro.get(target_reg, f'BPF_SET_{target_reg.upper()}')
+
+        # Generate expression for new value
+        if abs(a - int(a)) < 0.001 and abs(b - int(b)) < 0.001:
+            a_int = int(a)
+            b_int = int(b)
+            if b_int == 0:
+                if a_int == 1:
+                    expr = "val"
+                elif a_int == -1:
+                    expr = "(-val)"
+                else:
+                    expr = f"(val * {a_int})"
+            elif a_int == 1:
+                expr = f"(val + {b_int})"
+            elif a_int == -1:
+                expr = f"((-val) + {b_int})"
+            else:
+                expr = f"((val * {a_int}) + {b_int})"
+        else:
+            expr = f"((u64)((val * {a:.6f}) + {b:.6f}))"
+
+        # Generate unique probe name (replace invalid chars in function name)
+        safe_func_name = func_name.replace('.', '_').replace('-', '_')
+        probe_name = f"{safe_func_name}_0x{offset:x}"
+
+        code_parts.append(f'// Kprobe {i+1}: {func_name}+0x{offset:x}')
+        code_parts.append(f'// Relationship: {kp["rel_str"]}')
+        code_parts.append(f'SEC("kprobe/{func_name}+0x{offset:x}")')
+        code_parts.append(f'int BPF_KPROBE({probe_name}) {{')
+        code_parts.append(f'    if (!transition_done(ctx)) {{')
+        code_parts.append(f'        return 0;')
+        code_parts.append(f'    }}')
+        code_parts.append(f'')
+        code_parts.append(f'    // Get tunable value (V={v1_src} originally)')
+        code_parts.append(f'    u64 val = {v1_src}; // TODO: Read from BPF map')
+        code_parts.append(f'')
+        code_parts.append(f'    // Apply: {kp["rel_str"]}')
+        code_parts.append(f'    {set_macro}(ctx, {expr});')
+        code_parts.append(f'')
+        code_parts.append(f'    return 0;')
+        code_parts.append(f'}}')
+        code_parts.append('')
+
+    bpf_code = '\n'.join(code_parts)
+
+    # Write BPF file
+    user_policy_file = os.path.join(output_dir, f"my_policy_{prefix}.bpf.c")
+    with open(user_policy_file, 'w') as f:
+        f.write(bpf_code)
+
+    # Also create an internal header (for compatibility)
+    internal_file = os.path.join(output_dir, f"my_policy_{prefix}.internal.bpf.h")
+    with open(internal_file, 'w') as f:
+        f.write(f'// Auto-generated internal header for test group {prefix}\n')
+        f.write(f'// This file is included by my_policy_{prefix}.bpf.c\n')
+        f.write(f'// Number of kprobes: {len(kprobes)}\n')
+
+    bpf_file_name = f"my_policy_{prefix}.bpf.o"
+
+    return (internal_file, user_policy_file, bpf_file_name)
 
 
 SCOPE_TABLE_PATH = "/dev/shm/xkernel/scope_table"
 CS_TABLE_PATH = "/dev/shm/xkernel/cs_table"
+CS_RAW_PATH = "/dev/shm/xkernel/cs_raw"  # Raw CS data: ConstID,FunctionName,StartOffset,EndOffset
 SS_TABLE_PATH = "/dev/shm/xkernel/ss_table"
 
 SCOPE_TABLE_HEADER = ["ConstID", "Val", "Expression", "CS_Index", "SS_Index", "BPF_File", "Status"]
 CS_TABLE_HEADER = ["Index", "CS_Content"]
+CS_RAW_HEADER = ["ConstID", "FunctionName", "StartOffset", "EndOffset"]
 SS_TABLE_HEADER = ["Index", "SS_Content"]
 
 
@@ -1621,14 +1737,15 @@ def init_table(table_path: str, header: List[str]):
     # Create file with header if it doesn't exist
     if not os.path.exists(table_path):
         with open(table_path, 'w', newline='') as f:
-            writer = csv.writer(f, delimiter='\t')
+            writer = csv.writer(f, delimiter='\t', lineterminator='\n')
             writer.writerow(header)
 
 
 def init_all_tables():
-    """Initialize all tables (Scope, CS, SS) if they don't exist."""
+    """Initialize all tables (Scope, CS, SS, CS_RAW) if they don't exist."""
     init_table(SCOPE_TABLE_PATH, SCOPE_TABLE_HEADER)
     init_table(CS_TABLE_PATH, CS_TABLE_HEADER)
+    init_table(CS_RAW_PATH, CS_RAW_HEADER)
     init_table(SS_TABLE_PATH, SS_TABLE_HEADER)
 
 
@@ -1667,7 +1784,7 @@ def get_or_add_cs_index(cs_content: str) -> int:
     
     # Write back
     with open(CS_TABLE_PATH, 'w', newline='') as f:
-        writer = csv.writer(f, delimiter='\t')
+        writer = csv.writer(f, delimiter='\t', lineterminator='\n')
         writer.writerow(CS_TABLE_HEADER)
         for index, content in sorted(entries):
             writer.writerow([index, content])
@@ -1710,7 +1827,7 @@ def get_or_add_ss_index(ss_content: str) -> int:
     
     # Write back
     with open(SS_TABLE_PATH, 'w', newline='') as f:
-        writer = csv.writer(f, delimiter='\t')
+        writer = csv.writer(f, delimiter='\t', lineterminator='\n')
         writer.writerow(SS_TABLE_HEADER)
         for index, content in sorted(entries):
             writer.writerow([index, content])
@@ -1718,25 +1835,104 @@ def get_or_add_ss_index(ss_content: str) -> int:
     return new_index
 
 
-def add_scope_table_entry(const_id: str, val: int, expression: str, cs_content: str, ss_content: str, bpf_file: str = "", status: str = "ready"):
-    """Add a new entry to the Scope Table.
+def clear_all_tables():
+    """Clear all table files (Scope, CS, CS_RAW, SS) and reinitialize with headers only."""
+    for table_path, header in [(SCOPE_TABLE_PATH, SCOPE_TABLE_HEADER),
+                               (CS_TABLE_PATH, CS_TABLE_HEADER),
+                               (CS_RAW_PATH, CS_RAW_HEADER),
+                               (SS_TABLE_PATH, SS_TABLE_HEADER)]:
+        table_dir = os.path.dirname(table_path)
+        if table_dir and not os.path.exists(table_dir):
+            os.makedirs(table_dir, exist_ok=True)
+        with open(table_path, 'w', newline='') as f:
+            writer = csv.writer(f, delimiter='\t', lineterminator='\n')
+            writer.writerow(header)
+
+
+def extract_bb_offsets(all_instructions: List[str]) -> Tuple[Optional[int], Optional[int]]:
+    """Extract start and end offsets from basic block instructions.
+
+    Args:
+        all_instructions: List of instruction strings like "202: c1 e8 03 shr $0x3,%eax"
+
+    Returns:
+        Tuple of (start_offset, end_offset) in hex, or (None, None) if parsing fails
+    """
+    offsets = []
+    for inst in all_instructions:
+        # Parse instruction address: "  202:  c1 e8 03  shr  $0x3,%eax"
+        inst = inst.strip()
+        if inst.startswith('[*]'):
+            inst = inst[3:].strip()
+        match = re.match(r'([0-9a-fA-F]+):', inst)
+        if match:
+            offsets.append(int(match.group(1), 16))
+
+    if not offsets:
+        return None, None
+
+    return min(offsets), max(offsets)
+
+
+def add_cs_raw_entry(const_id: str, function_name: str, soff: int, eoff: int):
+    """Add a raw CS entry (function name and offsets, no resolved address).
+
+    Each basic block gets its own entry, even if in the same function.
+    Deduplication is by (ConstID, function_name, soff, eoff).
+
+    Args:
+        const_id: Constant ID
+        function_name: Function name (e.g., "io_cqring_wait")
+        soff: Start offset within function (hex)
+        eoff: End offset within function (hex)
+    """
+    init_table(CS_RAW_PATH, CS_RAW_HEADER)
+
+    soff_str = f"0x{soff:x}"
+    eoff_str = f"0x{eoff:x}"
+
+    # Read existing entries to check for duplicates
+    existing_entries = []
+    if os.path.exists(CS_RAW_PATH):
+        with open(CS_RAW_PATH, 'r', newline='') as f:
+            reader = csv.reader(f, delimiter='\t')
+            header = next(reader, None)
+            if header:
+                existing_entries = list(reader)
+
+    # Check if exact entry already exists (same ConstID, function_name, soff, eoff)
+    for entry in existing_entries:
+        if (len(entry) >= 4 and entry[0] == const_id and entry[1] == function_name
+                and entry[2] == soff_str and entry[3] == eoff_str):
+            # Already exists, skip
+            return
+
+    # Add new entry
+    new_entry = [const_id, function_name, soff_str, eoff_str]
+    with open(CS_RAW_PATH, 'a', newline='') as f:
+        writer = csv.writer(f, delimiter='\t', lineterminator='\n')
+        writer.writerow(new_entry)
+
+
+def add_scope_table_entry_multi_cs(const_id: str, val: int, expression: str, cs_indices: List[str], ss_content: str, bpf_file: str = "", status: str = "ready"):
+    """Add a new entry to the Scope Table with multiple CS indices.
 
     Args:
         const_id: Constant ID as uint64_t (numeric string, e.g., "1", "2")
         val: Source value V
         expression: Linear relationship expression (e.g., "IV = V" or "IV = a * V + b")
-        cs_content: CS content (instruction string)
-        ss_content: SS content (symbolic state string) - currently not used, set to empty string
+        cs_indices: List of CS index strings (will be joined with comma)
+        ss_content: SS content (symbolic state string) - currently not used
         bpf_file: BPF file name (e.g., "my_policy_1.bpf.o")
         status: Status of the entry (default: "ready")
     """
     init_all_tables()
-    
-    # Get or add CS index
-    cs_index = get_or_add_cs_index(cs_content)
+
+    # Join CS indices with comma
+    cs_index_str = ",".join(cs_indices)
     # Temporarily not generating SS, use empty string for SS_Index
     ss_index = ""
-    
+
     # Read existing entries to avoid duplicates
     existing_entries = []
     if os.path.exists(SCOPE_TABLE_PATH):
@@ -1745,28 +1941,47 @@ def add_scope_table_entry(const_id: str, val: int, expression: str, cs_content: 
             header = next(reader, None)
             if header:
                 existing_entries = list(reader)
-    
-    # Check if entry already exists (same ConstID and Val)
+
+    # Check if entry already exists (same ConstID)
     for entry in existing_entries:
-        if len(entry) >= 2 and entry[0] == const_id and entry[1] == str(val):
+        if len(entry) >= 1 and entry[0] == const_id:
             # Update existing entry
+            entry[1] = str(val)
             entry[2] = expression
-            entry[3] = str(cs_index)
+            entry[3] = cs_index_str
             entry[4] = str(ss_index)
             entry[5] = bpf_file if len(entry) > 5 else bpf_file
             entry[6] = status if len(entry) > 6 else status
             # Write back
             with open(SCOPE_TABLE_PATH, 'w', newline='') as f:
-                writer = csv.writer(f, delimiter='\t')
+                writer = csv.writer(f, delimiter='\t', lineterminator='\n')
                 writer.writerow(SCOPE_TABLE_HEADER)
                 writer.writerows(existing_entries)
             return
-    
+
     # Add new entry
-    new_entry = [const_id, str(val), expression, str(cs_index), str(ss_index), bpf_file, status]
+    new_entry = [const_id, str(val), expression, cs_index_str, str(ss_index), bpf_file, status]
     with open(SCOPE_TABLE_PATH, 'a', newline='') as f:
-        writer = csv.writer(f, delimiter='\t')
+        writer = csv.writer(f, delimiter='\t', lineterminator='\n')
         writer.writerow(new_entry)
+
+
+def add_scope_table_entry(const_id: str, val: int, expression: str, cs_content: str, ss_content: str, bpf_file: str = "", status: str = "ready"):
+    """Add a new entry to the Scope Table (single CS version).
+
+    Args:
+        const_id: Constant ID as uint64_t (numeric string, e.g., "1", "2")
+        val: Source value V
+        expression: Linear relationship expression (e.g., "IV = V" or "IV = a * V + b")
+        cs_content: CS content (instruction string) - single instruction for one CS entry
+        ss_content: SS content (symbolic state string) - currently not used, set to empty string
+        bpf_file: BPF file name (e.g., "my_policy_1.bpf.o")
+        status: Status of the entry (default: "ready")
+    """
+    # Get or add CS index
+    cs_index = get_or_add_cs_index(cs_content)
+    # Use multi-CS version with single index
+    add_scope_table_entry_multi_cs(const_id, val, expression, [str(cs_index)], ss_content, bpf_file, status)
 
 
 def extract_function_base_from_bb_file(filepath: str, function_name: str) -> Optional[int]:
@@ -1839,6 +2054,115 @@ def get_function_name_from_bb_file(filepath: str) -> Optional[str]:
                 if match:
                     return match.group(1)
     return None
+
+
+def extract_all_basic_blocks_from_file(filepath: str) -> List[Dict]:
+    """Extract all basic blocks from BB file with their function names and instructions.
+
+    Args:
+        filepath: Path to *_bb_v*.txt file
+
+    Returns:
+        List of dictionaries, each containing:
+        - function_name: Function name
+        - first_addr: First instruction address (raw)
+        - changed_addr: Changed instruction address (raw)
+        - kprobe_addr: Kprobe offset address (raw)
+        - changed_instruction: The full changed instruction line
+        - all_instructions: List of all instruction lines in the basic block
+        - immediate_value: Immediate value from changed instruction (if any)
+    """
+    if not os.path.exists(filepath):
+        return []
+
+    basic_blocks = []
+    current_bb = None
+
+    with open(filepath, 'r') as f:
+        lines = f.readlines()
+
+        for i, line in enumerate(lines):
+            stripped = line.strip()
+
+            # Start of a new basic block
+            if stripped.startswith('Basic Block:'):
+                # Save previous basic block if exists
+                if current_bb is not None:
+                    basic_blocks.append(current_bb)
+                current_bb = {
+                    'function_name': None,
+                    'first_addr': None,
+                    'changed_addr': None,
+                    'kprobe_addr': None,
+                    'changed_instruction': None,
+                    'all_instructions': [],
+                    'immediate_value': None,
+                    'raw_lines': []
+                }
+                continue
+
+            if current_bb is None:
+                continue
+
+            current_bb['raw_lines'].append(line)
+
+            # Extract function name
+            if stripped.startswith('Function:'):
+                func_match = re.match(r'^Function:\s+(.+)$', stripped)
+                if func_match:
+                    current_bb['function_name'] = func_match.group(1)
+                continue
+
+            # Extract instruction address
+            addr_match = re.match(r'^\s*(\[\*\])?\s*([0-9a-fA-F]+):', stripped)
+            if addr_match:
+                is_changed = addr_match.group(1) is not None
+                addr = addr_match.group(2)
+
+                # First instruction
+                if current_bb['first_addr'] is None:
+                    current_bb['first_addr'] = addr
+
+                current_bb['all_instructions'].append(stripped)
+
+                # Changed instruction
+                if is_changed and current_bb['changed_addr'] is None:
+                    current_bb['changed_addr'] = addr
+                    current_bb['changed_instruction'] = stripped
+
+                    # Extract immediate value
+                    imm_vals = extract_immediate_values(stripped)
+                    if imm_vals:
+                        current_bb['immediate_value'] = imm_vals[0]
+
+                    # Get next instruction address for kprobe
+                    for j in range(i + 1, len(lines)):
+                        next_stripped = lines[j].strip()
+                        next_match = re.match(r'^\s*([0-9a-fA-F]+):', next_stripped)
+                        if next_match:
+                            current_bb['kprobe_addr'] = next_match.group(1)
+                            break
+
+        # Don't forget the last basic block
+        if current_bb is not None:
+            basic_blocks.append(current_bb)
+
+    # Convert raw addresses to function offsets
+    for bb in basic_blocks:
+        if bb['function_name'] and bb['first_addr'] and bb['changed_addr']:
+            func_base = extract_function_base_from_bb_file(filepath, bb['function_name'])
+            if func_base is not None:
+                bb['first_addr_offset'] = int(bb['first_addr'], 16) - func_base
+                bb['changed_addr_offset'] = int(bb['changed_addr'], 16) - func_base
+                if bb['kprobe_addr']:
+                    bb['kprobe_addr_offset'] = int(bb['kprobe_addr'], 16) - func_base
+            else:
+                bb['first_addr_offset'] = int(bb['first_addr'], 16)
+                bb['changed_addr_offset'] = int(bb['changed_addr'], 16)
+                if bb['kprobe_addr']:
+                    bb['kprobe_addr_offset'] = int(bb['kprobe_addr'], 16)
+
+    return basic_blocks
 
 
 def extract_function_info_from_bb_file(filepath: str) -> Optional[Tuple[str, str, str, str]]:
@@ -2172,12 +2496,16 @@ def generate_bpf_file_for_group(prefix: str, v1_file: str, relationship: Optiona
 def main():
     """Main function."""
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    
+
     # Determine output directory for BPF files (bpf_kprobe/bpf/examples/)
     project_root = os.path.dirname(script_dir)  # Go up from UnitTestsCS to Xkernel
     bpf_output_dir = os.path.join(project_root, 'bpf_kprobe', 'bpf', 'examples')
     os.makedirs(bpf_output_dir, exist_ok=True)
-    
+
+    # Clear all tables before regenerating to avoid stale indices
+    clear_all_tables()
+    print("Cleared all tables (Scope, CS, SS)")
+
     # Extract source values and file paths from testcases.sh
     cmd_file = os.path.join(script_dir, 'testcases.sh')
     source_values = extract_source_values(cmd_file)

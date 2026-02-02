@@ -2,6 +2,8 @@
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SCOPE_TABLE="/dev/shm/xkernel/scope_table"
+CS_RAW="/dev/shm/xkernel/cs_raw"
+CS_FILE="/dev/shm/xkernel/cs"
 
 # Update status for a ConstID in the scope table
 update_status() {
@@ -35,8 +37,64 @@ update_all_status() {
     if [ -f "$SCOPE_TABLE" ]; then
         awk -F'\t' -v OFS='\t' -v status="$new_status" '
             NR==1 { for(i=1;i<=NF;i++) { if($i=="Status") st_col=i } print; next }
-            { $st_col=status; print }
+            NF>=st_col { $st_col=status; print }
         ' "$SCOPE_TABLE" > "${SCOPE_TABLE}.tmp" && mv "${SCOPE_TABLE}.tmp" "$SCOPE_TABLE"
+    fi
+}
+
+# Resolve function address from /proc/kallsyms
+resolve_func_addr() {
+    local func_name="$1"
+    # Get the address of the function from kallsyms (requires root)
+    local addr
+    addr=$(sudo grep -E "^[0-9a-f]+ [tT] ${func_name}$" /proc/kallsyms 2>/dev/null | head -1 | awk '{print $1}')
+    if [ -n "$addr" ]; then
+        echo "0x$addr"
+    else
+        echo ""
+    fi
+}
+
+# Generate CS file from cs_raw for specified ConstIDs
+generate_cs_file() {
+    local const_ids="$1"  # Comma-separated ConstIDs
+
+    if [ ! -f "$CS_RAW" ]; then
+        echo "Warning: CS_RAW file not found at $CS_RAW"
+        return 1
+    fi
+
+    # Clear existing CS file
+    > "$CS_FILE"
+
+    # Parse const_ids into array
+    IFS=',' read -ra CID_ARRAY <<< "$const_ids"
+
+    # Read cs_raw and generate cs file for matching ConstIDs
+    # Format of cs_raw: ConstID\tFunctionName\tStartOffset\tEndOffset
+    # Format of cs: function_name,function_address,soff,eoff
+    tail -n +2 "$CS_RAW" | while IFS=$'\t' read -r cid func_name soff eoff; do
+        # Check if this ConstID is in our list
+        for target_cid in "${CID_ARRAY[@]}"; do
+            if [ "$cid" = "$target_cid" ]; then
+                # Resolve function address
+                func_addr=$(resolve_func_addr "$func_name")
+                if [ -n "$func_addr" ]; then
+                    echo "${func_name},${func_addr},${soff},${eoff}" >> "$CS_FILE"
+                else
+                    echo "Warning: Could not resolve address for function $func_name"
+                fi
+                break
+            fi
+        done
+    done
+
+    if [ -s "$CS_FILE" ]; then
+        echo "Generated CS file: $CS_FILE"
+        return 0
+    else
+        echo "Warning: No CS entries generated"
+        return 1
     fi
 }
 
@@ -231,6 +289,13 @@ elif [ "$COMMAND" = "load" ]; then
     if [ -z "$RESOLVED_FILES" ]; then
         echo "Error: No valid files to load"
         exit 1
+    fi
+
+    # Generate CS file from cs_raw if we have ConstIDs
+    if [ ${#LOADED_CONST_IDS[@]} -gt 0 ]; then
+        CONST_IDS_STR=$(IFS=','; echo "${LOADED_CONST_IDS[*]}")
+        echo "Generating CS file for ConstIDs: $CONST_IDS_STR"
+        generate_cs_file "$CONST_IDS_STR"
     fi
 
     echo "Loading kfuncs module..."
