@@ -11,7 +11,8 @@ paper.pdf
 *.cmd
 *.ko.unsigned
 *.o.d
-!plot/**/*.txt
+!xkernel/tools/plot/**/*.txt
+!xkernel/tests/*.txt
 *.pyc
 
 compile_commands.json
@@ -21,6 +22,5 @@ compile_commands.json
 
 __pycache__/*
 
-bpf_kprobe/bpf/vmlinux.h
-workload_test/io_uring/latency_workload
-bpf_kprobe/kprobe_loader
+bpf/vmlinux.h
+xkernel/tools/workload_test/io_uring/latency_workload
