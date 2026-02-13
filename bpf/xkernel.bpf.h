@@ -25,6 +25,13 @@ struct critical_span {
 // cs_map is populated by the userspace program and is sorted by the soff and eoff.
 SEC(".bss.cs_len")
 __u32 cs_len = 0;
+
+SEC(".bss.xk_mode")
+int xk_mode = 0;
+
+SEC(".bss.xk_active")
+int xk_active = 0;
+
 struct {
     __uint(type, BPF_MAP_TYPE_ARRAY);
     __uint(max_entries, MAX_CS);
@@ -161,11 +168,11 @@ static __always_inline bool per_task_transition_done(struct pt_regs *ctx) {
 }
 
 static __always_inline bool global_transition_done(void) {
-    return kfuncs_is_ir_kprobes_on();
+    return xk_active == 1;
 }
 
 static __always_inline bool transition_done(struct pt_regs *ctx) {
-    int mode = kfuncs_get_consistency_mode();
+    int mode = xk_mode;
     if (mode == 0) return true;
     if (mode == 1) return per_task_transition_done(ctx);
     if (mode == 2) return global_transition_done();

@@ -16,7 +16,7 @@ EXPORT_SYMBOL(ir_kprobes_on);
 
 // 0: global consistency model
 // 1: per-task consistency model
-int kMode = 2;
+int kMode = 0;
 module_param(kMode, int, 0644);
 MODULE_PARM_DESC(kMode, "0: Immediate, 1: Per-task, 2: Global");
 EXPORT_SYMBOL(kMode);

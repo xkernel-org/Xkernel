@@ -9,6 +9,7 @@ Handles:
   - Critical span map population
 """
 
+import json
 import os
 import re
 import struct
@@ -18,6 +19,8 @@ import time
 
 
 CS_PATH = "/dev/shm/xkernel/cs"
+RUNTIME_STATE_PATH = "/dev/shm/xkernel/runtime_state"
+BPF_PIN_BASE = "/sys/fs/bpf/xkernel"
 
 
 def generate_cs_artifact_header(cs_path, output_path):
@@ -201,8 +204,8 @@ def load_critical_spans(cs_path):
     # Update cs_len map
     cs_len = len(spans)
     key_hex = '00 00 00 00'
-    # cs_len is u64
-    val_bytes = struct.pack('<Q', cs_len)
+    # cs_len is __u32
+    val_bytes = struct.pack('<I', cs_len)
     val_hex = ' '.join(f'{b:02x}' for b in val_bytes)
 
     result = subprocess.run(
@@ -461,6 +464,345 @@ def try_jump_optimization(bpf_c_path, bpf_dir):
     subprocess.run(['sudo', 'rm', '-rf', pin_dir], capture_output=True)
 
     return any_optimized
+
+
+def get_runtime_state():
+    """Read runtime state from disk.
+
+    Returns:
+        dict with keys 'kfuncs_loaded' (bool) and 'active_const_ids' (dict).
+    """
+    if not os.path.exists(RUNTIME_STATE_PATH):
+        return {"kfuncs_loaded": False, "active_const_ids": {}}
+    try:
+        with open(RUNTIME_STATE_PATH, 'r') as f:
+            return json.load(f)
+    except (json.JSONDecodeError, IOError):
+        return {"kfuncs_loaded": False, "active_const_ids": {}}
+
+
+def save_runtime_state(state):
+    """Write runtime state to disk.
+
+    Args:
+        state: dict with 'kfuncs_loaded' and 'active_const_ids' keys.
+    """
+    os.makedirs(os.path.dirname(RUNTIME_STATE_PATH), exist_ok=True)
+    with open(RUNTIME_STATE_PATH, 'w') as f:
+        json.dump(state, f, indent=2)
+
+
+def is_kfuncs_loaded():
+    """Check if xk-kfuncs module is currently loaded.
+
+    Returns:
+        True if the module is loaded.
+    """
+    result = subprocess.run(
+        ['lsmod'],
+        capture_output=True, text=True
+    )
+    if result.returncode != 0:
+        return False
+    for line in result.stdout.splitlines():
+        if line.startswith('xk_kfuncs '):
+            return True
+    return False
+
+
+def ensure_kfuncs_loaded(project_root):
+    """Idempotently load xk-kfuncs.ko.
+
+    Args:
+        project_root: Path to project root directory.
+
+    Returns:
+        True on success, False on failure.
+    """
+    if is_kfuncs_loaded():
+        print("kfuncs module already loaded, skipping insmod", file=sys.stderr)
+        return True
+
+    kfuncs_path = os.path.join(project_root, 'kernel', 'kfuncs', 'xk-kfuncs.ko')
+    if not os.path.exists(kfuncs_path):
+        print(f"Error: kfuncs module not found: {kfuncs_path}", file=sys.stderr)
+        return False
+
+    print("Loading kfuncs module...", file=sys.stderr)
+    result = subprocess.run(['sudo', 'insmod', kfuncs_path],
+                            capture_output=True, text=True)
+    if result.returncode != 0:
+        print(f"Failed to load kfuncs module: {result.stderr}", file=sys.stderr)
+        return False
+
+    state = get_runtime_state()
+    state["kfuncs_loaded"] = True
+    save_runtime_state(state)
+    print("kfuncs module loaded", file=sys.stderr)
+    return True
+
+
+def snapshot_map_ids():
+    """Snapshot all currently loaded BPF map IDs.
+
+    Returns:
+        set of integer map IDs
+    """
+    result = subprocess.run(
+        ['sudo', 'bpftool', '-j', 'map', 'list'],
+        capture_output=True, text=True
+    )
+    if result.returncode != 0:
+        return set()
+    try:
+        maps = json.loads(result.stdout)
+        if not isinstance(maps, list):
+            maps = [maps] if maps else []
+        return {m['id'] for m in maps if 'id' in m}
+    except (json.JSONDecodeError, TypeError, KeyError):
+        return set()
+
+
+def resolve_map_names(map_ids):
+    """Resolve map names for a set of map IDs.
+
+    Args:
+        map_ids: set of integer map IDs
+
+    Returns:
+        dict mapping map name (str) to map ID (int)
+    """
+    if not map_ids:
+        return {}
+
+    result = subprocess.run(
+        ['sudo', 'bpftool', '-j', 'map', 'list'],
+        capture_output=True, text=True
+    )
+    if result.returncode != 0:
+        return {}
+
+    try:
+        all_maps = json.loads(result.stdout)
+        if not isinstance(all_maps, list):
+            all_maps = [all_maps] if all_maps else []
+    except (json.JSONDecodeError, TypeError):
+        return {}
+
+    name_to_id = {}
+    for m in all_maps:
+        mid = m.get('id')
+        name = m.get('name', '')
+        if mid in map_ids and name:
+            name_to_id[name] = mid
+
+    return name_to_id
+
+
+def update_map_by_id(map_id, key_hex_str, val_hex_str):
+    """Update a BPF map entry by map ID.
+
+    Args:
+        map_id: Integer map ID
+        key_hex_str: Space-separated hex key (e.g. '00 00 00 00')
+        val_hex_str: Space-separated hex value
+
+    Returns:
+        True on success, False on failure
+    """
+    result = subprocess.run(
+        ['sudo', 'bpftool', 'map', 'update', 'id', str(map_id),
+         'key', 'hex'] + key_hex_str.split() +
+        ['value', 'hex'] + val_hex_str.split(),
+        capture_output=True, text=True
+    )
+    if result.returncode != 0:
+        print(f"Warning: Failed to update map id {map_id}: {result.stderr}",
+              file=sys.stderr)
+        return False
+    return True
+
+
+def set_bss_variable(map_info, map_name, value):
+    """Update a BSS variable using the map ID from map_info.
+
+    BSS sections containing a single int/u32 have value_size=4.
+    Packs the value as little-endian u32.
+
+    Args:
+        map_info: dict mapping map name to map ID (from load_and_attach_per_constid)
+        map_name: BSS section name (e.g. '.bss.xk_mode')
+        value: Integer value to set
+    """
+    map_id = map_info.get(map_name)
+    if map_id is None:
+        print(f"Warning: Map '{map_name}' not found in map_info "
+              f"(available: {list(map_info.keys())})", file=sys.stderr)
+        return False
+
+    key_hex = '00 00 00 00'
+    val_bytes = struct.pack('<I', value)
+    val_hex = ' '.join(f'{b:02x}' for b in val_bytes)
+
+    return update_map_by_id(map_id, key_hex, val_hex)
+
+
+def load_and_attach_per_constid(bpf_files, const_id, mode):
+    """Load and attach BPF programs for a specific ConstID.
+
+    Creates per-ConstID pin directories, loads programs with pinmaps,
+    collects map info via program introspection, and sets xk_mode.
+    For mode 0 (Immediate), also sets xk_active=1.
+
+    Args:
+        bpf_files: List of .bpf.o file paths
+        const_id: ConstID string
+        mode: Consistency mode (0=Immediate, 1=Per-task, 2=Global)
+
+    Returns:
+        (return_code, map_info) tuple. return_code 0 on success.
+        map_info is a dict mapping map name to map ID.
+    """
+    progs_dir = f"{BPF_PIN_BASE}/{const_id}/progs"
+    maps_dir = f"{BPF_PIN_BASE}/{const_id}/maps"
+
+    subprocess.run(['sudo', 'mkdir', '-p', progs_dir], check=False,
+                   capture_output=True)
+    subprocess.run(['sudo', 'mkdir', '-p', maps_dir], check=False,
+                   capture_output=True)
+
+    # Snapshot map IDs before loading so we can find newly created maps
+    maps_before = snapshot_map_ids()
+
+    for bpf_file in bpf_files:
+        if not os.path.exists(bpf_file):
+            print(f"BPF file not found: {bpf_file}", file=sys.stderr)
+            return 1, {}
+
+        print(f"Loading {bpf_file} for ConstID {const_id}...", file=sys.stderr)
+        cmd = ['sudo', 'bpftool', 'prog', 'loadall', bpf_file,
+               progs_dir, 'autoattach', 'pinmaps', maps_dir]
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        if result.returncode != 0:
+            print(f"Failed to load {bpf_file}: {result.stderr}", file=sys.stderr)
+            return result.returncode, {}
+        print(f"Loaded and attached: {bpf_file}", file=sys.stderr)
+
+    # Find newly created maps by diffing before/after
+    maps_after = snapshot_map_ids()
+    new_map_ids = maps_after - maps_before
+    map_info = resolve_map_names(new_map_ids)
+    print(f"Discovered maps: {list(map_info.keys())}", file=sys.stderr)
+
+    # Set consistency mode
+    set_bss_variable(map_info, '.bss.xk_mode', mode)
+
+    # Mode 0 (Immediate): activate right away
+    if mode == 0:
+        set_bss_variable(map_info, '.bss.xk_active', 1)
+
+    return 0, map_info
+
+
+def activate_constid(const_id, map_info):
+    """Activate a ConstID by setting xk_active=1.
+
+    Args:
+        const_id: ConstID string
+        map_info: dict mapping map name to map ID
+    """
+    return set_bss_variable(map_info, '.bss.xk_active', 1)
+
+
+def unload_constid(const_id):
+    """Unload BPF programs for a specific ConstID.
+
+    Removes the per-ConstID pin directory, which detaches all BPF programs.
+
+    Args:
+        const_id: ConstID string
+    """
+    pin_dir = f"{BPF_PIN_BASE}/{const_id}"
+    print(f"Unloading ConstID {const_id}...", file=sys.stderr)
+    result = subprocess.run(['sudo', 'rm', '-rf', pin_dir],
+                            capture_output=True, text=True)
+    if result.returncode != 0:
+        print(f"Warning: Failed to remove {pin_dir}: {result.stderr}",
+              file=sys.stderr)
+        return False
+
+    # Update runtime state
+    state = get_runtime_state()
+    state["active_const_ids"].pop(str(const_id), None)
+    save_runtime_state(state)
+    return True
+
+
+def load_critical_spans_for_constid(cs_path, const_id, map_info):
+    """Load critical spans into BPF maps for a specific ConstID.
+
+    Uses map IDs (from before/after diff at load time) to target the
+    correct per-ConstID maps, avoiding issues with BSS maps not being
+    auto-pinned by bpftool.
+
+    Args:
+        cs_path: Path to CS file
+        const_id: ConstID string
+        map_info: dict mapping map name to map ID.
+
+    Returns:
+        0 on success, non-zero on failure
+    """
+    if not os.path.exists(cs_path):
+        print(f"CS file not found: {cs_path}", file=sys.stderr)
+        return 0
+
+    with open(cs_path, 'r') as f:
+        lines = [l.strip() for l in f if l.strip()]
+
+    if not lines:
+        print("CS file is empty, skipping critical span loading", file=sys.stderr)
+        return 0
+
+    spans = []
+    for line in lines:
+        parts = line.split(',')
+        if len(parts) < 4:
+            continue
+        func_addr = int(parts[1], 16)
+        soff = int(parts[2], 16)
+        eoff = int(parts[3], 16)
+        spans.append((func_addr + soff, func_addr + eoff))
+
+    spans.sort(key=lambda x: (x[0], -x[1]))
+
+    # Update cs_len via map ID
+    cs_len = len(spans)
+    cs_len_id = map_info.get('.bss.cs_len')
+    if cs_len_id is not None:
+        key_hex = '00 00 00 00'
+        val_bytes = struct.pack('<I', cs_len)
+        val_hex = ' '.join(f'{b:02x}' for b in val_bytes)
+        update_map_by_id(cs_len_id, key_hex, val_hex)
+    else:
+        print("Warning: .bss.cs_len map not found, skipping cs_len update",
+              file=sys.stderr)
+
+    # Update cs_map entries via map ID
+    cs_map_id = map_info.get('cs_map')
+    if cs_map_id is not None:
+        for i, (soff, eoff) in enumerate(spans):
+            key_bytes = struct.pack('<I', i)
+            key_hex = ' '.join(f'{b:02x}' for b in key_bytes)
+            val_bytes = struct.pack('<QQ', soff, eoff)
+            val_hex = ' '.join(f'{b:02x}' for b in val_bytes)
+            update_map_by_id(cs_map_id, key_hex, val_hex)
+    else:
+        print("Warning: cs_map not found, skipping cs_map update",
+              file=sys.stderr)
+
+    print(f"Loaded {cs_len} critical spans for ConstID {const_id}", file=sys.stderr)
+    return 0
 
 
 def main():

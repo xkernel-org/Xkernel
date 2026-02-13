@@ -209,26 +209,27 @@ int xk_attach_auxiliary_kprobes(bool direction, char *debug_info) {
     xk_init_aux_kp(func, direction);
     ret = register_kprobe(&func->guard_kp);
     if (ret < 0) {
-      pr_err("Failed to register Guard Kprobe for [%s], error: %d\n",
-             func->name, ret);
-      goto err;
+      pr_warn("Skipping Guard Kprobe for [%s+0x%lx], error: %d "
+              "(offset may not be at instruction boundary)\n",
+              func->name, func->soff, ret);
+      /* Continue without this guard — stop_machine stack check
+       * still covers this span via address range comparison. */
+    } else {
+      func->attached_guard_kp = true;
     }
-    func->attached_guard_kp = true;
     ret = register_kprobe(&func->unguard_kp);
     if (ret < 0) {
-      pr_err("Failed to register Unguard Kprobe for [%s], error: %d\n",
-             func->name, ret);
-      goto err;
+      pr_warn("Skipping Unguard Kprobe for [%s+0x%lx], error: %d "
+              "(offset may not be at instruction boundary)\n",
+              func->name, func->eoff, ret);
+    } else {
+      func->attached_unguard_kp = true;
     }
-    func->attached_unguard_kp = true;
-    pr_debug("Attached Guard/Unguard Kprobes to [%s]\n", func->name);
+    if (func->attached_guard_kp || func->attached_unguard_kp)
+      pr_debug("Attached Guard/Unguard Kprobes to [%s]\n", func->name);
   }
   mutex_unlock(&aux_kprobes_mtx);
   return 0;
-err:
-  mutex_unlock(&aux_kprobes_mtx);
-  xk_detach_auxiliary_kprobes("xk_attach_auxiliary_kprobes");
-  return ret;
 }
 
 void xk_detach_auxiliary_kprobes(char *debug_info) {
