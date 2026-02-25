@@ -97,18 +97,23 @@ class SymbolicExecutor:
         # Remove [*] marker if present
         line = re.sub(r'^\s*\[\*\]\s*', '', line)
         
-        # Match: "  address:  bytes    mnemonic operands"
-        match = re.match(r'^\s*([0-9a-fA-F]+):\s+[0-9a-f\s]+\s+(\S+)\s+(.*)$', line)
+        # Match: "  address:  bytes\tmnemonic operands"
+        # objdump always separates hex bytes from the mnemonic with a tab.
+        # Continuation lines ("281:  00", "ab:  9b c4 20") have no tab and are skipped.
+        match = re.match(r'^\s*([0-9a-fA-F]+):\s+[0-9a-f ]+\t+(\S+)\s*(.*)$', line)
         if not match:
             return None
-        
+
         address = match.group(1)
         mnemonic = match.group(2)
         operands_str = match.group(3).strip()
-        
-        # Parse operands (comma-separated)
-        operands = [op.strip() for op in operands_str.split(',')] if operands_str else []
-        
+
+        # Strip inline assembler comments (e.g. "# 282 <symbol+0x10>")
+        operands_str = re.sub(r'\s*#.*$', '', operands_str).strip()
+
+        # Parse operands respecting parentheses (handles SIB: "(%rax,%rcx,8)")
+        operands = _split_asm_operands(operands_str) if operands_str else []
+
         return (address, mnemonic, operands)
     
     def parse_operand(self, operand: str) -> Tuple[str, Optional[str], Optional[str]]:
@@ -117,6 +122,9 @@ class SymbolicExecutor:
         Types: 'imm', 'reg', 'mem'
         """
         operand = operand.strip()
+
+        # Strip segment override prefix (e.g. %gs:0x0(%rip) -> 0x0(%rip))
+        operand = re.sub(r'^%[a-z]{2,3}:', '', operand)
         
         # Immediate value: $0x123 or $123
         if operand.startswith('$'):
@@ -441,6 +449,118 @@ class SymbolicExecutor:
                         self.state_alt.pop(dst_anon, None)
                         return f"{dst_anon} = {new_expr}"
         
+        # MOVABS: movabs $imm64, %reg  (same semantics as mov for our purposes)
+        elif mnemonic_lower == 'movabs':
+            if len(operands) == 2:
+                src_type, src_val, src_reg = self.parse_operand(operands[0])
+                dst_type, dst_val, dst_reg = self.parse_operand(operands[1])
+
+                if dst_type == 'reg' and dst_reg:
+                    dst_anon = self.get_anonymous_reg(dst_reg)
+
+                    if src_type == 'imm':
+                        self.state[dst_anon] = src_val
+                        self.state_alt[dst_anon] = src_val
+                        return f"{dst_anon} = {src_val}"
+                    elif src_type == 'reg' and src_reg:
+                        src_anon = self.get_anonymous_reg(src_reg)
+                        src_expr = self.state.get(src_anon, src_anon)
+                        src_expr_alt = self.state_alt.get(src_anon, src_expr)
+                        self.state[dst_anon] = src_expr
+                        self.state_alt[dst_anon] = src_expr_alt
+                        return f"{dst_anon} = {src_expr}"
+
+        # LEA: lea addr, dst (load effective address — no memory dereference)
+        elif mnemonic_lower == 'lea':
+            if len(operands) == 2:
+                src_type, src_val, src_reg = self.parse_operand(operands[0])
+                dst_type, dst_val, dst_reg = self.parse_operand(operands[1])
+
+                if dst_type == 'reg' and dst_reg and src_type == 'mem':
+                    dst_anon = self.get_anonymous_reg(dst_reg)
+                    # src_val is like "[offset+base_anon]"; strip brackets for expr
+                    addr_expr = src_val[1:-1] if (src_val and src_val.startswith('[') and src_val.endswith(']')) else (src_val or '0')
+                    self.state[dst_anon] = addr_expr
+                    self.state_alt[dst_anon] = addr_expr
+                    return f"{dst_anon} = &({addr_expr})"
+
+        # IMUL: imul src, dst  OR  imul $imm, src, dst
+        elif mnemonic_lower == 'imul':
+            if len(operands) == 2:
+                src_type, src_val, src_reg = self.parse_operand(operands[0])
+                dst_type, dst_val, dst_reg = self.parse_operand(operands[1])
+
+                if dst_type == 'reg' and dst_reg:
+                    dst_anon = self.get_anonymous_reg(dst_reg)
+                    dst_expr = self.state.get(dst_anon, dst_anon)
+                    dst_expr_alt = self.state_alt.get(dst_anon, dst_expr)
+
+                    if src_type == 'imm':
+                        new_expr = f"({dst_expr} * {src_val})"
+                        new_expr_alt = f"({dst_expr_alt} * {src_val})"
+                        self.state[dst_anon] = new_expr
+                        self.state_alt[dst_anon] = new_expr_alt
+                        return f"{dst_anon} = {new_expr}"
+                    elif src_type == 'reg' and src_reg:
+                        src_anon = self.get_anonymous_reg(src_reg)
+                        src_expr = self.state.get(src_anon, src_anon)
+                        src_expr_alt = self.state_alt.get(src_anon, src_expr)
+                        new_expr = f"({dst_expr} * {src_expr})"
+                        new_expr_alt = f"({dst_expr_alt} * {src_expr_alt})"
+                        self.state[dst_anon] = new_expr
+                        self.state_alt[dst_anon] = new_expr_alt
+                        return f"{dst_anon} = {new_expr}"
+            elif len(operands) == 3:
+                # imul $imm, %src, %dst
+                imm_type, imm_val, _ = self.parse_operand(operands[0])
+                src_type, src_val, src_reg = self.parse_operand(operands[1])
+                dst_type, dst_val, dst_reg = self.parse_operand(operands[2])
+
+                if dst_type == 'reg' and dst_reg and imm_type == 'imm' and src_type == 'reg' and src_reg:
+                    dst_anon = self.get_anonymous_reg(dst_reg)
+                    src_anon = self.get_anonymous_reg(src_reg)
+                    src_expr = self.state.get(src_anon, src_anon)
+                    src_expr_alt = self.state_alt.get(src_anon, src_expr)
+                    new_expr = f"({src_expr} * {imm_val})"
+                    new_expr_alt = f"({src_expr_alt} * {imm_val})"
+                    self.state[dst_anon] = new_expr
+                    self.state_alt[dst_anon] = new_expr_alt
+                    return f"{dst_anon} = {new_expr}"
+
+        # CMOV*: cmovb/cmova/cmovge/cmovle/etc — conditional move
+        elif mnemonic_lower.startswith('cmov'):
+            if len(operands) == 2:
+                src_type, src_val, src_reg = self.parse_operand(operands[0])
+                dst_type, dst_val, dst_reg = self.parse_operand(operands[1])
+
+                if dst_type == 'reg' and dst_reg:
+                    dst_anon = self.get_anonymous_reg(dst_reg)
+                    dst_expr = self.state.get(dst_anon, dst_anon)
+                    dst_expr_alt = self.state_alt.get(dst_anon, dst_expr)
+
+                    if src_type == 'reg' and src_reg:
+                        src_anon = self.get_anonymous_reg(src_reg)
+                        src_expr = self.state.get(src_anon, src_anon)
+                        src_expr_alt = self.state_alt.get(src_anon, src_expr)
+                        new_expr = f"cmov({src_expr}, {dst_expr})"
+                        new_expr_alt = f"cmov({src_expr_alt}, {dst_expr_alt})"
+                        self.state[dst_anon] = new_expr
+                        self.state_alt[dst_anon] = new_expr_alt
+                        return f"{dst_anon} = {new_expr}"
+                    elif src_type == 'imm':
+                        new_expr = f"cmov({src_val}, {dst_expr})"
+                        new_expr_alt = f"cmov({src_val}, {dst_expr_alt})"
+                        self.state[dst_anon] = new_expr
+                        self.state_alt[dst_anon] = new_expr_alt
+                        return f"{dst_anon} = {new_expr}"
+                    elif src_type == 'mem':
+                        src_mem_expr = f"mem{src_val}"
+                        new_expr = f"cmov({src_mem_expr}, {dst_expr})"
+                        new_expr_alt = f"cmov({src_mem_expr}, {dst_expr_alt})"
+                        self.state[dst_anon] = new_expr
+                        self.state_alt[dst_anon] = new_expr_alt
+                        return f"{dst_anon} = {new_expr}"
+
         # MOVZBL: movzbl src, dst (zero-extend byte to long)
         elif mnemonic_lower == 'movzbl':
             if len(operands) == 2:
@@ -486,27 +606,38 @@ class SymbolicExecutor:
             if len(operands) == 2:
                 src_type, src_val, src_reg = self.parse_operand(operands[0])
                 dst_type, dst_val, dst_reg = self.parse_operand(operands[1])
-                
+
                 src_expr = None
                 if src_type == 'imm':
                     src_expr = src_val
                 elif src_type == 'reg' and src_reg:
                     src_anon = self.get_anonymous_reg(src_reg)
                     src_expr = self.state.get(src_anon, src_anon)
-                
+                elif src_type == 'mem':
+                    src_expr = f"mem{src_val}"
+
                 dst_expr = None
                 if dst_type == 'reg' and dst_reg:
                     dst_anon = self.get_anonymous_reg(dst_reg)
                     dst_expr = self.state.get(dst_anon, dst_anon)
-                
+                elif dst_type == 'mem':
+                    dst_expr = f"mem{dst_val}"
+
                 if src_expr and dst_expr:
                     return f"FLAGS = cmp({dst_expr}, {src_expr})"
         
         # Jumps and calls (no register modification)
-        elif mnemonic_lower in ['jae', 'jb', 'je', 'jne', 'ja', 'jbe', 'jl', 'jle', 'jg', 'jge', 'jmp', 'call']:
+        elif (mnemonic_lower in ['jmp', 'call', 'callq', 'ret', 'retq',
+                                  'jae', 'jb', 'je', 'jne', 'ja', 'jbe',
+                                  'jl', 'jle', 'jg', 'jge', 'jns', 'js',
+                                  'jo', 'jno', 'jp', 'jnp', 'jrcxz',
+                                  'jnae', 'jnb', 'jnbe', 'jnge', 'jnl',
+                                  'jnle', 'jng', 'jc', 'jnc', 'jz', 'jnz']
+              or mnemonic_lower.startswith('j')):
             if operands:
                 target = operands[0]
                 return f"{mnemonic.upper()} {target} (control flow)"
+            return f"{mnemonic.upper()} (control flow)"
         
         # Default: unknown instruction
         return f"{mnemonic} {', '.join(operands)} (not fully supported)"
@@ -538,7 +669,11 @@ class SymbolicExecutor:
         mnemonic_lower = mnemonic.lower()
         
         # Instructions that write to destination operand
-        if mnemonic_lower in ['mov', 'add', 'sub', 'and', 'or', 'xor', 'shl', 'shr', 'movzbl', 'sbb']:
+        if (mnemonic_lower in ['mov', 'movabs', 'add', 'sub', 'and', 'or', 'xor',
+                                'shl', 'shr', 'sar', 'sal', 'movzbl', 'movzwl',
+                                'movslq', 'movsbl', 'movsbq', 'movswl', 'movswq',
+                                'sbb', 'lea', 'imul']
+                or mnemonic_lower.startswith('cmov')):
             if len(operands) >= 2:
                 dst_type, dst_val, dst_reg = self.parse_operand(operands[-1])  # Last operand is usually destination
                 if dst_type == 'reg' and dst_reg:
@@ -569,7 +704,11 @@ class SymbolicExecutor:
         mnemonic_lower = mnemonic.lower()
         
         # For most instructions, source operands are read
-        if mnemonic_lower in ['mov', 'add', 'sub', 'and', 'or', 'xor', 'shl', 'shr', 'movzbl', 'sbb', 'cmp', 'test']:
+        if (mnemonic_lower in ['mov', 'movabs', 'add', 'sub', 'and', 'or', 'xor',
+                                'shl', 'shr', 'sar', 'sal', 'movzbl', 'movzwl',
+                                'movslq', 'movsbl', 'movsbq', 'movswl', 'movswq',
+                                'sbb', 'lea', 'imul', 'cmp', 'test']
+                or mnemonic_lower.startswith('cmov')):
             # All operands except the last (destination) are typically read
             for i in range(len(operands) - 1):
                 src_type, src_val, src_reg = self.parse_operand(operands[i])
@@ -672,8 +811,10 @@ def parse_basic_block(lines: List[str]) -> Tuple[Optional[str], Optional[str], L
             continue
         
         # Match instruction line: "  address:  bytes    mnemonic operands"
-        if re.match(r'^\s*(\[*\*\]\s*)?[0-9a-fA-F]+:', line):
-            instructions.append(line)
+        # Skip continuation lines that have only hex bytes and no mnemonic
+        if re.match(r'^\s*(?:\[\*\]\s*)?[0-9a-fA-F]+:', line):
+            if not re.match(r'^\s*(?:\[\*\]\s*)?[0-9a-fA-F]+:\s+[0-9a-f ]+\s*$', line):
+                instructions.append(line)
     
     return (function_name, lines_info, instructions)
 
@@ -2491,6 +2632,11 @@ def extract_all_basic_blocks_from_file(filepath: str) -> List[Dict]:
             if addr_match:
                 is_changed = addr_match.group(1) is not None
                 addr = addr_match.group(2)
+
+                # Skip continuation lines: only hex bytes after the address, no mnemonic
+                rest = stripped[addr_match.end():]
+                if re.match(r'^\s+[0-9a-f ]+\s*$', rest):
+                    continue
 
                 # First instruction
                 if current_bb['first_addr'] is None:

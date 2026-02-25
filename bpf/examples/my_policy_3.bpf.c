@@ -27,7 +27,7 @@ int BPF_KPROBE(io_cqring_wait_0x7c) {
 }
 
 // Kprobe 2: __do_sys_io_uring_enter+0x264
-// Candidates: 0x264,0x268,0x26a,0x271,0x272,0x275
+// Candidates: 0x264,0x268,0x26a,0x272,0x275
 // Relationship: IV = V
 SEC("kprobe/__do_sys_io_uring_enter+0x264")
 int BPF_KPROBE(__do_sys_io_uring_enter_0x264) {
