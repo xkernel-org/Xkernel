@@ -602,6 +602,47 @@ class SymbolicExecutor:
         self.used_regs.clear()
 
 
+def run_symbolic_exec_on_instructions(
+    instructions: List[str],
+) -> Tuple[List[Tuple[str, str, Dict[str, str], Dict[str, str]]], Dict[str, str]]:
+    """Run symbolic execution on a list of raw instruction strings from a BB file.
+
+    Each instruction may carry a leading ``[*]`` marker and an address prefix
+    (e.g. ``  [*] 227:  c1 e8 03  shr  $0x3,%eax``).  Those are stripped
+    before parsing so the SymbolicExecutor sees clean AT&T syntax.
+
+    Args:
+        instructions: Lines from ``bb['all_instructions']``.
+
+    Returns:
+        (states, anon_to_real) where
+        - states: list of (inst_line, address, state_dict, state_alt_dict)
+          representing the executor state *after* each instruction.
+        - anon_to_real: inverse of the executor's reg_map,
+          mapping anonymous register name (e.g. "r3") to the 64-bit real
+          register name (e.g. "rax").
+    """
+    executor = SymbolicExecutor()
+    states: List[Tuple[str, str, Dict[str, str], Dict[str, str]]] = []
+
+    for inst_line in instructions:
+        clean = re.sub(r'^\s*\[\*\]\s*', '', inst_line.strip())
+        parsed = executor.parse_instruction(clean)
+        address = ""
+        if parsed:
+            address, mnemonic, operands = parsed
+            executor.execute_instruction(mnemonic, operands)
+        states.append((
+            inst_line,
+            address,
+            dict(executor.get_all_expressions()),
+            dict(executor.get_all_expressions_alt()),
+        ))
+
+    anon_to_real: Dict[str, str] = {v: k for k, v in executor.reg_map.items()}
+    return states, anon_to_real
+
+
 def parse_basic_block(lines: List[str]) -> Tuple[Optional[str], Optional[str], List[str]]:
     """Parse a Basic Block from lines.
     Returns: (function_name, lines_info, instruction_lines)
@@ -1168,6 +1209,141 @@ def extract_immediate_values(inst_line: str) -> List[int]:
     return immediates
 
 
+def extract_varying_constant(
+    e1: str, e2: str, e3: str
+) -> Optional[Tuple[int, int, int]]:
+    """Extract the single numeric constant that varies across three symbolic expressions.
+
+    The three expressions are expected to share the same structure (same
+    operators, same anonymous-register names) but to embed different numeric
+    constants at exactly one position.  That position is the IV candidate.
+
+    Two cases are handled:
+
+    1. **Pure constants** – all three expressions are plain hex or decimal
+       integers (e.g. ``"0x3"``, ``"0x5"``, ``"0x7"``).  The values are
+       returned directly.
+
+    2. **Structured expressions with one varying constant** – e.g.
+       ``"(r2 >> 0x3)"``, ``"(r2 >> 0x2)"``, ``"(r2 >> 0x1)"``.
+       The expressions must normalise to the same template (all numeric
+       literals replaced by ``N``), and exactly one constant position must
+       differ across the three versions.
+
+    Args:
+        e1, e2, e3: Symbolic expression strings from the three BB versions.
+
+    Returns:
+        ``(c1, c2, c3)`` integer triple if exactly one varying constant is
+        found, ``None`` otherwise.
+    """
+    def try_parse_pure(e: str) -> Optional[int]:
+        s = e.strip()
+        try:
+            return int(s, 16) if (s.startswith('0x') or s.startswith('0X')) else int(s)
+        except ValueError:
+            return None
+
+    # Case 1: all three are pure numeric constants
+    c1, c2, c3 = try_parse_pure(e1), try_parse_pure(e2), try_parse_pure(e3)
+    if c1 is not None and c2 is not None and c3 is not None:
+        return (c1, c2, c3)
+
+    # Case 2: structured expressions – same template, one varying constant
+    # Extract all embedded numeric literals (hex before decimal to avoid
+    # partial matches; anonymous register numbers like 'r0' are not matched
+    # because the digit is preceded by a word character).
+    def extract_nums(e: str) -> List[int]:
+        nums = []
+        for m in re.finditer(r'0x[0-9a-fA-F]+|\b\d+\b', e):
+            s = m.group()
+            nums.append(int(s, 16) if s.startswith('0x') else int(s))
+        return nums
+
+    def normalize(e: str) -> str:
+        return re.sub(r'0x[0-9a-fA-F]+|\b\d+\b', 'N', e)
+
+    if normalize(e1) != normalize(e2) or normalize(e1) != normalize(e3):
+        return None  # different expression structure
+
+    n1, n2, n3 = extract_nums(e1), extract_nums(e2), extract_nums(e3)
+    if not n1 or len(n1) != len(n2) or len(n1) != len(n3):
+        return None
+
+    diffs = [
+        (n1[i], n2[i], n3[i])
+        for i in range(len(n1))
+        if not (n1[i] == n2[i] == n3[i])
+    ]
+    # Require exactly one varying position to unambiguously identify IV
+    return diffs[0] if len(diffs) == 1 else None
+
+
+def find_iv_from_symstates(
+    states_v1: List[Tuple],
+    states_v2: List[Tuple],
+    states_v3: List[Tuple],
+    v_values: Tuple[int, int, int],
+    anon_to_real: Dict[str, str],
+) -> Optional[Tuple[int, str, str, Tuple[int, int, int], Tuple[float, float]]]:
+    """Find IV by comparing symbolic execution states across three BB versions.
+
+    For each instruction step (0-indexed), iterates over all anonymous
+    registers whose expression differs between versions.  For each such
+    register, calls :func:`extract_varying_constant` to obtain the candidate
+    (iv1, iv2, iv3) triple, then checks whether those values fit a linear
+    relationship  ``IV = a * V + b``  with the supplied (V1, V2, V3).
+
+    The first matching (step, register) pair is returned so that the caller
+    can place the kprobe immediately after that step.
+
+    Args:
+        states_v1/v2/v3: Output of :func:`run_symbolic_exec_on_instructions`
+            for the three BB versions.
+        v_values: ``(V1, V2, V3)`` source-level constant values.
+        anon_to_real: Mapping from anonymous register name to 64-bit real
+            register name (from the v1 executor).
+
+    Returns:
+        ``(step_idx, anon_reg, real_reg, (iv1, iv2, iv3), (a, b))``
+        or ``None`` if no linearly-varying IV is found.
+    """
+    v1, v2, v3 = v_values
+    min_len = min(len(states_v1), len(states_v2), len(states_v3))
+
+    for i in range(min_len):
+        _, _, state1, _ = states_v1[i]
+        _, _, state2, _ = states_v2[i]
+        _, _, state3, _ = states_v3[i]
+
+        all_regs = set(state1.keys()) | set(state2.keys()) | set(state3.keys())
+
+        for reg in sorted(all_regs):
+            e1 = state1.get(reg, '')
+            e2 = state2.get(reg, '')
+            e3 = state3.get(reg, '')
+
+            if not e1 or not e2 or not e3:
+                continue
+            if e1 == e2 == e3:
+                continue  # unchanged across versions
+
+            consts = extract_varying_constant(e1, e2, e3)
+            if consts is None:
+                continue
+
+            iv1, iv2, iv3 = consts
+            if iv1 == iv2 == iv3:
+                continue  # constant does not actually vary
+
+            rel = find_linear_relationship([v1, v2, v3], [iv1, iv2, iv3])
+            if rel:
+                real_reg = anon_to_real.get(reg, reg)
+                return (i, reg, real_reg, (iv1, iv2, iv3), rel)
+
+    return None
+
+
 def find_linear_relationship(v_values: List[int], iv_values: List[int]) -> Optional[Tuple[float, float]]:
     """Find linear relationship IV = a * V + b.
     
@@ -1435,89 +1611,122 @@ def analyze_linear_relationship(prefix: str, v1_file: str, v2_file: str, v3_file
         func_name = bb1.get('function_name', 'unknown')
         print(f"\n--- Basic Block {bb_idx + 1}: {func_name} ---")
 
-        # Get immediate values from changed instructions
-        iv1 = bb1.get('immediate_value')
-        iv2 = bb2.get('immediate_value')
-        iv3 = bb3.get('immediate_value')
+        all_insts_v1 = bb1.get('all_instructions', [])
+        all_insts_v2 = bb2.get('all_instructions', [])
+        all_insts_v3 = bb3.get('all_instructions', [])
 
-        if iv1 is None or iv2 is None or iv3 is None:
-            print(f"  Skipping: missing immediate value (IV1={iv1}, IV2={iv2}, IV3={iv3})")
+        if not all_insts_v1 or not all_insts_v2 or not all_insts_v3:
+            print(f"  Skipping: empty instruction list in one or more versions")
             continue
 
-        print(f"  IV1={iv1} (0x{iv1:x}), IV2={iv2} (0x{iv2:x}), IV3={iv3} (0x{iv3:x})")
+        # Run symbolic execution on each version's BB instructions and
+        # compare the resulting states to find which register carries IV.
+        symstates_v1, anon_to_real_v1 = run_symbolic_exec_on_instructions(all_insts_v1)
+        symstates_v2, _ = run_symbolic_exec_on_instructions(all_insts_v2)
+        symstates_v3, _ = run_symbolic_exec_on_instructions(all_insts_v3)
 
-        iv_values = [iv1, iv2, iv3]
+        iv_result = find_iv_from_symstates(
+            symstates_v1, symstates_v2, symstates_v3,
+            (v1_src, v2_src, v3_src), anon_to_real_v1,
+        )
 
-        # Check linear relationship
-        relationship = find_linear_relationship(v_values, iv_values)
+        if iv_result is None:
+            print(f"  ✗ No linearly-varying IV found in symbolic states")
+            continue
 
-        if relationship:
-            a, b = relationship
-            found_any_relationship = True
+        step_idx, anon_reg, real_reg, (iv1, iv2, iv3), relationship = iv_result
+        a, b = relationship
+        found_any_relationship = True
 
-            # Format the relationship string
-            if abs(a - int(a)) < 0.001 and abs(b - int(b)) < 0.001:
-                a_int = int(a)
-                b_int = int(b)
-                if b_int == 0:
-                    rel_str = f"IV = {a_int} * V" if a_int != 1 else "IV = V"
-                    if a_int == -1:
-                        rel_str = "IV = -V"
-                elif a_int == 1:
-                    rel_str = f"IV = V + {b_int}"
-                elif a_int == -1:
-                    rel_str = f"IV = -V + {b_int}"
-                else:
-                    rel_str = f"IV = {a_int} * V + {b_int}"
+        print(f"  IV found at step {step_idx} (anon={anon_reg}, real={real_reg})")
+        print(f"  IV1={iv1}, IV2={iv2}, IV3={iv3}")
+
+        # Format the relationship string
+        if abs(a - int(a)) < 0.001 and abs(b - int(b)) < 0.001:
+            a_int = int(a)
+            b_int = int(b)
+            if b_int == 0:
+                rel_str = f"IV = {a_int} * V" if a_int != 1 else "IV = V"
+                if a_int == -1:
+                    rel_str = "IV = -V"
+            elif a_int == 1:
+                rel_str = f"IV = V + {b_int}"
+            elif a_int == -1:
+                rel_str = f"IV = -V + {b_int}"
             else:
-                rel_str = f"IV = {a:.6f} * V + {b:.6f}"
-
-            print(f"  ✓ Linear relationship found: {rel_str}")
-
-            # Verify
-            all_match = True
-            for v, iv in zip(v_values, iv_values):
-                expected = a * v + b
-                match = abs(expected - iv) < 0.01
-                if not match:
-                    all_match = False
-
-            if all_match:
-                print(f"  ✓ All values match")
-
-            # Extract target register from changed instruction
-            changed_inst = bb1.get('changed_instruction', '')
-            actual_reg_name = None
-
-            # Try to extract register from instruction like "mov $0x14,%ecx" or "shr $0x2,%r15d"
-            reg_match = re.search(r'%(\w+)\s*$', changed_inst)
-            if reg_match:
-                actual_reg_name = reg_match.group(1)
-
-            if not actual_reg_name:
-                print(f"  Warning: Could not determine target register")
-                continue
-
-            # Get kprobe offset
-            kprobe_offset = bb1.get('kprobe_addr_offset')
-            if kprobe_offset is None:
-                print(f"  Warning: Could not determine kprobe offset")
-                continue
-
-            # Collect kprobe info
-            generated_kprobes.append({
-                'bb_idx': bb_idx,
-                'function_name': func_name,
-                'relationship': relationship,
-                'rel_str': rel_str,
-                'actual_reg_name': actual_reg_name,
-                'kprobe_offset': kprobe_offset,
-                'candidate_offsets': bb1.get('candidate_offsets', [kprobe_offset]),
-                'changed_instruction': changed_inst,
-                'all_instructions': bb1.get('all_instructions', [])
-            })
+                rel_str = f"IV = {a_int} * V + {b_int}"
         else:
-            print(f"  ✗ No linear relationship found")
+            rel_str = f"IV = {a:.6f} * V + {b:.6f}"
+
+        print(f"  ✓ Linear relationship found: {rel_str}")
+
+        # Verify all three points satisfy the relationship
+        all_match = all(
+            abs(a * v + b - iv) < 0.01
+            for v, iv in zip([v1_src, v2_src, v3_src], [iv1, iv2, iv3])
+        )
+        if all_match:
+            print(f"  ✓ All values match")
+
+        # Determine the target register name with correct width.
+        # Use the instruction AT step_idx (the one that produced IV) since it
+        # contains the width-specific register name (e.g. "eax" not "rax").
+        actual_reg_name = None
+        if step_idx < len(all_insts_v1):
+            inst_at_step = re.sub(r'^\s*\[\*\]\s*', '', all_insts_v1[step_idx].strip())
+            rm = re.search(r'%(\w+)\s*$', inst_at_step)
+            if rm:
+                actual_reg_name = rm.group(1)
+        if not actual_reg_name:
+            # Fallback: use the 64-bit real register from symbolic execution
+            actual_reg_name = real_reg
+        if not actual_reg_name:
+            print(f"  Warning: Could not determine target register")
+            continue
+
+        # Compute kprobe offset and candidate window from step_idx.
+        # The kprobe attaches to the instruction at step_idx + 1 (the first
+        # instruction that will *read* the IV-carrying register), and the
+        # candidate window extends until the first such reader.
+        func_base = extract_function_base_from_bb_file(v1_file, func_name)
+        target_family = get_register_family(actual_reg_name)
+        kprobe_offset = None
+        candidate_offsets = []
+
+        for j in range(step_idx + 1, len(all_insts_v1)):
+            inst_j = all_insts_v1[j]
+            clean_j = re.sub(r'^\s*\[\*\]\s*', '', inst_j.strip())
+            addr_m = re.match(r'^\s*([0-9a-fA-F]+):', clean_j)
+            if addr_m:
+                raw_addr = int(addr_m.group(1), 16)
+                offset = (raw_addr - func_base) if func_base is not None else raw_addr
+                if kprobe_offset is None:
+                    kprobe_offset = offset
+                candidate_offsets.append(offset)
+                if instruction_reads_register(inst_j, target_family):
+                    break  # include this first reader, then stop
+
+        if kprobe_offset is None:
+            # Fallback to pre-computed value from extract_all_basic_blocks_from_file
+            kprobe_offset = bb1.get('kprobe_addr_offset')
+            candidate_offsets = bb1.get('candidate_offsets', [kprobe_offset] if kprobe_offset else [])
+
+        if kprobe_offset is None:
+            print(f"  Warning: Could not determine kprobe offset")
+            continue
+
+        changed_inst = bb1.get('changed_instruction', '')
+        generated_kprobes.append({
+            'bb_idx': bb_idx,
+            'function_name': func_name,
+            'relationship': relationship,
+            'rel_str': rel_str,
+            'actual_reg_name': actual_reg_name,
+            'kprobe_offset': kprobe_offset,
+            'candidate_offsets': candidate_offsets if candidate_offsets else [kprobe_offset],
+            'changed_instruction': changed_inst,
+            'all_instructions': all_insts_v1,
+        })
 
     if not found_any_relationship:
         print("\nError: No linear relationship found for any basic block")

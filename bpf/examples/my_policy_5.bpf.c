@@ -8,11 +8,11 @@
 #include "xkernel.bpf.h"
 #include "util.bpf.h"
 
-// Kprobe 1: __blk_mq_sched_dispatch_requests+0x58a
-// Candidates: 0x58a,0x58d,0x590
+// Kprobe 1: __blk_mq_sched_dispatch_requests+0x57c
+// Candidates: 0x57c,0x57f
 // Relationship: IV = V
-SEC("kprobe/__blk_mq_sched_dispatch_requests+0x58a")
-int BPF_KPROBE(__blk_mq_sched_dispatch_requests_0x58a) {
+SEC("kprobe/__blk_mq_sched_dispatch_requests+0x57c")
+int BPF_KPROBE(__blk_mq_sched_dispatch_requests_0x57c) {
     if (!transition_done(ctx)) {
         return 0;
     }
@@ -26,11 +26,11 @@ int BPF_KPROBE(__blk_mq_sched_dispatch_requests_0x58a) {
     return 0;
 }
 
-// Kprobe 2: __blk_mq_sched_dispatch_requests+0x5a8
-// Candidates: 0x5a8,0x5ab,0x5ae
+// Kprobe 2: __blk_mq_sched_dispatch_requests+0x5c9
+// Candidates: 0x5c9,0x5cc
 // Relationship: IV = V
-SEC("kprobe/__blk_mq_sched_dispatch_requests+0x5a8")
-int BPF_KPROBE(__blk_mq_sched_dispatch_requests_0x5a8) {
+SEC("kprobe/__blk_mq_sched_dispatch_requests+0x5c9")
+int BPF_KPROBE(__blk_mq_sched_dispatch_requests_0x5c9) {
     if (!transition_done(ctx)) {
         return 0;
     }

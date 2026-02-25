@@ -8,11 +8,11 @@
 #include "xkernel.bpf.h"
 #include "util.bpf.h"
 
-// Kprobe 1: blk_mq_dispatch_rq_list+0x390
-// Candidates: 0x390,0x393
+// Kprobe 1: blk_mq_dispatch_rq_list+0x406
+// Candidates: 0x406,0x409
 // Relationship: IV = V
-SEC("kprobe/blk_mq_dispatch_rq_list+0x390")
-int BPF_KPROBE(blk_mq_dispatch_rq_list_0x390) {
+SEC("kprobe/blk_mq_dispatch_rq_list+0x406")
+int BPF_KPROBE(blk_mq_dispatch_rq_list_0x406) {
     if (!transition_done(ctx)) {
         return 0;
     }
