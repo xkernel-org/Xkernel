@@ -1,45 +1,28 @@
 // SPDX-License-Identifier: GPL-2.0
-// Auto-generated for test group 5
+// Auto-generated X_TUNE policy for test group 5
 
-#include "vmlinux.h"
-#include <bpf/bpf_helpers.h>
-#include <bpf/bpf_tracing.h>
+#include "my_policy_5.internal.bpf.h"
 
-#include "xkernel.bpf.h"
-#include "util.bpf.h"
-
-// Kprobe 1: __blk_mq_sched_dispatch_requests+0x57c
+// Kprobe 1: __blk_mq_sched_dispatch_requests+0x57c (simple)
 // Candidates: 0x57c,0x57f
 // Relationship: IV = V
-SEC("kprobe/__blk_mq_sched_dispatch_requests+0x57c")
-int BPF_KPROBE(__blk_mq_sched_dispatch_requests_0x57c) {
-    if (!transition_done(ctx)) {
-        return 0;
-    }
+X_TUNE_0(__blk_mq_sched_dispatch_requests, "+0x57c") {
+    if (!x_transition_done(x_ctx)) return 0;
 
     // Get tunable value (V=3 originally)
     u64 val = 3; // TODO: Read from BPF map
-
-    // Apply: IV = V
-    BPF_SET_ESI(ctx, val);
-
+    x_set(x_ctx, val);
     return 0;
 }
 
-// Kprobe 2: __blk_mq_sched_dispatch_requests+0x5c9
+// Kprobe 2: __blk_mq_sched_dispatch_requests+0x5c9 (simple)
 // Candidates: 0x5c9,0x5cc
 // Relationship: IV = V
-SEC("kprobe/__blk_mq_sched_dispatch_requests+0x5c9")
-int BPF_KPROBE(__blk_mq_sched_dispatch_requests_0x5c9) {
-    if (!transition_done(ctx)) {
-        return 0;
-    }
+X_TUNE_1(__blk_mq_sched_dispatch_requests, "+0x5c9") {
+    if (!x_transition_done(x_ctx)) return 0;
 
     // Get tunable value (V=3 originally)
     u64 val = 3; // TODO: Read from BPF map
-
-    // Apply: IV = V
-    BPF_SET_ESI(ctx, val);
-
+    x_set(x_ctx, val);
     return 0;
 }

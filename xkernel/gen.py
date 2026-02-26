@@ -9,6 +9,7 @@ Replaces the old codegen/gen.sh.
 
 import os
 import re
+import shutil
 import subprocess
 import sys
 
@@ -90,15 +91,21 @@ def generate_bb_files():
 
     from xkernel.testcases import TESTCASES
 
+    # Use a dedicated subdirectory for BB files; clear it to avoid stale files
+    bb_dir = os.path.join(script_dir, 'bb_cache')
+    if os.path.exists(bb_dir):
+        shutil.rmtree(bb_dir)
+    os.makedirs(bb_dir)
+
     results = []
 
     for test_num, tc in enumerate(TESTCASES, 1):
         cmd1 = build_diff_command(tc.file, tc.original, tc.modified[0], tc.lines)
         cmd2 = build_diff_command(tc.file, tc.original, tc.modified[1], tc.lines)
 
-        v1_file = os.path.join(script_dir, f'{test_num}_bb_v1.txt')
-        v2_file = os.path.join(script_dir, f'{test_num}_bb_v2.txt')
-        v3_file = os.path.join(script_dir, f'{test_num}_bb_v3.txt')
+        v1_file = os.path.join(bb_dir, f'{test_num}_bb_v1.txt')
+        v2_file = os.path.join(bb_dir, f'{test_num}_bb_v2.txt')
+        v3_file = os.path.join(bb_dir, f'{test_num}_bb_v3.txt')
 
         print(f"Processing TEST GROUP {test_num}...")
         print(f"  Command 1: {' '.join(cmd1)}")

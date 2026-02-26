@@ -2188,8 +2188,8 @@ def show_kprobe_placement_from_bpf_file(
     the user can see exactly where each kprobe lands relative to the surrounding
     instructions.
     """
-    script_dir = os.path.join(project_root, 'xkernel')
-    bb_v1_file = os.path.join(script_dir, f'{const_id}_bb_v1.txt')
+    bb_dir = os.path.join(project_root, 'xkernel', 'bb_cache')
+    bb_v1_file = os.path.join(bb_dir, f'{const_id}_bb_v1.txt')
 
     if not os.path.exists(bb_v1_file) or not os.path.exists(bpf_c_path):
         return
@@ -3843,13 +3843,14 @@ def run_codegen():
         source_values[str(i)] = tc.values
         file_paths[str(i)] = tc.file
     
-    # Find all *_bb_v1.txt, *_bb_v2.txt, *_bb_v3.txt files
-    v1_files = sorted(glob.glob(os.path.join(script_dir, '*_bb_v1.txt')))
-    v2_files = sorted(glob.glob(os.path.join(script_dir, '*_bb_v2.txt')))
-    v3_files = sorted(glob.glob(os.path.join(script_dir, '*_bb_v3.txt')))
-    
+    # Find all *_bb_v1.txt, *_bb_v2.txt, *_bb_v3.txt files from bb_cache/
+    bb_dir = os.path.join(script_dir, 'bb_cache')
+    v1_files = sorted(glob.glob(os.path.join(bb_dir, '*_bb_v1.txt')))
+    v2_files = sorted(glob.glob(os.path.join(bb_dir, '*_bb_v2.txt')))
+    v3_files = sorted(glob.glob(os.path.join(bb_dir, '*_bb_v3.txt')))
+
     if not v1_files and not v2_files and not v3_files:
-        print(f"No *_bb_v1.txt, *_bb_v2.txt, or *_bb_v3.txt files found in {script_dir}")
+        print(f"No *_bb_v1.txt, *_bb_v2.txt, or *_bb_v3.txt files found in {bb_dir}")
         return
     
     # Group files by prefix (e.g., "1_bb_v1.txt", "1_bb_v2.txt", "1_bb_v3.txt" -> group "1")

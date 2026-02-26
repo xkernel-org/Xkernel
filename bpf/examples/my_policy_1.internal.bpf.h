@@ -9,18 +9,31 @@
 
 #include "xkernel.bpf.h"
 
-// SIE helper 0: memory store -> mem[rbx+0xa4] (4B)
+// Per-CPU input-save map for kprobe 0 (irreversible synthesis)
+struct {
+    __uint(type, BPF_MAP_TYPE_PERCPU_ARRAY);
+    __uint(max_entries, 1);
+    __type(key, __u32);
+    __type(value, __u64);
+} xk_save_0 SEC(".maps");
+
+// SIE helper 0: irreversible (shr) -> %eax
 static __always_inline void __sie_1_0(struct pt_regs *regs, u64 val) {
-    u64 addr = (u64)(regs->bx) + 0xa4;
-    __u32 new_val = (__u32)val;
-    bpf_probe_write_kernel((void *)addr, sizeof(new_val), &new_val);
+    __u32 key = 0;
+    __u64 *saved = bpf_map_lookup_elem(&xk_save_0, &key);
+    if (!saved) return;
+    u64 result = *saved >> val;
+    sie_write_kernel(&regs->ax, sizeof(regs->ax), &result);
 }
 
-// SIE helper 1: memory store -> mem[r14+0xa4] (4B)
-static __always_inline void __sie_1_1(struct pt_regs *regs, u64 val) {
-    u64 addr = (u64)(regs->r14) + 0xa4;
-    __u32 new_val = (__u32)val;
-    bpf_probe_write_kernel((void *)addr, sizeof(new_val), &new_val);
+// Save handler 0: cubictcp_acked+0x217 (fires BEFORE shr)
+SEC("kprobe/cubictcp_acked+0x217")
+int BPF_KPROBE(__xk_save_1_0_cubictcp_acked) {
+    if (!transition_done(ctx)) return 0;
+    __u32 key = 0;
+    __u64 val = BPF_RAX(ctx);
+    bpf_map_update_elem(&xk_save_0, &key, &val, BPF_ANY);
+    return 0;
 }
 
 #define X_TUNE_0(func_name, location_str) \
@@ -31,14 +44,5 @@ static __always_inline void __sie_1_1(struct pt_regs *regs, u64 val) {
         return __xk_policy_1_0(&__x_ctx, ctx); \
     } \
     static int __xk_policy_1_0(struct x_ctx *x_ctx, struct pt_regs *ctx)
-
-#define X_TUNE_1(func_name, location_str) \
-    static int __xk_policy_1_1(struct x_ctx *x_ctx, struct pt_regs *ctx); \
-    SEC("kprobe/" #func_name location_str) \
-    int BPF_KPROBE(__xk_1_1) { \
-        struct x_ctx __x_ctx = { .regs = ctx, .set_fn = &__sie_1_1 }; \
-        return __xk_policy_1_1(&__x_ctx, ctx); \
-    } \
-    static int __xk_policy_1_1(struct x_ctx *x_ctx, struct pt_regs *ctx)
 
 #endif // __MY_POLICY_1_INTERNAL_H__
