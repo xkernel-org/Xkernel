@@ -6,6 +6,7 @@ Reads res_*.txt files, parses Basic Blocks, and performs symbolic execution.
 
 import re
 import os
+import sys
 import glob
 import csv
 import json
@@ -1695,6 +1696,216 @@ def generate_insertion_instruction(target_type: str, target_name: str, a: float,
         return f"# To set {target_name} = {a:.6f} * {new_value_name} + {b:.6f} (non-integer, complex calculation needed)"
 
 
+def print_kprobe_placement(
+    all_insts: List[str],
+    func_name: str,
+    func_base: Optional[int],
+    kprobe_offset: int,
+    synthesis_type: str,
+    seed_offset: Optional[int],
+    seed_mnemonic: str,
+    actual_reg_name: str,
+):
+    """Print a visual representation of kprobe placement within the basic block.
+
+    For simple synthesis shows one kprobe marker (▶ SET) before the apply instruction.
+    For irreversible synthesis shows two markers:
+      ▶ SAVE — before the seed instruction (fires before seed modifies the register)
+      ▶ APPLY — before the next instruction (fires after seed has executed)
+    """
+    MNEMONIC_OP_DISPLAY = {
+        'shr': '>>', 'shl': '<<', 'sal': '<<', 'sar': '>>(signed)',
+        'imul': '*', 'mul': '*', 'and': '&',
+    }
+
+    # ANSI color helpers — only active when writing to a real terminal
+    use_color = sys.stdout.isatty()
+    def _c(code: str, text: str) -> str:
+        return f"\033[{code}m{text}\033[0m" if use_color else text
+
+    C_SAVE  = '1;33'   # bold yellow  — SAVE kprobe
+    C_APPLY = '1;32'   # bold green   — APPLY kprobe
+    C_SET   = '1;32'   # bold green   — SET kprobe
+    C_SEED  = '1;31'   # bold red     — ◀ seed tag
+    C_HEAD  = '1'      # bold         — section header
+    C_SEP   = '2'      # dim          — separator line
+
+    WIDTH = 64
+    print(f"\n  {_c(C_HEAD, f'Kprobe placement in {func_name}:')}")
+    print(f"  {_c(C_SEP, '─' * WIDTH)}")
+
+    for inst_line in all_insts:
+        is_seed = inst_line.strip().startswith('[*]')
+        clean = re.sub(r'^\s*\[\*\]\s*', '', inst_line.strip())
+
+        addr_m = re.match(r'^\s*([0-9a-fA-F]+):', clean)
+        if not addr_m:
+            continue
+        raw_addr = int(addr_m.group(1), 16)
+        offset = (raw_addr - func_base) if func_base is not None else raw_addr
+
+        # Emit kprobe markers BEFORE the instruction they attach to
+        if synthesis_type == 'irreversible' and seed_offset is not None and offset == seed_offset:
+            op = MNEMONIC_OP_DISPLAY.get(seed_mnemonic, '?')
+            msg = f"  ▶ SAVE  [{func_name}+0x{seed_offset:x}] — reads %{actual_reg_name} before {seed_mnemonic}"
+            print(_c(C_SAVE, msg))
+        if offset == kprobe_offset:
+            if synthesis_type == 'irreversible':
+                op = MNEMONIC_OP_DISPLAY.get(seed_mnemonic, '?')
+                msg = f"  ▶ APPLY [{func_name}+0x{kprobe_offset:x}] — sets %{actual_reg_name} = *saved {op} v"
+                print(_c(C_APPLY, msg))
+            else:
+                msg = f"  ▶ SET   [{func_name}+0x{kprobe_offset:x}] — sets %{actual_reg_name} = V_new"
+                print(_c(C_SET, msg))
+
+        seed_tag = _c(C_SEED, " ◀ seed") if is_seed else ""
+        print(f"    {clean}{seed_tag}")
+
+    print(f"  {_c(C_SEP, '─' * WIDTH)}")
+
+
+def parse_bpf_kprobes(bpf_c_path: str) -> List[Dict]:
+    """Parse kprobe entries from a generated BPF .c file.
+
+    Recognises three comment styles produced by generate_multi_kprobe_bpf_file:
+      // Kprobe Na: func+0xOFF (SAVE — fires before MNEMONIC executes)
+      // Kprobe Nb: func+0xOFF (APPLY — fires after MNEMONIC executes)
+      // Kprobe N:  func+0xOFF                 (simple synthesis)
+
+    Returns:
+        List of dicts with keys: bb_idx (1-based), func_name, kprobe_offset,
+        synthesis_type, seed_offset, seed_mnemonic, actual_reg_name.
+        Sorted by bb_idx.
+    """
+    if not os.path.exists(bpf_c_path):
+        return []
+    with open(bpf_c_path, 'r') as f:
+        lines = f.readlines()
+
+    irreversible: Dict[int, Dict] = {}   # bb_idx -> {save: ..., apply: ...}
+    simple: List[Dict] = []
+
+    for i, raw in enumerate(lines):
+        line = raw.strip()
+
+        # SAVE: // Kprobe Na: func+0xOFFSET (SAVE — fires before MNEMONIC executes)
+        m = re.match(
+            r'// Kprobe (\d+)a:\s+([^+]+)\+0x([0-9a-fA-F]+)\s+\(SAVE.*before\s+(\w+)\s+executes\)',
+            line)
+        if m:
+            bb_idx = int(m.group(1))
+            irreversible.setdefault(bb_idx, {})['save'] = {
+                'func_name': m.group(2),
+                'seed_offset': int(m.group(3), 16),
+                'seed_mnemonic': m.group(4),
+            }
+            continue
+
+        # APPLY: // Kprobe Nb: func+0xOFFSET (APPLY — fires after MNEMONIC executes)
+        m = re.match(
+            r'// Kprobe (\d+)b:\s+([^+]+)\+0x([0-9a-fA-F]+)\s+\(APPLY.*after\s+(\w+)\s+executes\)',
+            line)
+        if m:
+            bb_idx = int(m.group(1))
+            actual_reg = ''
+            for j in range(i + 1, min(i + 25, len(lines))):
+                rm = re.search(r'BPF_SET_(\w+)\(ctx', lines[j])
+                if rm:
+                    actual_reg = rm.group(1).lower()
+                    break
+            irreversible.setdefault(bb_idx, {})['apply'] = {
+                'func_name': m.group(2),
+                'kprobe_offset': int(m.group(3), 16),
+                'seed_mnemonic': m.group(4),
+                'actual_reg_name': actual_reg,
+            }
+            continue
+
+        # SIMPLE: // Kprobe N: func+0xOFFSET  (no letter suffix, no trailing parens)
+        m = re.match(r'// Kprobe (\d+):\s+([^+]+)\+0x([0-9a-fA-F]+)\s*$', line)
+        if m:
+            bb_idx = int(m.group(1))
+            actual_reg = ''
+            for j in range(i + 1, min(i + 25, len(lines))):
+                rm = re.search(r'BPF_SET_(\w+)\(ctx', lines[j])
+                if rm:
+                    actual_reg = rm.group(1).lower()
+                    break
+            simple.append({
+                'bb_idx': bb_idx,
+                'func_name': m.group(2),
+                'kprobe_offset': int(m.group(3), 16),
+                'synthesis_type': 'simple',
+                'seed_offset': None,
+                'seed_mnemonic': '',
+                'actual_reg_name': actual_reg,
+            })
+
+    # Merge irreversible save+apply pairs
+    result: List[Dict] = []
+    for bb_idx, grp in sorted(irreversible.items()):
+        save = grp.get('save', {})
+        apply = grp.get('apply', {})
+        if save and apply:
+            result.append({
+                'bb_idx': bb_idx,
+                'func_name': apply.get('func_name') or save.get('func_name', ''),
+                'kprobe_offset': apply['kprobe_offset'],
+                'seed_offset': save.get('seed_offset'),
+                'seed_mnemonic': save.get('seed_mnemonic', apply.get('seed_mnemonic', '')),
+                'actual_reg_name': apply.get('actual_reg_name', ''),
+                'synthesis_type': 'irreversible',
+            })
+    result.extend(simple)
+    result.sort(key=lambda x: x['bb_idx'])
+    return result
+
+
+def show_kprobe_placement_from_bpf_file(
+    const_id: str,
+    bpf_c_path: str,
+    project_root: str,
+):
+    """Print kprobe placement visualization for each kprobe in a BPF file.
+
+    Reads the cached BB v1 file for *const_id*, parses the kprobe comments from
+    *bpf_c_path*, then calls :func:`print_kprobe_placement` for each kprobe so
+    the user can see exactly where each kprobe lands relative to the surrounding
+    instructions.
+    """
+    script_dir = os.path.join(project_root, 'xkernel')
+    bb_v1_file = os.path.join(script_dir, f'{const_id}_bb_v1.txt')
+
+    if not os.path.exists(bb_v1_file) or not os.path.exists(bpf_c_path):
+        return
+
+    kprobes = parse_bpf_kprobes(bpf_c_path)
+    if not kprobes:
+        return
+
+    bbs = extract_all_basic_blocks_from_file(bb_v1_file)
+    if not bbs:
+        return
+
+    print(f"\n--- Kprobe Placement (ConstID {const_id}) ---")
+    for kp in kprobes:
+        bb_index = kp['bb_idx'] - 1   # comment uses 1-based index
+        if bb_index >= len(bbs):
+            continue
+        bb = bbs[bb_index]
+        func_name = kp['func_name']
+        func_base = extract_function_base_from_bb_file(bb_v1_file, func_name)
+        all_insts = bb.get('all_instructions', [])
+        if not all_insts:
+            continue
+        print_kprobe_placement(
+            all_insts, func_name, func_base,
+            kp['kprobe_offset'], kp['synthesis_type'],
+            kp.get('seed_offset'), kp['seed_mnemonic'],
+            kp['actual_reg_name'],
+        )
+
+
 def analyze_linear_relationship(prefix: str, v1_file: str, v2_file: str, v3_file: str,
                                 source_values: Dict[str, Tuple[int, int, int]],
                                 seq1: List[Tuple] = None, diff_v1_v2: List[Tuple] = None,
@@ -1830,6 +2041,33 @@ def analyze_linear_relationship(prefix: str, v1_file: str, v2_file: str, v3_file
         # instruction that will *read* the IV-carrying register), and the
         # candidate window extends until the first such reader.
         func_base = extract_function_base_from_bb_file(v1_file, func_name)
+
+        # Determine synthesis type from the seed instruction mnemonic.
+        # Irreversible operations (shr/shl/imul/etc.) destroy the input operand,
+        # so a single post-seed kprobe cannot reconstruct the result with a new V.
+        # Those require two kprobes: one BEFORE the seed to save the input register,
+        # and one AFTER (at kprobe_offset) to recompute using the saved input.
+        IRREVERSIBLE_BASE = {'shr', 'shl', 'sar', 'sal', 'imul', 'mul', 'and'}
+        synthesis_type = 'simple'
+        seed_offset = None
+        base_seed_mnemonic = ''
+        if step_idx < len(all_insts_v1):
+            seed_inst_line = all_insts_v1[step_idx]
+            clean_seed = re.sub(r'^\s*\[\*\]\s*', '', seed_inst_line.strip())
+            tab_pos = clean_seed.find('\t')
+            if tab_pos >= 0:
+                asm_part = clean_seed[tab_pos + 1:].strip()
+                seed_mnemonic_raw = asm_part.split()[0].lower() if asm_part else ''
+                base_seed_mnemonic = re.sub(r'[bwlq]$', '', seed_mnemonic_raw)
+                if base_seed_mnemonic in IRREVERSIBLE_BASE:
+                    synthesis_type = 'irreversible'
+            if synthesis_type == 'irreversible':
+                addr_m = re.match(r'^\s*([0-9a-fA-F]+):', clean_seed)
+                if addr_m:
+                    raw_seed = int(addr_m.group(1), 16)
+                    seed_offset = (raw_seed - func_base) if func_base is not None else raw_seed
+        print(f"  Synthesis type: {synthesis_type} (seed mnemonic: {base_seed_mnemonic or 'unknown'})")
+
         target_family = get_register_family(actual_reg_name)
         kprobe_offset = None
         candidate_offsets = []
@@ -1856,6 +2094,12 @@ def analyze_linear_relationship(prefix: str, v1_file: str, v2_file: str, v3_file
             print(f"  Warning: Could not determine kprobe offset")
             continue
 
+        print_kprobe_placement(
+            all_insts_v1, func_name, func_base,
+            kprobe_offset, synthesis_type, seed_offset,
+            base_seed_mnemonic, actual_reg_name,
+        )
+
         changed_inst = bb1.get('changed_instruction', '')
         generated_kprobes.append({
             'bb_idx': bb_idx,
@@ -1867,6 +2111,9 @@ def analyze_linear_relationship(prefix: str, v1_file: str, v2_file: str, v3_file
             'candidate_offsets': candidate_offsets if candidate_offsets else [kprobe_offset],
             'changed_instruction': changed_inst,
             'all_instructions': all_insts_v1,
+            'synthesis_type': synthesis_type,
+            'seed_offset': seed_offset,
+            'seed_mnemonic': base_seed_mnemonic,
         })
 
     if not found_any_relationship:
@@ -1976,15 +2223,41 @@ def generate_multi_kprobe_bpf_file(prefix: str, kprobes: List[Dict], v1_src: int
     reg_to_set_macro = {
         # 32-bit registers
         'eax': 'BPF_SET_EAX', 'ebx': 'BPF_SET_EBX', 'ecx': 'BPF_SET_ECX', 'edx': 'BPF_SET_EDX',
-        'esi': 'BPF_SET_ESI', 'edi': 'BPF_SET_EDI',
-        # Extended 32-bit
+        'esi': 'BPF_SET_ESI', 'edi': 'BPF_SET_EDI', 'ebp': 'BPF_SET_EBP',
+        # Extended 32-bit (use 64-bit set — same field in pt_regs)
         'r8d': 'BPF_SET_R8', 'r9d': 'BPF_SET_R9', 'r10d': 'BPF_SET_R10', 'r11d': 'BPF_SET_R11',
         'r12d': 'BPF_SET_R12', 'r13d': 'BPF_SET_R13', 'r14d': 'BPF_SET_R14', 'r15d': 'BPF_SET_R15',
         # 64-bit registers
         'rax': 'BPF_SET_RAX', 'rbx': 'BPF_SET_RBX', 'rcx': 'BPF_SET_RCX', 'rdx': 'BPF_SET_RDX',
-        'rsi': 'BPF_SET_RSI', 'rdi': 'BPF_SET_RDI',
+        'rsi': 'BPF_SET_RSI', 'rdi': 'BPF_SET_RDI', 'rbp': 'BPF_SET_RBP',
         'r8': 'BPF_SET_R8', 'r9': 'BPF_SET_R9', 'r10': 'BPF_SET_R10', 'r11': 'BPF_SET_R11',
         'r12': 'BPF_SET_R12', 'r13': 'BPF_SET_R13', 'r14': 'BPF_SET_R14', 'r15': 'BPF_SET_R15',
+    }
+
+    # Map target register to BPF GET macro (read before seed executes)
+    reg_to_get_macro = {
+        # 32-bit (read via 64-bit field — upper bits are zero-extended on x86-64)
+        'eax': 'BPF_RAX', 'ebx': 'BPF_RBX', 'ecx': 'BPF_RCX', 'edx': 'BPF_RDX',
+        'esi': 'BPF_RSI', 'edi': 'BPF_RDI', 'ebp': 'BPF_RBP',
+        'r8d': 'BPF_R8', 'r9d': 'BPF_R9', 'r10d': 'BPF_R10', 'r11d': 'BPF_R11',
+        'r12d': 'BPF_R12', 'r13d': 'BPF_R13', 'r14d': 'BPF_R14', 'r15d': 'BPF_R15',
+        # 64-bit
+        'rax': 'BPF_RAX', 'rbx': 'BPF_RBX', 'rcx': 'BPF_RCX', 'rdx': 'BPF_RDX',
+        'rsi': 'BPF_RSI', 'rdi': 'BPF_RDI', 'rbp': 'BPF_RBP',
+        'r8': 'BPF_R8', 'r9': 'BPF_R9', 'r10': 'BPF_R10', 'r11': 'BPF_R11',
+        'r12': 'BPF_R12', 'r13': 'BPF_R13', 'r14': 'BPF_R14', 'r15': 'BPF_R15',
+    }
+
+    # Map seed mnemonic to the C expression that recomputes result from saved input.
+    # 'v' is the new tunable value; '*saved' is the input register before the seed.
+    MNEMONIC_TO_OP = {
+        'shr':  '*saved >> v',
+        'shl':  '*saved << v',
+        'sal':  '*saved << v',
+        'sar':  '(u64)((s64)*saved >> v)',
+        'imul': '*saved * v',
+        'mul':  '*saved * v',
+        'and':  '*saved & v',
     }
 
     # Generate the BPF file with proper SEC/BPF_KPROBE format
@@ -2000,16 +2273,32 @@ def generate_multi_kprobe_bpf_file(prefix: str, kprobes: List[Dict], v1_src: int
     code_parts.append('#include "util.bpf.h"')
     code_parts.append('')
 
-    # Generate kprobe for each entry
+    # Emit per-CPU save maps for irreversible kprobes (one map per kprobe)
+    for i, kp in enumerate(kprobes):
+        if kp.get('synthesis_type') == 'irreversible' and kp.get('seed_offset') is not None:
+            code_parts.append(f'// Per-CPU input-save map for kprobe {i+1} (irreversible synthesis)')
+            code_parts.append(f'struct {{')
+            code_parts.append(f'    __uint(type, BPF_MAP_TYPE_PERCPU_ARRAY);')
+            code_parts.append(f'    __uint(max_entries, 1);')
+            code_parts.append(f'    __type(key, __u32);')
+            code_parts.append(f'    __type(value, __u64);')
+            code_parts.append(f'}} xk_save_{i} SEC(".maps");')
+            code_parts.append('')
+
+    # Generate kprobe handler(s) for each entry
     for i, kp in enumerate(kprobes):
         func_name = kp['function_name']
         offset = kp['kprobe_offset']
         a, b = kp['relationship']
         target_reg = kp['actual_reg_name']
+        synthesis_type = kp.get('synthesis_type', 'simple')
+        seed_offset = kp.get('seed_offset')
+        seed_mnemonic = kp.get('seed_mnemonic', '')
 
         set_macro = reg_to_set_macro.get(target_reg, f'BPF_SET_{target_reg.upper()}')
+        safe_func_name = func_name.replace('.', '_').replace('-', '_')
 
-        # Generate expression for new value
+        # Build the expression for the new register value (used for simple synthesis)
         if abs(a - int(a)) < 0.001 and abs(b - int(b)) < 0.001:
             a_int = int(a)
             b_int = int(b)
@@ -2029,30 +2318,75 @@ def generate_multi_kprobe_bpf_file(prefix: str, kprobes: List[Dict], v1_src: int
         else:
             expr = f"((u64)((val * {a:.6f}) + {b:.6f}))"
 
-        # Generate unique probe name (replace invalid chars in function name)
-        safe_func_name = func_name.replace('.', '_').replace('-', '_')
-        probe_name = f"{safe_func_name}_0x{offset:x}"
-
         candidates = kp.get('candidate_offsets', [offset])
         candidates_str = ','.join(f'0x{c:x}' for c in candidates)
-        code_parts.append(f'// Kprobe {i+1}: {func_name}+0x{offset:x}')
-        code_parts.append(f'// Candidates: {candidates_str}')
-        code_parts.append(f'// Relationship: {kp["rel_str"]}')
-        code_parts.append(f'SEC("kprobe/{func_name}+0x{offset:x}")')
-        code_parts.append(f'int BPF_KPROBE({probe_name}) {{')
-        code_parts.append(f'    if (!transition_done(ctx)) {{')
-        code_parts.append(f'        return 0;')
-        code_parts.append(f'    }}')
-        code_parts.append(f'')
-        code_parts.append(f'    // Get tunable value (V={v1_src} originally)')
-        code_parts.append(f'    u64 val = {v1_src}; // TODO: Read from BPF map')
-        code_parts.append(f'')
-        code_parts.append(f'    // Apply: {kp["rel_str"]}')
-        code_parts.append(f'    {set_macro}(ctx, {expr});')
-        code_parts.append(f'')
-        code_parts.append(f'    return 0;')
-        code_parts.append(f'}}')
-        code_parts.append('')
+
+        if synthesis_type == 'irreversible' and seed_offset is not None:
+            # --- Dual-kprobe: save handler + apply handler ---
+            get_macro = reg_to_get_macro.get(target_reg, f'BPF_R{target_reg.upper()}')
+            op_expr = MNEMONIC_TO_OP.get(seed_mnemonic, '*saved >> v')
+
+            save_probe_name = f"{safe_func_name}_0x{seed_offset:x}_save"
+            apply_probe_name = f"{safe_func_name}_0x{offset:x}"
+
+            # Save handler — fires BEFORE the seed instruction executes
+            code_parts.append(f'// Kprobe {i+1}a: {func_name}+0x{seed_offset:x} (SAVE — fires before {seed_mnemonic} executes)')
+            code_parts.append(f'SEC("kprobe/{func_name}+0x{seed_offset:x}")')
+            code_parts.append(f'int BPF_KPROBE({save_probe_name}) {{')
+            code_parts.append(f'    if (!transition_done(ctx)) {{')
+            code_parts.append(f'        return 0;')
+            code_parts.append(f'    }}')
+            code_parts.append(f'    __u32 key = 0;')
+            code_parts.append(f'    __u64 val = {get_macro}(ctx);')
+            code_parts.append(f'    bpf_map_update_elem(&xk_save_{i}, &key, &val, BPF_ANY);')
+            code_parts.append(f'    return 0;')
+            code_parts.append(f'}}')
+            code_parts.append('')
+
+            # Apply handler — fires at kprobe_offset (after seed has executed)
+            code_parts.append(f'// Kprobe {i+1}b: {func_name}+0x{offset:x} (APPLY — fires after {seed_mnemonic} executes)')
+            code_parts.append(f'// Candidates: {candidates_str}')
+            code_parts.append(f'// Relationship: {kp["rel_str"]}')
+            code_parts.append(f'SEC("kprobe/{func_name}+0x{offset:x}")')
+            code_parts.append(f'int BPF_KPROBE({apply_probe_name}) {{')
+            code_parts.append(f'    if (!transition_done(ctx)) {{')
+            code_parts.append(f'        return 0;')
+            code_parts.append(f'    }}')
+            code_parts.append(f'    __u32 key = 0;')
+            code_parts.append(f'    __u64 *saved = bpf_map_lookup_elem(&xk_save_{i}, &key);')
+            code_parts.append(f'    if (!saved) return 0;')
+            code_parts.append(f'')
+            code_parts.append(f'    // Get tunable value (V={v1_src} originally)')
+            code_parts.append(f'    u64 v = {v1_src}; // TODO: Read from BPF map')
+            code_parts.append(f'')
+            code_parts.append(f'    // Recompute: {seed_mnemonic} with new V — {kp["rel_str"]}')
+            code_parts.append(f'    u64 result = {op_expr};')
+            code_parts.append(f'    {set_macro}(ctx, result);')
+            code_parts.append(f'    return 0;')
+            code_parts.append(f'}}')
+            code_parts.append('')
+        else:
+            # --- Simple synthesis: single post-seed kprobe ---
+            probe_name = f"{safe_func_name}_0x{offset:x}"
+
+            code_parts.append(f'// Kprobe {i+1}: {func_name}+0x{offset:x}')
+            code_parts.append(f'// Candidates: {candidates_str}')
+            code_parts.append(f'// Relationship: {kp["rel_str"]}')
+            code_parts.append(f'SEC("kprobe/{func_name}+0x{offset:x}")')
+            code_parts.append(f'int BPF_KPROBE({probe_name}) {{')
+            code_parts.append(f'    if (!transition_done(ctx)) {{')
+            code_parts.append(f'        return 0;')
+            code_parts.append(f'    }}')
+            code_parts.append(f'')
+            code_parts.append(f'    // Get tunable value (V={v1_src} originally)')
+            code_parts.append(f'    u64 val = {v1_src}; // TODO: Read from BPF map')
+            code_parts.append(f'')
+            code_parts.append(f'    // Apply: {kp["rel_str"]}')
+            code_parts.append(f'    {set_macro}(ctx, {expr});')
+            code_parts.append(f'')
+            code_parts.append(f'    return 0;')
+            code_parts.append(f'}}')
+            code_parts.append('')
 
     bpf_code = '\n'.join(code_parts)
 

@@ -147,10 +147,24 @@
 #define BPF_R14(ctx) ((u64)(ctx->r14))
 #define BPF_R15(ctx) ((u64)(ctx->r15))
 
+#define BPF_R8(ctx)  ((u64)(ctx->r8))
+#define BPF_R9(ctx)  ((u64)(ctx->r9))
+#define BPF_R10(ctx) ((u64)(ctx->r10))
+#define BPF_R11(ctx) ((u64)(ctx->r11))
+
 #define BPF_SET_RAX(ctx, value) BPF_SET_REG_64(ctx, ax, value)
 #define BPF_SET_RBX(ctx, value) BPF_SET_REG_64(ctx, bx, value)
 #define BPF_SET_RCX(ctx, value) BPF_SET_REG_64(ctx, cx, value)
 #define BPF_SET_RDX(ctx, value) BPF_SET_REG_64(ctx, dx, value)
+
+#define BPF_SET_RSI(ctx, value) BPF_SET_REG_64(ctx, si, value)
+#define BPF_SET_RDI(ctx, value) BPF_SET_REG_64(ctx, di, value)
+#define BPF_SET_RBP(ctx, value) BPF_SET_REG_64(ctx, bp, value)
+
+#define BPF_SET_R8(ctx, value)  BPF_SET_REG_64(ctx, r8, value)
+#define BPF_SET_R9(ctx, value)  BPF_SET_REG_64(ctx, r9, value)
+#define BPF_SET_R10(ctx, value) BPF_SET_REG_64(ctx, r10, value)
+#define BPF_SET_R11(ctx, value) BPF_SET_REG_64(ctx, r11, value)
 
 #define BPF_SET_R12(ctx, value) BPF_SET_REG_64(ctx, r12, value)
 #define BPF_SET_R13(ctx, value) BPF_SET_REG_64(ctx, r13, value)
@@ -178,6 +192,8 @@
 #define BPF_SET_ECX(ctx, value) BPF_SET_REG_32(ctx, cx, value)
 #define BPF_SET_EDX(ctx, value) BPF_SET_REG_32(ctx, dx, value)
 #define BPF_SET_ESI(ctx, value) BPF_SET_REG_32(ctx, si, value)
+#define BPF_SET_EDI(ctx, value) BPF_SET_REG_32(ctx, di, value)
+#define BPF_SET_EBP(ctx, value) BPF_SET_REG_32(ctx, bp, value)
 
 #define BPF_16BIT_MASK 0x0000ffff
 // 16-bit registers

@@ -423,6 +423,13 @@ def cmd_load(args):
     }
     save_runtime_state(state)
 
+    # Show kprobe placement visualization
+    try:
+        from xkernel.codegen import show_kprobe_placement_from_bpf_file
+        show_kprobe_placement_from_bpf_file(const_id, bpf_c, project_root)
+    except Exception:
+        pass
+
     print(f"\nConstID {const_id} loaded successfully (mode={mode_names[mode]}).")
 
 
