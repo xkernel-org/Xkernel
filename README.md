@@ -17,8 +17,10 @@ Linux contains hundreds of performance constants (`BLK_MAX_REQUEST_COUNT=128`, `
 | Mode | Name | Behavior |
 |------|------|----------|
 | 0 | Immediate | Takes effect instantly |
-| 1 | Per-task | Each thread transitions on next CS entry (stack walk check) |
-| 2 | Global | `stop_machine` + stack scan ensures all threads exit CS before activation |
+| 1 | Per-task | Each thread transitions when its stack exits the Safe Span (SS) |
+| 2 | Global | `stop_machine` + stack scan ensures all threads exit SS before activation |
+
+> **Note on Safe Span (SS)**: SS is the transitive data dependency slice from the Critical Span — it covers all instructions where constant-derived values are still live. Transition checking uses SS ranges to determine when a thread is safe. When SS is not explicitly specified (via `safe_spans` in testcases), CS ranges are used as a conservative approximation.
 
 ## Environment Setup
 
@@ -61,10 +63,16 @@ Testcase(
     original="BLK_MQ_RESOURCE_DELAY\t3",
     modified=["BLK_MQ_RESOURCE_DELAY\t5", "BLK_MQ_RESOURCE_DELAY\t7"],
     values=(3, 5, 7),
+    # Optional: manually specify Safe Span ranges for transition checking
+    safe_spans=[
+        ("blk_mq_dispatch_rq_list", "0x10", "0x90"),
+    ],
 )
 ```
 
 Each test case provides three values `(V1, V2, V3)`. The pipeline recompiles the kernel twice (`V1→V2`, `V1→V3`), diffs the binary, and uses symbolic execution to derive the transformation relationship.
+
+The optional `safe_spans` field specifies Safe Span (SS) ranges as `(function_name, start_offset, end_offset)` tuples. These ranges tell the consistency model where constant-derived values are still live. When omitted, CS ranges are used as a conservative approximation.
 
 ### 2. Build (full pipeline)
 
@@ -230,9 +238,11 @@ The codegen automatically detects and handles three synthesis patterns:
 ├── cs_table        ← Critical Span instruction sequences
 ├── cs_raw          ← Unresolved CS entries (function+offset)
 ├── cs              ← Resolved CS entries (function+address+offsets)
+├── ss_raw          ← Unresolved SS entries (function+offset)
+├── ss              ← Resolved SS entries (for transition checking)
 └── runtime_state   ← JSON: active ConstIDs, loaded modules
 
 /sys/fs/bpf/xkernel/<ConstID>/
 ├── progs/          ← Pinned BPF programs
-└── maps/           ← Pinned BPF maps (cs_map, task_storage, etc.)
+└── maps/           ← Pinned BPF maps (cs_map, ss_map, task_storage, etc.)
 ```

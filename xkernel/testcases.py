@@ -20,6 +20,7 @@ class Testcase:
     modified: list      # [V1->V2 replacement, V1->V3 replacement]
     values: tuple       # (V1, V2, V3)
     lines: str = None   # optional --lines filter
+    safe_spans: list = None  # [(func_name, "0xNN", "0xMM"), ...] manual SS ranges
 
 
 TESTCASES = [
@@ -30,6 +31,7 @@ TESTCASES = [
         original="ca->delay_min >> 3",
         modified=["ca->delay_min >> 2", "ca->delay_min >> 1"],
         values=(3, 2, 1),
+        safe_spans=[("cubictcp_acked", "0x210", "0x21a")]
     ),
     Testcase(
         name="BLK_MQ_RESOURCE_DELAY",
@@ -38,6 +40,7 @@ TESTCASES = [
         original="BLK_MQ_RESOURCE_DELAY\t3",
         modified=["BLK_MQ_RESOURCE_DELAY\t5", "BLK_MQ_RESOURCE_DELAY\t7"],
         values=(3, 5, 7),
+        safe_spans=[("blk_mq_dispatch_rq_list", "0x32d", "0x395")]
     ),
     Testcase(
         name="IO_LOCAL_TW_DEFAULT_MAX",
@@ -47,6 +50,8 @@ TESTCASES = [
         modified=["#define IO_LOCAL_TW_DEFAULT_MAX\t\t 32",
                   "#define IO_LOCAL_TW_DEFAULT_MAX\t\t 64"],
         values=(20, 32, 64),
+        safe_spans=[("io_run_task_work_sig", "0x4b", "0x6b"), ("io_uring_try_cancel_requests", "0x97b", "0x152"), 
+                    ("__do_sys_io_uring_enter", "0x24c", "0x2b9")]
     ),
     Testcase(
         name="tcp_recovery",

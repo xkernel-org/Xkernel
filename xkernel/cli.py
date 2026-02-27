@@ -15,6 +15,8 @@ import time
 SCOPE_TABLE = "/dev/shm/xkernel/scope_table"
 CS_RAW = "/dev/shm/xkernel/cs_raw"
 CS_FILE = "/dev/shm/xkernel/cs"
+SS_RAW = "/dev/shm/xkernel/ss_raw"
+SS_FILE = "/dev/shm/xkernel/ss"
 
 
 def get_project_root():
@@ -161,6 +163,71 @@ def generate_cs_file(const_ids_str):
         return False
 
 
+def generate_ss_file(const_ids_str):
+    """Generate SS file for specified ConstIDs.
+
+    Priority: testcases.py safe_spans > ss_raw > CS file fallback.
+
+    Args:
+        const_ids_str: Comma-separated ConstIDs
+    """
+    const_ids = set(const_ids_str.split(','))
+
+    # Clear existing SS file
+    with open(SS_FILE, 'w') as f:
+        pass
+
+    entries = []
+
+    # Priority 1: Check testcases.py safe_spans (authoritative source)
+    try:
+        from xkernel.testcases import TESTCASES
+        for i, tc in enumerate(TESTCASES, 1):
+            cid = str(i)
+            if cid in const_ids and tc.safe_spans:
+                for func_name, soff, eoff in tc.safe_spans:
+                    func_addr = resolve_func_addr(func_name)
+                    if func_addr:
+                        entries.append(f"{func_name},{func_addr},{soff},{eoff}")
+                    else:
+                        print(f"Warning: Could not resolve address for function {func_name} (SS)")
+                const_ids.discard(cid)  # handled, don't check ss_raw for this ID
+    except ImportError:
+        pass
+
+    # Priority 2: Fall back to ss_raw for ConstIDs without safe_spans
+    if const_ids and os.path.exists(SS_RAW):
+        with open(SS_RAW, 'r') as f:
+            header = f.readline()  # skip header
+            for line in f:
+                parts = line.strip().split('\t')
+                if len(parts) < 4:
+                    continue
+                cid, func_name, soff, eoff = parts[0], parts[1], parts[2], parts[3]
+                if cid in const_ids:
+                    func_addr = resolve_func_addr(func_name)
+                    if func_addr:
+                        entries.append(f"{func_name},{func_addr},{soff},{eoff}")
+                    else:
+                        print(f"Warning: Could not resolve address for function {func_name} (SS)")
+
+    # Priority 3: Fall back to CS file if no SS entries at all
+    if not entries and os.path.exists(CS_FILE):
+        with open(CS_FILE, 'r') as f:
+            entries = [l.strip() for l in f if l.strip()]
+        if entries:
+            print("SS: falling back to CS entries (no safe_spans or ss_raw data)")
+
+    if entries:
+        with open(SS_FILE, 'w') as f:
+            f.write('\n'.join(entries) + '\n')
+        print(f"Generated SS file: {SS_FILE}")
+        return True
+    else:
+        print("Warning: No SS entries generated")
+        return False
+
+
 def cmd_build(args):
     """Build pipeline: gen -> codegen -> compile."""
     project_root = get_project_root()
@@ -241,11 +308,186 @@ def resolve_constid_to_bpf(const_id, project_root):
     return full_path, bpf_file
 
 
+def _parse_kprobes_from_bpf_c(bpf_c_path):
+    """Parse X_TUNE kprobe entries from a generated BPF .c file's comments.
+
+    Returns list of dicts with keys: num, location, type, rel, role.
+    """
+    if not os.path.exists(bpf_c_path):
+        return []
+
+    with open(bpf_c_path, 'r') as f:
+        lines = f.readlines()
+
+    kprobes = []
+    i = 0
+    while i < len(lines):
+        line = lines[i].strip()
+        m = re.match(r'// Kprobe (\d+)[ab]?:\s+(.+?\+0x[0-9a-fA-F]+)(?:\s+\((.+?)\))?\s*$', line)
+        if m:
+            kp_num = m.group(1)
+            location = m.group(2)
+            kp_type = m.group(3) or 'simple'
+
+            if 'SAVE' in kp_type:
+                i += 1
+                continue
+            if 'APPLY' in kp_type:
+                kp_type = 'irreversible'
+
+            # Look ahead for // Relationship: line
+            rel = ''
+            for j in range(i + 1, min(i + 4, len(lines))):
+                rm = re.match(r'// Relationship:\s+(.+)', lines[j].strip())
+                if rm:
+                    rel = rm.group(1)
+                    break
+
+            kprobes.append({
+                'num': kp_num,
+                'location': location,
+                'type': kp_type,
+                'rel': rel,
+                'role': 'tune',
+            })
+        i += 1
+    return kprobes
+
+
+def _parse_kprobes_from_internal_header(internal_h_path):
+    """Parse SAVE kprobes from the internal .bpf.h header (irreversible synthesis).
+
+    Returns list of dicts with keys: location, comment, role.
+    """
+    if not os.path.exists(internal_h_path):
+        return []
+
+    with open(internal_h_path, 'r') as f:
+        lines = f.readlines()
+
+    kprobes = []
+    for i, raw in enumerate(lines):
+        line = raw.strip()
+        # Match: // Save handler N: func+0xOFFSET (fires BEFORE mnemonic)
+        m = re.match(r'// Save handler \d+:\s+(.+?\+0x[0-9a-fA-F]+)\s+\((.+?)\)', line)
+        if m:
+            kprobes.append({
+                'location': m.group(1),
+                'comment': m.group(2),
+                'role': 'save',
+            })
+    return kprobes
+
+
+def _parse_kprobes_from_cs_artifact(cs_artifact_path):
+    """Parse guard/unguard kprobes from cs_artifact.bpf.h.
+
+    Returns list of dicts with keys: location, role ('guard' or 'unguard').
+    """
+    if not os.path.exists(cs_artifact_path):
+        return []
+
+    with open(cs_artifact_path, 'r') as f:
+        lines = f.readlines()
+
+    kprobes = []
+    for i, raw in enumerate(lines):
+        line = raw.strip()
+        # Match comment lines: // Guard: func+0xOFF (SS entry) or // Unguard: func+0xOFF (SS exit)
+        m = re.match(r'// (Guard|Unguard):\s+(.+?\+0x[0-9a-fA-F]+)\s+\(SS (entry|exit)\)', line)
+        if m:
+            kprobes.append({
+                'location': m.group(2),
+                'role': m.group(1).lower(),  # 'guard' or 'unguard'
+            })
+    return kprobes
+
+
+def print_loaded_kprobes(const_id, bpf_c_path, mode):
+    """Print a visual summary of all attached BPF kprobes after loading.
+
+    Shows three categories:
+    1. X_TUNE kprobes (from .bpf.c) — the actual constant-tuning probes
+    2. SAVE kprobes (from .internal.bpf.h) — irreversible synthesis pre-save
+    3. Transition kprobes (from cs_artifact.bpf.h) — per-task/global transition handlers
+    """
+    mode_names = {0: 'Immediate', 1: 'Per-task', 2: 'Global'}
+    mode_name = mode_names.get(mode, str(mode))
+
+    # Collect kprobes from all sources
+    tune_kprobes = _parse_kprobes_from_bpf_c(bpf_c_path)
+
+    # Internal header: same dir, same prefix but .internal.bpf.h
+    internal_h = bpf_c_path.replace('.bpf.c', '.internal.bpf.h')
+    save_kprobes = _parse_kprobes_from_internal_header(internal_h)
+
+    # cs_artifact.bpf.h: in bpf/ directory
+    bpf_dir = os.path.dirname(os.path.dirname(bpf_c_path))  # bpf/examples/ -> bpf/
+    cs_artifact = os.path.join(bpf_dir, 'cs_artifact.bpf.h')
+    transition_kprobes = _parse_kprobes_from_cs_artifact(cs_artifact)
+
+    if not tune_kprobes and not save_kprobes and not transition_kprobes:
+        return
+
+    # ANSI helpers
+    DIM = '\033[2m'
+    BOLD = '\033[1m'
+    GREEN = '\033[32m'
+    YELLOW = '\033[33m'
+    CYAN = '\033[36m'
+    RST = '\033[0m'
+
+    W = 62
+
+    def box_line(content, pad_len):
+        return f"  {DIM}\u2502{RST} {content}{' ' * max(0, pad_len)}{DIM}\u2502{RST}"
+
+    print()
+    print(f"  {DIM}\u250c{'─' * W}\u2510{RST}")
+    title = f"Loaded Kprobes — ConstID {const_id} ({mode_name})"
+    print(box_line(f"{BOLD}{title}{RST}", W - 1 - len(title)))
+    print(f"  {DIM}\u251c{'─' * W}\u2524{RST}")
+
+    # Section: X_TUNE kprobes
+    items = []
+    for kp in tune_kprobes:
+        loc = f"kprobe/{kp['location']}"
+        detail = f"Type: {kp['type']}"
+        if kp['rel']:
+            detail += f"    Expr: {kp['rel']}"
+        items.append((f"{GREEN}\u25b6{RST} {loc}", detail))
+
+    # Section: SAVE kprobes (irreversible)
+    for kp in save_kprobes:
+        loc = f"kprobe/{kp['location']}"
+        items.append((f"{YELLOW}\u25c0{RST} {loc}", kp['comment']))
+
+    # Section: guard/unguard kprobes (transition)
+    for kp in transition_kprobes:
+        loc = f"kprobe/{kp['location']}"
+        role = kp.get('role', 'guard')
+        if role == 'guard':
+            items.append((f"{CYAN}\u25b7{RST} {loc}", "guard (SS entry)"))
+        else:
+            items.append((f"{CYAN}\u25c1{RST} {loc}", "unguard (SS exit)"))
+
+    for i, (loc_line, detail_line) in enumerate(items):
+        # loc_line contains ANSI codes, compute visible length
+        vis_loc = re.sub(r'\033\[[0-9;]*m', '', loc_line)
+        print(box_line(f" {loc_line}", W - 2 - len(vis_loc)))
+        print(box_line(f"   {DIM}{detail_line}{RST}", W - 4 - len(detail_line)))
+        if i < len(items) - 1:
+            print(box_line("", W - 1))
+
+    print(f"  {DIM}\u2514{'─' * W}\u2518{RST}")
+
+
 def cmd_load(args):
     """Load BPF kprobes for a single ConstID with per-ConstID lifecycle."""
     from xkernel.loader import (
         ensure_kfuncs_loaded, load_and_attach_per_constid,
-        load_critical_spans_for_constid, activate_constid,
+        load_critical_spans_for_constid, load_safe_spans_for_constid,
+        activate_constid,
         generate_cs_artifact_header, compile_single_bpf,
         get_runtime_state, save_runtime_state,
     )
@@ -287,14 +529,18 @@ def cmd_load(args):
         print(f"Error: BPF source not found for ConstID {const_id}")
         sys.exit(1)
 
-    # Step 1: Generate CS file for this ConstID
+    # Step 1: Generate CS and SS files for this ConstID
     print(f"Generating CS file for ConstID: {const_id}")
     generate_cs_file(const_id)
+    print(f"Generating SS file for ConstID: {const_id}")
+    generate_ss_file(const_id)
 
-    # Step 2: Generate cs_artifact and compile BPF
+    # Step 2: Generate cs_artifact (guard/unguard kprobes from SS ranges) and compile BPF
     bpf_dir = os.path.join(project_root, 'bpf')
     cs_artifact_path = os.path.join(bpf_dir, 'cs_artifact.bpf.h')
-    generate_cs_artifact_header(CS_FILE, cs_artifact_path)
+    # Use SS ranges for transition checking; fall back to CS if SS file doesn't exist
+    spans_file = SS_FILE if os.path.exists(SS_FILE) else CS_FILE
+    generate_cs_artifact_header(spans_file, cs_artifact_path)
 
     print("Compiling BPF files...")
     bpf_c = bpf_o_path.replace('.bpf.o', '.bpf.c')
@@ -330,8 +576,9 @@ def cmd_load(args):
         print(f"Failed to load kprobes for ConstID {const_id}.")
         sys.exit(ret)
 
-    # Step 6: Load critical spans
+    # Step 6: Load critical spans and safe spans
     load_critical_spans_for_constid(CS_FILE, const_id, map_info)
+    load_safe_spans_for_constid(SS_FILE, const_id, map_info)
 
     # Step 7: Mode 2 (Global) — load consistency module, wait, activate
     if mode == 2:
@@ -423,12 +670,8 @@ def cmd_load(args):
     }
     save_runtime_state(state)
 
-    # Show kprobe placement visualization
-    try:
-        from xkernel.codegen import show_kprobe_placement_from_bpf_file
-        show_kprobe_placement_from_bpf_file(const_id, bpf_c, project_root)
-    except Exception:
-        pass
+    # Show loaded kprobes summary
+    print_loaded_kprobes(const_id, bpf_c, mode)
 
     print(f"\nConstID {const_id} loaded successfully (mode={mode_names[mode]}).")
 

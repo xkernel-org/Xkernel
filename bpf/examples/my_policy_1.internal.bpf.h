@@ -8,6 +8,7 @@
 #include <bpf/bpf_tracing.h>
 
 #include "xkernel.bpf.h"
+#include "cs_artifact.bpf.h"
 
 // Per-CPU input-save map for kprobe 0 (irreversible synthesis)
 struct {

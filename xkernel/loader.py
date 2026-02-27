@@ -23,77 +23,85 @@ RUNTIME_STATE_PATH = "/dev/shm/xkernel/runtime_state"
 BPF_PIN_BASE = "/sys/fs/bpf/xkernel"
 
 
-def generate_cs_artifact_header(cs_path, output_path):
-    """Generate cs_artifact.bpf.h from critical spans file.
+def generate_cs_artifact_header(spans_path, output_path):
+    """Generate cs_artifact.bpf.h with guard/unguard kprobe pairs from span ranges.
+
+    Guard kprobe at SS entry (soff): per-task stack check / global refcount++
+    Unguard kprobe at SS exit (eoff): global refcount--
 
     Args:
-        cs_path: Path to CS file (format: function_name,address,soff,eoff per line)
+        spans_path: Path to spans file (format: function_name,address,soff,eoff per line)
         output_path: Path to write the BPF header
     """
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
-    if not os.path.exists(cs_path):
-        # Write empty header
+    empty_header = (
+        "// Empty cs_artifact.bpf.h - no spans defined\n"
+        "#ifndef __CS_ARTIFACT_BPF_H__\n"
+        "#define __CS_ARTIFACT_BPF_H__\n"
+        "#endif\n"
+    )
+
+    if not os.path.exists(spans_path):
         with open(output_path, 'w') as f:
-            f.write("// Empty cs_artifact.bpf.h - no critical spans defined\n")
-            f.write("#ifndef __CS_ARTIFACT_BPF_H__\n")
-            f.write("#define __CS_ARTIFACT_BPF_H__\n")
-            f.write("#endif\n")
-        print(f"CS file {cs_path} does not exist, created empty {output_path}",
+            f.write(empty_header)
+        print(f"Spans file {spans_path} does not exist, created empty {output_path}",
               file=sys.stderr)
         return
 
-    # Check if CS file has content
-    with open(cs_path, 'r') as f:
+    with open(spans_path, 'r') as f:
         lines = [l.strip() for l in f if l.strip()]
 
     if not lines:
         with open(output_path, 'w') as f:
-            f.write("// Empty cs_artifact.bpf.h - no critical spans defined\n")
-            f.write("#ifndef __CS_ARTIFACT_BPF_H__\n")
-            f.write("#define __CS_ARTIFACT_BPF_H__\n")
-            f.write("#endif\n")
-        print(f"CS file {cs_path} is empty, created empty {output_path}",
+            f.write(empty_header)
+        print(f"Spans file {spans_path} is empty, created empty {output_path}",
               file=sys.stderr)
         return
 
-    # Parse CS entries
-    cs_entries = []
+    # Parse span entries: funcname,0xaddr,soff,eoff
+    span_entries = []
     for line in lines:
         parts = line.split(',')
         if len(parts) < 4:
-            print(f"Malformed line in {cs_path}: {line}", file=sys.stderr)
+            print(f"Malformed line in {spans_path}: {line}", file=sys.stderr)
             continue
         func_name = parts[0]
         soff = int(parts[2], 16)
-        cs_entries.append((func_name, soff))
+        eoff = int(parts[3], 16)
+        span_entries.append((func_name, soff, eoff))
 
-    # Generate BPF header
+    # Generate BPF header with guard/unguard pairs
     with open(output_path, 'w') as f:
         f.write("#ifndef __CS_ARTIFACT_BPF_H__\n")
         f.write("#define __CS_ARTIFACT_BPF_H__\n\n")
-        f.write("#include <bpf/bpf_helpers.h>\n")
-        f.write("#include <bpf/bpf_tracing.h>\n\n")
         f.write('#include "xkernel.bpf.h"\n\n')
 
-        for func_name, soff in cs_entries:
-            if soff == 0:
-                sec_name = f"kprobe/{func_name}"
-                bpf_func_name = func_name
-            else:
-                sec_name = f"kprobe/{func_name}+0x{soff:x}"
-                bpf_func_name = f"{func_name}_{soff:x}"
+        for func_name, soff, eoff in span_entries:
+            # Guard kprobe at SS entry (soff)
+            guard_sec = f"kprobe/{func_name}+0x{soff:x}" if soff else f"kprobe/{func_name}"
+            guard_fn = f"__xk_guard_{func_name}_{soff:x}"
+            f.write(f'// Guard: {func_name}+0x{soff:x} (SS entry)\n')
+            f.write(f'SEC("{guard_sec}")\n')
+            f.write(f'int BPF_KPROBE({guard_fn}) {{\n')
+            f.write('    ss_guard_handler(ctx);\n')
+            f.write('    return 0;\n')
+            f.write('}\n\n')
 
-            f.write(f'SEC("{sec_name}")\n')
-            f.write(f'int BPF_KPROBE({bpf_func_name}) {{\n')
-            f.write('    per_task_transition_handler(ctx);\n')
+            # Unguard kprobe at SS exit (eoff)
+            unguard_sec = f"kprobe/{func_name}+0x{eoff:x}" if eoff else f"kprobe/{func_name}"
+            unguard_fn = f"__xk_unguard_{func_name}_{eoff:x}"
+            f.write(f'// Unguard: {func_name}+0x{eoff:x} (SS exit)\n')
+            f.write(f'SEC("{unguard_sec}")\n')
+            f.write(f'int BPF_KPROBE({unguard_fn}) {{\n')
+            f.write('    ss_unguard_handler(ctx);\n')
             f.write('    return 0;\n')
             f.write('}\n\n')
 
         f.write("#endif\n")
 
     file_size = os.path.getsize(output_path)
-    print(f"Generated {output_path} ({file_size} bytes, {len(cs_entries)} entries)",
+    print(f"Generated {output_path} ({file_size} bytes, {len(span_entries)} guard/unguard pairs)",
           file=sys.stderr)
 
 
@@ -802,6 +810,74 @@ def load_critical_spans_for_constid(cs_path, const_id, map_info):
               file=sys.stderr)
 
     print(f"Loaded {cs_len} critical spans for ConstID {const_id}", file=sys.stderr)
+    return 0
+
+
+def load_safe_spans_for_constid(ss_path, const_id, map_info):
+    """Load safe spans into BPF ss_map for a specific ConstID.
+
+    Uses map IDs to target the correct per-ConstID maps.
+    Falls back silently if ss_map is not present (backward compatible).
+
+    Args:
+        ss_path: Path to SS file (same format as CS file)
+        const_id: ConstID string
+        map_info: dict mapping map name to map ID.
+
+    Returns:
+        0 on success, non-zero on failure
+    """
+    if not os.path.exists(ss_path):
+        print(f"SS file not found: {ss_path}, skipping SS loading", file=sys.stderr)
+        return 0
+
+    with open(ss_path, 'r') as f:
+        lines = [l.strip() for l in f if l.strip()]
+
+    if not lines:
+        print("SS file is empty, skipping safe span loading", file=sys.stderr)
+        return 0
+
+    # Parse spans (same format as CS: function_name,function_address,soff,eoff)
+    spans = []
+    for line in lines:
+        parts = line.split(',')
+        if len(parts) < 4:
+            continue
+        func_addr = int(parts[1], 16)
+        soff = int(parts[2], 16)
+        eoff = int(parts[3], 16)
+        spans.append((func_addr + soff, func_addr + eoff))
+
+    spans.sort(key=lambda x: (x[0], -x[1]))
+
+    # Update ss_len via map ID
+    span_count = len(spans)
+    ss_len_id = map_info.get('.bss.ss_len')
+    if ss_len_id is not None:
+        key_hex = '00 00 00 00'
+        val_bytes = struct.pack('<I', span_count)
+        val_hex = ' '.join(f'{b:02x}' for b in val_bytes)
+        update_map_by_id(ss_len_id, key_hex, val_hex)
+    else:
+        print("Warning: .bss.ss_len map not found, skipping ss_len update",
+              file=sys.stderr)
+        return 0
+
+    # Update ss_map entries via map ID
+    ss_map_id = map_info.get('ss_map')
+    if ss_map_id is not None:
+        for i, (soff, eoff) in enumerate(spans):
+            key_bytes = struct.pack('<I', i)
+            key_hex = ' '.join(f'{b:02x}' for b in key_bytes)
+            val_bytes = struct.pack('<QQ', soff, eoff)
+            val_hex = ' '.join(f'{b:02x}' for b in val_bytes)
+            update_map_by_id(ss_map_id, key_hex, val_hex)
+    else:
+        print("Warning: ss_map not found, skipping ss_map update",
+              file=sys.stderr)
+
+    print(f"Loaded {span_count} safe spans for ConstID {const_id}", file=sys.stderr)
     return 0
 
 

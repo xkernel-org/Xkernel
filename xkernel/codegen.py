@@ -2136,10 +2136,11 @@ def parse_bpf_kprobes(bpf_c_path: str) -> List[Dict]:
             }
             continue
 
-        # SIMPLE: // Kprobe N: func+0xOFFSET  (no letter suffix, no trailing parens)
-        m = re.match(r'// Kprobe (\d+):\s+([^+]+)\+0x([0-9a-fA-F]+)\s*$', line)
+        # SIMPLE/MEMORY_STORE: // Kprobe N: func+0xOFFSET [optional (type)]
+        m = re.match(r'// Kprobe (\d+):\s+([^+]+)\+0x([0-9a-fA-F]+)(?:\s+\((\w+)\))?\s*$', line)
         if m:
             bb_idx = int(m.group(1))
+            synth_type = m.group(4) or 'simple'
             actual_reg = ''
             for j in range(i + 1, min(i + 25, len(lines))):
                 rm = re.search(r'BPF_SET_(\w+)\(ctx', lines[j])
@@ -2150,7 +2151,7 @@ def parse_bpf_kprobes(bpf_c_path: str) -> List[Dict]:
                 'bb_idx': bb_idx,
                 'func_name': m.group(2),
                 'kprobe_offset': int(m.group(3), 16),
-                'synthesis_type': 'simple',
+                'synthesis_type': synth_type,
                 'seed_offset': None,
                 'seed_mnemonic': '',
                 'actual_reg_name': actual_reg,
@@ -2578,19 +2579,7 @@ def analyze_linear_relationship(prefix: str, v1_file: str, v2_file: str, v3_file
 
             # Build SS info from first kprobe
             first_kp = generated_kprobes[0]
-            actual_reg_name = first_kp['actual_reg_name']
             rel_str = first_kp['rel_str']
-            if actual_reg_name:
-                expr_comment = rel_str.replace('IV', actual_reg_name).replace('V', 'val')
-                if ' = ' in expr_comment:
-                    rhs = expr_comment.split(' = ', 1)[1]
-                    ss_info = f"{actual_reg_name}={rhs}"
-                else:
-                    ss_info = f"{actual_reg_name}={expr_comment}"
-            else:
-                # Memory-store synthesis: no target register
-                mem_target = f"{first_kp.get('mem_base_reg', '?')}+0x{first_kp.get('mem_disp', 0):x}"
-                ss_info = f"mem({mem_target})={rel_str}"
 
             # Build candidates string: per-kprobe candidates separated by '|'
             candidates_parts = []
@@ -2605,7 +2594,6 @@ def analyze_linear_relationship(prefix: str, v1_file: str, v2_file: str, v3_file
                 val=v1_src,
                 expression=rel_str,
                 cs_indices=cs_indices,
-                ss_content=ss_info,
                 bpf_file=bpf_file_name,
                 status="ready",
                 candidates=candidates_str
@@ -2704,6 +2692,7 @@ def generate_multi_kprobe_bpf_file(prefix: str, kprobes: List[Dict], v1_src: int
     hdr.append('#include <bpf/bpf_tracing.h>')
     hdr.append('')
     hdr.append('#include "xkernel.bpf.h"')
+    hdr.append('#include "cs_artifact.bpf.h"')
     hdr.append('')
 
     # --- Per-CPU save maps (irreversible kprobes only) ---
@@ -2856,11 +2845,13 @@ SCOPE_TABLE_PATH = "/dev/shm/xkernel/scope_table"
 CS_TABLE_PATH = "/dev/shm/xkernel/cs_table"
 CS_RAW_PATH = "/dev/shm/xkernel/cs_raw"  # Raw CS data: ConstID,FunctionName,StartOffset,EndOffset
 SS_TABLE_PATH = "/dev/shm/xkernel/ss_table"
+SS_RAW_PATH = "/dev/shm/xkernel/ss_raw"  # Raw SS data: ConstID,FunctionName,StartOffset,EndOffset
 
 SCOPE_TABLE_HEADER = ["ConstID", "Val", "Expression", "CS_Index", "SS_Index", "BPF_File", "Status", "Candidates"]
 CS_TABLE_HEADER = ["Index", "CS_Content"]
 CS_RAW_HEADER = ["ConstID", "FunctionName", "StartOffset", "EndOffset"]
-SS_TABLE_HEADER = ["Index", "SS_Content"]
+SS_TABLE_HEADER = ["Index", "SS_Ranges"]
+SS_RAW_HEADER = ["ConstID", "FunctionName", "StartOffset", "EndOffset"]
 
 
 def init_table(table_path: str, header: List[str]):
@@ -2883,11 +2874,12 @@ def init_table(table_path: str, header: List[str]):
 
 
 def init_all_tables():
-    """Initialize all tables (Scope, CS, SS, CS_RAW) if they don't exist."""
+    """Initialize all tables (Scope, CS, SS, CS_RAW, SS_RAW) if they don't exist."""
     init_table(SCOPE_TABLE_PATH, SCOPE_TABLE_HEADER)
     init_table(CS_TABLE_PATH, CS_TABLE_HEADER)
     init_table(CS_RAW_PATH, CS_RAW_HEADER)
     init_table(SS_TABLE_PATH, SS_TABLE_HEADER)
+    init_table(SS_RAW_PATH, SS_RAW_HEADER)
 
 
 def get_or_add_cs_index(cs_content: str) -> int:
@@ -2933,17 +2925,21 @@ def get_or_add_cs_index(cs_content: str) -> int:
     return new_index
 
 
-def get_or_add_ss_index(ss_content: str) -> int:
+def get_or_add_ss_index(ss_ranges: str) -> int:
     """Get existing SS index or add new SS entry and return its index.
-    
+
+    SS (Safe Span) entries store address ranges, not symbolic expressions.
+    Each entry is semicolon-separated "func_name,soff,eoff" tuples.
+    Example: "blk_mq_dispatch_rq_list,0x10,0x90;blk_mq_do_dispatch_sched,0x20,0xa0"
+
     Args:
-        ss_content: SS content (symbolic state string)
-    
+        ss_ranges: Semicolon-separated address range string
+
     Returns:
         Index of the SS entry
     """
     init_table(SS_TABLE_PATH, SS_TABLE_HEADER)
-    
+
     # Read existing entries
     entries = []
     max_index = 0
@@ -2959,29 +2955,30 @@ def get_or_add_ss_index(ss_content: str) -> int:
                         entries.append((index, content))
                         max_index = max(max_index, index)
                         # Check if this content already exists
-                        if content == ss_content:
+                        if content == ss_ranges:
                             return index
-    
+
     # Add new entry
     new_index = max_index + 1
-    entries.append((new_index, ss_content))
-    
+    entries.append((new_index, ss_ranges))
+
     # Write back
     with open(SS_TABLE_PATH, 'w', newline='') as f:
         writer = csv.writer(f, delimiter='\t', lineterminator='\n')
         writer.writerow(SS_TABLE_HEADER)
         for index, content in sorted(entries):
             writer.writerow([index, content])
-    
+
     return new_index
 
 
 def clear_all_tables():
-    """Clear all table files (Scope, CS, CS_RAW, SS) and reinitialize with headers only."""
+    """Clear all table files (Scope, CS, CS_RAW, SS, SS_RAW) and reinitialize with headers only."""
     for table_path, header in [(SCOPE_TABLE_PATH, SCOPE_TABLE_HEADER),
                                (CS_TABLE_PATH, CS_TABLE_HEADER),
                                (CS_RAW_PATH, CS_RAW_HEADER),
-                               (SS_TABLE_PATH, SS_TABLE_HEADER)]:
+                               (SS_TABLE_PATH, SS_TABLE_HEADER),
+                               (SS_RAW_PATH, SS_RAW_HEADER)]:
         table_dir = os.path.dirname(table_path)
         if table_dir and not os.path.exists(table_dir):
             os.makedirs(table_dir, exist_ok=True)
@@ -3055,7 +3052,38 @@ def add_cs_raw_entry(const_id: str, function_name: str, soff: int, eoff: int):
         writer.writerow(new_entry)
 
 
-def add_scope_table_entry_multi_cs(const_id: str, val: int, expression: str, cs_indices: List[str], ss_content: str, bpf_file: str = "", status: str = "ready", candidates: str = ""):
+def add_ss_raw_entry(const_id: str, function_name: str, soff: str, eoff: str):
+    """Add a raw SS entry (function name and offsets for Safe Span).
+
+    Args:
+        const_id: Constant ID
+        function_name: Function name
+        soff: Start offset (hex string, e.g., "0x10")
+        eoff: End offset (hex string, e.g., "0x7a")
+    """
+    init_table(SS_RAW_PATH, SS_RAW_HEADER)
+
+    # Read existing entries to check for duplicates
+    existing_entries = []
+    if os.path.exists(SS_RAW_PATH):
+        with open(SS_RAW_PATH, 'r', newline='') as f:
+            reader = csv.reader(f, delimiter='\t')
+            header = next(reader, None)
+            if header:
+                existing_entries = list(reader)
+
+    for entry in existing_entries:
+        if (len(entry) >= 4 and entry[0] == const_id and entry[1] == function_name
+                and entry[2] == soff and entry[3] == eoff):
+            return
+
+    new_entry = [const_id, function_name, soff, eoff]
+    with open(SS_RAW_PATH, 'a', newline='') as f:
+        writer = csv.writer(f, delimiter='\t', lineterminator='\n')
+        writer.writerow(new_entry)
+
+
+def add_scope_table_entry_multi_cs(const_id: str, val: int, expression: str, cs_indices: List[str], bpf_file: str = "", status: str = "ready", candidates: str = ""):
     """Add a new entry to the Scope Table with multiple CS indices.
 
     Args:
@@ -3063,7 +3091,6 @@ def add_scope_table_entry_multi_cs(const_id: str, val: int, expression: str, cs_
         val: Source value V
         expression: Linear relationship expression (e.g., "IV = V" or "IV = a * V + b")
         cs_indices: List of CS index strings (will be joined with comma)
-        ss_content: SS content (symbolic state string) - currently not used
         bpf_file: BPF file name (e.g., "my_policy_1.bpf.o")
         status: Status of the entry (default: "ready")
         candidates: Candidate offsets string (e.g., "0x3a0,0x3a3|0x59a,0x59d,0x5a0")
@@ -3072,7 +3099,7 @@ def add_scope_table_entry_multi_cs(const_id: str, val: int, expression: str, cs_
 
     # Join CS indices with comma
     cs_index_str = ",".join(cs_indices)
-    # Temporarily not generating SS, use empty string for SS_Index
+    # SS_Index is populated later by _populate_ss_raw() after all CS entries are known
     ss_index = ""
 
     # Read existing entries to avoid duplicates
@@ -3112,7 +3139,7 @@ def add_scope_table_entry_multi_cs(const_id: str, val: int, expression: str, cs_
         writer.writerow(new_entry)
 
 
-def add_scope_table_entry(const_id: str, val: int, expression: str, cs_content: str, ss_content: str, bpf_file: str = "", status: str = "ready"):
+def add_scope_table_entry(const_id: str, val: int, expression: str, cs_content: str, bpf_file: str = "", status: str = "ready"):
     """Add a new entry to the Scope Table (single CS version).
 
     Args:
@@ -3120,14 +3147,13 @@ def add_scope_table_entry(const_id: str, val: int, expression: str, cs_content: 
         val: Source value V
         expression: Linear relationship expression (e.g., "IV = V" or "IV = a * V + b")
         cs_content: CS content (instruction string) - single instruction for one CS entry
-        ss_content: SS content (symbolic state string) - currently not used, set to empty string
         bpf_file: BPF file name (e.g., "my_policy_1.bpf.o")
         status: Status of the entry (default: "ready")
     """
     # Get or add CS index
     cs_index = get_or_add_cs_index(cs_content)
     # Use multi-CS version with single index
-    add_scope_table_entry_multi_cs(const_id, val, expression, [str(cs_index)], ss_content, bpf_file, status)
+    add_scope_table_entry_multi_cs(const_id, val, expression, [str(cs_index)], bpf_file, status)
 
 
 def extract_function_base_from_bb_file(filepath: str, function_name: str) -> Optional[int]:
@@ -3933,8 +3959,97 @@ def run_codegen():
                 diff_v1_v2_for_insertion = compare_expressions(seq_v1, seq_v2, "v1", "v2")
             
             file_path = file_paths.get(prefix)
-            analyze_linear_relationship(prefix, files['v1'], files['v2'], files['v3'], 
+            analyze_linear_relationship(prefix, files['v1'], files['v2'], files['v3'],
                                       source_values, seq_v1, diff_v1_v2_for_insertion, file_path, bpf_output_dir)
+
+    # Populate ss_raw: use manual safe_spans from testcases, or fall back to cs_raw
+    _populate_ss_raw(TESTCASES)
+
+
+def _populate_ss_raw(testcases):
+    """Populate ss_raw from testcase safe_spans or fall back to cs_raw entries.
+
+    Also populates ss_table with address ranges and updates scope_table SS_Index.
+    """
+    # Read existing cs_raw entries (grouped by ConstID)
+    cs_raw_by_id = {}
+    if os.path.exists(CS_RAW_PATH):
+        with open(CS_RAW_PATH, 'r', newline='') as f:
+            reader = csv.reader(f, delimiter='\t')
+            next(reader, None)  # skip header
+            for row in reader:
+                if len(row) >= 4:
+                    cs_raw_by_id.setdefault(row[0], []).append(row)
+
+    # Collect SS ranges per ConstID for ss_table population
+    ss_ranges_by_id = {}
+
+    for i, tc in enumerate(testcases, 1):
+        const_id = str(i)
+        if tc.safe_spans:
+            # Use manually specified SS ranges
+            for func_name, soff, eoff in tc.safe_spans:
+                add_ss_raw_entry(const_id, func_name, soff, eoff)
+            ss_ranges_by_id[const_id] = [
+                (func_name, soff, eoff) for func_name, soff, eoff in tc.safe_spans
+            ]
+            print(f"  ConstID {const_id}: wrote {len(tc.safe_spans)} manual SS entries")
+        elif const_id in cs_raw_by_id:
+            # Fallback: copy CS entries as SS (CS ⊆ SS)
+            ranges = []
+            for row in cs_raw_by_id[const_id]:
+                add_ss_raw_entry(const_id, row[1], row[2], row[3])
+                ranges.append((row[1], row[2], row[3]))
+            ss_ranges_by_id[const_id] = ranges
+            print(f"  ConstID {const_id}: copied {len(ranges)} CS entries as SS (no safe_spans specified)")
+        else:
+            print(f"  ConstID {const_id}: no CS entries and no safe_spans, skipping SS")
+
+    # Populate ss_table and update scope_table SS_Index
+    _update_scope_table_ss_index(ss_ranges_by_id)
+
+
+def _update_scope_table_ss_index(ss_ranges_by_id: dict):
+    """Populate ss_table with address ranges and update scope_table SS_Index.
+
+    Args:
+        ss_ranges_by_id: Dict mapping ConstID to list of (func_name, soff, eoff) tuples
+    """
+    if not ss_ranges_by_id:
+        return
+
+    # For each ConstID, build ss_ranges string and get/add ss_table index
+    ss_index_by_id = {}
+    for const_id, ranges in ss_ranges_by_id.items():
+        # Format: "func,soff,eoff;func2,soff2,eoff2"
+        ss_ranges_str = ";".join(f"{func},{soff},{eoff}" for func, soff, eoff in ranges)
+        ss_index = get_or_add_ss_index(ss_ranges_str)
+        ss_index_by_id[const_id] = str(ss_index)
+
+    # Update scope_table entries with SS_Index
+    if not os.path.exists(SCOPE_TABLE_PATH):
+        return
+
+    entries = []
+    with open(SCOPE_TABLE_PATH, 'r', newline='') as f:
+        reader = csv.reader(f, delimiter='\t')
+        header = next(reader, None)
+        if header:
+            entries = list(reader)
+
+    updated = False
+    for entry in entries:
+        if len(entry) >= 5:
+            const_id = entry[0]
+            if const_id in ss_index_by_id:
+                entry[4] = ss_index_by_id[const_id]
+                updated = True
+
+    if updated:
+        with open(SCOPE_TABLE_PATH, 'w', newline='') as f:
+            writer = csv.writer(f, delimiter='\t', lineterminator='\n')
+            writer.writerow(SCOPE_TABLE_HEADER)
+            writer.writerows(entries)
 
 
 def main():

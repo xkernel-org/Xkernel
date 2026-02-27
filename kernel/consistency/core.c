@@ -23,6 +23,7 @@ MODULE_AUTHOR("Zhongjie");
 MODULE_DESCRIPTION("A kernel module for Xkernel's consistency model");
 
 #define TARGET_FUNCTIONS_FILE "/dev/shm/xkernel/cs"
+#define SAFE_SPANS_FILE "/dev/shm/xkernel/ss"
 
 LIST_HEAD(xk_target_functions);
 
@@ -238,18 +239,16 @@ static int xk_check_stacks(void *data) {
   return 0;
 }
 
-static int xk_read_target_functions(void) {
+static int xk_read_spans_from_file(const char *filepath) {
   struct file *filp;
   loff_t pos = 0;
   char buf[256];
   ssize_t bytes;
   int ret = 0;
 
-  filp = filp_open(TARGET_FUNCTIONS_FILE, O_RDONLY, 0);
-  if (IS_ERR(filp)) {
-    pr_err("Failed to open %s\n", TARGET_FUNCTIONS_FILE);
-    return -1;
-  }
+  filp = filp_open(filepath, O_RDONLY, 0);
+  if (IS_ERR(filp))
+    return -ENOENT;
 
   // The use of set_fs/get_fs/KERNEL_DS is deprecated and not available in
   // recent kernels. kernel_read() as of 4.14+ does not require set_fs hack; use
@@ -310,7 +309,7 @@ static int xk_read_target_functions(void) {
     }
   }
   if (bytes < 0) {
-    pr_err("Error reading file %s: %zd\n", TARGET_FUNCTIONS_FILE, bytes);
+    pr_err("Error reading file %s: %zd\n", filepath, bytes);
     ret = -EIO;
   }
 
@@ -319,6 +318,34 @@ out:
 
   if (ret)
     return ret;
+
+  return 0;
+}
+
+/**
+ * xk_read_target_functions() - Read span ranges for stack checking.
+ *
+ * Tries Safe Span (SS) file first; falls back to Critical Span (CS) file
+ * if SS is not available. SS is the correct range for transition checking
+ * per the paper; CS is used as a conservative approximation when SS data
+ * has not been generated.
+ */
+static int xk_read_target_functions(void) {
+  int ret;
+
+  ret = xk_read_spans_from_file(SAFE_SPANS_FILE);
+  if (ret == 0) {
+    pr_info("Loaded safe spans from %s\n", SAFE_SPANS_FILE);
+    return 0;
+  }
+
+  /* SS file not found or empty — fall back to CS */
+  pr_info("SS file not available, falling back to CS file\n");
+  ret = xk_read_spans_from_file(TARGET_FUNCTIONS_FILE);
+  if (ret) {
+    pr_err("Failed to read target functions from %s\n", TARGET_FUNCTIONS_FILE);
+    return ret;
+  }
 
   return 0;
 }

@@ -77,9 +77,9 @@ SCOPE_TABLE_PATH = "/dev/shm/xkernel/scope_table"
 CS_TABLE_PATH = "/dev/shm/xkernel/cs_table"
 SS_TABLE_PATH = "/dev/shm/xkernel/ss_table"
 
-SCOPE_TABLE_HEADER = ["ConstID", "Val", "Expression", "CS_Index", "SS_Index", "BPF_File", "Status"]
+SCOPE_TABLE_HEADER = ["ConstID", "Val", "Expression", "CS_Index", "SS_Index", "BPF_File", "Status", "Candidates"]
 CS_TABLE_HEADER = ["Index", "CS_Content"]
-SS_TABLE_HEADER = ["Index", "SS_Content"]
+SS_TABLE_HEADER = ["Index", "SS_Ranges"]
 
 
 def read_cs_table() -> Dict[int, str]:
@@ -144,7 +144,7 @@ def read_scope_table() -> List[Dict[str, str]]:
         reader = csv.reader(f, delimiter='\t')
         next(reader, None)  # Skip header
         for row in reader:
-            if len(row) >= len(SCOPE_TABLE_HEADER):
+            if len(row) >= 7:  # At least 7 core columns (Candidates is optional)
                 cs_index = row[3].strip() if len(row) > 3 else ""
                 ss_index = row[4].strip() if len(row) > 4 else ""
                 
@@ -174,7 +174,8 @@ def read_scope_table() -> List[Dict[str, str]]:
                     'CS': cs_content,
                     'SS': ss_content,
                     'BPF_File': row[5].strip() if len(row) > 5 else "",
-                    'Status': row[6].strip() if len(row) > 6 else ""
+                    'Status': row[6].strip() if len(row) > 6 else "",
+                    'Candidates': row[7].strip() if len(row) > 7 else ""
                 })
     
     return entries
@@ -202,7 +203,8 @@ def write_scope_table(entries: List[Dict[str, str]]):
                 entry.get('CS_Index', ''),
                 entry.get('SS_Index', ''),
                 entry.get('BPF_File', ''),
-                entry.get('Status', '')
+                entry.get('Status', ''),
+                entry.get('Candidates', '')
             ])
 
 
@@ -428,7 +430,10 @@ def print_cs_table_pretty(cs_map: Dict[int, str], single_index: int = None):
 
 
 def print_ss_table_pretty(ss_map: Dict[int, str], single_index: int = None):
-    """Print SS Table entries in a beautiful format."""
+    """Print SS Table entries in a beautiful format.
+
+    SS entries contain address ranges in format: "func,soff,eoff;func2,soff2,eoff2"
+    """
     if not ss_map:
         print(colorize("  No entries found.", Colors.DIM))
         return
@@ -445,18 +450,25 @@ def print_ss_table_pretty(ss_map: Dict[int, str], single_index: int = None):
         # Print SS entry header
         print(colorize(f"  ╭─ ", Colors.DIM) + colorize(f"SS[{index}]", Colors.BOLD) + colorize(" ─" + "─" * 50, Colors.DIM))
 
-        # Try to parse the expression: "reg = expression"
-        match = re.match(r'^(\w+)\s*=\s*(.+)$', content)
-        if match:
-            reg = match.group(1)
-            expr = match.group(2)
-            prefix = colorize("  │  ", Colors.DIM)
-            print(f"{prefix}{colorize('target:', Colors.DIM)} {colorize(reg, Colors.BOLD)}")
-            print(f"{prefix}{colorize('expr:  ', Colors.DIM)} {expr}")
+        prefix = colorize("  │  ", Colors.DIM)
+
+        # Parse address ranges: "func,soff,eoff;func2,soff2,eoff2"
+        ranges = [r.strip() for r in content.split(';') if r.strip()]
+        if ranges and ',' in ranges[0]:
+            for r in ranges:
+                parts = r.split(',')
+                if len(parts) >= 3:
+                    func_name = parts[0]
+                    soff = parts[1]
+                    eoff = parts[2]
+                    print(f"{prefix}{colorize('func:', Colors.DIM)} {colorize(func_name, Colors.BOLD)}  "
+                          f"{colorize('range:', Colors.DIM)} [{soff} -> {eoff}]")
+                else:
+                    print(prefix + r)
         else:
-            # Truncate if too long
+            # Fallback for unrecognized format
             display = content if len(content) <= 70 else content[:67] + "..."
-            print(colorize(f"  │  ", Colors.DIM) + display)
+            print(prefix + display)
 
         print(colorize("  ╰" + "─" * 60, Colors.DIM))
 
@@ -568,7 +580,7 @@ Examples:
                 reader = csv.reader(f, delimiter='\t')
                 next(reader, None)  # Skip header
                 for row in reader:
-                    if len(row) >= len(SCOPE_TABLE_HEADER):
+                    if len(row) >= 7:  # At least 7 core columns (Candidates is optional)
                         entry = {
                             'ConstID': row[0].strip() if len(row) > 0 else "",
                             'Val': row[1].strip() if len(row) > 1 else "",
@@ -576,7 +588,8 @@ Examples:
                             'CS_Index': row[3].strip() if len(row) > 3 else "",
                             'SS_Index': row[4].strip() if len(row) > 4 else "",
                             'BPF_File': row[5].strip() if len(row) > 5 else "",
-                            'Status': row[6].strip() if len(row) > 6 else ""
+                            'Status': row[6].strip() if len(row) > 6 else "",
+                            'Candidates': row[7].strip() if len(row) > 7 else ""
                         }
                         # Apply filters
                         match = True
@@ -634,7 +647,7 @@ Examples:
                 reader = csv.reader(f, delimiter='\t')
                 next(reader, None)  # Skip header
                 for row in reader:
-                    if len(row) >= len(SCOPE_TABLE_HEADER):
+                    if len(row) >= 7:  # At least 7 core columns (Candidates is optional)
                         raw_entries.append({
                             'ConstID': row[0].strip() if len(row) > 0 else "",
                             'Val': row[1].strip() if len(row) > 1 else "",
@@ -642,7 +655,8 @@ Examples:
                             'CS_Index': row[3].strip() if len(row) > 3 else "",
                             'SS_Index': row[4].strip() if len(row) > 4 else "",
                             'BPF_File': row[5].strip() if len(row) > 5 else "",
-                            'Status': row[6].strip() if len(row) > 6 else ""
+                            'Status': row[6].strip() if len(row) > 6 else "",
+                            'Candidates': row[7].strip() if len(row) > 7 else ""
                         })
 
         print_section_header("SCOPE TABLE", SCOPE_TABLE_PATH, len(raw_entries), Colors.BLUE)
@@ -655,7 +669,7 @@ Examples:
 
         # Show SS Table
         ss_map = read_ss_table()
-        print_section_header("SYMBOLIC STATE TABLE", SS_TABLE_PATH, len(ss_map), Colors.MAGENTA)
+        print_section_header("SAFE SPAN TABLE", SS_TABLE_PATH, len(ss_map), Colors.MAGENTA)
         print_ss_table_pretty(ss_map)
 
         print()
@@ -678,7 +692,7 @@ Examples:
             print_ss_table_pretty(ss_map, single_index=args.index)
             print()
         else:
-            print_section_header("SYMBOLIC STATE TABLE", SS_TABLE_PATH, len(ss_map), Colors.MAGENTA)
+            print_section_header("SAFE SPAN TABLE", SS_TABLE_PATH, len(ss_map), Colors.MAGENTA)
             print_ss_table_pretty(ss_map)
             print()
     

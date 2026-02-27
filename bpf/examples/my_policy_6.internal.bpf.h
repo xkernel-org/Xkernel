@@ -8,6 +8,7 @@
 #include <bpf/bpf_tracing.h>
 
 #include "xkernel.bpf.h"
+#include "cs_artifact.bpf.h"
 
 // SIE helper 0: memory store -> mem[rbx+0xa4] (4B)
 static __always_inline void __sie_6_0(struct pt_regs *regs, u64 val) {
