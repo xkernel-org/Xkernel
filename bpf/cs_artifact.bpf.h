@@ -3,44 +3,30 @@
 
 #include "xkernel.bpf.h"
 
-// Guard: io_run_task_work_sig+0x4b (SS entry)
-SEC("kprobe/io_run_task_work_sig+0x4b")
-int BPF_KPROBE(__xk_guard_io_run_task_work_sig_4b) {
+// Guard: __blk_mq_sched_dispatch_requests+0x587 (SS entry)
+SEC("kprobe/__blk_mq_sched_dispatch_requests+0x587")
+int BPF_KPROBE(__xk_guard___blk_mq_sched_dispatch_requests_587) {
     ss_guard_handler(ctx);
     return 0;
 }
 
-// Unguard: io_run_task_work_sig+0x6b (SS exit)
-SEC("kprobe/io_run_task_work_sig+0x6b")
-int BPF_KPROBE(__xk_unguard_io_run_task_work_sig_6b) {
+// Unguard: __blk_mq_sched_dispatch_requests+0x58f (SS exit)
+SEC("kprobe/__blk_mq_sched_dispatch_requests+0x58f")
+int BPF_KPROBE(__xk_unguard___blk_mq_sched_dispatch_requests_58f) {
     ss_unguard_handler(ctx);
     return 0;
 }
 
-// Guard: io_uring_try_cancel_requests+0x97b (SS entry)
-SEC("kprobe/io_uring_try_cancel_requests+0x97b")
-int BPF_KPROBE(__xk_guard_io_uring_try_cancel_requests_97b) {
+// Guard: __blk_mq_sched_dispatch_requests+0x5d4 (SS entry)
+SEC("kprobe/__blk_mq_sched_dispatch_requests+0x5d4")
+int BPF_KPROBE(__xk_guard___blk_mq_sched_dispatch_requests_5d4) {
     ss_guard_handler(ctx);
     return 0;
 }
 
-// Unguard: io_uring_try_cancel_requests+0x152 (SS exit)
-SEC("kprobe/io_uring_try_cancel_requests+0x152")
-int BPF_KPROBE(__xk_unguard_io_uring_try_cancel_requests_152) {
-    ss_unguard_handler(ctx);
-    return 0;
-}
-
-// Guard: __do_sys_io_uring_enter+0x24c (SS entry)
-SEC("kprobe/__do_sys_io_uring_enter+0x24c")
-int BPF_KPROBE(__xk_guard___do_sys_io_uring_enter_24c) {
-    ss_guard_handler(ctx);
-    return 0;
-}
-
-// Unguard: __do_sys_io_uring_enter+0x2b9 (SS exit)
-SEC("kprobe/__do_sys_io_uring_enter+0x2b9")
-int BPF_KPROBE(__xk_unguard___do_sys_io_uring_enter_2b9) {
+// Unguard: __blk_mq_sched_dispatch_requests+0x5dc (SS exit)
+SEC("kprobe/__blk_mq_sched_dispatch_requests+0x5dc")
+int BPF_KPROBE(__xk_unguard___blk_mq_sched_dispatch_requests_5dc) {
     ss_unguard_handler(ctx);
     return 0;
 }

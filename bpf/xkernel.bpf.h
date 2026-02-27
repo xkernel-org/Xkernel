@@ -38,12 +38,6 @@ int xk_mode = 0;
 SEC(".bss.xk_active")
 int xk_active = 0;
 
-// Global refcount: number of threads currently inside a Safe Span.
-// Used by global consistency mode (mode 2) for self-convergent transition.
-// Initialized by stop_machine stack scan, maintained by guard/unguard kprobes.
-SEC(".bss.ss_refcount")
-__s64 ss_refcount = 0;
-
 struct {
     __uint(type, BPF_MAP_TYPE_ARRAY);
     __uint(max_entries, MAX_CS);
@@ -222,24 +216,18 @@ static __always_inline void per_task_transition_handler(struct pt_regs *ctx) {
 
 // Guard handler: placed at SS entry (soff).
 // Per-task mode: check callstack to determine if thread is safe.
-// Global mode: atomically increment refcount (thread entering SS).
+// Global mode: no-op (kernel module handles refcount via its own kprobes).
 static __always_inline void ss_guard_handler(struct pt_regs *ctx) {
-    int mode = xk_mode;
-    if (mode == 1) {
+    if (xk_mode == 1) {
         per_task_transition_handler(ctx);
-    } else if (mode == 2) {
-        __sync_fetch_and_add(&ss_refcount, 1);
     }
 }
 
 // Unguard handler: placed at SS exit (eoff).
-// Global mode: atomically decrement refcount (thread leaving SS).
 // Per-task mode: no-op (transition checked at entry via stack walk).
+// Global mode: no-op (kernel module handles refcount via its own kprobes).
 static __always_inline void ss_unguard_handler(struct pt_regs *ctx) {
-    int mode = xk_mode;
-    if (mode == 2) {
-        __sync_fetch_and_add(&ss_refcount, -1);
-    }
+    (void)ctx;
 }
 
 static __always_inline bool per_task_transition_done(struct pt_regs *ctx) {

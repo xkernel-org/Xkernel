@@ -12,7 +12,6 @@
 #include <linux/stop_machine.h>
 #include <linux/uaccess.h>
 #include <linux/version.h>
-#include <net/sock.h>
 
 #include "kprobe.h"
 
@@ -46,91 +45,6 @@ ktime_t end = 0;
 atomic_t xk_global_refcount = ATOMIC_INIT(0);
 static enum xkernel_state xk_state = XK_FLAGS_PENDING;
 
-#define REF_HASH_BITS 8
-static DEFINE_SPINLOCK(ref_hash_lock);
-static DEFINE_HASHTABLE(ref_hash_table, REF_HASH_BITS);
-static atomic_t ref_hash_size = ATOMIC_INIT(0);
-
-// xk-kfuncs.ko
-extern int kMode;
-extern bool ir_kprobes_on;
-
-void ref_hash_spinlock(unsigned long flags) {
-  spin_lock_irqsave(&ref_hash_lock, flags);
-}
-
-void ref_hash_spinunlock(unsigned long flags) {
-  spin_unlock_irqrestore(&ref_hash_lock, flags);
-}
-
-// This function must be called under the ref_hash_lock lock.
-struct xk_refcount *find_or_alloc_refcount(pid_t pid) {
-  struct xk_refcount *ref;
-
-  int bucket = hash_32(pid, REF_HASH_BITS);
-  struct hlist_node *tmp;
-  hlist_for_each_entry_safe(ref, tmp, &ref_hash_table[bucket], node) {
-    if (ref->pid == pid) {
-      return ref;
-    }
-  }
-
-  ref = kmalloc(sizeof(*ref), GFP_ATOMIC);
-  if (!ref) {
-    return NULL;
-  }
-
-  ref->pid = pid;
-  atomic_set(&ref->refcount, 0);
-  ref->start = 0;
-  hlist_add_head(&ref->node, &ref_hash_table[bucket]);
-  atomic_inc(&ref_hash_size);
-
-  return ref;
-}
-
-struct xk_refcount *find_or_fail_refcount(pid_t pid) {
-  struct xk_refcount *ref;
-
-  int bucket = hash_32(pid, REF_HASH_BITS);
-  struct hlist_node *tmp;
-  hlist_for_each_entry_safe(ref, tmp, &ref_hash_table[bucket], node) {
-    if (ref->pid == pid) {
-      return ref;
-    }
-  }
-  return NULL;
-}
-
-void free_refcount(struct xk_refcount *ref) {
-  if (ref) {
-    hlist_del(&ref->node);
-    kfree(ref);
-    atomic_dec(&ref_hash_size);
-    if (ref_get_hash_size() == 0) {
-      pr_info("All refcounts have been freed: %lld us\n", ktime_to_us(ktime_sub(ktime_get(), start)));
-    }
-  }
-}
-
-// This function must be called under the ref_hash_lock lock.
-void find_and_free_refcount(pid_t pid) {
-  struct xk_refcount *ref;
-  struct hlist_node *tmp;
-
-  int bucket = hash_32(pid, REF_HASH_BITS);
-
-  hlist_for_each_entry_safe(ref, tmp, &ref_hash_table[bucket], node) {
-    if (ref->pid == pid) {
-      hlist_del(&ref->node);
-      kfree(ref);
-      break;
-    }
-  }
-}
-
-size_t ref_get_hash_size(void) { return atomic_read(&ref_hash_size); }
-
 static inline void set_xk_state(enum xkernel_state state) {
   WRITE_ONCE(xk_state, state);
 }
@@ -138,11 +52,6 @@ static inline void set_xk_state(enum xkernel_state state) {
 static inline enum xkernel_state get_xk_state(void) {
   return READ_ONCE(xk_state);
 }
-
-// Global
-void xk_enable_ir_kprobes(void) { WRITE_ONCE(ir_kprobes_on, true); }
-void xk_disable_ir_kprobes(void) { WRITE_ONCE(ir_kprobes_on, false); }
-bool xk_is_ir_kprobes_on(void) { return READ_ONCE(ir_kprobes_on); }
 
 #ifdef DEBUG
 static void xk_print_stack(struct task_struct *task, unsigned long *entries,
@@ -206,7 +115,6 @@ static int xk_dump_stack(struct task_struct *task) {
 // Note: This function is called in a stop_machine context, so it is not allowed
 // to sleep.
 static int xk_check_stacks(void *data) {
-  bool direction = get_xk_state() == XK_FLAGS_PENDING ? true : false;
   struct task_struct *g, *task;
   unsigned long *entries = xk_stack_entries;
   int nb_entries;
@@ -226,15 +134,9 @@ static int xk_check_stacks(void *data) {
     pr_info("Initial refcount: %d\n", xk_refcount());
     xk_enable_auxiliary_kprobes();
     start = ktime_get();
-  } else {
-    // No target functions are found in the stacks, so we can directly enable or
-    // disable the IR kprobes.
-    if (direction) {
-      xk_enable_ir_kprobes();
-    } else {
-      xk_disable_ir_kprobes();
-    }
   }
+  // If !need_transition, no threads are in any SS — transition is instant.
+  // The userspace will set xk_active=1 via BSS update after module completes.
 
   return 0;
 }
@@ -438,9 +340,9 @@ static int __init consistency_init(void) {
 #ifdef DEBUG
   measure_stop_machine_overhead();
 #endif
-  
-daemon_task = kthread_create(daemon_main, NULL, "xkernel-daemon");
-  
+
+  daemon_task = kthread_create(daemon_main, NULL, "xkernel-daemon");
+
   if (IS_ERR(daemon_task)) {
     pr_err("Failed to create daemon task\n");
     return PTR_ERR(daemon_task);

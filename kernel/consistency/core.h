@@ -21,15 +21,6 @@ enum xkernel_state {
   XK_FLAGS_REVERSE_DONE,
 };
 
-// Per-task refcount
-struct xk_refcount {
-    pid_t pid;
-    atomic_t refcount;
-    // Timestamps for the transition
-    ktime_t start;
-    struct hlist_node node;
-};
-
 struct xk_target_function {
 #define MAX_FUNC_NAME_LEN 128
   char name[MAX_FUNC_NAME_LEN];
@@ -48,13 +39,6 @@ struct xk_target_function {
 
   struct list_head list;
 };
-
-void xk_enable_ir_kprobes(void);
-void xk_disable_ir_kprobes(void);
-bool xk_is_ir_kprobes_on(void);
-
-void xk_enable_ir_kprobes_task(int v);
-void xk_disable_ir_kprobes_task(void);
 
 /**
  * Compare a stack address with a function span.
@@ -91,14 +75,6 @@ static inline void measure_stop_machine_overhead(void) {
   }
   pr_info("stop_machine overhead: %lld us\n", total_time / NUM_MEASUREMENTS);
 }
-
-void ref_hash_spinlock(unsigned long flags);
-void ref_hash_spinunlock(unsigned long flags);
-struct xk_refcount *find_or_alloc_refcount(pid_t pid);
-struct xk_refcount *find_or_fail_refcount(pid_t pid);
-void find_and_free_refcount(pid_t pid);
-void free_refcount(struct xk_refcount *ref);
-size_t ref_get_hash_size(void);
 
 void xk_reset_refcount(void);
 int xk_refcount(void);
