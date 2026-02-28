@@ -1,720 +1,248 @@
 # Xkernel
 
+**Xkernel** (KernelX) implements *Scoped Indirect Execution* (SIE) for runtime tuning of hardcoded performance constants in the Linux kernel — without recompilation or reboot.
+
+Paper: *Principled Performance Tunability in Operating System Kernels* ([arXiv 2512.12530](https://arxiv.org/abs/2512.12530))
+
+## How It Works
+
+Linux contains hundreds of performance constants (`BLK_MAX_REQUEST_COUNT=128`, `MAX_SOFTIRQ_RESTART=10`, etc.) baked into the binary at compile time. SIE modifies their effect at runtime through three steps:
+
+1. **Binary Diff** — Recompile the kernel with modified constant values and diff the assembly to locate the *Critical Span* (CS): the instruction sequence where the constant enters the architectural state.
+2. **Symbolic Execution** — Derive the compiler's transformation `IV = f(V)` (e.g., `IV = V`, `IV = V << 3`) by symbolically executing the three BB versions.
+3. **BPF Kprobe Synthesis** — Attach a kprobe after the CS that overwrites the register/memory with the new value, effectively replacing the constant at runtime.
+
+### Consistency Models
+
+| Mode | Name | Behavior |
+|------|------|----------|
+| 0 | Immediate | Takes effect instantly |
+| 1 | Per-task | Each thread transitions when its stack exits the Safe Span (SS) |
+| 2 | Global | `stop_machine` + stack scan ensures all threads exit SS before activation |
+
+> **Note on Safe Span (SS)**: SS is the transitive data dependency slice from the Critical Span — it covers all instructions where constant-derived values are still live. Transition checking uses SS ranges to determine when a thread is safe. When SS is not explicitly specified (via `safe_spans` in testcases), CS ranges are used as a conservative approximation.
+
 ## Environment Setup
 
-#### Install Linux kernel 6.14.
-
-`sudo bash install.sh`
-
-#### Install dependencies.
-
-`sudo apt-get install clang llvm pahole libgflags-dev pkg-config libelf-dev -y`
+### Install the custom kernel
 
 ```shell
-# Latest version of libbpf.
-git clone https://github.com/libbpf/libbpf.git && pushd libbpf/src && make -j$(nproc) && sudo make install && sudo cp ./*.so /usr/local/lib/ && sudo ldconfig && popd
+sudo bash install.sh
+```
+
+### Install dependencies
+
+```shell
+sudo apt-get install clang llvm pahole pkg-config libelf-dev -y
+```
+
+```shell
+# Latest libbpf
+git clone https://github.com/libbpf/libbpf.git && \
+  pushd libbpf/src && make -j$(nproc) && sudo make install && \
+  sudo cp ./*.so /usr/local/lib/ && sudo ldconfig && popd
+```
+
+### Build kernel modules
+
+```shell
+cd kernel && ./build.sh
 ```
 
 ## Quick Start
 
-### 0. Compile kernel modules
-```
-pushd kernel_module && ./build.sh && popd
+### 1. Define test cases
+
+Edit `xkernel/testcases.py` to specify the constants to tune:
+
+```python
+Testcase(
+    name="BLK_MQ_RESOURCE_DELAY",
+    description="block/blk-mq.c resource delay",
+    file="block/blk-mq.c",
+    original="BLK_MQ_RESOURCE_DELAY\t3",
+    modified=["BLK_MQ_RESOURCE_DELAY\t5", "BLK_MQ_RESOURCE_DELAY\t7"],
+    values=(3, 5, 7),
+    # Optional: manually specify Safe Span ranges for transition checking
+    safe_spans=[
+        ("blk_mq_dispatch_rq_list", "0x10", "0x90"),
+    ],
+)
 ```
 
-### 1. Use binary diff to locate target instructions
+Each test case provides three values `(V1, V2, V3)`. The pipeline recompiles the kernel twice (`V1→V2`, `V1→V3`), diffs the binary, and uses symbolic execution to derive the transformation relationship.
 
-See examples in `check_assembly_diff_examples.csv`.
+The optional `safe_spans` field specifies Safe Span (SS) ranges as `(function_name, start_offset, end_offset)` tuples. These ranges tell the consistency model where constant-derived values are still live. When omitted, CS ranges are used as a conservative approximation.
+
+### 2. Build (full pipeline)
 
 ```shell
-# Example
-sudo python check_assembly_diff.py -f block/blk-mq.c -s "BLK_MAX_REQUEST_COUNT" "128" --lines 1371,1372
-# The output should be like this:
--    81e5:      83 e0 e0  and    $0xffffffe0,%eax /users/chenzj/linux-6.14.0-xkernel/block/blk-mq.c:1371
--    81e8:      83 c0 40  add    $0x40,%eax       /users/chenzj/linux-6.14.0-xkernel/block/blk-mq.c:1371
+./xkernel-tool build
 ```
 
-### 2. Determine the offset to attach
+This runs the three-stage pipeline:
+1. **gen.py** — Binary diff + Basic Block extraction → `xkernel/bb_cache/`
+2. **codegen.py** — Symbolic execution + BPF code generation → `bpf/stubs/xtune_stub_N.bpf.c`
+3. **make** — Compile BPF programs → `.bpf.o`
 
-Note that the function should not be inlined and can be found in `/proc/kallsyms`.
+Use `--skip-gen` to skip the (slow) diff/BB stage when only codegen or compilation is needed:
 
 ```shell
-# Example
-python ./objdump.py --func blk_add_rq_to_plug |grep -w 'add    $0x40,%eax' -C 1
-# The ouput should be like this:
-(+0xc5)ffffffff8dff9bf5:        83 e0 e0                and    $0xffffffe0,%eax
-(+0xc8)ffffffff8dff9bf8:        83 c0 40                add    $0x40,%eax
-(+0xcb)ffffffff8dff9bfb:        66 41 39 c6             cmp    %ax,%r14w
+./xkernel-tool build --skip-gen
 ```
 
-### 3. Write eBPF code
-
-eBPF files should be placed in `bpf_kprobe/bpf/examples`.
-```c
-// blk-mq.bpf.c
-// SPDX-License-Identifier: GPL-2.0
-#include "vmlinux.h"
-#include <bpf/bpf_helpers.h>
-#include <bpf/bpf_tracing.h>
-#include "xkernel.bpf.h"
-
-// (+0xcb)ffffffff8dff9bfb:        66 41 39 c6             cmp    %ax,%r14w
-SEC("kprobe/blk_add_rq_to_plug+0xcb")
-int BPF_KPROBE(blk_add_rq_to_plug_0xcb) {
-    
-    if (!transition_done()) return 0;
-
-    BPF_SET_EAX(ctx, 128);
-    return 0;
-}
-```
-
-Compile the eBPF programs.
-```shell
-cd bpf_kprobe && make -j`nproc`
-```
-### 4. Consistency Span
-Manuallywrite the consistency span in the `/dev/shm/xkernel/cs` file or use auto-generation tool (TODO).
-
-Each line describes a consistency span with the following format:
-```
-ksys_mmap_pgoff,0xffffffffbb2354a0,0x43,0x6c
-```
-- ksys_mmap_pgoff: function name
-- 0xffffffffbb2354a0: the address of the function
-- 0x43: the start offset of the function
-- 0x6c: the end offset of the function
-
-### 5. Load BPF programs
-```shell
-# Immediately enable the BPF Kprobes.
-xkernel-tool load 0 bpf_kprobe/bpf/examples/blk-mq.bpf.o,bpf_kprobe/bpf/examples/mmap.bpf.o
-
-# Use per-task consistency model.
-xkernel-tool load 1 bpf_kprobe/bpf/examples/blk-mq.bpf.o
-
-# Use global consistency model and set timeout to 3 seconds.
-xkernel-tool load 2 bpf_kprobe/bpf/examples/blk-mq.bpf.o 3
-```
-
-### 6. Unload all BPF programs
-```shell
-xkernel-tool unload
-```
-
-### xkernel-tool
+### 3. Load a constant
 
 ```shell
-Usage: ./xkernel-tool <command> [options]
+# Immediate mode
+sudo ./xkernel-tool load 0 1
+
+# Per-task consistency
+sudo ./xkernel-tool load 1 2
+
+# Global consistency (5s timeout)
+sudo ./xkernel-tool load 2 3 5
+
+# With jump optimization
+sudo ./xkernel-tool load 0 1 --jump-opt
+```
+
+### 4. Check status
+
+```shell
+sudo ./xkernel-tool status
+```
+
+### 5. Unload
+
+```shell
+# Unload a specific ConstID
+sudo ./xkernel-tool unload 1
+
+# Unload everything
+sudo ./xkernel-tool unload --all
+```
+
+## CLI Reference
+
+```
+Usage: xkernel-tool <command> [options]
 
 Commands:
-  load      Load BPF kprobes for specified files
-  unload    Unload all loaded BPF kprobes
-  trace     Trace the kernel logs
+  build     Run the full pipeline (gen → codegen → compile)
+  load      Load BPF kprobes for a single ConstID
+  unload    Unload BPF kprobes (per-ConstID or all)
+  status    Show runtime status of loaded ConstIDs
+  table     Manage scope tables (list, query, delete, cs, ss)
+  trace     Display kernel BPF trace logs
 
-Options for 'load' command:
-  [0:Immediate, 1:Per-task, 2:Global]   (required) Mode of consistency guarantee
-  [file1,file2,...]                     (required) List of BPF files to load
-  [Timeout seconds]                     (optional) Timeout duration in seconds
+Options for 'build':
+  --skip-gen    Skip gen.py (only run codegen + make)
+
+Options for 'load':
+  <MODE>        0=Immediate, 1=Per-task, 2=Global
+  <ConstID>     ConstID number from the scope table
+  [timeout]     Timeout in seconds for Mode 2 (default: 5)
+  --jump-opt    Probe candidate offsets for 5-byte JMP optimization
+
+Options for 'unload':
+  <ConstID>     Unload a specific ConstID
+  --all         Unload all active ConstIDs and kernel modules
+
+Options for 'table':
+  list                    List all scope table entries
+  query [filters]         Query entries with filters
+  delete [filters|--all]  Delete entries
+  cs [--index N]          Show Critical Span entries
+  ss [--index N]          Show Safe Span entries
 ```
 
-### Example outputs of different consistency models
-
-#### Global consistency model:
-```shell
-[107775.520824] Xkernel consistency module loaded
-[107775.520829] Global consistency model is enabled
-[107775.994777] stop_machine overhead: 46 us
-[107775.994820] [Target Functions] [ksys_mmap_pgoff] at 0xffffffffbb2354a0 with span [0x43, 0x6c]
-[107775.996365] Function ksys_mmap_pgoff[0x43, 0x6c] found in stack trace for task [test 0/149514]
-[107775.996370] Stack trace for task [test 0]:
-[107775.996372]   [0] vm_mmap_pgoff+0xc0/0x1a0
-[107775.996377]   [1] ksys_mmap_pgoff+0x4a/0x270
-[107775.996381]   [2] __x64_sys_mmap+0x33/0x70
-[107775.996385]   [3] x64_sys_call+0x1fce/0x25a0
-[107775.996388]   [4] do_syscall_64+0x7f/0x180
-[107775.996393]   [5] entry_SYSCALL_64_after_hwframe+0x78/0x80
-[107775.996397] Function ksys_mmap_pgoff[0x43, 0x6c] found in stack trace for task [test 2/149516]
-[107775.996399] Stack trace for task [test 2]:
-[107775.996400]   [0] vm_mmap_pgoff+0xc0/0x1a0
-[107775.996403]   [1] ksys_mmap_pgoff+0x4a/0x270
-[107775.996405]   [2] __x64_sys_mmap+0x33/0x70
-[107775.996408]   [3] x64_sys_call+0x1fce/0x25a0
-[107775.996410]   [4] do_syscall_64+0x7f/0x180
-[107775.996412]   [5] entry_SYSCALL_64_after_hwframe+0x78/0x80
-[107775.996415] Function ksys_mmap_pgoff[0x43, 0x6c] found in stack trace for task [test 3/149517]
-[107775.996417] Stack trace for task [test 3]:
-[107775.996418]   [0] vm_mmap_pgoff+0xc0/0x1a0
-[107775.996420]   [1] ksys_mmap_pgoff+0x4a/0x270
-[107775.996423]   [2] __x64_sys_mmap+0x33/0x70
-[107775.996425]   [3] x64_sys_call+0x1fce/0x25a0
-[107775.996427]   [4] do_syscall_64+0x7f/0x180
-[107775.996429]   [5] entry_SYSCALL_64_after_hwframe+0x78/0x80
-[107775.996433] Function ksys_mmap_pgoff[0x43, 0x6c] found in stack trace for task [test 5/149519]
-[107775.996434] Stack trace for task [test 5]:
-[107775.996435]   [0] vm_mmap_pgoff+0xc0/0x1a0
-[107775.996437]   [1] ksys_mmap_pgoff+0x4a/0x270
-[107775.996440]   [2] __x64_sys_mmap+0x33/0x70
-[107775.996442]   [3] x64_sys_call+0x1fce/0x25a0
-[107775.996444]   [4] do_syscall_64+0x7f/0x180
-[107775.996447]   [5] entry_SYSCALL_64_after_hwframe+0x78/0x80
-[107775.996463] Initial refcount: 4
-[107775.996484] [Transition] Waiting for transition to be done or failed
-[107776.015601] [Transition] Transition done, time: 19019 us
-```
-
-#### Per-task consistency model:
-```shell
-[107846.049951] Xkernel consistency module loaded
-[107846.049956] Per-task consistency model is enabled
-[107846.547789] stop_machine overhead: 49 us
-[107846.547832] [Target Functions] [ksys_mmap_pgoff] at 0xffffffffbb2354a0 with span [0x43, 0x6c]
-[107846.549399] Function ksys_mmap_pgoff[0x43, 0x6c] found in stack trace for task [test 0/149862]
-[107846.549405] Stack trace for task [test 0]:
-[107846.549406]   [0] vm_mmap_pgoff+0xc0/0x1a0
-[107846.549412]   [1] ksys_mmap_pgoff+0x4a/0x270
-[107846.549416]   [2] __x64_sys_mmap+0x33/0x70
-[107846.549420]   [3] x64_sys_call+0x1fce/0x25a0
-[107846.549424]   [4] do_syscall_64+0x7f/0x180
-[107846.549428]   [5] entry_SYSCALL_64_after_hwframe+0x78/0x80
-[107846.549432] Function ksys_mmap_pgoff[0x43, 0x6c] found in stack trace for task [test 1/149864]
-[107846.549434] Stack trace for task [test 1]:
-[107846.549435]   [0] vm_mmap_pgoff+0xc0/0x1a0
-[107846.549437]   [1] ksys_mmap_pgoff+0x4a/0x270
-[107846.549440]   [2] __x64_sys_mmap+0x33/0x70
-[107846.549442]   [3] x64_sys_call+0x1fce/0x25a0
-[107846.549444]   [4] do_syscall_64+0x7f/0x180
-[107846.549447]   [5] entry_SYSCALL_64_after_hwframe+0x78/0x80
-[107846.549450] Function ksys_mmap_pgoff[0x43, 0x6c] found in stack trace for task [test 2/149865]
-[107846.549451] Stack trace for task [test 2]:
-[107846.549452]   [0] vm_mmap_pgoff+0xc0/0x1a0
-[107846.549455]   [1] ksys_mmap_pgoff+0x4a/0x270
-[107846.549457]   [2] __x64_sys_mmap+0x33/0x70
-[107846.549459]   [3] x64_sys_call+0x1fce/0x25a0
-[107846.549461]   [4] do_syscall_64+0x7f/0x180
-[107846.549464]   [5] entry_SYSCALL_64_after_hwframe+0x78/0x80
-[107846.549467] Function ksys_mmap_pgoff[0x43, 0x6c] found in stack trace for task [test 4/149867]
-[107846.549469] Stack trace for task [test 4]:
-[107846.549470]   [0] vm_mmap_pgoff+0xc0/0x1a0
-[107846.549472]   [1] ksys_mmap_pgoff+0x4a/0x270
-[107846.549475]   [2] __x64_sys_mmap+0x33/0x70
-[107846.549477]   [3] x64_sys_call+0x1fce/0x25a0
-[107846.549479]   [4] do_syscall_64+0x7f/0x180
-[107846.549481]   [5] entry_SYSCALL_64_after_hwframe+0x78/0x80
-[107846.549521] [Transition] Waiting for transition to be done or failed
-[107846.552324] Task has finished its transition, freeing refcount, time cost: 2889us
-[107846.552332] Task has finished its transition, freeing refcount, time cost: 2863us
-[107846.553322] Task has finished its transition, freeing refcount, time cost: 3917us
-[107846.553336] Task has finished its transition, freeing refcount, time cost: 3884us
-```
-
-## Case Studies
-
-Cases are summarized in [CaseStudy](CaseStudy/constant.md).
-
-## Analyze Git History of Constant Changes
-
-The `analyze_symbol_changes.py` script is a powerful tool for analyzing changes of kernel symbols across different kernel versions. It can track how constants, macros, and other symbols have evolved throughout the Linux kernel development history.
-
-### Features
-
-- **Multi-threaded Analysis**: Parallel processing for faster analysis across large version ranges
-- **Flexible Symbol Input**: Support for single symbols, comma-separated lists, or symbols from files
-
-### Basic Usage
-
-```bash
-# Analyze a single symbol
-python analyze_symbol_changes.py SMC_TX_WORK_DELAY --kernel-path ~/linux --start-version v5.0 --end-version v5.2
-
-# Analyze multiple symbols
-python analyze_symbol_changes.py "SMC_TX_WORK_DELAY,MAX_GRO_SKBS" --kernel-path ~/linux
-
-# Use symbols from a file
-python analyze_symbol_changes.py --symbols-file symbols.txt --kernel-path ~/linux
-```
-
-### Command Line Options
-<details>
-<summary>Click to expand: Command line options</summary>
-
-```bash
-python analyze_symbol_changes.py [SYMBOL] [OPTIONS]
-
-Arguments:
-  SYMBOL                    Symbol to search for (e.g., KFREE_DRAIN_JIFFIES). 
-                           Can be comma-separated list of symbols.
-
-Options:
-  --symbols-file, -sf      File containing symbols to analyze (one symbol per line)
-  --start-version, -s      Start version/tag for git range (default: v3.0)
-  --end-version, -e        End version/tag for git range (default: v6.14)
-  --kernel-path, -k        Path to kernel source code directory (required)
-  --verbose, -v            Show verbose output including line numbers and context
-  --very-verbose, -vv      Show very verbose output including full commit message
-  --quiet, -q              Quiet mode: only show final analysis results
-  --threads, -t            Number of threads for parallel processing (default: CPU count)
-  --filter-duplicates, -d  Filter commits that only change line numbers but not actual values
-```
-</details>
-
-### Input File Format
-<details>
-<summary>Click to expand: Input file format</summary>
-
-The symbols file can contain symbols in the following formats:
+## Project Structure
 
 ```
-# One symbol per line
-SMC_TX_WORK_DELAY
-NETDEV_TX_BUSY
-
-# Symbol with specific file path
-SMC_TX_WORK_DELAY,net/smc/smc_tx.c
-NETDEV_TX_BUSY,include/linux/netdevice.h
-
-# Comments are supported
-# This is a comment
-SMC_TX_WORK_DELAY
-```
-</details>
-
-### Output Examples
-
-<details>
-<summary>Click to expand: Summary of the output</summary>
-
-```bash
-python3 analyze_symbol_changes.py -sf symbol.csv -k ~/linux -q -d
-```
-
-```
-[1] IO_LOCAL_TW_DEFAULT_MAX
-f46b9cdb | Wed Nov 20 [v6.12-rc4] | io_uring: limit local tw done | #define IO_LOCAL_TW_DEFAULT_MAX             20
-
-[2] BLK_MQ_CPU_WORK_BATCH
-506e931f | Wed May 7  [v3.15-rc1] | blk-mq: add basic round-robin of what CPU to queue workqueue work on | BLK_MQ_CPU_WORK_BATCH        = 8,
-
-[3] BLK_MQ_BUDGET_DELAY
-a0823421 | Mon Apr 20 [v5.7-rc2] | blk-mq: Rerun dispatching in the case of budget contention | #define BLK_MQ_BUDGET_DELAY     3               /* ms units */
-
-[4] BLK_MQ_RESOURCE_DELAY
-86ff7c2a | Tue Jan 30 [v4.15] | blk-mq: introduce BLK_STS_DEV_RESOURCE | #define BLK_MQ_RESOURCE_DELAY  3               /* ms units */
-
-[5] THROTL_GRP_QUANTUM
-e675df2a | Mon Sep 7  [v5.9-rc3] | blk-throttle: Define readable macros instead of static variables | #define THROTL_GRP_QUANTUM 8
-
-[6] THROTL_QUANTUM
-e675df2a | Mon Sep 7  [v5.9-rc3] | blk-throttle: Define readable macros instead of static variables | #define THROTL_QUANTUM 32
-
-[7] MAX_GRO_SKBS
-587652bb | Mon Nov 15 [v5.15] | net: gro: populate net/core/gro.c | #define MAX_GRO_SKBS 8
-
-[8] MAX_PER_SOCKET_BUDGET
-99b29a49 | Mon Oct 23 [v6.6-rc5] | xsk: Avoid starving the xsk further down the list | #define MAX_PER_SOCKET_BUDGET (TX_BATCH_SIZE)
-
-[9] fits_capacity
-60e17f5c | Tue Jun 4  [v5.3-rc1] | sched/fair: Introduce fits_capacity() | #define fits_capacity(cap, max)      ((cap) * 1280 < (max) * 1024)
-
-[10] capacity_greater
-4aed8aa4 | Wed Apr 7  [v5.12-rc2] | sched/fair: Introduce a CPU capacity comparison helper | #define capacity_greater(cap1, cap2) ((cap1) * 1024 > (cap2) * 1078)
-
-[11] KFREE_DRAIN_JIFFIES
-a35d1690 | Mon Aug 5  [v5.5-rc1] | rcu: Add basic support for kfree_rcu() batching | #define KFREE_DRAIN_JIFFIES (HZ / 50)
-51824b78 | Thu Jun 30 [v6.0-rc1] | rcu/kvfree: Update KFREE_DRAIN_JIFFIES interval | #define KFREE_DRAIN_JIFFIES (5 * HZ)
-
-[12] MAX_SOFTIRQ_TIME
-c10d7367 | Thu Jan 10 [v3.8-rc1] | softirq: reduce latencies | #define MAX_SOFTIRQ_TIME  msecs_to_jiffies(2)
-
-[13] MAX_SOFTIRQ_RESTART
-34376a50 | Thu Jun 6  [v3.10-rc5] | Fix lockup related to stop_machine being stuck in __do_softirq. | #define MAX_SOFTIRQ_RESTART 10
-
-[14] SMC_WR_BUF_CNT
-f38ba179 | Mon Jan 9  [v4.10-rc3] | smc: work request (WR) base for use by LLC and CDC | #define SMC_WR_BUF_CNT 16      /* # of ctrl buffers per link */
-
-[15] SMC_TX_WORK_DELAY
-18e537cd | Thu Sep 21 [v4.14-rc1] | net/smc: introduce a delay | #define SMC_TX_WORK_DELAY      HZ
-16297d14 | Tue Feb 12 [v5.0-rc5] | net/smc: no delay for free tx buffer wait | #define SMC_TX_WORK_DELAY        0
-
-[16] MAX_SCAN_WINDOW
-598f0ec0 | Mon Oct 7  [v3.12-rc4] | sched/numa: Set the scan rate proportional to the memory usage of the task being scanned | #define MAX_SCAN_WINDOW 2560
-
-[17] NUMA_IMBALANCE_MIN
-abeae76a | Fri Nov 20 [v5.10-rc1] | sched/numa: Rename nr_running and break out the magic number | #define NUMA_IMBALANCE_MIN 2
-
-[18] NUMA_PERIOD_SLOTS
-04bb2f94 | Mon Oct 7  [v3.12-rc4] | sched/numa: Adjust scan rate in task_numa_placement | #define NUMA_PERIOD_SLOTS 10
-
-[19] NUMA_PERIOD_THRESHOLD
-04bb2f94 | Mon Oct 7  [v3.12-rc4] | sched/numa: Adjust scan rate in task_numa_placement | #define NUMA_PERIOD_THRESHOLD 3
-a22b4b01 | Mon Jun 23 [v3.16-rc1] | sched/numa: Change scan period code to match intent | #define NUMA_PERIOD_THRESHOLD 7
-
-[20] DL_SCALE
-332ac17e | Thu Nov 7  [v3.13-rc7] | sched/deadline: Add bandwidth management for SCHED_DEADLINE tasks | #define DL_SCALE (10)
-97fb7a0a | Sat Mar 3  [v4.16-rc2] | sched: Clean up and harmonize the coding style of the scheduler code base | #define DL_SCALE                10
-
-[21] LOAD_AVG_PERIOD
-283e2ed3 | Tue Apr 11 [v4.11-rc6] | sched/fair: Move the PELT constants into a generated header | #define LOAD_AVG_PERIOD 32
-
-[22] LOAD_AVG_MAX
-283e2ed3 | Tue Apr 11 [v4.11-rc6] | sched/fair: Move the PELT constants into a generated header | #define LOAD_AVG_MAX 47742
-
-[23] RR_TIMESLICE
-45ebd394 | Wed Feb 20 [v3.8] | sched: Move RR_TIMESLICE from sysctl.h to rt.h | #define RR_TIMESLICE            (100 * HZ / 1000)
-
-[24] MAX_MEAS
-4e88ec4a | Tue Aug 11 [v5.9-rc1] | rcuperf: Change rcuperf to rcuscale | #define MAX_MEAS 10000
-
-[25] MIN_MEAS
-4e88ec4a | Tue Aug 11 [v5.9-rc1] | rcuperf: Change rcuperf to rcuscale | #define MIN_MEAS 100
-
-[26] RCU_KTHREAD_MAX
-4102adab | Tue Oct 8  [v3.12-rc1] | rcu: Move RCU-related source code to kernel/rcu directory | #define RCU_KTHREAD_MAX      4
-
-[27] RCU_JIFFIES_TILL_FORCE_QS
-4102adab | Tue Oct 8  [v3.12-rc1] | rcu: Move RCU-related source code to kernel/rcu directory | #define RCU_JIFFIES_TILL_FORCE_QS (1 + (HZ > 250) + (HZ > 500))
-
-[28] WCI_MAX_ENTS
-63638450 | Wed May 17 [v6.4-rc1] | workqueue: Report work funcs that trigger automatic CPU_INTENSIVE mechanism | #define WCI_MAX_ENTS 128
-
-[29] BH_WORKER_RESTARTS
-4cb1ef64 | Sun Feb 4  [v6.7] | workqueue: Implement BH workqueues to eventually replace tasklets | #define BH_WORKER_RESTARTS   10
-
-[30] BH_WORKER_JIFFIES
-4cb1ef64 | Sun Feb 4  [v6.7] | workqueue: Implement BH workqueues to eventually replace tasklets | #define BH_WORKER_JIFFIES    msecs_to_jiffies(2)
-
-[31] XDP_BULK_QUEUE_SIZE
-89653987 | Fri Nov 13 [v5.9] | net: xdp: Introduce bulking for xdp tx return path | #define XDP_BULK_QUEUE_SIZE 16
-
-[32] MPTCP_SCHED_MAX
-73c900aa | Mon May 13 [v6.9-rc7] | mptcp: add net.mptcp.available_schedulers | #define MPTCP_SCHED_MAX          128
-
-[33] MPTCP_SUBFLOWS_MAX
-740ebe35 | Mon Aug 21 [v6.5-rc6] | mptcp: add struct mptcp_sched_ops | #define MPTCP_SUBFLOWS_MAX       8
-
-[34] TCP_RACK_RECOVERY_THRESH
-1f255691 | Fri Nov 3  [v4.14-rc7] | tcp: higher throughput under reordering with adaptive RACK reordering wnd | #define TCP_RACK_RECOVERY_THRESH 16
-
-[35] NVME_NVM_IOSQES
-69cd27e2 | Mon Jun 6  [v4.7-rc2] | nvme.h: add NVM command set SQE/CQE size defines | #define NVME_NVM_IOSQES           6
-
-[36] NVME_NVM_IOCQES
-69cd27e2 | Mon Jun 6  [v4.7-rc2] | nvme.h: add NVM command set SQE/CQE size defines | #define NVME_NVM_IOCQES           4
-
-[37] NVME_ADM_SQES
-c1e0cc7e | Wed Aug 7  [v5.3-rc3] | nvme-pci: Add support for variable IO SQ element size | #define NVME_ADM_SQES       6
-
-[38] MIN_THREADS
-ac1b398d | Thu Apr 16 [v4.0] | kernel/fork.c: avoid division by zero | #define MIN_THREADS 20
-
-[39] GRO_HASH_BUCKETS
-07d78363 | Sun Jun 24 [v4.18-rc2] | net: Convert NAPI gro list into a small hash table. | #define GRO_HASH_BUCKETS      8
-
-[40] SHRINK_BATCH
-96f7b2b9 | Mon Sep 11 [v6.6-rc4] | mm: vmscan: move shrinker-related code into a separate file | #define SHRINK_BATCH 128
-```
-</details>
-
-<details>
-<summary>Click to expand: Detailed output</summary>
-
-```bash
-python3 analyze_symbol_changes.py -sf symbol.csv -k ~/linux -d -v
+Xkernel/
+├── bpf/
+│   ├── xkernel.bpf.h              # BPF runtime (transition_done, cs_map, etc.)
+│   ├── kfuncs.bpf.h               # kfunc declarations
+│   ├── util.bpf.h                 # Register read/write macros (BPF_SET_EAX, etc.)
+│   ├── cs_artifact.bpf.h          # Auto-generated: per-task CS handler
+│   ├── Makefile
+│   └── stubs/
+│       └── xtune_stub_N.bpf.{c,h} # Auto-generated SIE stubs
+├── kernel/
+│   ├── kfuncs/                     # xk-kfuncs.ko: exports kfuncs to BPF
+│   ├── consistency/                # xk-consistency.ko: global transition coordinator
+│   └── build.sh
+├── xkernel/
+│   ├── cli.py                      # xkernel-tool CLI
+│   ├── diff.py                     # Binary diff engine
+│   ├── gen.py                      # BB file generator (calls diff.py)
+│   ├── codegen.py                  # Symbolic execution + BPF code generation
+│   ├── solver.py                   # Linear relationship solver (V → IV)
+│   ├── loader.py                   # BPF loading/unloading lifecycle
+│   ├── table.py                    # Scope/CS/SS table management
+│   ├── objdump_helper.py           # Function address resolution
+│   ├── testcases.py                # Test case definitions
+│   └── bb_cache/                   # Generated Basic Block files
+├── docs/
+│   ├── jump_optimization.md        # Jump optimization design
+│   └── per_constid_lifecycle.md    # Per-ConstID lifecycle design
+├── xkernel-tool                    # CLI entry point
+├── build.sh                        # Full build script (deps + modules + BPF)
+└── install.sh                      # Kernel installation
 ```
 
-```
-Analyzing 1 symbol(s): SMC_TX_WORK_DELAY
-================================================================================
-Found SMC_TX_WORK_DELAY definition in: net/smc/smc_tx.c
-
-Symbol 1/1: SMC_TX_WORK_DELAY
-------------------------------------------------------------
-Analyzing SMC_TX_WORK_DELAY changes from v3.0 to v6.14...
-Using kernel source path: /users/chenzj/linux
-Using 56 threads for parallel processing
-Filtering duplicate definitions (keeping earliest commit)
-================================================================================
-Commit 1/2 (Thread 23): 18e537cd58e8d6932719bfa79cb96a1fbc639199
-Author: Ursula Braun
-Date: Thu Sep 21 09:16:33 2017 +0200
-Kernel Version: v4.14-rc1
-Message: net/smc: introduce a delay
-SMC_TX_WORK_DELAY definition (line 27):
-  #define SMC_TX_WORK_DELAY     HZ
-  Context:
-        25: #include "smc_tx.h"
-      26: 
->>>   27: #define SMC_TX_WORK_DELAY     HZ
-      28: 
-      29: /***************************** sndbuf producer *******************************/
---------------------------------------------------------------------------------
-
-Commit 2/2 (Thread 31): 16297d143989e3f5acd75c1ca0a771b78aa12b46
-Author: Karsten Graul
-Date: Tue Feb 12 16:29:52 2019 +0100
-Kernel Version: v5.0-rc5
-Message: net/smc: no delay for free tx buffer wait
-SMC_TX_WORK_DELAY definition (line 31):
-  #define SMC_TX_WORK_DELAY     0
-  Context:
-        29: #include "smc_tx.h"
-      30: 
->>>   31: #define SMC_TX_WORK_DELAY     0
-      32: #define SMC_TX_CORK_DELAY     (HZ >> 2)       /* 250 ms */
-      33: 
---------------------------------------------------------------------------------
-```
-
-</details>
-
-<details>
-<summary>Click to expand: Very detailed output (full commit message)</summary>
-
-```bash
-python3 analyze_symbol_changes.py SMC_TX_WORK_DELAY -k ~/linux -d -vv
-```
+## Data Flow
 
 ```
-Analyzing 1 symbol(s): SMC_TX_WORK_DELAY
-================================================================================
-Found SMC_TX_WORK_DELAY definition in: net/smc/smc_tx.c
-Thread 3: No changes found in range v3.4..v3.6
-Thread 1: No changes found in range v3.0..v3.2
-Thread 16: No changes found in range v4.6..v4.7
-Thread 13: No changes found in range v4.3..v4.4
-Thread 2: No changes found in range v3.2..v3.4
-Thread 23: Found 1 commits in range v4.13..v4.14
-Thread 27: Found 1 commits in range v4.17..v4.18
-Thread 29: No changes found in range v4.19..v4.20
-Thread 17: No changes found in range v4.7..v4.8
-Thread 12: No changes found in range v4.2..v4.3
-Thread 39: No changes found in range v5.8..v5.9
-Thread 20: No changes found in range v4.10..v4.11
-Thread 28: No changes found in range v4.18..v4.19
-Thread 30: No changes found in range v4.20..v5.0
-Thread 54: No changes found in range v6.11..v6.12
-Thread 31: Found 1 commits in range v5.0..v5.1
-Thread 25: Found 1 commits in range v4.15..v4.16
-Thread 55: No changes found in range v6.12..v6.13
-Thread 34: No changes found in range v5.3..v5.4
-Thread 24: No changes found in range v4.14..v4.15
-Thread 22: No changes found in range v4.12..v4.13
-Thread 56: No changes found in range v6.13..v6.14
-Thread 41: No changes found in range v5.10..v5.11
-Thread 4: No changes found in range v3.6..v3.8
-Thread 50: No changes found in range v5.19..v6.0
-Thread 15: No changes found in range v4.5..v4.6
-Thread 53: No changes found in range v6.10..v6.11
-Thread 5: No changes found in range v3.8..v3.10
-Thread 45: No changes found in range v5.14..v5.15
-Thread 37: No changes found in range v5.6..v5.7
-Thread 33: No changes found in range v5.2..v5.3
-Thread 47: No changes found in range v5.16..v5.17
-Thread 26: No changes found in range v4.16..v4.17
-Thread 19: No changes found in range v4.9..v4.10
-Thread 8: No changes found in range v3.14..v3.16
-Thread 6: No changes found in range v3.10..v3.12
-Thread 32: No changes found in range v5.1..v5.2
-Thread 36: No changes found in range v5.5..v5.6
-Thread 44: No changes found in range v5.13..v5.14
-Thread 49: No changes found in range v5.18..v5.19
-Thread 43: No changes found in range v5.12..v5.13
-Thread 11: No changes found in range v4.0..v4.2
-Thread 48: No changes found in range v5.17..v5.18
-Thread 38: No changes found in range v5.7..v5.8
-Thread 7: No changes found in range v3.12..v3.14
-Thread 42: No changes found in range v5.11..v5.12
-Thread 40: Found 1 commits in range v5.9..v5.10
-Thread 35: Found 1 commits in range v5.4..v5.5
-Thread 21: No changes found in range v4.11..v4.12
-Thread 9: No changes found in range v3.16..v3.18
-Thread 10: No changes found in range v3.18..v4.0
-Thread 14: No changes found in range v4.4..v4.5
-Thread 51: No changes found in range v6.0..v6.1
-Thread 46: No changes found in range v5.15..v5.16
-Thread 18: No changes found in range v4.8..v4.9
-Thread 52: No changes found in range v6.1..v6.10
-
-Symbol 1/1: SMC_TX_WORK_DELAY
-------------------------------------------------------------
-Analyzing SMC_TX_WORK_DELAY changes from v3.0 to v6.14...
-Using kernel source path: /users/chenzj/linux
-Using 56 threads for parallel processing
-Filtering duplicate definitions (keeping earliest commit)
-================================================================================
-Divided version range into 56 sub-ranges:
-  Thread 1: v3.0..v3.2
-  Thread 2: v3.2..v3.4
-  Thread 3: v3.4..v3.6
-  Thread 4: v3.6..v3.8
-  Thread 5: v3.8..v3.10
-  Thread 6: v3.10..v3.12
-  Thread 7: v3.12..v3.14
-  Thread 8: v3.14..v3.16
-  Thread 9: v3.16..v3.18
-  Thread 10: v3.18..v4.0
-  Thread 11: v4.0..v4.2
-  Thread 12: v4.2..v4.3
-  Thread 13: v4.3..v4.4
-  Thread 14: v4.4..v4.5
-  Thread 15: v4.5..v4.6
-  Thread 16: v4.6..v4.7
-  Thread 17: v4.7..v4.8
-  Thread 18: v4.8..v4.9
-  Thread 19: v4.9..v4.10
-  Thread 20: v4.10..v4.11
-  Thread 21: v4.11..v4.12
-  Thread 22: v4.12..v4.13
-  Thread 23: v4.13..v4.14
-  Thread 24: v4.14..v4.15
-  Thread 25: v4.15..v4.16
-  Thread 26: v4.16..v4.17
-  Thread 27: v4.17..v4.18
-  Thread 28: v4.18..v4.19
-  Thread 29: v4.19..v4.20
-  Thread 30: v4.20..v5.0
-  Thread 31: v5.0..v5.1
-  Thread 32: v5.1..v5.2
-  Thread 33: v5.2..v5.3
-  Thread 34: v5.3..v5.4
-  Thread 35: v5.4..v5.5
-  Thread 36: v5.5..v5.6
-  Thread 37: v5.6..v5.7
-  Thread 38: v5.7..v5.8
-  Thread 39: v5.8..v5.9
-  Thread 40: v5.9..v5.10
-  Thread 41: v5.10..v5.11
-  Thread 42: v5.11..v5.12
-  Thread 43: v5.12..v5.13
-  Thread 44: v5.13..v5.14
-  Thread 45: v5.14..v5.15
-  Thread 46: v5.15..v5.16
-  Thread 47: v5.16..v5.17
-  Thread 48: v5.17..v5.18
-  Thread 49: v5.18..v5.19
-  Thread 50: v5.19..v6.0
-  Thread 51: v6.0..v6.1
-  Thread 52: v6.1..v6.10
-  Thread 53: v6.10..v6.11
-  Thread 54: v6.11..v6.12
-  Thread 55: v6.12..v6.13
-  Thread 56: v6.13..v6.14
-
-Thread True completed: v3.4..v3.6 (0 commits)
-Thread True completed: v3.0..v3.2 (0 commits)
-Thread True completed: v4.6..v4.7 (0 commits)
-Thread True completed: v4.3..v4.4 (0 commits)
-Thread True completed: v3.2..v3.4 (0 commits)
-Thread True completed: v4.19..v4.20 (0 commits)
-Thread True completed: v4.7..v4.8 (0 commits)
-Thread True completed: v4.2..v4.3 (0 commits)
-Thread True completed: v5.8..v5.9 (0 commits)
-Thread True completed: v4.10..v4.11 (0 commits)
-Thread True completed: v4.18..v4.19 (0 commits)
-Thread True completed: v4.20..v5.0 (0 commits)
-Thread True completed: v6.11..v6.12 (0 commits)
-Thread True completed: v6.12..v6.13 (0 commits)
-Thread True completed: v5.3..v5.4 (0 commits)
-Thread True completed: v4.14..v4.15 (0 commits)
-Thread True completed: v4.12..v4.13 (0 commits)
-Thread True completed: v6.13..v6.14 (0 commits)
-Thread True completed: v5.10..v5.11 (0 commits)
-Thread True completed: v3.6..v3.8 (0 commits)
-Thread True completed: v5.19..v6.0 (0 commits)
-Thread True completed: v4.5..v4.6 (0 commits)
-Thread True completed: v6.10..v6.11 (0 commits)
-Thread True completed: v3.8..v3.10 (0 commits)
-Thread True completed: v5.14..v5.15 (0 commits)
-Thread True completed: v5.6..v5.7 (0 commits)
-Thread True completed: v5.2..v5.3 (0 commits)
-Thread True completed: v5.16..v5.17 (0 commits)
-Thread True completed: v4.16..v4.17 (0 commits)
-Thread True completed: v4.13..v4.14 (1 commits)
-Thread True completed: v4.15..v4.16 (1 commits)
-Thread True completed: v4.9..v4.10 (0 commits)
-Thread True completed: v3.14..v3.16 (0 commits)
-Thread True completed: v4.17..v4.18 (1 commits)
-Thread True completed: v3.10..v3.12 (0 commits)
-Thread True completed: v5.0..v5.1 (1 commits)
-Thread True completed: v5.1..v5.2 (0 commits)
-Thread True completed: v5.5..v5.6 (0 commits)
-Thread True completed: v5.13..v5.14 (0 commits)
-Thread True completed: v5.18..v5.19 (0 commits)
-Thread True completed: v5.12..v5.13 (0 commits)
-Thread True completed: v4.0..v4.2 (0 commits)
-Thread True completed: v5.17..v5.18 (0 commits)
-Thread True completed: v5.7..v5.8 (0 commits)
-Thread True completed: v3.12..v3.14 (0 commits)
-Thread True completed: v5.11..v5.12 (0 commits)
-Thread True completed: v4.11..v4.12 (0 commits)
-Thread True completed: v3.16..v3.18 (0 commits)
-Thread True completed: v5.9..v5.10 (1 commits)
-Thread True completed: v5.4..v5.5 (1 commits)
-Thread True completed: v3.18..v4.0 (0 commits)
-Thread True completed: v4.4..v4.5 (0 commits)
-Thread True completed: v6.0..v6.1 (0 commits)
-Thread True completed: v5.15..v5.16 (0 commits)
-Thread True completed: v4.8..v4.9 (0 commits)
-Thread True completed: v6.1..v6.10 (0 commits)
-Keeping first occurrence of definition: #define SMC_TX_WORK_DELAY       HZ...
-Filtering duplicate definition in commit 1a0a04c7a82c4c4667ab5a9660dc37f6d365d9d3 (same as 18e537cd58e8d6932719bfa79cb96a1fbc639199)
-Filtering duplicate definition in commit 01d2f7e2cdd31becffafa0cb82809a5e36558ec0 (same as 18e537cd58e8d6932719bfa79cb96a1fbc639199)
-Keeping first occurrence of definition: #define SMC_TX_WORK_DELAY       0...
-Filtering duplicate definition in commit b290098092e4aeaa1712d3326bf5b64d2751c740 (same as 16297d143989e3f5acd75c1ca0a771b78aa12b46)
-Filtering duplicate definition in commit 22ef473dbd66a5241b6cedc186abca5a3a4eb922 (same as 16297d143989e3f5acd75c1ca0a771b78aa12b46)
-
-Analysis completed in 3.24 seconds
-Total commits analyzed: 2
-Filtered duplicate definitions: 2 unique definitions
-
-Commit 1/2 (Thread 23): 18e537cd58e8d6932719bfa79cb96a1fbc639199
-Author: Ursula Braun
-Date: Thu Sep 21 09:16:33 2017 +0200
-Kernel Version: v4.14-rc1
-Message: net/smc: introduce a delay
-Full commit message:
-----------------------------------------
-net/smc: introduce a delay
-
-The number of outstanding work requests is limited. If all work
-requests are in use, tx processing is postponed to another scheduling
-of the tx worker. Switch to a delayed worker to have a gap for tx
-completion queue events before the next retry.
-
-Signed-off-by: Ursula Braun <ubraun@linux.vnet.ibm.com>
-Signed-off-by: David S. Miller <davem@davemloft.net>
-----------------------------------------
-
-SMC_TX_WORK_DELAY definition:
-  #define SMC_TX_WORK_DELAY     HZ
---------------------------------------------------------------------------------
-
-Commit 2/2 (Thread 31): 16297d143989e3f5acd75c1ca0a771b78aa12b46
-Author: Karsten Graul
-Date: Tue Feb 12 16:29:52 2019 +0100
-Kernel Version: v5.0-rc5
-Message: net/smc: no delay for free tx buffer wait
-Full commit message:
-----------------------------------------
-net/smc: no delay for free tx buffer wait
-
-When no free transfer buffers are available then a work to call
-smc_tx_work() is scheduled. Set the schedule delay to zero, because for
-the out-of-buffers condition the work can start immediately and will
-block in the called function smc_wr_tx_get_free_slot(), waiting for free
-buffers.
-
-Signed-off-by: Karsten Graul <kgraul@linux.ibm.com>
-Signed-off-by: Ursula Braun <ubraun@linux.ibm.com>
-Signed-off-by: David S. Miller <davem@davemloft.net>
-----------------------------------------
-
-SMC_TX_WORK_DELAY definition:
-  #define SMC_TX_WORK_DELAY     0
---------------------------------------------------------------------------------
+testcases.py                    ← Define constants to tune
+    │
+    ▼
+diff.py (×2 per testcase)      ← Recompile kernel, binary diff
+    │
+    ▼
+gen.py                          ← Extract Basic Blocks → bb_cache/N_bb_v{1,2,3}.txt
+    │
+    ▼
+codegen.py                      ← Symbolic execution → derive IV = f(V)
+    ├── Generate bpf/stubs/xtune_stub_N.bpf.c
+    └── Write /dev/shm/xkernel/{scope_table, cs_table, cs_raw}
+    │
+    ▼
+make -C bpf/                    ← Compile .bpf.c → .bpf.o
+    │
+    ▼
+xkernel-tool load <mode> <N>   ← Attach kprobes, manage consistency
+    ├── Resolve function addresses via /proc/kallsyms
+    ├── Load xk-kfuncs.ko (if needed)
+    ├── bpftool loadall → /sys/fs/bpf/xkernel/N/
+    ├── Populate cs_map with Critical Span ranges
+    └── [Mode 2] insmod xk-consistency.ko → wait → activate → rmmod
 ```
-</details>
 
+## Synthesis Types
 
+The codegen automatically detects and handles three synthesis patterns:
 
+| Type | Seed Instruction | Strategy |
+|------|-----------------|----------|
+| **Simple** | `mov $imm, %reg` | Single kprobe after seed: overwrite register |
+| **Irreversible** | `shr`/`shl`/`imul`/`and` | Two kprobes: save original value before seed, apply new computation after |
+| **Memory-store** | `movl $imm, disp(%reg)` | Single kprobe after store: rewrite memory via `bpf_probe_write_kernel` |
 
+## Runtime State
+
+```
+/dev/shm/xkernel/
+├── scope_table     ← ConstID → BPF file mapping, status
+├── cs_table        ← Critical Span instruction sequences
+├── cs_raw          ← Unresolved CS entries (function+offset)
+├── cs              ← Resolved CS entries (function+address+offsets)
+├── ss_raw          ← Unresolved SS entries (function+offset)
+├── ss              ← Resolved SS entries (for transition checking)
+└── runtime_state   ← JSON: active ConstIDs, loaded modules
+
+/sys/fs/bpf/xkernel/<ConstID>/
+├── progs/          ← Pinned BPF programs
+└── maps/           ← Pinned BPF maps (cs_map, ss_map, task_storage, etc.)
+```

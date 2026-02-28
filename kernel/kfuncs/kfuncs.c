@@ -1,0 +1,57 @@
+#include <linux/bpf.h>
+#include <linux/btf.h>
+#include <linux/btf_ids.h>
+#include <linux/init.h>
+#include <linux/kernel.h>
+#include <linux/module.h>
+#include <linux/version.h>
+
+MODULE_LICENSE("GPL");
+MODULE_DESCRIPTION("A kernel module for loading kfuncs into kernel");
+
+__bpf_kfunc_start_defs();
+
+__bpf_kfunc long bpf_probe_write_kernel(void *dst__ign, __u32 dst__sz,
+  const void *src__ign) {
+#if LINUX_VERSION_CODE <= KERNEL_VERSION(6, 12, 0)
+memcpy(dst__ign, src__ign, dst__sz);
+return 0;
+#else
+return copy_to_kernel_nofault(dst__ign, src__ign, dst__sz);
+#endif
+}
+
+__bpf_kfunc_end_defs();
+
+#if LINUX_VERSION_CODE <= KERNEL_VERSION(6, 9, 0)
+BTF_SET8_START(bpf_kfunc_example_ids_set)
+BTF_ID_FLAGS(func, bpf_probe_write_kernel)
+BTF_SET8_END(bpf_kfunc_example_ids_set)
+#else
+BTF_KFUNCS_START(bpf_kfunc_example_ids_set)
+BTF_ID_FLAGS(func, bpf_probe_write_kernel)
+BTF_KFUNCS_END(bpf_kfunc_example_ids_set)
+#endif
+
+static const struct btf_kfunc_id_set bpf_kfunc_set = {
+    .owner = THIS_MODULE,
+    .set = &bpf_kfunc_example_ids_set,
+};
+
+static int __init kfuncs_init(void) {
+  int ret;
+
+  ret = register_btf_kfunc_id_set(BPF_PROG_TYPE_UNSPEC, &bpf_kfunc_set);
+  if (ret < 0) {
+    pr_err("Failed to register kfunc: %d\n", ret);
+    return ret;
+  }
+
+  pr_info("kfuncs module loaded\n");
+  return 0;
+}
+
+static void __exit kfuncs_exit(void) { pr_info("kfuncs module unloaded\n"); }
+
+module_init(kfuncs_init);
+module_exit(kfuncs_exit);
