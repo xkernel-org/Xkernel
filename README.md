@@ -51,44 +51,48 @@ cd kernel && ./build.sh
 
 ## Quick Start
 
-### 1. Define test cases
+### 1. Define tunables
 
-Edit `xkernel/testcases.py` to specify the constants to tune:
+Create a TOML config file in `tunables/` (or use the provided `tunables/all.toml`):
 
-```python
-Testcase(
-    name="BLK_MQ_RESOURCE_DELAY",
-    description="block/blk-mq.c resource delay",
-    file="block/blk-mq.c",
-    original="BLK_MQ_RESOURCE_DELAY\t3",
-    modified=["BLK_MQ_RESOURCE_DELAY\t5", "BLK_MQ_RESOURCE_DELAY\t7"],
-    values=(3, 5, 7),
-    # Optional: manually specify Safe Span ranges for transition checking
-    safe_spans=[
-        ("blk_mq_dispatch_rq_list", "0x10", "0x90"),
-    ],
-)
+```toml
+[[tunables]]
+name = "BLK_MQ_RESOURCE_DELAY"
+description = "block/blk-mq.c resource delay"
+file = "block/blk-mq.c"
+original = "BLK_MQ_RESOURCE_DELAY\t3"
+modified = ["BLK_MQ_RESOURCE_DELAY\t5", "BLK_MQ_RESOURCE_DELAY\t7"]
+values = [3, 5, 7]
+
+  [[tunables.safe_spans]]
+  function = "blk_mq_dispatch_rq_list"
+  start_offset = "0x10"
+  end_offset = "0x90"
 ```
 
-Each test case provides three values `(V1, V2, V3)`. The pipeline recompiles the kernel twice (`V1→V2`, `V1→V3`), diffs the binary, and uses symbolic execution to derive the transformation relationship.
+Each tunable provides three values `(V1, V2, V3)`. The pipeline recompiles the kernel twice (`V1→V2`, `V1→V3`), diffs the binary, and uses symbolic execution to derive the transformation relationship.
 
-The optional `safe_spans` field specifies Safe Span (SS) ranges as `(function_name, start_offset, end_offset)` tuples. These ranges tell the consistency model where constant-derived values are still live. When omitted, CS ranges are used as a conservative approximation.
+The optional `safe_spans` field specifies Safe Span (SS) ranges as `(function, start_offset, end_offset)` entries. These ranges tell the consistency model where constant-derived values are still live. When omitted, CS ranges are used as a conservative approximation.
 
 ### 2. Build (full pipeline)
 
 ```shell
-./xkernel-tool build
+# Build a single tunable config
+./xkernel-tool build tunables/shrink_batch.toml
+
+# Build all tunables (clears tables first)
+./xkernel-tool build --all
 ```
 
 This runs the three-stage pipeline:
-1. **gen.py** — Binary diff + Basic Block extraction → `xkernel/bb_cache/`
+1. **gen.py** — Binary diff + Basic Block extraction → `bb_cache/`
 2. **codegen.py** — Symbolic execution + BPF code generation → `bpf/stubs/xtune_stub_N.bpf.c`
 3. **make** — Compile BPF programs → `.bpf.o`
 
 Use `--skip-gen` to skip the (slow) diff/BB stage when only codegen or compilation is needed:
 
 ```shell
-./xkernel-tool build --skip-gen
+./xkernel-tool build tunables/all.toml --skip-gen
 ```
 
 ### 3. Load a constant
@@ -137,7 +141,10 @@ Commands:
   trace     Display kernel BPF trace logs
 
 Options for 'build':
+  <config.toml> TOML config file (single or multi-tunable)
+  --all         Build all tunables from tunables/all.toml (clears tables first)
   --skip-gen    Skip gen.py (only run codegen + make)
+  --verbose     Show detailed codegen output
 
 Options for 'load':
   <MODE>        0=Immediate, 1=Per-task, 2=Global
@@ -161,32 +168,35 @@ Options for 'table':
 
 ```
 Xkernel/
-├── bpf/
+├── src/                            # Core pipeline
+│   ├── cli.py                      # xkernel-tool CLI
+│   ├── diff.py                     # Binary diff engine
+│   ├── gen.py                      # BB file generator (calls diff.py)
+│   ├── codegen.py                  # Symbolic execution + BPF code generation
+│   ├── config.py                   # TOML config loader (TunableConfig)
+│   ├── loader.py                   # BPF loading/unloading lifecycle
+│   └── table.py                    # Scope/CS/SS table management
+├── bpf/                            # BPF runtime
 │   ├── xkernel.bpf.h              # BPF runtime (transition_done, cs_map, etc.)
 │   ├── kfuncs.bpf.h               # kfunc declarations
 │   ├── util.bpf.h                 # Register read/write macros (BPF_SET_EAX, etc.)
 │   ├── cs_artifact.bpf.h          # Auto-generated: per-task CS handler
 │   ├── Makefile
-│   └── stubs/
-│       └── xtune_stub_N.bpf.{c,h} # Auto-generated SIE stubs
-├── kernel/
+│   └── stubs/                     # Auto-generated SIE stubs
+├── kernel/                         # Kernel modules
 │   ├── kfuncs/                     # xk-kfuncs.ko: exports kfuncs to BPF
 │   ├── consistency/                # xk-consistency.ko: global transition coordinator
 │   └── build.sh
-├── xkernel/
-│   ├── cli.py                      # xkernel-tool CLI
-│   ├── diff.py                     # Binary diff engine
-│   ├── gen.py                      # BB file generator (calls diff.py)
-│   ├── codegen.py                  # Symbolic execution + BPF code generation
-│   ├── solver.py                   # Linear relationship solver (V → IV)
-│   ├── loader.py                   # BPF loading/unloading lifecycle
-│   ├── table.py                    # Scope/CS/SS table management
-│   ├── objdump_helper.py           # Function address resolution
-│   ├── testcases.py                # Test case definitions
-│   └── bb_cache/                   # Generated Basic Block files
+├── tunables/                       # TOML config files
+│   ├── all.toml                    # All 9 tunables
+│   └── shrink_batch.toml           # Single tunable example
+├── bb_cache/                       # (generated) Basic Block files
+├── legacy/                         # Old code kept for reference
+│   ├── testcases.py, solver.py, objdump_helper.py
+│   ├── examples/                   # Hand-written BPF evaluation programs
+│   └── tools/                      # Evaluation scripts, plots, workloads
 ├── docs/
-│   ├── jump_optimization.md        # Jump optimization design
-│   └── per_constid_lifecycle.md    # Per-ConstID lifecycle design
+│   └── jump_optimization.md        # Jump optimization design
 ├── xkernel-tool                    # CLI entry point
 ├── build.sh                        # Full build script (deps + modules + BPF)
 └── install.sh                      # Kernel installation
@@ -195,28 +205,22 @@ Xkernel/
 ## Data Flow
 
 ```
-testcases.py                    ← Define constants to tune
+tunables/*.toml                 ← Define constants to tune (TOML config)
     │
     ▼
-diff.py (×2 per testcase)      ← Recompile kernel, binary diff
-    │
-    ▼
-gen.py                          ← Extract Basic Blocks → bb_cache/N_bb_v{1,2,3}.txt
-    │
-    ▼
-codegen.py                      ← Symbolic execution → derive IV = f(V)
-    ├── Generate bpf/stubs/xtune_stub_N.bpf.c
-    └── Write /dev/shm/xkernel/{scope_table, cs_table, cs_raw}
-    │
-    ▼
-make -C bpf/                    ← Compile .bpf.c → .bpf.o
+xkernel-tool build <config.toml>
+    ├── gen.py → diff.py (×2)  ← Recompile kernel, binary diff → bb_cache/
+    ├── codegen.py              ← Symbolic execution → derive IV = f(V)
+    │   ├── Generate bpf/stubs/xtune_stub_N.bpf.{c,h}
+    │   └── Write /dev/shm/xkernel/{scope_table, cs_table, cs_raw, ss_raw}
+    └── make -C bpf/            ← Compile .bpf.c → .bpf.o
     │
     ▼
 xkernel-tool load <mode> <N>   ← Attach kprobes, manage consistency
     ├── Resolve function addresses via /proc/kallsyms
     ├── Load xk-kfuncs.ko (if needed)
     ├── bpftool loadall → /sys/fs/bpf/xkernel/N/
-    ├── Populate cs_map with Critical Span ranges
+    ├── Populate cs_map/ss_map with CS/SS ranges
     └── [Mode 2] insmod xk-consistency.ko → wait → activate → rmmod
 ```
 

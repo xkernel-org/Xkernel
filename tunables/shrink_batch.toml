@@ -1,0 +1,13 @@
+name = "SHRINK_BATCH"
+description = "mm/shrinker.c SHRINK_BATCH"
+
+[source]
+file = "mm/shrinker.c"
+original = "#define SHRINK_BATCH 128"
+modified = ["#define SHRINK_BATCH 32", "#define SHRINK_BATCH 64"]
+values = [128, 32, 64]
+
+[[safe_spans]]
+function = "__pfx_perf_trace_mm_shrink_slab_end"
+start_offset = "0x10"
+end_offset = "0x15145"

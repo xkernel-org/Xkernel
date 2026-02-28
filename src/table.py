@@ -76,6 +76,8 @@ def draw_box_line(content, width):
 SCOPE_TABLE_PATH = "/dev/shm/xkernel/scope_table"
 CS_TABLE_PATH = "/dev/shm/xkernel/cs_table"
 SS_TABLE_PATH = "/dev/shm/xkernel/ss_table"
+CS_RAW_PATH = "/dev/shm/xkernel/cs_raw"
+SS_RAW_PATH = "/dev/shm/xkernel/ss_raw"
 
 SCOPE_TABLE_HEADER = ["ConstID", "Val", "Expression", "CS_Index", "SS_Index", "BPF_File", "Status", "Candidates"]
 CS_TABLE_HEADER = ["Index", "CS_Content"]
@@ -258,12 +260,24 @@ def delete_entries(const_id: Optional[str] = None, val: Optional[str] = None,
     entries = read_scope_table()
 
     if delete_all:
-        if not entries:
-            print(colorize("  Scope Table is already empty.", Colors.YELLOW))
-            return 0
         count = len(entries)
-        write_scope_table([])
-        print(colorize(f"  ✓ Deleted all {count} entries from Scope Table.", Colors.GREEN))
+        if count > 0:
+            write_scope_table([])
+            print(colorize(f"  ✓ Deleted all {count} entries from Scope Table.", Colors.GREEN))
+        else:
+            print(colorize("  Scope Table is already empty.", Colors.DIM))
+        # Always clear CS table, SS table, cs_raw, ss_raw
+        for path, header, label in [
+            (CS_TABLE_PATH, CS_TABLE_HEADER, "CS Table"),
+            (SS_TABLE_PATH, SS_TABLE_HEADER, "SS Table"),
+            (CS_RAW_PATH, ["ConstID", "FunctionName", "StartOffset", "EndOffset"], "CS Raw"),
+            (SS_RAW_PATH, ["ConstID", "FunctionName", "StartOffset", "EndOffset"], "SS Raw"),
+        ]:
+            if os.path.exists(path):
+                with open(path, 'w', newline='') as f:
+                    writer = csv.writer(f, delimiter='\t')
+                    writer.writerow(header)
+                print(colorize(f"  ✓ Cleared {label}.", Colors.GREEN))
         return count
     
     # Filter entries to keep
@@ -638,7 +652,7 @@ Examples:
         # Print a simple banner
         print()
         print(colorize("  ╔══════════════════════════════════════════════════════════════════════╗", Colors.DIM))
-        print(colorize("  ║", Colors.DIM) + colorize("              XKERNEL TABLE MANAGER                                  ", Colors.BOLD) + colorize("║", Colors.DIM))
+        print(colorize("  ║", Colors.DIM) + colorize("                         XKERNEL TABLE MANAGER                        ", Colors.BOLD) + colorize("║", Colors.DIM))
         print(colorize("  ╚══════════════════════════════════════════════════════════════════════╝", Colors.DIM))
 
         # Show Scope Table

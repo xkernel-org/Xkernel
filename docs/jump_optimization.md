@@ -44,7 +44,7 @@ family); matching is done at the family level.
 
 The change spans three files along the generate → compile → load pipeline.
 
-### 1. `xkernel/codegen.py` — Computing Candidate Offsets
+### 1. `src/codegen.py` — Computing Candidate Offsets
 
 **New functions:**
 
@@ -87,7 +87,7 @@ The generated BPF file includes the candidate list before each kprobe's SEC anno
 SEC("kprobe/blk_mq_dispatch_rq_list+0x3a0")
 ```
 
-### 2. `xkernel/loader.py` — Load-Time Probe Optimization
+### 2. `src/loader.py` — Load-Time Probe Optimization
 
 **New functions:**
 
@@ -113,7 +113,7 @@ SEC("kprobe/blk_mq_dispatch_rq_list+0x3a0")
 Test probes are pinned under `/sys/fs/bpf/xkernel_jumpopt_test`, isolated from the production
 load path. The source file is backed up before any patch and restored automatically on failure.
 
-### 3. `xkernel/cli.py` — User Interface
+### 3. `src/cli.py` — User Interface
 
 A `--jump-opt` flag is added to `cmd_load()`. It takes effect after cs_artifact generation and
 BPF compilation, but before kernel module insertion:

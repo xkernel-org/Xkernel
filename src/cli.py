@@ -166,7 +166,7 @@ def generate_cs_file(const_ids_str):
 def generate_ss_file(const_ids_str):
     """Generate SS file for specified ConstIDs.
 
-    Priority: testcases.py safe_spans > ss_raw > CS file fallback.
+    Priority: ss_raw (populated during build) > CS file fallback.
 
     Args:
         const_ids_str: Comma-separated ConstIDs
@@ -179,24 +179,8 @@ def generate_ss_file(const_ids_str):
 
     entries = []
 
-    # Priority 1: Check testcases.py safe_spans (authoritative source)
-    try:
-        from xkernel.testcases import TESTCASES
-        for i, tc in enumerate(TESTCASES, 1):
-            cid = str(i)
-            if cid in const_ids and tc.safe_spans:
-                for func_name, soff, eoff in tc.safe_spans:
-                    func_addr = resolve_func_addr(func_name)
-                    if func_addr:
-                        entries.append(f"{func_name},{func_addr},{soff},{eoff}")
-                    else:
-                        print(f"Warning: Could not resolve address for function {func_name} (SS)")
-                const_ids.discard(cid)  # handled, don't check ss_raw for this ID
-    except ImportError:
-        pass
-
-    # Priority 2: Fall back to ss_raw for ConstIDs without safe_spans
-    if const_ids and os.path.exists(SS_RAW):
+    # Priority 1: Read from ss_raw (populated during build from safe_spans or CS fallback)
+    if os.path.exists(SS_RAW):
         with open(SS_RAW, 'r') as f:
             header = f.readline()  # skip header
             for line in f:
@@ -211,12 +195,12 @@ def generate_ss_file(const_ids_str):
                     else:
                         print(f"Warning: Could not resolve address for function {func_name} (SS)")
 
-    # Priority 3: Fall back to CS file if no SS entries at all
+    # Priority 2: Fall back to CS file if no SS entries at all
     if not entries and os.path.exists(CS_FILE):
         with open(CS_FILE, 'r') as f:
             entries = [l.strip() for l in f if l.strip()]
         if entries:
-            print("SS: falling back to CS entries (no safe_spans or ss_raw data)")
+            print("SS: falling back to CS entries (no ss_raw data)")
 
     if entries:
         with open(SS_FILE, 'w') as f:
@@ -229,32 +213,83 @@ def generate_ss_file(const_ids_str):
 
 
 def cmd_build(args):
-    """Build pipeline: gen -> codegen -> compile."""
+    """Build pipeline: gen -> codegen -> compile.
+
+    Usage:
+      xkernel-tool build <config.toml>           # Build single tunable from TOML config
+      xkernel-tool build --all                    # Rebuild all from testcases.py (legacy)
+    """
     project_root = get_project_root()
-    xkernel_dir = os.path.join(project_root, 'xkernel')
     skip_gen = '--skip-gen' in args
     verbose = '--verbose' in args or '-v' in args
 
-    print("==========================================")
-    print("Xkernel Build Pipeline")
-    print("==========================================")
+    # Separate flags from positional args
+    flags = {'--skip-gen', '--verbose', '-v', '--all'}
+    positional = [a for a in args if a not in flags]
+    use_all = '--all' in args
 
-    # Step 1: Run gen.py
-    if not skip_gen:
-        print("\n[Step 1/3] Running gen.py to generate Basic Block analysis...")
-        print("==========================================")
-        from xkernel.gen import generate_bb_files
-        generate_bb_files()
+    # Detect mode: TOML file or legacy --all
+    toml_file = None
+    if positional:
+        candidate = positional[0]
+        if candidate.endswith('.toml') or os.path.isfile(candidate):
+            toml_file = candidate
+
+    if toml_file:
+        _cmd_build_single(toml_file, skip_gen, verbose, project_root)
+    elif use_all:
+        _cmd_build_all(skip_gen, verbose, project_root)
     else:
-        print("\n[Step 1/3] Skipped gen.py (--skip-gen)")
+        print("Usage: xkernel-tool build <config.toml> [--skip-gen] [--verbose/-v]")
+        print("       xkernel-tool build --all [--skip-gen] [--verbose/-v]")
+        print()
+        print("  <config.toml>  Build a single tunable from a TOML config file")
+        print("  --all          Rebuild all tunables from tunables/all.toml (clean rebuild)")
+        sys.exit(1)
 
-    # Step 2: Run codegen.py
-    print("\n[Step 2/3] Running codegen.py to generate BPF code...")
+
+def _cmd_build_single(toml_file, skip_gen, verbose, project_root):
+    """Build tunables from a TOML config file (single or multi-tunable)."""
+    from src.config import load_configs
+    from src.codegen import next_const_id, run_codegen_single
+
+    if not os.path.exists(toml_file):
+        print(f"Error: Config file not found: {toml_file}")
+        sys.exit(1)
+
+    configs = load_configs(toml_file)
+    if not configs:
+        print(f"Error: No tunables found in {toml_file}")
+        sys.exit(1)
+
     print("==========================================")
-    from xkernel.codegen import run_codegen
-    run_codegen(verbose=verbose)
+    print(f"Xkernel Build: {len(configs)} tunable(s) from {toml_file}")
+    print("==========================================")
 
-    # Step 3: Compile BPF programs
+    assigned_ids = []
+
+    for i, config in enumerate(configs):
+        const_id = next_const_id()
+        assigned_ids.append((config.name, const_id))
+
+        print(f"\n--- [{i+1}/{len(configs)}] {config.name} (ConstID={const_id}) ---")
+
+        # Step 1: Generate BB files
+        if not skip_gen:
+            print(f"  [Step 1/3] Running gen.py for {config.name}...")
+            from src.gen import generate_bb_files_single
+            result = generate_bb_files_single(config, const_id)
+            if result is None:
+                print(f"  Error: BB file generation failed for {config.name}, skipping")
+                continue
+        else:
+            print("  [Step 1/3] Skipped gen.py (--skip-gen)")
+
+        # Step 2: Run codegen
+        print(f"  [Step 2/3] Running codegen for ConstID {const_id}...")
+        run_codegen_single(config, const_id, verbose=verbose)
+
+    # Step 3: Compile all BPF programs at once
     print("\n[Step 3/3] Compiling BPF programs...")
     print("==========================================")
     bpf_dir = os.path.join(project_root, 'bpf')
@@ -264,11 +299,27 @@ def cmd_build(args):
         sys.exit(1)
 
     print("\n==========================================")
-    print("Build completed successfully!")
+    print(f"Build completed: {len(assigned_ids)} tunable(s)")
+    for name, cid in assigned_ids:
+        print(f"  {name} -> ConstID {cid}")
     print("==========================================")
     print(f"\nNext steps:")
-    print(f"  ./xkernel-tool load <MODE> <ConstID>    # Load the BPF program")
-    print(f"  ./xkernel-tool unload                   # Unload when done")
+    for name, cid in assigned_ids:
+        print(f"  ./xkernel-tool load <MODE> {cid}    # Load {name}")
+
+
+def _cmd_build_all(skip_gen, verbose, project_root):
+    """Batch build: rebuild all tunables from tunables/all.toml."""
+    from src.codegen import clear_all_tables
+    clear_all_tables()
+    print("Cleared all tables for full rebuild")
+
+    all_toml = os.path.join(project_root, 'tunables', 'all.toml')
+    if not os.path.exists(all_toml):
+        print(f"Error: {all_toml} not found")
+        sys.exit(1)
+
+    _cmd_build_single(all_toml, skip_gen, verbose, project_root)
 
 
 def resolve_constid_to_bpf(const_id, project_root):
@@ -485,7 +536,7 @@ def print_loaded_kprobes(const_id, bpf_c_path, mode):
 
 def cmd_load(args):
     """Load BPF kprobes for a single ConstID with per-ConstID lifecycle."""
-    from xkernel.loader import (
+    from src.loader import (
         ensure_kfuncs_loaded, load_and_attach_per_constid,
         load_critical_spans_for_constid, load_safe_spans_for_constid,
         activate_constid,
@@ -568,7 +619,7 @@ def cmd_load(args):
 
     # Step 4: Jump optimization (optional)
     if jump_opt:
-        from xkernel.loader import try_jump_optimization
+        from src.loader import try_jump_optimization
         print("\n--- Jump Optimization ---")
         print("Probing candidate offsets for jump-optimized kprobes...")
         optimized = try_jump_optimization(bpf_c, bpf_dir)
@@ -599,7 +650,7 @@ def cmd_load(args):
         if not os.path.exists(consistency_path):
             print(f"Error: Consistency module not found: {consistency_path}")
             print("Cleaning up loaded BPF programs...")
-            from xkernel.loader import unload_constid
+            from src.loader import unload_constid
             unload_constid(const_id)
             sys.exit(1)
 
@@ -634,7 +685,7 @@ def cmd_load(args):
                         print(f"  {line}")
             # Clean up: unload the BPF programs we just loaded
             print(f"Cleaning up BPF programs for ConstID {const_id}...")
-            from xkernel.loader import unload_constid
+            from src.loader import unload_constid
             unload_constid(const_id)
             sys.exit(1)
         else:
@@ -689,7 +740,7 @@ def cmd_load(args):
 
 def cmd_unload(args):
     """Unload BPF kprobes for specific ConstIDs or all."""
-    from xkernel.loader import (
+    from src.loader import (
         unload_constid, is_kfuncs_loaded,
         get_runtime_state, save_runtime_state,
     )
@@ -758,7 +809,7 @@ def cmd_unload(args):
 
 def cmd_status(args):
     """Show runtime status of loaded ConstIDs."""
-    from xkernel.loader import get_runtime_state, is_kfuncs_loaded
+    from src.loader import get_runtime_state, is_kfuncs_loaded
 
     state = get_runtime_state()
     active = state.get("active_const_ids", {})
@@ -782,7 +833,7 @@ def cmd_status(args):
 def cmd_table(args):
     """Manage scope tables."""
     project_root = get_project_root()
-    table_script = os.path.join(project_root, 'xkernel', 'table.py')
+    table_script = os.path.join(project_root, 'src', 'table.py')
     ret = subprocess.run([sys.executable, table_script] + args)
     sys.exit(ret.returncode)
 
@@ -797,7 +848,7 @@ def show_help():
     print("Usage: xkernel-tool <command> [options]")
     print()
     print("Commands:")
-    print("  build     Generate BPF code from tests and compile")
+    print("  build     Build tunables from TOML config (or --all for clean rebuild)")
     print("  load      Load BPF kprobes for a single ConstID")
     print("  unload    Unload BPF kprobes (per-ConstID or all)")
     print("  status    Show runtime status of loaded ConstIDs")
@@ -805,6 +856,8 @@ def show_help():
     print("  trace     Trace the kernel logs")
     print()
     print("Options for 'build':")
+    print("  <config.toml> Build tunables from a TOML config file")
+    print("  --all         Clean rebuild: clear tables + build all from tunables/all.toml")
     print("  --skip-gen    Skip running gen.py (only run codegen.py and make)")
     print("  --verbose/-v  Show detailed intermediate output (symbolic execution, diffs)")
     print()
@@ -826,7 +879,8 @@ def show_help():
     print("  ss [--index N]          Show Symbolic State entries")
     print()
     print("Examples:")
-    print("  xkernel-tool build                # Full build pipeline")
+    print("  xkernel-tool build tunables/shrink_batch.toml  # Build single tunable")
+    print("  xkernel-tool build --all                       # Legacy batch build")
     print("  xkernel-tool load 0 1             # Load ConstID 1 in Immediate mode")
     print("  xkernel-tool load 2 2 5           # Load ConstID 2 in Global mode, 5s timeout")
     print("  xkernel-tool unload 1             # Unload ConstID 1")
