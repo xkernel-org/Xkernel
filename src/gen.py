@@ -61,7 +61,7 @@ def extract_step11b(output):
     return '\n'.join(result).strip()
 
 
-def build_diff_command(file, original, modified, lines=None):
+def build_diff_command(file, original, modified, lines=None, kernel_dir=None):
     """Build a diff.py command as an argv list (no shell=True needed).
 
     Args:
@@ -69,6 +69,7 @@ def build_diff_command(file, original, modified, lines=None):
         original: original source expression
         modified: replacement expression
         lines: optional --lines filter string
+        kernel_dir: path to kernel source tree (passed as -p to diff.py)
 
     Returns:
         list of command arguments for subprocess.run()
@@ -76,6 +77,8 @@ def build_diff_command(file, original, modified, lines=None):
     script_dir = os.path.dirname(os.path.abspath(__file__))
     cmd = ['sudo', sys.executable, os.path.join(script_dir, 'diff.py'),
            '-f', file, '-s', original, modified]
+    if kernel_dir:
+        cmd.extend(['-p', kernel_dir])
     if lines:
         cmd.extend(['--lines', lines])
     return cmd
@@ -194,7 +197,7 @@ def generate_bb_files():
     return results
 
 
-def generate_bb_files_single(config, const_id: int):
+def generate_bb_files_single(config, const_id: int, kernel_dir=None):
     """Generate BB files for a single tunable config.
 
     Unlike generate_bb_files(), this does NOT wipe bb_cache/.
@@ -203,6 +206,7 @@ def generate_bb_files_single(config, const_id: int):
     Args:
         config: TunableConfig instance (from src.config)
         const_id: ConstID to use as file prefix
+        kernel_dir: path to kernel source tree (passed to diff.py)
 
     Returns:
         (v1_file, v2_file, v3_file) tuple, or None on failure.
@@ -218,8 +222,8 @@ def generate_bb_files_single(config, const_id: int):
     v2_file = os.path.join(bb_dir, f'{prefix}_bb_v2.txt')
     v3_file = os.path.join(bb_dir, f'{prefix}_bb_v3.txt')
 
-    cmd1 = build_diff_command(config.file, config.original, config.modified[0], config.lines)
-    cmd2 = build_diff_command(config.file, config.original, config.modified[1], config.lines)
+    cmd1 = build_diff_command(config.file, config.original, config.modified[0], config.lines, kernel_dir=kernel_dir)
+    cmd2 = build_diff_command(config.file, config.original, config.modified[1], config.lines, kernel_dir=kernel_dir)
 
     print(f"Processing ConstID {prefix} ({config.name})...")
     print(f"  Command 1: {' '.join(cmd1)}")

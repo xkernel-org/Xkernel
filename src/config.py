@@ -8,9 +8,12 @@ Supports two formats:
   2. Multi-tunable file ([[tunables]] array of tables)
 """
 
+import os
 import tomllib
 from dataclasses import dataclass
 from typing import List, Optional, Tuple
+
+DEFAULT_KERNEL_DIR = "~/linux-6.14.0-xkernel"
 
 
 @dataclass(frozen=True)
@@ -83,19 +86,22 @@ def _parse_tunable(data: dict, context: str) -> TunableConfig:
     )
 
 
-def load_config(path: str) -> TunableConfig:
+def load_config(path: str) -> Tuple[str, TunableConfig]:
     """Load a single-tunable TOML config file.
 
     For multi-tunable files, use load_configs() instead.
     If the file contains [[tunables]], returns the first one.
+
+    Returns:
+        (kernel_dir, TunableConfig) tuple.
     """
-    configs = load_configs(path)
+    kernel_dir, configs = load_configs(path)
     if not configs:
         raise ValueError(f"No tunables found in {path}")
-    return configs[0]
+    return kernel_dir, configs[0]
 
 
-def load_configs(path: str) -> List[TunableConfig]:
+def load_configs(path: str) -> Tuple[str, List[TunableConfig]]:
     """Load all tunables from a TOML config file.
 
     Supports two formats:
@@ -106,17 +112,19 @@ def load_configs(path: str) -> List[TunableConfig]:
         path: Path to the TOML config file.
 
     Returns:
-        List of TunableConfig instances.
+        (kernel_dir, list_of_TunableConfig) tuple.
     """
     with open(path, 'rb') as f:
         data = tomllib.load(f)
+
+    kernel_dir = os.path.expanduser(data.get('kernel_dir', DEFAULT_KERNEL_DIR))
 
     # Multi-tunable format: [[tunables]] array
     if 'tunables' in data:
         configs = []
         for i, entry in enumerate(data['tunables']):
             configs.append(_parse_tunable(entry, f"{path} tunables[{i}]"))
-        return configs
+        return kernel_dir, configs
 
     # Single-tunable format: top-level fields
-    return [_parse_tunable(data, path)]
+    return kernel_dir, [_parse_tunable(data, path)]

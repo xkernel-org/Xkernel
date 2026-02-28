@@ -11,8 +11,8 @@
 
 set -euo pipefail
 
-KERNELDIR="${KERNELDIR:-$HOME/linux-6.14.0-xkernel}"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+KERNELDIR="${KERNELDIR:-$(python3 -c "import tomllib,os; print(os.path.expanduser(tomllib.load(open('${SCRIPT_DIR}/tunables/all.toml','rb')).get('kernel_dir','~/linux-6.14.0-xkernel')))" 2>/dev/null || echo "$HOME/linux-6.14.0-xkernel")}"
 LIBBPF_DIR="${SCRIPT_DIR}/../libbpf"
 SKIP_DEPS=false
 
