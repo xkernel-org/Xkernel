@@ -26,8 +26,9 @@ BPF_PIN_BASE = "/sys/fs/bpf/xkernel"
 def generate_cs_artifact_header(spans_path, output_path):
     """Generate cs_artifact.bpf.h with guard/unguard kprobe pairs from span ranges.
 
-    Guard kprobe at SS entry (soff): per-task stack check / global refcount++
-    Unguard kprobe at SS exit (eoff): global refcount--
+    Only used for Per-task mode (mode 1).
+    Guard kprobe at SS entry (soff): triggers per-task stack check.
+    Unguard kprobe at SS exit (eoff): placeholder (no-op for per-task).
 
     Args:
         spans_path: Path to spans file (format: function_name,address,soff,eoff per line)

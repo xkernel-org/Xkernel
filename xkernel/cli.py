@@ -536,11 +536,20 @@ def cmd_load(args):
     generate_ss_file(const_id)
 
     # Step 2: Generate cs_artifact (guard/unguard kprobes from SS ranges) and compile BPF
+    # Guard/unguard kprobes are only needed for Per-task mode (mode 1).
+    # Immediate mode needs no transition; Global mode uses kernel module kprobes.
     bpf_dir = os.path.join(project_root, 'bpf')
     cs_artifact_path = os.path.join(bpf_dir, 'cs_artifact.bpf.h')
-    # Use SS ranges for transition checking; fall back to CS if SS file doesn't exist
-    spans_file = SS_FILE if os.path.exists(SS_FILE) else CS_FILE
-    generate_cs_artifact_header(spans_file, cs_artifact_path)
+    if mode == 1:
+        spans_file = SS_FILE if os.path.exists(SS_FILE) else CS_FILE
+        generate_cs_artifact_header(spans_file, cs_artifact_path)
+    else:
+        # Write empty cs_artifact — no guard/unguard kprobes needed
+        with open(cs_artifact_path, 'w') as f:
+            f.write("#ifndef __CS_ARTIFACT_BPF_H__\n"
+                    "#define __CS_ARTIFACT_BPF_H__\n"
+                    "#include \"xkernel.bpf.h\"\n"
+                    "#endif\n")
 
     print("Compiling BPF files...")
     bpf_c = bpf_o_path.replace('.bpf.o', '.bpf.c')
