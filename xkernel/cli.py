@@ -304,7 +304,7 @@ def resolve_constid_to_bpf(const_id, project_root):
     if not bpf_file:
         return None, None
 
-    full_path = os.path.join(project_root, 'bpf', 'examples', bpf_file)
+    full_path = os.path.join(project_root, 'bpf', 'stubs', bpf_file)
     return full_path, bpf_file
 
 
@@ -408,7 +408,7 @@ def print_loaded_kprobes(const_id, bpf_c_path, mode):
 
     Shows three categories:
     1. X_TUNE kprobes (from .bpf.c) — the actual constant-tuning probes
-    2. SAVE kprobes (from .internal.bpf.h) — irreversible synthesis pre-save
+    2. SAVE kprobes (from stub .bpf.h) — irreversible synthesis pre-save
     3. Transition kprobes (from cs_artifact.bpf.h) — per-task/global transition handlers
     """
     mode_names = {0: 'Immediate', 1: 'Per-task', 2: 'Global'}
@@ -417,12 +417,12 @@ def print_loaded_kprobes(const_id, bpf_c_path, mode):
     # Collect kprobes from all sources
     tune_kprobes = _parse_kprobes_from_bpf_c(bpf_c_path)
 
-    # Internal header: same dir, same prefix but .internal.bpf.h
-    internal_h = bpf_c_path.replace('.bpf.c', '.internal.bpf.h')
+    # Stub header: same dir, same prefix but .bpf.h
+    internal_h = bpf_c_path.replace('.bpf.c', '.bpf.h')
     save_kprobes = _parse_kprobes_from_internal_header(internal_h)
 
     # cs_artifact.bpf.h: in bpf/ directory
-    bpf_dir = os.path.dirname(os.path.dirname(bpf_c_path))  # bpf/examples/ -> bpf/
+    bpf_dir = os.path.dirname(os.path.dirname(bpf_c_path))  # bpf/stubs/ -> bpf/
     cs_artifact = os.path.join(bpf_dir, 'cs_artifact.bpf.h')
     transition_kprobes = _parse_kprobes_from_cs_artifact(cs_artifact)
 

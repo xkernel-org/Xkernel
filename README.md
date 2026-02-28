@@ -82,7 +82,7 @@ The optional `safe_spans` field specifies Safe Span (SS) ranges as `(function_na
 
 This runs the three-stage pipeline:
 1. **gen.py** — Binary diff + Basic Block extraction → `xkernel/bb_cache/`
-2. **codegen.py** — Symbolic execution + BPF code generation → `bpf/examples/my_policy_N.bpf.c`
+2. **codegen.py** — Symbolic execution + BPF code generation → `bpf/stubs/xtune_stub_N.bpf.c`
 3. **make** — Compile BPF programs → `.bpf.o`
 
 Use `--skip-gen` to skip the (slow) diff/BB stage when only codegen or compilation is needed:
@@ -167,8 +167,8 @@ Xkernel/
 │   ├── util.bpf.h                 # Register read/write macros (BPF_SET_EAX, etc.)
 │   ├── cs_artifact.bpf.h          # Auto-generated: per-task CS handler
 │   ├── Makefile
-│   └── examples/
-│       └── my_policy_N.bpf.c      # Auto-generated BPF kprobe programs
+│   └── stubs/
+│       └── xtune_stub_N.bpf.{c,h} # Auto-generated SIE stubs
 ├── kernel/
 │   ├── kfuncs/                     # xk-kfuncs.ko: exports kfuncs to BPF
 │   ├── consistency/                # xk-consistency.ko: global transition coordinator
@@ -205,7 +205,7 @@ gen.py                          ← Extract Basic Blocks → bb_cache/N_bb_v{1,2
     │
     ▼
 codegen.py                      ← Symbolic execution → derive IV = f(V)
-    ├── Generate bpf/examples/my_policy_N.bpf.c
+    ├── Generate bpf/stubs/xtune_stub_N.bpf.c
     └── Write /dev/shm/xkernel/{scope_table, cs_table, cs_raw}
     │
     ▼

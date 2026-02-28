@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: GPL-2.0
 // Auto-generated X_TUNE policy for test group 4
 
-#include "my_policy_4.internal.bpf.h"
+#include "xtune_stub_4.bpf.h"
 
+// void tcp_rack_detect_loss(struct sock * sk, u32 * reo_timeout)
 // Kprobe 1: tcp_rack_detect_loss+0x6e (irreversible)
 // Candidates: 0x6e
 // Relationship: IV = V

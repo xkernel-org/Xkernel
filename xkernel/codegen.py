@@ -2877,13 +2877,118 @@ def analyze_linear_relationship(prefix: str, v1_file: str, v2_file: str, v3_file
             print(f"  Added Scope Table entry: ConstID={const_id_value}, V={v1_src}, CS=[{','.join(cs_indices)}]")
 
 
+# ---------------------------------------------------------------------------
+# BTF-based function prototype lookup
+# ---------------------------------------------------------------------------
+
+_BTF_FILE = '/sys/kernel/btf/vmlinux'
+_btf_entries = None  # lazily loaded
+
+
+def _parse_btf_dump():
+    """Parse `bpftool btf dump` output into a dict keyed by type-id."""
+    import subprocess
+    try:
+        out = subprocess.check_output(
+            ['bpftool', 'btf', 'dump', 'file', _BTF_FILE],
+            stderr=subprocess.DEVNULL, text=True)
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        return {}
+
+    entries = {}
+    cur_id = None
+    cur = None
+    for line in out.splitlines():
+        m = re.match(r'^\[(\d+)\]\s+(\w+)\s+(.*)', line)
+        if m:
+            if cur_id is not None:
+                entries[cur_id] = cur
+            cur_id = int(m.group(1))
+            rest = m.group(3)
+            nm = re.search(r"'([^']*)'", rest)
+            cur = {
+                'kind': m.group(2),
+                'name': nm.group(1) if nm else '',
+                'type_id': None,
+                'ret_type_id': None,
+                'params': [],
+            }
+            tid = re.search(r'type_id=(\d+)', rest)
+            if tid:
+                cur['type_id'] = int(tid.group(1))
+            ret = re.search(r'ret_type_id=(\d+)', rest)
+            if ret:
+                cur['ret_type_id'] = int(ret.group(1))
+        elif line.startswith('\t') and cur is not None:
+            pm = re.match(r"\t'([^']*)'\s+type_id=(\d+)", line)
+            if pm:
+                cur['params'].append((pm.group(1), int(pm.group(2))))
+    if cur_id is not None:
+        entries[cur_id] = cur
+    return entries
+
+
+def _resolve_type(entries, tid, depth=0):
+    """Resolve a BTF type-id to a C type string."""
+    if depth > 20 or tid not in entries:
+        return '?'
+    e = entries[tid]
+    kind = e['kind']
+    if kind in ('INT', 'TYPEDEF'):
+        return e['name']
+    if kind == 'PTR':
+        if not e['type_id']:
+            return 'void *'
+        inner = _resolve_type(entries, e['type_id'], depth + 1)
+        return inner + ' *' if not inner.endswith('*') else inner + '*'
+    if kind in ('CONST', 'VOLATILE', 'RESTRICT', 'TYPE_TAG'):
+        return _resolve_type(entries, e['type_id'], depth + 1)
+    if kind == 'STRUCT':
+        return 'struct ' + e['name']
+    if kind == 'UNION':
+        return 'union ' + e['name']
+    if kind in ('ENUM', 'ENUM64'):
+        return ('enum ' + e['name']) if e['name'] else 'int'
+    if kind == 'FWD':
+        return 'struct ' + e['name']
+    return e['name'] or kind
+
+
+def get_func_prototype(func_name: str) -> Optional[str]:
+    """Look up a kernel function's prototype via BTF.
+
+    Returns a C-style signature string, e.g.
+      'void cubictcp_acked(struct sock *sk, const struct ack_sample *sample)'
+    or None if the function is not found in BTF.
+    """
+    global _btf_entries
+    if _btf_entries is None:
+        _btf_entries = _parse_btf_dump()
+    if not _btf_entries:
+        return None
+
+    for tid, e in _btf_entries.items():
+        if e['kind'] == 'FUNC' and e['name'] == func_name:
+            proto = _btf_entries.get(e['type_id'])
+            if not proto or proto['kind'] != 'FUNC_PROTO':
+                return None
+            ret = _resolve_type(_btf_entries, proto['ret_type_id']) \
+                if proto['ret_type_id'] else 'void'
+            params = []
+            for pname, ptid in proto['params']:
+                ptype = _resolve_type(_btf_entries, ptid)
+                params.append(f'{ptype} {pname}')
+            return f"{ret} {func_name}({', '.join(params) if params else 'void'})"
+    return None
+
+
 def generate_multi_kprobe_bpf_file(prefix: str, kprobes: List[Dict], v1_src: int,
                                     file_path: str = None, output_dir: str = None) -> Optional[Tuple[str, str]]:
     """Generate BPF files with X_TUNE API for multiple kprobes.
 
     Generates two files:
-    - my_policy_{prefix}.internal.bpf.h: SIE plumbing (helpers, macros, save handlers)
-    - my_policy_{prefix}.bpf.c: User policy using X_TUNE macros
+    - xtune_stub_{prefix}.bpf.h: SIE plumbing (helpers, macros, save handlers)
+    - xtune_stub_{prefix}.bpf.c: User policy using X_TUNE macros
 
     Args:
         prefix: Test group prefix
@@ -2901,7 +3006,7 @@ def generate_multi_kprobe_bpf_file(prefix: str, kprobes: List[Dict], v1_src: int
     if output_dir is None:
         script_dir = os.path.dirname(os.path.abspath(__file__))
         project_root = os.path.dirname(script_dir)
-        output_dir = os.path.join(project_root, 'bpf', 'examples')
+        output_dir = os.path.join(project_root, 'bpf', 'stubs')
 
     os.makedirs(output_dir, exist_ok=True)
 
@@ -2931,12 +3036,14 @@ def generate_multi_kprobe_bpf_file(prefix: str, kprobes: List[Dict], v1_src: int
 
     WRITE_SIZE_TO_CTYPE = {1: '__u8', 2: '__u16', 4: '__u32', 8: '__u64'}
 
-    # ===== Generate .internal.bpf.h (SIE plumbing) =====
+    # ===== Generate .bpf.h (SIE plumbing) =====
     hdr = []
     hdr.append('// SPDX-License-Identifier: GPL-2.0')
-    hdr.append(f'// Auto-generated SIE indirection for test group {prefix}')
-    hdr.append(f'#ifndef __MY_POLICY_{prefix}_INTERNAL_H__')
-    hdr.append(f'#define __MY_POLICY_{prefix}_INTERNAL_H__')
+    hdr.append(f'// Auto-generated by codegen.py — DO NOT EDIT')
+    hdr.append(f'// SIE indirection stub for test group {prefix}')
+    hdr.append(f'// Regenerate with: ./xkernel-tool build')
+    hdr.append(f'#ifndef __XTUNE_STUB_{prefix}_H__')
+    hdr.append(f'#define __XTUNE_STUB_{prefix}_H__')
     hdr.append('')
     hdr.append('#include "vmlinux.h"')
     hdr.append('#include <bpf/bpf_helpers.h>')
@@ -3056,10 +3163,10 @@ def generate_multi_kprobe_bpf_file(prefix: str, kprobes: List[Dict], v1_src: int
         hdr.append(f'    static int {policy_name}(struct x_ctx *x_ctx, struct pt_regs *ctx)')
         hdr.append('')
 
-    hdr.append(f'#endif // __MY_POLICY_{prefix}_INTERNAL_H__')
+    hdr.append(f'#endif // __XTUNE_STUB_{prefix}_H__')
 
     # Write internal header
-    internal_file = os.path.join(output_dir, f"my_policy_{prefix}.internal.bpf.h")
+    internal_file = os.path.join(output_dir, f"xtune_stub_{prefix}.bpf.h")
     with open(internal_file, 'w') as f:
         f.write('\n'.join(hdr) + '\n')
 
@@ -3068,8 +3175,15 @@ def generate_multi_kprobe_bpf_file(prefix: str, kprobes: List[Dict], v1_src: int
     src.append('// SPDX-License-Identifier: GPL-2.0')
     src.append(f'// Auto-generated X_TUNE policy for test group {prefix}')
     src.append('')
-    src.append(f'#include "my_policy_{prefix}.internal.bpf.h"')
+    src.append(f'#include "xtune_stub_{prefix}.bpf.h"')
     src.append('')
+
+    # Look up function prototypes via BTF (one lookup per unique name)
+    proto_cache = {}
+    for kp in kprobes:
+        fn = kp['function_name']
+        if fn not in proto_cache:
+            proto_cache[fn] = get_func_prototype(fn)
 
     for i, kp in enumerate(kprobes):
         func_name = kp['function_name']
@@ -3078,6 +3192,9 @@ def generate_multi_kprobe_bpf_file(prefix: str, kprobes: List[Dict], v1_src: int
         candidates = kp.get('candidate_offsets', [offset])
         candidates_str = ','.join(f'0x{c:x}' for c in candidates)
 
+        proto = proto_cache.get(func_name)
+        if proto:
+            src.append(f'// {proto}')
         src.append(f'// Kprobe {i+1}: {func_name}+0x{offset:x} ({synthesis_type})')
         src.append(f'// Candidates: {candidates_str}')
         src.append(f'// Relationship: {kp["rel_str"]}')
@@ -3092,11 +3209,11 @@ def generate_multi_kprobe_bpf_file(prefix: str, kprobes: List[Dict], v1_src: int
         src.append('')
 
     # Write user policy file
-    user_policy_file = os.path.join(output_dir, f"my_policy_{prefix}.bpf.c")
+    user_policy_file = os.path.join(output_dir, f"xtune_stub_{prefix}.bpf.c")
     with open(user_policy_file, 'w') as f:
         f.write('\n'.join(src))
 
-    bpf_file_name = f"my_policy_{prefix}.bpf.o"
+    bpf_file_name = f"xtune_stub_{prefix}.bpf.o"
 
     print(f"  Generated internal: {internal_file}")
 
@@ -3355,7 +3472,7 @@ def add_scope_table_entry_multi_cs(const_id: str, val: int, expression: str, cs_
         val: Source value V
         expression: Linear relationship expression (e.g., "IV = V" or "IV = a * V + b")
         cs_indices: List of CS index strings (will be joined with comma)
-        bpf_file: BPF file name (e.g., "my_policy_1.bpf.o")
+        bpf_file: BPF file name (e.g., "xtune_stub_1.bpf.o")
         status: Status of the entry (default: "ready")
         candidates: Candidate offsets string (e.g., "0x3a0,0x3a3|0x59a,0x59d,0x5a0")
     """
@@ -3411,7 +3528,7 @@ def add_scope_table_entry(const_id: str, val: int, expression: str, cs_content: 
         val: Source value V
         expression: Linear relationship expression (e.g., "IV = V" or "IV = a * V + b")
         cs_content: CS content (instruction string) - single instruction for one CS entry
-        bpf_file: BPF file name (e.g., "my_policy_1.bpf.o")
+        bpf_file: BPF file name (e.g., "xtune_stub_1.bpf.o")
         status: Status of the entry (default: "ready")
     """
     # Get or add CS index
@@ -3870,7 +3987,7 @@ def generate_bpf_user_policy_file(prefix: str, function_name: str, file_path: st
     location_str_for_sec = f'"+0x{offset:x}"'
     location_str_for_comment = f'"{file_path}:L<line>:<col>:0x{offset:x}"'
     
-    bpf_code = f"""#include "my_policy_{prefix}.internal.bpf.h"
+    bpf_code = f"""#include "xtune_stub_{prefix}.bpf.h"
 
 X_TUNE({function_name}, {location_str_for_sec}) {{
     // 1. Safety guard (mandatory)
@@ -3878,7 +3995,7 @@ X_TUNE({function_name}, {location_str_for_sec}) {{
     // 2. User policy logic
     // TODO: Implement your policy logic here
     return 0;
-}} /* my_policy_{prefix}.bpf.c */
+}} /* xtune_stub_{prefix}.bpf.c */
 """
     return bpf_code
 
@@ -4046,7 +4163,7 @@ static __always_inline void {helper_name}(
     }} \\
     static int __user_policy_##func_name(struct x_ctx *x_ctx, struct pt_regs *ctx)
 """
-    # Note: This generates my_policy_{prefix}.internal.bpf.h
+    # Note: This generates xtune_stub_{prefix}.bpf.h
     
     return bpf_code
 
@@ -4080,7 +4197,7 @@ def generate_bpf_file_for_group(prefix: str, v1_file: str, relationship: Optiona
         output_dir = os.path.dirname(os.path.abspath(v1_file))
     
     # Write internal BPF header file
-    internal_file = os.path.join(output_dir, f"my_policy_{prefix}.internal.bpf.h")
+    internal_file = os.path.join(output_dir, f"xtune_stub_{prefix}.bpf.h")
     with open(internal_file, 'w') as f:
         f.write(bpf_code)
     
@@ -4092,7 +4209,7 @@ def generate_bpf_file_for_group(prefix: str, v1_file: str, relationship: Optiona
             try:
                 offset = int(kprobe_addr, 16)
                 user_policy_code = generate_bpf_user_policy_file(prefix, function_name, file_path, offset)
-                user_policy_file = os.path.join(output_dir, f"my_policy_{prefix}.bpf.c")
+                user_policy_file = os.path.join(output_dir, f"xtune_stub_{prefix}.bpf.c")
                 with open(user_policy_file, 'w') as f:
                     f.write(user_policy_code)
                 return (internal_file, user_policy_file)
@@ -4108,7 +4225,7 @@ def run_codegen():
 
     # Determine output directory for BPF files (bpf_kprobe/bpf/examples/)
     project_root = os.path.dirname(script_dir)  # Go up from UnitTestsCS to Xkernel
-    bpf_output_dir = os.path.join(project_root, 'bpf', 'examples')
+    bpf_output_dir = os.path.join(project_root, 'bpf', 'stubs')
     os.makedirs(bpf_output_dir, exist_ok=True)
 
     # Clear all tables before regenerating to avoid stale indices

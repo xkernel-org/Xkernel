@@ -90,7 +90,7 @@ generate_vmlinux_h() {
 build_bpf() {
     echo "==> Compiling BPF programs..."
     make -C "$SCRIPT_DIR/bpf" -j"$(nproc)"
-    echo "    $(ls "$SCRIPT_DIR"/bpf/examples/*.bpf.o 2>/dev/null | wc -l) programs compiled"
+    echo "    $(ls "$SCRIPT_DIR"/bpf/stubs/*.bpf.o 2>/dev/null | wc -l) programs compiled"
 }
 
 # ── Main ──────────────────────────────────────────────────────────────

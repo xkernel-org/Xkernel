@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: GPL-2.0
 // Auto-generated X_TUNE policy for test group 2
 
-#include "my_policy_2.internal.bpf.h"
+#include "xtune_stub_2.bpf.h"
 
+// bool blk_mq_dispatch_rq_list(struct blk_mq_hw_ctx * hctx, struct list_head * list, unsigned int nr_budgets)
 // Kprobe 1: blk_mq_dispatch_rq_list+0x406 (simple)
 // Candidates: 0x406,0x409
 // Relationship: IV = V

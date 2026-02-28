@@ -252,7 +252,7 @@ line, giving the raw byte length of that instruction.
 ./xkernel-tool build
 
 # Inspect candidate offsets
-grep "Candidates:" bpf/examples/my_policy_*.bpf.c
+grep "Candidates:" bpf/stubs/xtune_stub_*.bpf.c
 
 # Load with jump optimization
 ./xkernel-tool load --jump-opt 0 1

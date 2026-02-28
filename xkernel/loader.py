@@ -107,22 +107,22 @@ def generate_cs_artifact_header(spans_path, output_path):
 
 
 def compile_bpf_programs(bpf_dir):
-    """Compile all BPF programs in the examples directory.
+    """Compile all BPF programs in the stubs directory.
 
     Args:
         bpf_dir: Path to the bpf/ directory
     """
-    examples_dir = os.path.join(bpf_dir, 'examples')
-    if not os.path.isdir(examples_dir):
-        print(f"Examples directory not found: {examples_dir}", file=sys.stderr)
+    stubs_dir = os.path.join(bpf_dir, 'stubs')
+    if not os.path.isdir(stubs_dir):
+        print(f"Stubs directory not found: {stubs_dir}", file=sys.stderr)
         return False
 
-    print(f"Compiling BPF files in {examples_dir}...", file=sys.stderr)
+    print(f"Compiling BPF files in {stubs_dir}...", file=sys.stderr)
     success = True
-    for fname in sorted(os.listdir(examples_dir)):
+    for fname in sorted(os.listdir(stubs_dir)):
         if not fname.endswith('.bpf.c'):
             continue
-        src = os.path.join(examples_dir, fname)
+        src = os.path.join(stubs_dir, fname)
         obj = src[:-2] + '.o'  # .bpf.c -> .bpf.o
         cmd = [
             'clang', '-g', '-O2', '-target', 'bpf',
