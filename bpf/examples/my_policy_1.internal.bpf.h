@@ -10,31 +10,11 @@
 #include "xkernel.bpf.h"
 #include "cs_artifact.bpf.h"
 
-// Per-CPU input-save map for kprobe 0 (irreversible synthesis)
-struct {
-    __uint(type, BPF_MAP_TYPE_PERCPU_ARRAY);
-    __uint(max_entries, 1);
-    __type(key, __u32);
-    __type(value, __u64);
-} xk_save_0 SEC(".maps");
-
-// SIE helper 0: irreversible (shr) -> %eax
+// SIE helper 0: cmp_immediate -> FLAGS (cmp new_IV, %eax)
 static __always_inline void __sie_1_0(struct pt_regs *regs, u64 val) {
-    __u32 key = 0;
-    __u64 *saved = bpf_map_lookup_elem(&xk_save_0, &key);
-    if (!saved) return;
-    u64 result = *saved >> val;
-    sie_write_kernel(&regs->ax, sizeof(regs->ax), &result);
-}
-
-// Save handler 0: cubictcp_acked+0x217 (fires BEFORE shr)
-SEC("kprobe/cubictcp_acked+0x217")
-int BPF_KPROBE(__xk_save_1_0_cubictcp_acked) {
-    if (!transition_done(ctx)) return 0;
-    __u32 key = 0;
-    __u64 val = BPF_RAX(ctx);
-    bpf_map_update_elem(&xk_save_0, &key, &val, BPF_ANY);
-    return 0;
+    u32 reg_val = (u32)(regs->ax);
+    u32 new_imm = (u32)(val + -1);
+    xk_cmp_set_flags32(regs, reg_val, new_imm);
 }
 
 #define X_TUNE_0(func_name, location_str) \

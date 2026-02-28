@@ -10,28 +10,31 @@
 #include "xkernel.bpf.h"
 #include "cs_artifact.bpf.h"
 
-// SIE helper 0: simple -> %ecx
+// Per-CPU input-save map for kprobe 0 (irreversible synthesis)
+struct {
+    __uint(type, BPF_MAP_TYPE_PERCPU_ARRAY);
+    __uint(max_entries, 1);
+    __type(key, __u32);
+    __type(value, __u64);
+} xk_save_0 SEC(".maps");
+
+// SIE helper 0: irreversible (and) -> %eax
 static __always_inline void __sie_3_0(struct pt_regs *regs, u64 val) {
-    u64 new_val = val;
-    sie_write_kernel(&regs->cx, sizeof(regs->cx), &new_val);
+    __u32 key = 0;
+    __u64 *saved = bpf_map_lookup_elem(&xk_save_0, &key);
+    if (!saved) return;
+    u64 result = *saved & val;
+    sie_write_kernel(&regs->ax, sizeof(regs->ax), &result);
 }
 
-// SIE helper 1: simple -> %eax
-static __always_inline void __sie_3_1(struct pt_regs *regs, u64 val) {
-    u64 new_val = val;
-    sie_write_kernel(&regs->ax, sizeof(regs->ax), &new_val);
-}
-
-// SIE helper 2: simple -> %eax
-static __always_inline void __sie_3_2(struct pt_regs *regs, u64 val) {
-    u64 new_val = val;
-    sie_write_kernel(&regs->ax, sizeof(regs->ax), &new_val);
-}
-
-// SIE helper 3: simple -> %ecx
-static __always_inline void __sie_3_3(struct pt_regs *regs, u64 val) {
-    u64 new_val = val;
-    sie_write_kernel(&regs->cx, sizeof(regs->cx), &new_val);
+// Save handler 0: blk_add_rq_to_plug+0xcb (fires BEFORE and)
+SEC("kprobe/blk_add_rq_to_plug+0xcb")
+int BPF_KPROBE(__xk_save_3_0_blk_add_rq_to_plug) {
+    if (!transition_done(ctx)) return 0;
+    __u32 key = 0;
+    __u64 val = BPF_RAX(ctx);
+    bpf_map_update_elem(&xk_save_0, &key, &val, BPF_ANY);
+    return 0;
 }
 
 #define X_TUNE_0(func_name, location_str) \
@@ -42,32 +45,5 @@ static __always_inline void __sie_3_3(struct pt_regs *regs, u64 val) {
         return __xk_policy_3_0(&__x_ctx, ctx); \
     } \
     static int __xk_policy_3_0(struct x_ctx *x_ctx, struct pt_regs *ctx)
-
-#define X_TUNE_1(func_name, location_str) \
-    static int __xk_policy_3_1(struct x_ctx *x_ctx, struct pt_regs *ctx); \
-    SEC("kprobe/" #func_name location_str) \
-    int BPF_KPROBE(__xk_3_1) { \
-        struct x_ctx __x_ctx = { .regs = ctx, .set_fn = &__sie_3_1 }; \
-        return __xk_policy_3_1(&__x_ctx, ctx); \
-    } \
-    static int __xk_policy_3_1(struct x_ctx *x_ctx, struct pt_regs *ctx)
-
-#define X_TUNE_2(func_name, location_str) \
-    static int __xk_policy_3_2(struct x_ctx *x_ctx, struct pt_regs *ctx); \
-    SEC("kprobe/" #func_name location_str) \
-    int BPF_KPROBE(__xk_3_2) { \
-        struct x_ctx __x_ctx = { .regs = ctx, .set_fn = &__sie_3_2 }; \
-        return __xk_policy_3_2(&__x_ctx, ctx); \
-    } \
-    static int __xk_policy_3_2(struct x_ctx *x_ctx, struct pt_regs *ctx)
-
-#define X_TUNE_3(func_name, location_str) \
-    static int __xk_policy_3_3(struct x_ctx *x_ctx, struct pt_regs *ctx); \
-    SEC("kprobe/" #func_name location_str) \
-    int BPF_KPROBE(__xk_3_3) { \
-        struct x_ctx __x_ctx = { .regs = ctx, .set_fn = &__sie_3_3 }; \
-        return __xk_policy_3_3(&__x_ctx, ctx); \
-    } \
-    static int __xk_policy_3_3(struct x_ctx *x_ctx, struct pt_regs *ctx)
 
 #endif // __MY_POLICY_3_INTERNAL_H__

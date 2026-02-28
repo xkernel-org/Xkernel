@@ -311,6 +311,45 @@
     bpf_probe_write_kernel(&ctx->flags, sizeof(flags), &flags);                  \
   } while (0)
 
+// Generic CMP emulation: compute FLAGS for `cmp dst, src` (dst - src)
+// Sets CF, ZF, SF, OF in ctx->flags, preserving all other bits.
+static __always_inline void xk_cmp_set_flags32(struct pt_regs *ctx, u32 dst, u32 src) {
+    u64 flags;
+    bpf_probe_read_kernel(&flags, sizeof(flags), &ctx->flags);
+    flags &= ~((__u64)BPF_CF_MASK | BPF_ZF_MASK | BPF_SF_MASK | BPF_OF_MASK);
+
+    u32 result = dst - src;
+    if (dst < src)
+        flags |= BPF_CF_MASK;
+    if (result == 0)
+        flags |= BPF_ZF_MASK;
+    if ((s32)result < 0)
+        flags |= BPF_SF_MASK;
+    // OF: signed overflow — (dst^src) negative AND (dst^result) negative
+    if (((s32)(dst ^ src) & (s32)(dst ^ result)) < 0)
+        flags |= BPF_OF_MASK;
+
+    bpf_probe_write_kernel(&ctx->flags, sizeof(flags), &flags);
+}
+
+static __always_inline void xk_cmp_set_flags64(struct pt_regs *ctx, u64 dst, u64 src) {
+    u64 flags;
+    bpf_probe_read_kernel(&flags, sizeof(flags), &ctx->flags);
+    flags &= ~((__u64)BPF_CF_MASK | BPF_ZF_MASK | BPF_SF_MASK | BPF_OF_MASK);
+
+    u64 result = dst - src;
+    if (dst < src)
+        flags |= BPF_CF_MASK;
+    if (result == 0)
+        flags |= BPF_ZF_MASK;
+    if ((s64)result < 0)
+        flags |= BPF_SF_MASK;
+    if (((s64)(dst ^ src) & (s64)(dst ^ result)) < 0)
+        flags |= BPF_OF_MASK;
+
+    bpf_probe_write_kernel(&ctx->flags, sizeof(flags), &flags);
+}
+
 /**
  * @brief Dump all registers in ctx
  *

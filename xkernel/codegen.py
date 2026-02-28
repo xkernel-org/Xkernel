@@ -633,6 +633,8 @@ class SymbolicExecutor:
                     dst_expr = f"mem{dst_val}"
 
                 if src_expr and dst_expr:
+                    if base_mnemonic == 'cmp':
+                        self.state['FLAGS'] = f"cmp({dst_expr}, {src_expr})"
                     return f"FLAGS = cmp({dst_expr}, {src_expr})"
         
         # Jumps and calls (no register modification)
@@ -1722,9 +1724,10 @@ def print_kprobe_placement(
     """Print a visual representation of kprobe placement within the basic block.
 
     Handles all synthesis types:
-      simple:       ▶ SET   — overwrites target register
-      irreversible: ▶ SAVE + ▶ APPLY — dual kprobe
-      memory_store: ▶ WRITE — overwrites memory via bpf_probe_write_kernel
+      simple:        ▶ SET   — overwrites target register
+      irreversible:  ▶ SAVE + ▶ APPLY — dual kprobe
+      memory_store:  ▶ WRITE — overwrites memory via bpf_probe_write_kernel
+      cmp_immediate: ▶ CMP   — re-simulates cmp and sets FLAGS
     """
     MNEMONIC_OP_DISPLAY = {
         'shr': '>>', 'shl': '<<', 'sal': '<<', 'sar': '>>(signed)',
@@ -1769,6 +1772,9 @@ def print_kprobe_placement(
             elif synthesis_type == 'memory_store':
                 mem_target = f"{mem_base_reg}+0x{mem_disp:x}" if mem_base_reg else f"0x{mem_disp:x}"
                 msg = f"  ▶ WRITE [{func_name}+0x{kprobe_offset:x}] — writes mem[{mem_target}] = V_new ({write_size}B)"
+                print(_c(C_SET, msg))
+            elif synthesis_type == 'cmp_immediate':
+                msg = f"  ▶ CMP   [{func_name}+0x{kprobe_offset:x}] — re-simulates cmp, sets FLAGS"
                 print(_c(C_SET, msg))
             else:
                 msg = f"  ▶ SET   [{func_name}+0x{kprobe_offset:x}] — sets %{actual_reg_name} = V_new"
@@ -1937,6 +1943,9 @@ def print_jump_optimization(
         mem_target = f"{mem_base_reg}+0x{mem_disp:x}" if mem_base_reg else f"0x{mem_disp:x}"
         title = (f"Jump opt — memory-store kprobe"
                  f" for mem[{mem_target}] in {func_name}")
+    elif synthesis_type == 'cmp_immediate':
+        title = (f"Jump opt — cmp_immediate kprobe"
+                 f" for FLAGS in {func_name}")
     else:
         title = (f"Jump opt — first-reader scan"
                  f" for %{actual_reg_name} in {func_name}")
@@ -1991,6 +2000,10 @@ def print_jump_optimization(
                 tag  = _c(C_SEED, '[seed ] ')
                 note = _c(C_SEED,
                           f"  ← seed (stores V → mem[{mem_target}])")
+            elif synthesis_type == 'cmp_immediate':
+                tag  = _c(C_SEED, '[seed ] ')
+                note = _c(C_SEED,
+                          f"  ← seed (cmp $IV, %reg — sets FLAGS)")
             else:
                 tag  = _c(C_SEED, '[seed ] ')
                 note = _c(C_SEED,
@@ -2005,8 +2018,8 @@ def print_jump_optimization(
             is_reader   = reads_reg
             jopt        = _jopt(i)
 
-            if synthesis_type == 'memory_store':
-                reads_label = 'mem-store: n/a'
+            if synthesis_type in ('memory_store', 'cmp_immediate'):
+                reads_label = f'{synthesis_type}: n/a'
             else:
                 reads_label = f"reads %{actual_reg_name}?"
 
@@ -2020,6 +2033,9 @@ def print_jump_optimization(
                 tag  = _c(C_KPROBE, f'[#{cand_num} ★ ] ')
                 if synthesis_type == 'memory_store':
                     note = (f"  {_c(C_KPROBE, '← kprobe attaches here (overwrites mem)')}"
+                            + jopt)
+                elif synthesis_type == 'cmp_immediate':
+                    note = (f"  {_c(C_KPROBE, '← kprobe attaches here (re-simulates cmp, sets FLAGS)')}"
                             + jopt)
                 else:
                     note = (f"  {_c(C_DIM,    f'{reads_label} no ')}"
@@ -2070,6 +2086,10 @@ def print_jump_optimization(
         print(f"  {_c(C_KPROBE, 'WRITE')} kprobe → "
               f"{func_name}+0x{kprobe_offset:x}   "
               f"(overwrites mem[{mem_target}], {write_size}B)")
+    elif synthesis_type == 'cmp_immediate':
+        print(f"  {_c(C_KPROBE, 'CMP  ')} kprobe → "
+              f"{func_name}+0x{kprobe_offset:x}   "
+              f"(re-simulates cmp, sets FLAGS)")
     else:
         print(f"  {_c(C_KPROBE, 'Kprobe')} → "
               f"{func_name}+0x{kprobe_offset:x}   (candidate #1 of {n_cands})")
@@ -2423,6 +2443,94 @@ def analyze_linear_relationship(prefix: str, v1_file: str, v2_file: str, v3_file
             })
             continue
 
+        # --- CMP-immediate synthesis path ---
+        # FLAGS is the varying key: the cmp instruction embeds a varying
+        # immediate but only sets FLAGS (no register write).  We place a
+        # kprobe at the instruction right after the cmp and re-simulate
+        # the comparison in BPF to set the correct FLAGS for the new IV.
+        if anon_reg == 'FLAGS':
+            synthesis_type = 'cmp_immediate'
+
+            # Parse the cmp instruction at step_idx to extract the
+            # comparison register and operand size.
+            cmp_reg = None
+            cmp_size = 32  # default
+            seed_mnemonic_raw = ''
+            if step_idx < len(all_insts_v1):
+                seed_line = re.sub(r'^\s*\[\*\]\s*', '', all_insts_v1[step_idx].strip())
+                tab_pos = seed_line.find('\t')
+                if tab_pos >= 0:
+                    asm_part = seed_line[tab_pos + 1:].strip()
+                    seed_mnemonic_raw = asm_part.split()[0].lower() if asm_part else ''
+                    ops_part = asm_part[len(asm_part.split()[0]):].strip()
+                    operands_list = [o.strip() for o in ops_part.split(',')]
+                    if len(operands_list) == 2:
+                        cmp_reg = operands_list[1].lstrip('%')
+                    # Infer operand size from register name
+                    if cmp_reg:
+                        if cmp_reg in ('rax','rbx','rcx','rdx','rsi','rdi','rbp','rsp',
+                                       'r8','r9','r10','r11','r12','r13','r14','r15'):
+                            cmp_size = 64
+                        elif cmp_reg.endswith('d'):  # r8d, r9d, ...
+                            cmp_size = 32
+                        elif cmp_reg.startswith('e'):  # eax, ebx, ...
+                            cmp_size = 32
+                        # 16-bit/8-bit registers stay at default 32 for safety
+
+            if not cmp_reg:
+                print(f"  Warning: Could not determine comparison register for cmp_immediate")
+                continue
+
+            print(f"  Synthesis type: cmp_immediate (mnemonic: {seed_mnemonic_raw})")
+            print(f"  Comparison register: %{cmp_reg} ({cmp_size}-bit)")
+
+            # kprobe at the instruction immediately after cmp
+            kprobe_offset = None
+            for j in range(step_idx + 1, len(all_insts_v1)):
+                clean_j = re.sub(r'^\s*\[\*\]\s*', '', all_insts_v1[j].strip())
+                addr_m = re.match(r'^\s*([0-9a-fA-F]+):', clean_j)
+                if addr_m:
+                    raw_addr = int(addr_m.group(1), 16)
+                    kprobe_offset = (raw_addr - func_base) if func_base is not None else raw_addr
+                    break
+
+            if kprobe_offset is None:
+                print(f"  Warning: Could not determine kprobe offset for cmp_immediate")
+                continue
+
+            print(f"  Kprobe offset: 0x{kprobe_offset:x} (fires before conditional jump)")
+
+            print_jump_optimization(
+                all_insts_v1, func_name, func_base,
+                step_idx, None, None,
+                kprobe_offset, [kprobe_offset],
+                'cmp_immediate', None, seed_mnemonic_raw,
+            )
+
+            print_kprobe_placement(
+                all_insts_v1, func_name, func_base,
+                kprobe_offset, 'cmp_immediate', None, seed_mnemonic_raw, None,
+            )
+
+            changed_inst = bb1.get('changed_instruction', '')
+            generated_kprobes.append({
+                'bb_idx': bb_idx,
+                'function_name': func_name,
+                'relationship': relationship,
+                'rel_str': rel_str,
+                'actual_reg_name': None,
+                'kprobe_offset': kprobe_offset,
+                'candidate_offsets': [kprobe_offset],
+                'changed_instruction': changed_inst,
+                'all_instructions': all_insts_v1,
+                'synthesis_type': 'cmp_immediate',
+                'seed_offset': None,
+                'seed_mnemonic': '',
+                'cmp_reg': cmp_reg,
+                'cmp_size': cmp_size,
+            })
+            continue
+
         # --- Register-target synthesis path (simple / irreversible) ---
         # Determine the target register name with correct width.
         # Use the instruction AT step_idx (the one that produced IV) since it
@@ -2742,6 +2850,19 @@ def generate_multi_kprobe_bpf_file(prefix: str, kprobes: List[Dict], v1_src: int
             hdr.append(f'    if (!saved) return;')
             hdr.append(f'    u64 result = {op_expr};')
             hdr.append(f'    sie_write_kernel(&regs->{field}, sizeof(regs->{field}), &result);')
+            hdr.append('}')
+            hdr.append('')
+
+        elif synthesis_type == 'cmp_immediate':
+            cmp_reg = kp.get('cmp_reg', 'eax')
+            cmp_size = kp.get('cmp_size', 32)
+            field = reg_to_ptregs_field.get(cmp_reg, cmp_reg)
+
+            hdr.append(f'// SIE helper {i}: cmp_immediate -> FLAGS (cmp new_IV, %{cmp_reg})')
+            hdr.append(f'static __always_inline void {helper_name}(struct pt_regs *regs, u64 val) {{')
+            hdr.append(f'    u{cmp_size} reg_val = (u{cmp_size})(regs->{field});')
+            hdr.append(f'    u{cmp_size} new_imm = (u{cmp_size}){expr};')
+            hdr.append(f'    xk_cmp_set_flags{cmp_size}(regs, reg_val, new_imm);')
             hdr.append('}')
             hdr.append('')
 
