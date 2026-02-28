@@ -1559,6 +1559,115 @@ def find_linear_relationship(v_values: List[int], iv_values: List[int]) -> Optio
     return None
 
 
+def build_expr(a, b):
+    """Build C expression from relationship IV = a*V + b, using 'val' as variable."""
+    if abs(a - int(a)) < 0.001 and abs(b - int(b)) < 0.001:
+        a_int, b_int = int(a), int(b)
+        if b_int == 0:
+            if a_int == 1: return "val"
+            elif a_int == -1: return "(-val)"
+            else: return f"(val * {a_int})"
+        elif a_int == 1: return f"(val + {b_int})"
+        elif a_int == -1: return f"((-val) + {b_int})"
+        else: return f"((val * {a_int}) + {b_int})"
+    return f"((u64)((val * {a:.6f}) + {b:.6f}))"
+
+
+def build_compound_expr(
+    effective_end_exprs: Tuple[str, str, str],
+    saved_expr: str,
+    v_values: Tuple[int, int, int],
+    reg_width: int = 32,
+) -> Optional[str]:
+    """Build a C expression for compound irreversible synthesis.
+
+    Takes the symbolic expressions at the effective end of the varying
+    instruction chain (from all three BB versions), replaces the saved
+    input value with ``*saved``, and substitutes each varying numeric
+    constant with its ``build_expr`` form (cast to the register width).
+
+    Args:
+        effective_end_exprs: ``(e1, e2, e3)`` symbolic expressions at the
+            effective end step for v1/v2/v3.
+        saved_expr: Symbolic expression for the saved register value
+            (from the step immediately before the first varying instruction).
+        v_values: ``(V1, V2, V3)`` source-level constant values.
+        reg_width: Target register width in bits (32 or 64).
+
+    Returns:
+        C expression string with ``*saved`` and ``build_expr`` substitutions,
+        or ``None`` if the expressions cannot be reconciled.
+    """
+    e1, e2, e3 = effective_end_exprs
+
+    PLACEHOLDER = '__SAVED__'
+
+    # Replace the saved sub-expression with a placeholder.
+    # For simple register names (rN), use word-boundary-aware replacement
+    # to avoid matching r1 inside r10, etc.
+    if re.match(r'^r\d+$', saved_expr):
+        pat = r'\b' + re.escape(saved_expr) + r'\b'
+        e1_r = re.sub(pat, PLACEHOLDER, e1)
+        e2_r = re.sub(pat, PLACEHOLDER, e2)
+        e3_r = re.sub(pat, PLACEHOLDER, e3)
+    else:
+        e1_r = e1.replace(saved_expr, PLACEHOLDER)
+        e2_r = e2.replace(saved_expr, PLACEHOLDER)
+        e3_r = e3.replace(saved_expr, PLACEHOLDER)
+
+    # Verify the placeholder was actually inserted
+    if PLACEHOLDER not in e1_r:
+        return None
+
+    # Normalize to template and extract numeric literals
+    NUM_RE = r'0x[0-9a-fA-F]+|\b\d+\b'
+
+    def normalize(e):
+        return re.sub(NUM_RE, 'N', e)
+
+    t1, t2, t3 = normalize(e1_r), normalize(e2_r), normalize(e3_r)
+    if t1 != t2 or t1 != t3:
+        return None  # different expression structure
+
+    def extract_nums(e):
+        return [int(m.group(), 16) if m.group().startswith('0x') else int(m.group())
+                for m in re.finditer(NUM_RE, e)]
+
+    nums1 = extract_nums(e1_r)
+    nums2 = extract_nums(e2_r)
+    nums3 = extract_nums(e3_r)
+
+    if len(nums1) != len(nums2) or len(nums1) != len(nums3):
+        return None
+
+    if not nums1:
+        return None  # no numeric constants
+
+    # Build result by replacing varying constants from right to left
+    matches = list(re.finditer(NUM_RE, e1_r))
+    result = e1_r
+    cast = f'u{reg_width}'
+
+    for i in range(len(matches) - 1, -1, -1):
+        c1, c2, c3 = nums1[i], nums2[i], nums3[i]
+        if c1 == c2 == c3:
+            continue  # non-varying, keep original literal
+
+        rel = find_linear_relationship(list(v_values), [c1, c2, c3])
+        if rel is None:
+            return None  # can't determine relationship for this position
+
+        expr_str = build_expr(*rel)
+        replacement = f'({cast})({expr_str})'
+        m = matches[i]
+        result = result[:m.start()] + replacement + result[m.end():]
+
+    # Replace placeholder with (*saved)
+    result = result.replace(PLACEHOLDER, '(*saved)')
+
+    return result
+
+
 def find_insertion_point_for_linear_relationship(differences: List[Tuple[int, str, str, Dict[str, str], Dict[str, str]]],
                                                   full_sequence: List[Tuple],
                                                   relationship: Tuple[float, float]) -> Optional[Tuple[int, str, str, str, str]]:
@@ -1729,11 +1838,6 @@ def print_kprobe_placement(
       memory_store:  ▶ WRITE — overwrites memory via bpf_probe_write_kernel
       cmp_immediate: ▶ CMP   — re-simulates cmp and sets FLAGS
     """
-    MNEMONIC_OP_DISPLAY = {
-        'shr': '>>', 'shl': '<<', 'sal': '<<', 'sar': '>>(signed)',
-        'imul': '*', 'mul': '*', 'and': '&',
-    }
-
     # ANSI color helpers — only active when writing to a real terminal
     use_color = sys.stdout.isatty()
     def _c(code: str, text: str) -> str:
@@ -1766,8 +1870,7 @@ def print_kprobe_placement(
             print(_c(C_SAVE, msg))
         if offset == kprobe_offset:
             if synthesis_type == 'irreversible':
-                op = MNEMONIC_OP_DISPLAY.get(seed_mnemonic, '?')
-                msg = f"  ▶ APPLY [{func_name}+0x{kprobe_offset:x}] — sets %{actual_reg_name} = *saved {op} v"
+                msg = f"  ▶ APPLY [{func_name}+0x{kprobe_offset:x}] — sets %{actual_reg_name} = f(*saved, V)"
                 print(_c(C_APPLY, msg))
             elif synthesis_type == 'memory_store':
                 mem_target = f"{mem_base_reg}+0x{mem_disp:x}" if mem_base_reg else f"0x{mem_disp:x}"
@@ -2586,11 +2689,74 @@ def analyze_linear_relationship(prefix: str, v1_file: str, v2_file: str, v3_file
                     seed_offset = (raw_seed - func_base) if func_base is not None else raw_seed
         print(f"  Synthesis type: {synthesis_type} (seed mnemonic: {base_seed_mnemonic or 'unknown'})")
 
+        # --- Scan forward for effective end (compound irreversible) ---
+        # When the seed instruction is irreversible, subsequent instructions
+        # may also modify the same register with V-dependent constants (e.g.,
+        # `and $mask,%eax; add $addend,%eax`).  Find the last such step.
+        effective_end = step_idx
+        compound_expr = None
+        if synthesis_type == 'irreversible':
+            min_sym_len = min(len(symstates_v1), len(symstates_v2), len(symstates_v3))
+            for j in range(step_idx + 1, min_sym_len):
+                _, _, s1, _ = symstates_v1[j]
+                _, _, s2, _ = symstates_v2[j]
+                _, _, s3, _ = symstates_v3[j]
+
+                e1 = s1.get(anon_reg, '')
+                e2 = s2.get(anon_reg, '')
+                e3 = s3.get(anon_reg, '')
+
+                if e1 == e2 == e3:
+                    break  # No longer varying
+
+                # Check if this step modified the register
+                _, _, s1_prev, _ = symstates_v1[j - 1]
+                if e1 != s1_prev.get(anon_reg, ''):
+                    effective_end = j
+                else:
+                    break  # Register wasn't modified at this step
+
+            if effective_end != step_idx:
+                print(f"  Effective end extended: step {step_idx} -> {effective_end}")
+
+            # Get the saved expression (value of target register before first varying instruction)
+            if step_idx > 0:
+                _, _, s1_pre, _ = symstates_v1[step_idx - 1]
+                saved_expr = s1_pre.get(anon_reg, anon_reg)
+            else:
+                saved_expr = anon_reg
+
+            # Get expressions at effective end
+            _, _, s1_end, _ = symstates_v1[effective_end]
+            _, _, s2_end, _ = symstates_v2[effective_end]
+            _, _, s3_end, _ = symstates_v3[effective_end]
+
+            end_e1 = s1_end.get(anon_reg, '')
+            end_e2 = s2_end.get(anon_reg, '')
+            end_e3 = s3_end.get(anon_reg, '')
+
+            # Determine register width for casts
+            reg_width = 64
+            if actual_reg_name:
+                if actual_reg_name.startswith('e') or actual_reg_name.endswith('d'):
+                    reg_width = 32
+
+            compound_expr = build_compound_expr(
+                (end_e1, end_e2, end_e3), saved_expr,
+                (v1_src, v2_src, v3_src), reg_width
+            )
+
+            if compound_expr is None:
+                print(f"  Warning: Could not build compound expression for irreversible synthesis")
+                continue
+
+            print(f"  Compound expression: {compound_expr}")
+
         target_family = get_register_family(actual_reg_name)
         kprobe_offset = None
         candidate_offsets = []
 
-        for j in range(step_idx + 1, len(all_insts_v1)):
+        for j in range(effective_end + 1, len(all_insts_v1)):
             inst_j = all_insts_v1[j]
             clean_j = re.sub(r'^\s*\[\*\]\s*', '', inst_j.strip())
             addr_m = re.match(r'^\s*([0-9a-fA-F]+):', clean_j)
@@ -2640,6 +2806,7 @@ def analyze_linear_relationship(prefix: str, v1_file: str, v2_file: str, v3_file
             'synthesis_type': synthesis_type,
             'seed_offset': seed_offset,
             'seed_mnemonic': base_seed_mnemonic,
+            'compound_expr': compound_expr,
         })
 
     if not found_any_relationship:
@@ -2762,31 +2929,7 @@ def generate_multi_kprobe_bpf_file(prefix: str, kprobes: List[Dict], v1_src: int
         'r12': 'BPF_R12', 'r13': 'BPF_R13', 'r14': 'BPF_R14', 'r15': 'BPF_R15',
     }
 
-    # Map seed mnemonic to C expression for irreversible synthesis
-    MNEMONIC_TO_OP = {
-        'shr':  '*saved >> val',
-        'shl':  '*saved << val',
-        'sal':  '*saved << val',
-        'sar':  '(u64)((s64)*saved >> val)',
-        'imul': '*saved * val',
-        'mul':  '*saved * val',
-        'and':  '*saved & val',
-    }
-
     WRITE_SIZE_TO_CTYPE = {1: '__u8', 2: '__u16', 4: '__u32', 8: '__u64'}
-
-    def build_expr(a, b):
-        """Build C expression from relationship IV = a*V + b, using 'val' as variable."""
-        if abs(a - int(a)) < 0.001 and abs(b - int(b)) < 0.001:
-            a_int, b_int = int(a), int(b)
-            if b_int == 0:
-                if a_int == 1: return "val"
-                elif a_int == -1: return "(-val)"
-                else: return f"(val * {a_int})"
-            elif a_int == 1: return f"(val + {b_int})"
-            elif a_int == -1: return f"((-val) + {b_int})"
-            else: return f"((val * {a_int}) + {b_int})"
-        return f"((u64)((val * {a:.6f}) + {b:.6f}))"
 
     # ===== Generate .internal.bpf.h (SIE plumbing) =====
     hdr = []
@@ -2841,14 +2984,14 @@ def generate_multi_kprobe_bpf_file(prefix: str, kprobes: List[Dict], v1_src: int
 
         elif synthesis_type == 'irreversible' and kp.get('seed_offset') is not None:
             field = reg_to_ptregs_field.get(target_reg, target_reg)
-            op_expr = MNEMONIC_TO_OP.get(seed_mnemonic, '*saved >> val')
+            compound = kp.get('compound_expr')
 
             hdr.append(f'// SIE helper {i}: irreversible ({seed_mnemonic}) -> %{target_reg}')
             hdr.append(f'static __always_inline void {helper_name}(struct pt_regs *regs, u64 val) {{')
             hdr.append(f'    __u32 key = 0;')
             hdr.append(f'    __u64 *saved = bpf_map_lookup_elem(&xk_save_{i}, &key);')
             hdr.append(f'    if (!saved) return;')
-            hdr.append(f'    u64 result = {op_expr};')
+            hdr.append(f'    u64 result = (u64){compound};')
             hdr.append(f'    sie_write_kernel(&regs->{field}, sizeof(regs->{field}), &result);')
             hdr.append('}')
             hdr.append('')

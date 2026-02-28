@@ -23,7 +23,7 @@ static __always_inline void __sie_4_0(struct pt_regs *regs, u64 val) {
     __u32 key = 0;
     __u64 *saved = bpf_map_lookup_elem(&xk_save_0, &key);
     if (!saved) return;
-    u64 result = *saved >> val;
+    u64 result = (u64)((*saved) >> (u32)(val));
     sie_write_kernel(&regs->r15, sizeof(regs->r15), &result);
 }
 

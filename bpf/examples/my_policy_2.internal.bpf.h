@@ -10,11 +10,10 @@
 #include "xkernel.bpf.h"
 #include "cs_artifact.bpf.h"
 
-// SIE helper 0: cmp_immediate -> FLAGS (cmp new_IV, %eax)
+// SIE helper 0: simple -> %esi
 static __always_inline void __sie_2_0(struct pt_regs *regs, u64 val) {
-    u32 reg_val = (u32)(regs->ax);
-    u32 new_imm = (u32)(val + -1);
-    xk_cmp_set_flags32(regs, reg_val, new_imm);
+    u64 new_val = val;
+    sie_write_kernel(&regs->si, sizeof(regs->si), &new_val);
 }
 
 #define X_TUNE_0(func_name, location_str) \
