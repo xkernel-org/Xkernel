@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0
-// Auto-generated X_TUNE policy for test group 6
+// Auto-generated X_TUNE policy for test group 16
 
-#include "xtune_stub_6.bpf.h"
+#include "xtune_stub_16.bpf.h"
 
 // void blk_mq_delay_run_hw_queue(struct blk_mq_hw_ctx * hctx, long unsigned int msecs)
 // Kprobe 1: blk_mq_delay_run_hw_queue+0xc9 (memory_store)

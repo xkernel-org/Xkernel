@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0
-// Auto-generated X_TUNE policy for test group 5
+// Auto-generated X_TUNE policy for test group 15
 
-#include "xtune_stub_5.bpf.h"
+#include "xtune_stub_15.bpf.h"
 
 // int __blk_mq_sched_dispatch_requests(struct blk_mq_hw_ctx * hctx)
 // Kprobe 1: __blk_mq_sched_dispatch_requests+0x57c (simple)

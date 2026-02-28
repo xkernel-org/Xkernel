@@ -12,18 +12,10 @@
 #include "xkernel.bpf.h"
 #include "cs_artifact.bpf.h"
 
-// SIE helper 0: memory store -> mem[rbx+0xa4] (4B)
+// SIE helper 0: simple -> %eax
 static __always_inline void __sie_7_0(struct pt_regs *regs, u64 val) {
-    u64 addr = (u64)(regs->bx) + 0xa4;
-    __u32 new_val = (__u32)val;
-    bpf_probe_write_kernel((void *)addr, sizeof(new_val), &new_val);
-}
-
-// SIE helper 1: memory store -> mem[r14+0xa4] (4B)
-static __always_inline void __sie_7_1(struct pt_regs *regs, u64 val) {
-    u64 addr = (u64)(regs->r14) + 0xa4;
-    __u32 new_val = (__u32)val;
-    bpf_probe_write_kernel((void *)addr, sizeof(new_val), &new_val);
+    u64 new_val = val;
+    sie_write_kernel(&regs->ax, sizeof(regs->ax), &new_val);
 }
 
 #define X_TUNE_0(func_name, location_str) \
@@ -34,14 +26,5 @@ static __always_inline void __sie_7_1(struct pt_regs *regs, u64 val) {
         return __xk_policy_7_0(&__x_ctx, ctx); \
     } \
     static int __xk_policy_7_0(struct x_ctx *x_ctx, struct pt_regs *ctx)
-
-#define X_TUNE_1(func_name, location_str) \
-    static int __xk_policy_7_1(struct x_ctx *x_ctx, struct pt_regs *ctx); \
-    SEC("kprobe/" #func_name location_str) \
-    int BPF_KPROBE(__xk_7_1) { \
-        struct x_ctx __x_ctx = { .regs = ctx, .set_fn = &__sie_7_1 }; \
-        return __xk_policy_7_1(&__x_ctx, ctx); \
-    } \
-    static int __xk_policy_7_1(struct x_ctx *x_ctx, struct pt_regs *ctx)
 
 #endif // __XTUNE_STUB_7_H__

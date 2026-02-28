@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0
-// Auto-generated X_TUNE policy for test group 1
+// Auto-generated X_TUNE policy for test group 11
 
-#include "xtune_stub_1.bpf.h"
+#include "xtune_stub_11.bpf.h"
 
 // void cubictcp_acked(struct sock * sk, struct ack_sample * sample)
 // Kprobe 1: cubictcp_acked+0x21a (irreversible)

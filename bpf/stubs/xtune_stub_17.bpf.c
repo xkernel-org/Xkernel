@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0
-// Auto-generated X_TUNE policy for test group 7
+// Auto-generated X_TUNE policy for test group 17
 
-#include "xtune_stub_7.bpf.h"
+#include "xtune_stub_17.bpf.h"
 
 // long unsigned int do_shrink_slab(struct shrink_control * shrinkctl, struct shrinker * shrinker, int priority)
 // Kprobe 1: do_shrink_slab+0xb (simple)

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0
-// Auto-generated X_TUNE policy for test group 2
+// Auto-generated X_TUNE policy for test group 12
 
-#include "xtune_stub_2.bpf.h"
+#include "xtune_stub_12.bpf.h"
 
 // bool blk_mq_dispatch_rq_list(struct blk_mq_hw_ctx * hctx, struct list_head * list, unsigned int nr_budgets)
 // Kprobe 1: blk_mq_dispatch_rq_list+0x406 (simple)

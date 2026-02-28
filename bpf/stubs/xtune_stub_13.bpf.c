@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0
-// Auto-generated X_TUNE policy for test group 3
+// Auto-generated X_TUNE policy for test group 13
 
-#include "xtune_stub_3.bpf.h"
+#include "xtune_stub_13.bpf.h"
 
 // int io_cqring_wait(struct io_ring_ctx * ctx, int min_events, u32 flags, struct ext_arg * ext_arg)
 // Kprobe 1: io_cqring_wait+0x7c (simple)

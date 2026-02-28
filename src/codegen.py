@@ -2320,7 +2320,7 @@ def show_kprobe_placement_from_bpf_file(
     the user can see exactly where each kprobe lands relative to the surrounding
     instructions.
     """
-    bb_dir = os.path.join(project_root, 'xkernel', 'bb_cache')
+    bb_dir = os.path.join(project_root, 'bb_cache')
     bb_v1_file = os.path.join(bb_dir, f'{const_id}_bb_v1.txt')
 
     if not os.path.exists(bb_v1_file) or not os.path.exists(bpf_c_path):
@@ -4359,14 +4359,13 @@ def run_codegen(verbose: bool = False):
     clear_all_tables()
     print("Cleared all tables (Scope, CS, SS)")
 
-    # Extract source values and file paths from testcases module
+    # Extract source values and file paths from testcases module (legacy path)
     try:
-        from xkernel.testcases import TESTCASES
+        from legacy.testcases import TESTCASES
     except ImportError:
         # Fallback: try relative import or direct import
         import importlib.util
-        tc_path = os.path.join(script_dir, 'testcases.py')
-        spec = importlib.util.spec_from_file_location("testcases", tc_path)
+        tc_path = os.path.join(os.path.dirname(script_dir), 'legacy', 'testcases.py')
         tc_mod = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(tc_mod)
         TESTCASES = tc_mod.TESTCASES
@@ -4378,7 +4377,7 @@ def run_codegen(verbose: bool = False):
         file_paths[str(i)] = tc.file
     
     # Find all *_bb_v1.txt, *_bb_v2.txt, *_bb_v3.txt files from bb_cache/
-    bb_dir = os.path.join(script_dir, 'bb_cache')
+    bb_dir = os.path.join(project_root, 'bb_cache')
     v1_files = sorted(glob.glob(os.path.join(bb_dir, '*_bb_v1.txt')))
     v2_files = sorted(glob.glob(os.path.join(bb_dir, '*_bb_v2.txt')))
     v3_files = sorted(glob.glob(os.path.join(bb_dir, '*_bb_v3.txt')))
@@ -4567,7 +4566,7 @@ def run_codegen_single(config, const_id: int, verbose: bool = False):
     the shared scope table incrementally.
 
     Args:
-        config: TunableConfig instance (from xkernel.config)
+        config: TunableConfig instance (from src.config)
         const_id: Pre-assigned ConstID for this tunable
         verbose: Show detailed intermediate output
     """
@@ -4589,7 +4588,7 @@ def run_codegen_single(config, const_id: int, verbose: bool = False):
     file_path = config.file
 
     # Find BB files for this const_id
-    bb_dir = os.path.join(script_dir, 'bb_cache')
+    bb_dir = os.path.join(project_root, 'bb_cache')
     v1_file = os.path.join(bb_dir, f'{prefix}_bb_v1.txt')
     v2_file = os.path.join(bb_dir, f'{prefix}_bb_v2.txt')
     v3_file = os.path.join(bb_dir, f'{prefix}_bb_v3.txt')

@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """Basic Block generation script.
 
-Reads testcases from xkernel.testcases, runs diff.py commands,
-and extracts Basic Block output into *_bb_v1.txt, *_bb_v2.txt, *_bb_v3.txt files.
+Runs diff.py commands and extracts Basic Block output into
+*_bb_v1.txt, *_bb_v2.txt, *_bb_v3.txt files.
 
-Replaces the old codegen/gen.sh.
+Primary entry point: generate_bb_files_single(config, const_id)
+Legacy batch entry: generate_bb_files() (reads from legacy/testcases.py)
 """
 
 import os
@@ -89,10 +90,10 @@ def generate_bb_files():
     script_dir = os.path.dirname(os.path.abspath(__file__))
     project_root = os.path.dirname(script_dir)
 
-    from xkernel.testcases import TESTCASES
+    from legacy.testcases import TESTCASES
 
     # Use a dedicated subdirectory for BB files; clear it to avoid stale files
-    bb_dir = os.path.join(script_dir, 'bb_cache')
+    bb_dir = os.path.join(project_root, 'bb_cache')
     if os.path.exists(bb_dir):
         shutil.rmtree(bb_dir)
     os.makedirs(bb_dir)
@@ -200,7 +201,7 @@ def generate_bb_files_single(config, const_id: int):
     It only writes the three BB files for this ConstID.
 
     Args:
-        config: TunableConfig instance (from xkernel.config)
+        config: TunableConfig instance (from src.config)
         const_id: ConstID to use as file prefix
 
     Returns:
@@ -209,7 +210,7 @@ def generate_bb_files_single(config, const_id: int):
     script_dir = os.path.dirname(os.path.abspath(__file__))
     project_root = os.path.dirname(script_dir)
 
-    bb_dir = os.path.join(script_dir, 'bb_cache')
+    bb_dir = os.path.join(project_root, 'bb_cache')
     os.makedirs(bb_dir, exist_ok=True)
 
     prefix = str(const_id)
