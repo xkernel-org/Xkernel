@@ -3,19 +3,15 @@
 
 #include "xtune_stub_1.bpf.h"
 
-// void blk_add_rq_to_plug(struct blk_plug * plug, struct request * rq)
-// Kprobe 1: blk_add_rq_to_plug+0xd1 (irreversible)
-// Candidates: 0xd1
-// Relationship: IV = -V + 4294967296
-X_TUNE_0(blk_add_rq_to_plug, "+0xd1") {
+// long unsigned int do_shrink_slab(struct shrink_control * shrinkctl, struct shrinker * shrinker, int priority)
+// Kprobe 1: do_shrink_slab+0xb (simple)
+// Candidates: 0xb,0xe,0x10,0x12,0x15,0x17,0x19,0x1a,0x1d,0x21,0x25,0x28,0x2b
+// Relationship: IV = V
+X_TUNE_0(do_shrink_slab, "+0xb") {
     if (!x_transition_done(x_ctx)) return 0;
 
-    struct request *rq = (struct request *)PT_REGS_PARM1(x_ctx->regs);
-    int tag = BPF_CORE_READ(rq, tag);
-    bpf_printk("tag = %d", tag);
-
     // Write your tuning logic here
-    u64 val = 32; // original value
+    u64 val = 128; // original value
     x_set(x_ctx, val);
     return 0;
 }

@@ -10,10 +10,9 @@
 X_TUNE_0(blk_mq_delay_run_hw_queue, "+0xc9") {
     if (!x_transition_done(x_ctx)) return 0;
 
-    // Get tunable value (V=8 originally)
-    u64 val = 8;
-    x_set(x_ctx, val);
     // Write your tuning logic here
+    u64 val = 8; // original value
+    x_set(x_ctx, val);
     return 0;
 }
 
@@ -24,9 +23,8 @@ X_TUNE_0(blk_mq_delay_run_hw_queue, "+0xc9") {
 X_TUNE_1(blk_mq_map_swqueue, "+0x41e") {
     if (!x_transition_done(x_ctx)) return 0;
 
-    // Get tunable value (V=8 originally)
-    u64 val = 8;
-    x_set(x_ctx, val);
     // Write your tuning logic here
+    u64 val = 8; // original value
+    x_set(x_ctx, val);
     return 0;
 }

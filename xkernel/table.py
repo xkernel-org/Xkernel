@@ -394,7 +394,8 @@ def print_cs_table_pretty(cs_map: Dict[int, str], single_index: int = None):
             for inst in instructions:
                 # Try to parse as assembly: "addr: bytes instruction"
                 # e.g., "1f2: c1 e8 03 shr $0x3,%eax"
-                asm_match = re.match(r'^([0-9a-fA-F]+):\s+([0-9a-fA-F\s]+)\s+(\S+)\s*(.*)$', inst)
+                # Hex bytes must be 2-digit pairs (avoids greedily consuming mnemonics like "add")
+                asm_match = re.match(r'^([0-9a-fA-F]+):\s+((?:[0-9a-fA-F]{2} )*[0-9a-fA-F]{2})\s+(\S+)\s*(.*)$', inst)
                 if asm_match:
                     offset = asm_match.group(1)
                     bytes_hex = asm_match.group(2).strip()

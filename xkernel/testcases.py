@@ -79,15 +79,15 @@ TESTCASES = [
     #     modified=["16", "32"],
     #     values=(8, 16, 32),
     # ),
-    # Testcase(
-    #     name="SHRINK_BATCH",
-    #     description="mm/shrinker.c SHRINK_BATCH",
-    #     file="mm/shrinker.c",
-    #     original="#define SHRINK_BATCH 128",
-    #     modified=["#define SHRINK_BATCH 32", "#define SHRINK_BATCH 64"],
-    #     values=(128,32,64),
-    #     safe_spans=[("__pfx_perf_trace_mm_shrink_slab_end","0x10","0x15145")]
-    # ),
+    Testcase(
+        name="SHRINK_BATCH",
+        description="mm/shrinker.c SHRINK_BATCH",
+        file="mm/shrinker.c",
+        original="#define SHRINK_BATCH 128",
+        modified=["#define SHRINK_BATCH 32", "#define SHRINK_BATCH 64"],
+        values=(128,32,64),
+        safe_spans=[("__pfx_perf_trace_mm_shrink_slab_end","0x10","0x15145")]
+    ),
     # Testcase(
     #     name="NR_MAX_BATCHED_MIGRATION",
     #     description="mm/migrate.c NR_MAX_BATCHED_MIGRATION",
@@ -98,14 +98,14 @@ TESTCASES = [
     #     values=(512, 128, 256),
     #     safe_spans=[("migrate_pages","0x872","0x877"), ("migrate_pages", "0x8c4", "0x8ca")]
     # ),
-    Testcase(
-        name="BLK_MAX_REQUEST_COUNT",
-        description="block/blk-mq.c BLK_MAX_REQUEST_COUNT",
-        file="block/blk-mq.c",
-        original="BLK_MAX_REQUEST_COUNT",
-        modified=["8", "16"],
-        values=(32, 8, 16),
-        safe_spans=[("blk_start_plug_nr_ios","0x29","0x584"), ("blk_add_rq_to_plug", "0xd1", "0xd5")]
-    ),
+    # Testcase(
+    #     name="BLK_MAX_REQUEST_COUNT",
+    #     description="block/blk-mq.c BLK_MAX_REQUEST_COUNT",
+    #     file="block/blk-mq.c",
+    #     original="BLK_MAX_REQUEST_COUNT",
+    #     modified=["8", "16"],
+    #     values=(32, 8, 16),
+    #     safe_spans=[("blk_start_plug_nr_ios","0x29","0x584"), ("blk_add_rq_to_plug", "0xd1", "0xd5")]
+    # ),
 
 ]

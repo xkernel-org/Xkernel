@@ -233,6 +233,7 @@ def cmd_build(args):
     project_root = get_project_root()
     xkernel_dir = os.path.join(project_root, 'xkernel')
     skip_gen = '--skip-gen' in args
+    verbose = '--verbose' in args or '-v' in args
 
     print("==========================================")
     print("Xkernel Build Pipeline")
@@ -251,7 +252,7 @@ def cmd_build(args):
     print("\n[Step 2/3] Running codegen.py to generate BPF code...")
     print("==========================================")
     from xkernel.codegen import run_codegen
-    run_codegen()
+    run_codegen(verbose=verbose)
 
     # Step 3: Compile BPF programs
     print("\n[Step 3/3] Compiling BPF programs...")
@@ -559,7 +560,13 @@ def cmd_load(args):
         sys.exit(1)
     print(f"  Compiled: {os.path.basename(bpf_c)}")
 
-    # Step 3: Jump optimization (optional)
+    # Step 3: Ensure kfuncs module is loaded (idempotent)
+    # Must be before jump-opt probing since BPF programs use kfuncs
+    if not ensure_kfuncs_loaded(project_root):
+        print("Failed to load kfuncs module")
+        sys.exit(1)
+
+    # Step 4: Jump optimization (optional)
     if jump_opt:
         from xkernel.loader import try_jump_optimization
         print("\n--- Jump Optimization ---")
@@ -571,11 +578,6 @@ def cmd_load(args):
             print(f"  No jump-optimizable offsets found in {os.path.basename(bpf_c)}")
         print("--- End Jump Optimization ---\n")
 
-    # Step 4: Ensure kfuncs module is loaded (idempotent)
-    if not ensure_kfuncs_loaded(project_root):
-        print("Failed to load kfuncs module")
-        sys.exit(1)
-
     # Step 5: Load and attach BPF programs (per-ConstID)
     mode_names = {0: 'Immediate', 1: 'Per-task', 2: 'Global'}
     print(f"Loading BPF for ConstID {const_id} (mode={mode_names[mode]}):")
@@ -585,7 +587,7 @@ def cmd_load(args):
         print(f"Failed to load kprobes for ConstID {const_id}.")
         sys.exit(ret)
 
-    # Step 6: Load critical spans and safe spans
+    # Step 6: Load critical spans and safe spans into BPF maps
     load_critical_spans_for_constid(CS_FILE, const_id, map_info)
     load_safe_spans_for_constid(SS_FILE, const_id, map_info)
 
@@ -804,6 +806,7 @@ def show_help():
     print()
     print("Options for 'build':")
     print("  --skip-gen    Skip running gen.py (only run codegen.py and make)")
+    print("  --verbose/-v  Show detailed intermediate output (symbolic execution, diffs)")
     print()
     print("Options for 'load':")
     print("  <MODE>        0=Immediate, 1=Per-task, 2=Global")

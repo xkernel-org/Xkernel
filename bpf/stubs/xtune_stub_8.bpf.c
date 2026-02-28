@@ -10,9 +10,8 @@
 X_TUNE_0(migrate_pages, "+0x877") {
     if (!x_transition_done(x_ctx)) return 0;
 
-    // Get tunable value (V=512 originally)
-    u64 val = 512;
-    x_set(x_ctx, val);
     // Write your tuning logic here
+    u64 val = 512; // original value
+    x_set(x_ctx, val);
     return 0;
 }

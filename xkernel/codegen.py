@@ -13,6 +13,14 @@ import json
 from collections import OrderedDict
 from typing import Dict, List, Tuple, Optional, Set
 
+# Module-level verbose flag, set by run_codegen(verbose=...)
+_verbose = False
+
+def vprint(*args, **kwargs):
+    """Print only in verbose mode."""
+    if _verbose:
+        print(*args, **kwargs)
+
 
 class SymbolicExecutor:
     """Symbolic execution engine for x86 instructions."""
@@ -843,17 +851,17 @@ def process_res_file(filepath: str, return_expressions: bool = False):
         If return_expressions is True: list of (instruction_line, address, expressions_dict, expressions_dict_alt) tuples
         Otherwise: None
     """
-    print(f"\n{'='*80}")
-    print(f"Processing: {filepath}")
-    print(f"{'='*80}\n")
-    
+    vprint(f"\n{'='*80}")
+    vprint(f"Processing: {filepath}")
+    vprint(f"{'='*80}\n")
+
     with open(filepath, 'r') as f:
         content = f.read()
-    
+
     # Split into Basic Blocks (separated by "Basic Block:" lines)
     blocks = []
     current_block_lines = []
-    
+
     for line in content.split('\n'):
         if line.strip().startswith('Basic Block:'):
             if current_block_lines:
@@ -861,69 +869,69 @@ def process_res_file(filepath: str, return_expressions: bool = False):
             current_block_lines = [line]
         elif current_block_lines:
             current_block_lines.append(line)
-    
+
     if current_block_lines:
         blocks.append(current_block_lines)
-    
+
     expression_sequence = []  # List of (instruction_line, address, expressions_dict, expressions_dict_alt)
-    
+
     # Process each Basic Block
     for block_idx, block_lines in enumerate(blocks):
         function_name, lines_info, instructions = parse_basic_block(block_lines)
-        
+
         if not instructions:
             continue
-        
-        print(f"\n--- Basic Block {block_idx + 1} ---")
+
+        vprint(f"\n--- Basic Block {block_idx + 1} ---")
         if lines_info:
-            print(lines_info)
+            vprint(lines_info)
         if function_name:
-            print(f"Function: {function_name}")
-        print()
-        
+            vprint(f"Function: {function_name}")
+        vprint()
+
         # Create a new symbolic executor for this Basic Block
         executor = SymbolicExecutor()
-        
+
         # Execute each instruction
         for inst_line in instructions:
             # Remove [*] marker for parsing
             clean_line = re.sub(r'^\s*\[\*\]\s*', '', inst_line)
-            
+
             parsed = executor.parse_instruction(clean_line)
             if not parsed:
-                print(f"  {inst_line}")
-                print(f"    (Could not parse instruction)")
+                vprint(f"  {inst_line}")
+                vprint(f"    (Could not parse instruction)")
                 continue
-            
+
             address, mnemonic, operands = parsed
-            
+
             # Print instruction
-            print(f"  {inst_line}")
-            
+            vprint(f"  {inst_line}")
+
             # Execute symbolically
             result = executor.execute_instruction(mnemonic, operands)
-            print(f"    -> {result}")
-            
+            vprint(f"    -> {result}")
+
             # Get all current expressions (both versions)
             expressions = executor.get_all_expressions()
             expressions_alt = executor.get_all_expressions_alt()
             expressions_dict = dict(sorted(expressions.items()))
             expressions_dict_alt = dict(sorted(expressions_alt.items()))
-            
+
             if return_expressions:
                 # Store both versions: (instruction, address, expressions_main, expressions_alt)
                 expression_sequence.append((inst_line, address, expressions_dict, expressions_dict_alt))
-            
+
             if expressions:
-                print(f"    Expressions after this instruction:")
+                vprint(f"    Expressions after this instruction:")
                 for reg, expr in sorted(expressions.items()):
                     alt_expr = expressions_alt.get(reg)
                     if alt_expr and alt_expr != expr:
-                        print(f"      {reg} = {expr} (alt: {alt_expr})")
+                        vprint(f"      {reg} = {expr} (alt: {alt_expr})")
                     else:
-                        print(f"      {reg} = {expr}")
-            print()
-    
+                        vprint(f"      {reg} = {expr}")
+            vprint()
+
     if return_expressions:
         return expression_sequence
     return None
@@ -1119,80 +1127,80 @@ def print_expression_diff(prefix: str, seq1: List[Tuple[str, str, Dict[str, str]
         seq2: v2 sequence
         seq3: v3 sequence (optional)
     """
-    print(f"\n{'='*80}")
-    print(f"{prefix} - Expression Differences")
-    print(f"{'='*80}\n")
-    
+    vprint(f"\n{'='*80}")
+    vprint(f"{prefix} - Expression Differences")
+    vprint(f"{'='*80}\n")
+
     # Compare v1 vs v2
     diff_v1_v2 = compare_expressions(seq1, seq2, "v1", "v2")
     if diff_v1_v2:
         ranges_v1_v2 = find_changed_ranges(diff_v1_v2)
-        print(f"--- Differences between v1 (original) and v2 (recompiled from first command) ---")
-        print(f"Changed instruction ranges: {ranges_v1_v2}")
-        print()
-        
+        vprint(f"--- Differences between v1 (original) and v2 (recompiled from first command) ---")
+        vprint(f"Changed instruction ranges: {ranges_v1_v2}")
+        vprint()
+
         # Filter changed instructions until all effects are consumed
         changed_v1 = filter_changed_instructions_by_effects(diff_v1_v2, seq1, use_seq1=True)
         changed_v2 = filter_changed_instructions_by_effects(diff_v1_v2, seq2, use_seq1=False)
-        
-        print("Changed instructions in v1:")
+
+        vprint("Changed instructions in v1:")
         for idx, inst in changed_v1:
-            print(f"  Instruction {idx}: {inst}")
-        print()
-        
-        print("Changed instructions in v2:")
+            vprint(f"  Instruction {idx}: {inst}")
+        vprint()
+
+        vprint("Changed instructions in v2:")
         for idx, inst in changed_v2:
-            print(f"  Instruction {idx}: {inst}")
-        print()
+            vprint(f"  Instruction {idx}: {inst}")
+        vprint()
     else:
-        print("No differences between v1 and v2\n")
-    
+        vprint("No differences between v1 and v2\n")
+
     # Compare v2 vs v3 if v3 exists
     if seq3:
         diff_v2_v3 = compare_expressions(seq2, seq3, "v2", "v3")
         if diff_v2_v3:
             ranges_v2_v3 = find_changed_ranges(diff_v2_v3)
-            print(f"--- Differences between v2 (recompiled from first command) and v3 (recompiled from second command) ---")
-            print(f"Changed instruction ranges: {ranges_v2_v3}")
-            print()
-            
+            vprint(f"--- Differences between v2 (recompiled from first command) and v3 (recompiled from second command) ---")
+            vprint(f"Changed instruction ranges: {ranges_v2_v3}")
+            vprint()
+
             # Filter changed instructions until all effects are consumed
             changed_v2 = filter_changed_instructions_by_effects(diff_v2_v3, seq2, use_seq1=True)
             changed_v3 = filter_changed_instructions_by_effects(diff_v2_v3, seq3, use_seq1=False)
-            
-            print("Changed instructions in v2:")
+
+            vprint("Changed instructions in v2:")
             for idx, inst in changed_v2:
-                print(f"  Instruction {idx}: {inst}")
-            print()
-            
-            print("Changed instructions in v3:")
+                vprint(f"  Instruction {idx}: {inst}")
+            vprint()
+
+            vprint("Changed instructions in v3:")
             for idx, inst in changed_v3:
-                print(f"  Instruction {idx}: {inst}")
-            print()
+                vprint(f"  Instruction {idx}: {inst}")
+            vprint()
         else:
-            print("No differences between v2 and v3\n")
-        
+            vprint("No differences between v2 and v3\n")
+
         # Compare v1 vs v3
         diff_v1_v3 = compare_expressions(seq1, seq3, "v1", "v3")
         if diff_v1_v3:
             ranges_v1_v3 = find_changed_ranges(diff_v1_v3)
-            print(f"--- Differences between v1 (original) and v3 (recompiled from second command) ---")
-            print(f"Changed instruction ranges: {ranges_v1_v3}")
-            print()
-            
+            vprint(f"--- Differences between v1 (original) and v3 (recompiled from second command) ---")
+            vprint(f"Changed instruction ranges: {ranges_v1_v3}")
+            vprint()
+
             # Filter changed instructions until all effects are consumed
             changed_v1 = filter_changed_instructions_by_effects(diff_v1_v3, seq1, use_seq1=True)
             changed_v3 = filter_changed_instructions_by_effects(diff_v1_v3, seq3, use_seq1=False)
-            
-            print("Changed instructions in v1:")
+
+            vprint("Changed instructions in v1:")
             for idx, inst in changed_v1:
-                print(f"  Instruction {idx}: {inst}")
-            print()
-            
-            print("Changed instructions in v3:")
+                vprint(f"  Instruction {idx}: {inst}")
+            vprint()
+
+            vprint("Changed instructions in v3:")
             for idx, inst in changed_v3:
-                print(f"  Instruction {idx}: {inst}")
-            print()
+                vprint(f"  Instruction {idx}: {inst}")
+            vprint()
         else:
             print("No differences between v1 and v3\n")
 
@@ -2527,6 +2535,7 @@ def analyze_linear_relationship(prefix: str, v1_file: str, v2_file: str, v3_file
             )
 
             changed_inst = bb1.get('changed_instruction', '')
+            changed_insts = bb1.get('changed_instructions', [])
             generated_kprobes.append({
                 'bb_idx': bb_idx,
                 'function_name': func_name,
@@ -2536,6 +2545,7 @@ def analyze_linear_relationship(prefix: str, v1_file: str, v2_file: str, v3_file
                 'kprobe_offset': kprobe_offset,
                 'candidate_offsets': [kprobe_offset],
                 'changed_instruction': changed_inst,
+                'changed_instructions': changed_insts,
                 'all_instructions': all_insts_v1,
                 'synthesis_type': 'memory_store',
                 'seed_offset': None,
@@ -2616,6 +2626,7 @@ def analyze_linear_relationship(prefix: str, v1_file: str, v2_file: str, v3_file
             )
 
             changed_inst = bb1.get('changed_instruction', '')
+            changed_insts = bb1.get('changed_instructions', [])
             generated_kprobes.append({
                 'bb_idx': bb_idx,
                 'function_name': func_name,
@@ -2625,6 +2636,7 @@ def analyze_linear_relationship(prefix: str, v1_file: str, v2_file: str, v3_file
                 'kprobe_offset': kprobe_offset,
                 'candidate_offsets': [kprobe_offset],
                 'changed_instruction': changed_inst,
+                'changed_instructions': changed_insts,
                 'all_instructions': all_insts_v1,
                 'synthesis_type': 'cmp_immediate',
                 'seed_offset': None,
@@ -2793,6 +2805,7 @@ def analyze_linear_relationship(prefix: str, v1_file: str, v2_file: str, v3_file
         )
 
         changed_inst = bb1.get('changed_instruction', '')
+        changed_insts = bb1.get('changed_instructions', [])
         generated_kprobes.append({
             'bb_idx': bb_idx,
             'function_name': func_name,
@@ -2802,6 +2815,7 @@ def analyze_linear_relationship(prefix: str, v1_file: str, v2_file: str, v3_file
             'kprobe_offset': kprobe_offset,
             'candidate_offsets': candidate_offsets if candidate_offsets else [kprobe_offset],
             'changed_instruction': changed_inst,
+            'changed_instructions': changed_insts,
             'all_instructions': all_insts_v1,
             'synthesis_type': synthesis_type,
             'seed_offset': seed_offset,
@@ -2833,24 +2847,42 @@ def analyze_linear_relationship(prefix: str, v1_file: str, v2_file: str, v3_file
             # Collect all CS indices for this ConstID (one CS per kprobe location)
             cs_indices = []
             for kp in generated_kprobes:
-                # Clean up instruction for CS
-                clean_inst = kp['changed_instruction'].strip()
-                if clean_inst.startswith('[*]'):
-                    clean_inst = clean_inst[3:].strip()
-                clean_inst = re.sub(r'\s+', ' ', clean_inst)
-                cs_info = clean_inst
+                # Build CS info from all changed instructions in this BB
+                changed_insts = kp.get('changed_instructions', [])
+                if changed_insts:
+                    clean_parts = []
+                    for ci in changed_insts:
+                        ci = ci.strip()
+                        if ci.startswith('[*]'):
+                            ci = ci[3:].strip()
+                        ci = re.sub(r'\s+', ' ', ci)
+                        clean_parts.append(ci)
+                    cs_info = ' ; '.join(clean_parts)
+                else:
+                    # Fallback to single changed_instruction
+                    clean_inst = kp['changed_instruction'].strip()
+                    if clean_inst.startswith('[*]'):
+                        clean_inst = clean_inst[3:].strip()
+                    cs_info = re.sub(r'\s+', ' ', clean_inst)
 
                 # Add CS entry and get its index
                 cs_index = get_or_add_cs_index(cs_info)
                 cs_indices.append(str(cs_index))
 
-                # Add CS raw entry (function name and basic block offsets)
+                # Add CS raw entry using changed instruction range
                 func_name = kp['function_name']
-                all_insts = kp.get('all_instructions', [])
-                if all_insts:
-                    soff, eoff = extract_bb_offsets(all_insts)
+                changed_insts = kp.get('changed_instructions', [])
+                if changed_insts:
+                    soff, eoff = extract_changed_offsets(changed_insts)
                     if soff is not None and eoff is not None:
                         add_cs_raw_entry(str(const_id_value), func_name, soff, eoff)
+                else:
+                    # Fallback to full BB range
+                    all_insts = kp.get('all_instructions', [])
+                    if all_insts:
+                        soff, eoff = extract_bb_offsets(all_insts)
+                        if soff is not None and eoff is not None:
+                            add_cs_raw_entry(str(const_id_value), func_name, soff, eoff)
 
             # Build SS info from first kprobe
             first_kp = generated_kprobes[0]
@@ -3393,6 +3425,40 @@ def extract_bb_offsets(all_instructions: List[str]) -> Tuple[Optional[int], Opti
     return min(offsets), max(offsets)
 
 
+def extract_changed_offsets(changed_instructions: List[str]) -> Tuple[Optional[int], Optional[int]]:
+    """Extract offset range of changed ([*]) instructions.
+
+    Returns (soff, eoff) where soff is the address of the first changed instruction
+    and eoff is the address just past the last changed instruction (i.e., soff of the
+    last changed instruction + its byte length).
+
+    Args:
+        changed_instructions: List of [*]-marked instruction strings
+
+    Returns:
+        Tuple of (start_offset, end_offset), or (None, None) if parsing fails
+    """
+    entries = []  # (addr, byte_count)
+    for inst in changed_instructions:
+        inst = inst.strip()
+        if inst.startswith('[*]'):
+            inst = inst[3:].strip()
+        match = re.match(r'([0-9a-fA-F]+):', inst)
+        if not match:
+            continue
+        addr = int(match.group(1), 16)
+        byte_count = get_insn_byte_count(inst)
+        entries.append((addr, byte_count))
+
+    if not entries:
+        return None, None
+
+    soff = min(e[0] for e in entries)
+    last = max(entries, key=lambda e: e[0])
+    eoff = last[0] + last[1]  # address past the last changed instruction
+    return soff, eoff
+
+
 def add_cs_raw_entry(const_id: str, function_name: str, soff: int, eoff: int):
     """Add a raw CS entry (function name and offsets, no resolved address).
 
@@ -3795,6 +3861,7 @@ def extract_all_basic_blocks_from_file(filepath: str) -> List[Dict]:
                     'changed_addr': None,
                     'kprobe_addr': None,
                     'changed_instruction': None,
+                    'changed_instructions': [],
                     'all_instructions': [],
                     'immediate_value': None,
                     'raw_lines': []
@@ -3830,7 +3897,9 @@ def extract_all_basic_blocks_from_file(filepath: str) -> List[Dict]:
 
                 current_bb['all_instructions'].append(stripped)
 
-                # Changed instruction
+                # Changed instruction(s)
+                if is_changed:
+                    current_bb['changed_instructions'].append(stripped)
                 if is_changed and current_bb['changed_addr'] is None:
                     current_bb['changed_addr'] = addr
                     current_bb['changed_instruction'] = stripped
@@ -4219,8 +4288,10 @@ def generate_bpf_file_for_group(prefix: str, v1_file: str, relationship: Optiona
     return (internal_file, None)
 
 
-def run_codegen():
+def run_codegen(verbose: bool = False):
     """Run the code generation pipeline. Callable from cli.py or standalone."""
+    global _verbose
+    _verbose = verbose
     script_dir = os.path.dirname(os.path.abspath(__file__))
 
     # Determine output directory for BPF files (bpf_kprobe/bpf/examples/)
@@ -4298,32 +4369,32 @@ def run_codegen():
     sorted_groups = sorted(file_groups.items(), key=lambda x: int(x[0]))
     
     print(f"Found {len(sorted_groups)} test group(s)")
-    
+
     # Process each group
     for prefix, files in sorted_groups:
-        print(f"\n{'='*80}")
-        print(f"Processing Test Group {prefix}")
-        print(f"{'='*80}")
-        
+        vprint(f"\n{'='*80}")
+        vprint(f"Processing Test Group {prefix}")
+        vprint(f"{'='*80}")
+
         seq_v1 = None
         seq_v2 = None
         seq_v3 = None
-        
+
         # Process v1 file (original)
         if 'v1' in files:
-            print(f"\n--- Processing v1 (original) ---")
+            vprint(f"\n--- Processing v1 (original) ---")
             seq_v1 = process_res_file(files['v1'], return_expressions=True)
-        
+
         # Process v2 file (recompiled from first command)
         if 'v2' in files:
-            print(f"\n--- Processing v2 (recompiled from first command) ---")
+            vprint(f"\n--- Processing v2 (recompiled from first command) ---")
             seq_v2 = process_res_file(files['v2'], return_expressions=True)
-        
+
         # Process v3 file (recompiled from second command)
         if 'v3' in files:
-            print(f"\n--- Processing v3 (recompiled from second command) ---")
+            vprint(f"\n--- Processing v3 (recompiled from second command) ---")
             seq_v3 = process_res_file(files['v3'], return_expressions=True)
-        
+
         # Compare expressions
         if seq_v1 and seq_v2:
             print_expression_diff(f"Test Group {prefix}", seq_v1, seq_v2, seq_v3)
@@ -4435,7 +4506,8 @@ def _update_scope_table_ss_index(ss_ranges_by_id: dict):
 
 def main():
     """Entry point for standalone execution."""
-    run_codegen()
+    verbose = '--verbose' in sys.argv or '-v' in sys.argv
+    run_codegen(verbose=verbose)
 
 
 if __name__ == '__main__':

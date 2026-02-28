@@ -301,10 +301,10 @@ def check_kprobe_optimized(func_name, offset):
 
 
 def patch_bpf_sec_offset(bpf_c_path, func_name, old_offset, new_offset):
-    """Replace a SEC annotation offset in a BPF .c file.
+    """Replace a kprobe offset in a BPF .c file.
 
-    Patches both the SEC("kprobe/func+0xOLD") and the BPF_KPROBE(func_0xOLD)
-    function name.
+    Patches SEC("kprobe/func+0xOLD"), BPF_KPROBE(func_0xOLD), and
+    X_TUNE_N(func, "+0xOLD") patterns.
 
     Args:
         bpf_c_path: Path to the .bpf.c file
@@ -316,13 +316,21 @@ def patch_bpf_sec_offset(bpf_c_path, func_name, old_offset, new_offset):
         content = f.read()
 
     safe_func = func_name.replace('.', '_').replace('-', '_')
+
+    # Patch SEC("kprobe/func+0xOFFSET")
     old_sec = f'SEC("kprobe/{func_name}+0x{old_offset:x}")'
     new_sec = f'SEC("kprobe/{func_name}+0x{new_offset:x}")'
+    content = content.replace(old_sec, new_sec)
+
+    # Patch BPF_KPROBE(func_0xOFFSET)
     old_probe = f'BPF_KPROBE({safe_func}_0x{old_offset:x})'
     new_probe = f'BPF_KPROBE({safe_func}_0x{new_offset:x})'
-
-    content = content.replace(old_sec, new_sec)
     content = content.replace(old_probe, new_probe)
+
+    # Patch X_TUNE_N(func, "+0xOFFSET")
+    old_xtune = f'({func_name}, "+0x{old_offset:x}")'
+    new_xtune = f'({func_name}, "+0x{new_offset:x}")'
+    content = content.replace(old_xtune, new_xtune)
 
     with open(bpf_c_path, 'w') as f:
         f.write(content)
@@ -350,22 +358,38 @@ def try_jump_optimization(bpf_c_path, bpf_dir):
     with open(bpf_c_path, 'r') as f:
         lines = f.readlines()
 
-    # Parse kprobe entries: find SEC annotations and their Candidates comments
+    # Parse kprobe entries: find Candidates comments and their SEC/X_TUNE lines
     kprobes = []
     for i, line in enumerate(lines):
         m = re.match(r'// Candidates:\s*(.+)', line.strip())
         if m:
             candidates_str = m.group(1).strip()
             candidates = [int(c.strip(), 16) for c in candidates_str.split(',')]
-            # Find the SEC line that follows (within next few lines)
+            # Find the SEC or X_TUNE line that follows (within next few lines)
             for j in range(i + 1, min(i + 5, len(lines))):
+                stripped = lines[j].strip()
+                # Match SEC("kprobe/func+0xOFFSET")
                 sec_m = re.match(
                     r'SEC\("kprobe/([^"]+)\+0x([0-9a-fA-F]+)"\)',
-                    lines[j].strip()
+                    stripped
                 )
                 if sec_m:
                     func_name = sec_m.group(1)
                     current_offset = int(sec_m.group(2), 16)
+                    kprobes.append({
+                        'func_name': func_name,
+                        'current_offset': current_offset,
+                        'candidates': candidates,
+                    })
+                    break
+                # Match X_TUNE_N(func_name, "+0xOFFSET")
+                xtune_m = re.match(
+                    r'X_TUNE_\d+\((\w+),\s*"\+0x([0-9a-fA-F]+)"\)',
+                    stripped
+                )
+                if xtune_m:
+                    func_name = xtune_m.group(1)
+                    current_offset = int(xtune_m.group(2), 16)
                     kprobes.append({
                         'func_name': func_name,
                         'current_offset': current_offset,
@@ -427,7 +451,8 @@ def try_jump_optimization(bpf_c_path, bpf_dir):
                 capture_output=True, text=True
             )
             if result.returncode != 0:
-                print(f"    0x{cand:x}: load failed, skipping", file=sys.stderr)
+                err_msg = (result.stderr or '').strip().split('\n')[-1] if result.stderr else ''
+                print(f"    0x{cand:x}: load failed ({err_msg}), skipping", file=sys.stderr)
                 subprocess.run(['sudo', 'rm', '-rf', pin_dir],
                                capture_output=True)
                 continue

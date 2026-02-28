@@ -10,9 +10,8 @@
 X_TUNE_0(do_shrink_slab, "+0xb") {
     if (!x_transition_done(x_ctx)) return 0;
 
-    // Get tunable value (V=128 originally)
-    u64 val = 128;
-    x_set(x_ctx, val);
     // Write your tuning logic here
+    u64 val = 128; // original value
+    x_set(x_ctx, val);
     return 0;
 }

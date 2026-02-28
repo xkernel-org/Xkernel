@@ -73,7 +73,9 @@ struct bs_ctx {
     __u32 left;
     __u32 right;
     bool found;
+    __u64 start;
     __u64 end;
+    __u32 match_idx;
 };
 #define MAX_BPF_LOOP 128
 
@@ -86,7 +88,9 @@ static __always_inline long bs_fn(u64 index, struct bs_ctx *ctx) {
     struct critical_span *cs = bpf_map_lookup_elem(&cs_map, &mid);
     if (unlikely(!cs)) return 1;
     if (ctx->addr >= cs->soff) {
+        ctx->start = cs->soff;
         ctx->end = cs->eoff;
+        ctx->match_idx = mid;
         ctx->found = true;
         ctx->left = mid + 1;
     } else {
@@ -95,7 +99,7 @@ static __always_inline long bs_fn(u64 index, struct bs_ctx *ctx) {
 
     // Continue the loop
     return 0;
-} 
+}
 
 static __always_inline bool contains_addr(__u64 addr) {
     if (unlikely(cs_len > MAX_CS)) {
@@ -107,7 +111,6 @@ static __always_inline bool contains_addr(__u64 addr) {
         .left = 0,
         .right = cs_len - 1,
         .found = false,
-        .end = 0,
     };
 
     long ret = bpf_loop(MAX_BPF_LOOP, bs_fn, &ctx, 0);
@@ -129,7 +132,9 @@ static __always_inline long ss_bs_fn(u64 index, struct bs_ctx *ctx) {
     struct critical_span *ss = bpf_map_lookup_elem(&ss_map, &mid);
     if (unlikely(!ss)) return 1;
     if (ctx->addr >= ss->soff) {
+        ctx->start = ss->soff;
         ctx->end = ss->eoff;
+        ctx->match_idx = mid;
         ctx->found = true;
         ctx->left = mid + 1;
     } else {
@@ -148,7 +153,6 @@ static __always_inline bool contains_ss_addr(__u64 addr) {
         .left = 0,
         .right = ss_len - 1,
         .found = false,
-        .end = 0,
     };
 
     long ret = bpf_loop(MAX_BPF_LOOP, ss_bs_fn, &ctx, 0);
@@ -173,14 +177,24 @@ static __always_inline bool check_stack_safe(struct pt_regs *ctx) {
     // Use SS (Safe Span) for transition checking when available;
     // fall back to CS (Critical Span) if no SS data is loaded.
     bool use_ss = (ss_len > 0);
+    __u32 len = use_ss ? ss_len : cs_len;
 
     stack_len = stack_size / sizeof(__u64);
     stack_len = MIN(stack_len, MAX_STACK_DEPTH);
     for (int i = 1; i < stack_len; i++) { // Skip the current function
         __u64 addr = stack[i];
-        bool in_span = use_ss ? contains_ss_addr(addr) : contains_addr(addr);
-        if (in_span) {
-            bpf_printk("stack[%d] = %lx is in a safe span", i, addr);
+        struct bs_ctx bctx = {
+            .addr = addr,
+            .left = 0,
+            .right = len - 1,
+            .found = false,
+        };
+        bpf_loop(MAX_BPF_LOOP, use_ss ? ss_bs_fn : bs_fn, &bctx, 0);
+        if (bctx.found && bctx.end >= addr) {
+            bpf_printk("[%pS] stack[%d]=%pS hit %s[%u]",
+                        (void *)PT_REGS_IP(ctx), i, (void *)addr,
+                        use_ss ? "ss" : "cs", bctx.match_idx);
+            bpf_printk("  range [%lx, %lx]", bctx.start, bctx.end);
             return false;
         }
     }
@@ -210,7 +224,7 @@ static __always_inline void per_task_transition_handler(struct pt_regs *ctx) {
     if (data->transition_done && data->transition_end == 0) {
         data->transition_end = bpf_ktime_get_ns();
         u64 check_time = data->transition_end - data->transition_start;
-        LOG_CPU("task: [%s], ktime_ns: %lld, check time: %lld us", task->comm, data->transition_end, check_time / 1000);
+        LOG_CPU("transition done [%s] at %pS, took %lld us", task->comm, (void *)PT_REGS_IP(ctx), check_time / 1000);
     }
     #endif
 }
