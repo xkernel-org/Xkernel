@@ -1,0 +1,125 @@
+## All kernel tunables for Xkernel
+## Usage: xkernel-tool build tunables/all.toml
+
+[[tunables]]
+name = "tcp_cubic"
+description = "delay_min shift amount"
+file = "net/ipv4/tcp_cubic.c"
+original = "ca->delay_min >> 3"
+modified = ["ca->delay_min >> 2", "ca->delay_min >> 1"]
+values = [3, 2, 1]
+
+  [[tunables.safe_spans]]
+  function = "cubictcp_acked"
+  start_offset = "0x210"
+  end_offset = "0x21a"
+
+[[tunables]]
+name = "BLK_MQ_RESOURCE_DELAY"
+description = "block/blk-mq.c resource delay"
+file = "block/blk-mq.c"
+original = "BLK_MQ_RESOURCE_DELAY\t3"
+modified = ["BLK_MQ_RESOURCE_DELAY\t5", "BLK_MQ_RESOURCE_DELAY\t7"]
+values = [3, 5, 7]
+
+  [[tunables.safe_spans]]
+  function = "blk_mq_dispatch_rq_list"
+  start_offset = "0x32d"
+  end_offset = "0x395"
+
+[[tunables]]
+name = "IO_LOCAL_TW_DEFAULT_MAX"
+description = "io_uring local task work max"
+file = "io_uring/io_uring.c"
+original = "#define IO_LOCAL_TW_DEFAULT_MAX\t\t 20"
+modified = ["#define IO_LOCAL_TW_DEFAULT_MAX\t\t 32", "#define IO_LOCAL_TW_DEFAULT_MAX\t\t 64"]
+values = [20, 32, 64]
+
+  [[tunables.safe_spans]]
+  function = "io_run_task_work_sig"
+  start_offset = "0x4b"
+  end_offset = "0x6b"
+
+  [[tunables.safe_spans]]
+  function = "io_uring_try_cancel_requests"
+  start_offset = "0x97b"
+  end_offset = "0x152"
+
+  [[tunables.safe_spans]]
+  function = "__do_sys_io_uring_enter"
+  start_offset = "0x24c"
+  end_offset = "0x2b9"
+
+[[tunables]]
+name = "tcp_recovery"
+description = "tcp_min_rtt shift amount"
+file = "net/ipv4/tcp_recovery.c"
+original = "tcp_min_rtt(tp) >> 2"
+modified = ["tcp_min_rtt(tp) >> 1", "tcp_min_rtt(tp) >> 3"]
+values = [2, 1, 3]
+
+[[tunables]]
+name = "BLK_MQ_BUDGET_DELAY"
+description = "block/blk-mq-sched.c budget delay"
+file = "block/blk-mq-sched.c"
+original = "#define BLK_MQ_BUDGET_DELAY\t3"
+modified = ["#define BLK_MQ_BUDGET_DELAY\t5", "#define BLK_MQ_BUDGET_DELAY\t7"]
+values = [3, 5, 7]
+lines = "156,248"
+
+[[tunables]]
+name = "BLK_MQ_CPU_WORK_BATCH"
+description = "block/blk-mq.c BLK_MQ_CPU_WORK_BATCH"
+file = "block/blk-mq.c"
+original = "BLK_MQ_CPU_WORK_BATCH"
+modified = ["16", "32"]
+values = [8, 16, 32]
+
+[[tunables]]
+name = "SHRINK_BATCH"
+description = "mm/shrinker.c SHRINK_BATCH"
+file = "mm/shrinker.c"
+original = "#define SHRINK_BATCH 128"
+modified = ["#define SHRINK_BATCH 32", "#define SHRINK_BATCH 64"]
+values = [128, 32, 64]
+
+  [[tunables.safe_spans]]
+  function = "__pfx_perf_trace_mm_shrink_slab_end"
+  start_offset = "0x10"
+  end_offset = "0x15145"
+
+[[tunables]]
+name = "NR_MAX_BATCHED_MIGRATION"
+description = "mm/migrate.c NR_MAX_BATCHED_MIGRATION"
+file = "mm/migrate.c"
+original = "#define NR_MAX_BATCHED_MIGRATION\tHPAGE_PMD_NR"
+modified = ["#define NR_MAX_BATCHED_MIGRATION\t128", "#define NR_MAX_BATCHED_MIGRATION\t256"]
+values = [512, 128, 256]
+
+  [[tunables.safe_spans]]
+  function = "migrate_pages"
+  start_offset = "0x872"
+  end_offset = "0x877"
+
+  [[tunables.safe_spans]]
+  function = "migrate_pages"
+  start_offset = "0x8c4"
+  end_offset = "0x8ca"
+
+[[tunables]]
+name = "BLK_MAX_REQUEST_COUNT"
+description = "block/blk-mq.c BLK_MAX_REQUEST_COUNT"
+file = "block/blk-mq.c"
+original = "BLK_MAX_REQUEST_COUNT"
+modified = ["8", "16"]
+values = [32, 8, 16]
+
+  [[tunables.safe_spans]]
+  function = "blk_start_plug_nr_ios"
+  start_offset = "0x29"
+  end_offset = "0x584"
+
+  [[tunables.safe_spans]]
+  function = "blk_add_rq_to_plug"
+  start_offset = "0xd1"
+  end_offset = "0xd5"

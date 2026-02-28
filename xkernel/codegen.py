@@ -3400,6 +3400,62 @@ def clear_all_tables():
             writer.writerow(header)
 
 
+def next_const_id() -> int:
+    """Return the next available ConstID by reading the scope table.
+
+    Returns max(existing ConstIDs) + 1, or 1 if the table is empty.
+    """
+    init_table(SCOPE_TABLE_PATH, SCOPE_TABLE_HEADER)
+    max_id = 0
+    if os.path.exists(SCOPE_TABLE_PATH):
+        with open(SCOPE_TABLE_PATH, 'r', newline='') as f:
+            reader = csv.reader(f, delimiter='\t')
+            next(reader, None)  # skip header
+            for row in reader:
+                if row and row[0].isdigit():
+                    max_id = max(max_id, int(row[0]))
+    return max_id + 1
+
+
+def remove_constid_entries(const_id: str):
+    """Remove all table entries for a given ConstID (for re-build)."""
+    # Remove from scope_table
+    if os.path.exists(SCOPE_TABLE_PATH):
+        with open(SCOPE_TABLE_PATH, 'r', newline='') as f:
+            reader = csv.reader(f, delimiter='\t')
+            header = next(reader, None)
+            entries = [row for row in reader if not row or row[0] != const_id]
+        if header:
+            with open(SCOPE_TABLE_PATH, 'w', newline='') as f:
+                writer = csv.writer(f, delimiter='\t', lineterminator='\n')
+                writer.writerow(header)
+                writer.writerows(entries)
+
+    # Remove from cs_raw
+    if os.path.exists(CS_RAW_PATH):
+        with open(CS_RAW_PATH, 'r', newline='') as f:
+            reader = csv.reader(f, delimiter='\t')
+            header = next(reader, None)
+            entries = [row for row in reader if not row or row[0] != const_id]
+        if header:
+            with open(CS_RAW_PATH, 'w', newline='') as f:
+                writer = csv.writer(f, delimiter='\t', lineterminator='\n')
+                writer.writerow(header)
+                writer.writerows(entries)
+
+    # Remove from ss_raw
+    if os.path.exists(SS_RAW_PATH):
+        with open(SS_RAW_PATH, 'r', newline='') as f:
+            reader = csv.reader(f, delimiter='\t')
+            header = next(reader, None)
+            entries = [row for row in reader if not row or row[0] != const_id]
+        if header:
+            with open(SS_RAW_PATH, 'w', newline='') as f:
+                writer = csv.writer(f, delimiter='\t', lineterminator='\n')
+                writer.writerow(header)
+                writer.writerows(entries)
+
+
 def extract_bb_offsets(all_instructions: List[str]) -> Tuple[Optional[int], Optional[int]]:
     """Extract start and end offsets from basic block instructions.
 
@@ -4502,6 +4558,124 @@ def _update_scope_table_ss_index(ss_ranges_by_id: dict):
             writer = csv.writer(f, delimiter='\t', lineterminator='\n')
             writer.writerow(SCOPE_TABLE_HEADER)
             writer.writerows(entries)
+
+
+def run_codegen_single(config, const_id: int, verbose: bool = False):
+    """Run code generation for a single tunable config.
+
+    Unlike run_codegen(), this does NOT clear all tables. It appends to
+    the shared scope table incrementally.
+
+    Args:
+        config: TunableConfig instance (from xkernel.config)
+        const_id: Pre-assigned ConstID for this tunable
+        verbose: Show detailed intermediate output
+    """
+    global _verbose
+    _verbose = verbose
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(script_dir)
+    bpf_output_dir = os.path.join(project_root, 'bpf', 'stubs')
+    os.makedirs(bpf_output_dir, exist_ok=True)
+
+    # Ensure tables exist (don't clear — incremental)
+    init_all_tables()
+
+    # Remove stale entries for this ConstID (supports re-build)
+    remove_constid_entries(str(const_id))
+
+    prefix = str(const_id)
+    source_values = {prefix: config.values}
+    file_path = config.file
+
+    # Find BB files for this const_id
+    bb_dir = os.path.join(script_dir, 'bb_cache')
+    v1_file = os.path.join(bb_dir, f'{prefix}_bb_v1.txt')
+    v2_file = os.path.join(bb_dir, f'{prefix}_bb_v2.txt')
+    v3_file = os.path.join(bb_dir, f'{prefix}_bb_v3.txt')
+
+    for f in [v1_file, v2_file, v3_file]:
+        if not os.path.exists(f):
+            print(f"Error: BB file not found: {f}")
+            return
+
+    # Process each version
+    seq_v1 = None
+    seq_v2 = None
+    seq_v3 = None
+
+    vprint(f"\n{'='*80}")
+    vprint(f"Processing Test Group {prefix}")
+    vprint(f"{'='*80}")
+
+    vprint(f"\n--- Processing v1 (original) ---")
+    seq_v1 = process_res_file(v1_file, return_expressions=True)
+
+    vprint(f"\n--- Processing v2 (recompiled from first command) ---")
+    seq_v2 = process_res_file(v2_file, return_expressions=True)
+
+    vprint(f"\n--- Processing v3 (recompiled from second command) ---")
+    seq_v3 = process_res_file(v3_file, return_expressions=True)
+
+    # Compare expressions
+    if seq_v1 and seq_v2:
+        print_expression_diff(f"Test Group {prefix}", seq_v1, seq_v2, seq_v3)
+    elif seq_v1 and seq_v3:
+        print_expression_diff(f"Test Group {prefix}", seq_v1, seq_v3)
+    elif seq_v2 and seq_v3:
+        print_expression_diff(f"Test Group {prefix}", seq_v2, seq_v3)
+
+    # Analyze linear relationship
+    diff_v1_v2_for_insertion = None
+    if seq_v1 and seq_v2:
+        diff_v1_v2_for_insertion = compare_expressions(seq_v1, seq_v2, "v1", "v2")
+
+    analyze_linear_relationship(prefix, v1_file, v2_file, v3_file,
+                                source_values, seq_v1, diff_v1_v2_for_insertion,
+                                file_path, bpf_output_dir)
+
+    # Populate ss_raw for this single tunable
+    _populate_ss_raw_single(const_id, config)
+
+
+def _populate_ss_raw_single(const_id: int, config):
+    """Populate ss_raw for a single tunable's safe_spans.
+
+    Args:
+        const_id: ConstID for this tunable
+        config: TunableConfig instance
+    """
+    cid = str(const_id)
+    ss_ranges_by_id = {}
+
+    if config.safe_spans:
+        for func_name, soff, eoff in config.safe_spans:
+            add_ss_raw_entry(cid, func_name, soff, eoff)
+        ss_ranges_by_id[cid] = list(config.safe_spans)
+        print(f"  ConstID {cid}: wrote {len(config.safe_spans)} manual SS entries")
+    else:
+        # Fallback: copy CS entries as SS
+        cs_entries = []
+        if os.path.exists(CS_RAW_PATH):
+            with open(CS_RAW_PATH, 'r', newline='') as f:
+                reader = csv.reader(f, delimiter='\t')
+                next(reader, None)  # skip header
+                for row in reader:
+                    if len(row) >= 4 and row[0] == cid:
+                        cs_entries.append(row)
+
+        if cs_entries:
+            ranges = []
+            for row in cs_entries:
+                add_ss_raw_entry(cid, row[1], row[2], row[3])
+                ranges.append((row[1], row[2], row[3]))
+            ss_ranges_by_id[cid] = ranges
+            print(f"  ConstID {cid}: copied {len(ranges)} CS entries as SS (no safe_spans)")
+        else:
+            print(f"  ConstID {cid}: no CS entries and no safe_spans, skipping SS")
+
+    # Populate ss_table and update scope_table SS_Index
+    _update_scope_table_ss_index(ss_ranges_by_id)
 
 
 def main():

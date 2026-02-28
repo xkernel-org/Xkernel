@@ -3,28 +3,28 @@
 
 #include "xtune_stub_6.bpf.h"
 
-// void blk_mq_delay_run_hw_queue(struct blk_mq_hw_ctx * hctx, long unsigned int msecs)
-// Kprobe 1: blk_mq_delay_run_hw_queue+0xc9 (memory_store)
-// Candidates: 0xc9
+// int __blk_mq_sched_dispatch_requests(struct blk_mq_hw_ctx * hctx)
+// Kprobe 1: __blk_mq_sched_dispatch_requests+0x57c (simple)
+// Candidates: 0x57c,0x57f
 // Relationship: IV = V
-X_TUNE_0(blk_mq_delay_run_hw_queue, "+0xc9") {
+X_TUNE_0(__blk_mq_sched_dispatch_requests, "+0x57c") {
     if (!x_transition_done(x_ctx)) return 0;
 
     // Write your tuning logic here
-    u64 val = 8; // original value
+    u64 val = 3; // original value
     x_set(x_ctx, val);
     return 0;
 }
 
-// void blk_mq_map_swqueue(struct request_queue * q)
-// Kprobe 2: blk_mq_map_swqueue+0x41e (memory_store)
-// Candidates: 0x41e
+// int __blk_mq_sched_dispatch_requests(struct blk_mq_hw_ctx * hctx)
+// Kprobe 2: __blk_mq_sched_dispatch_requests+0x5c9 (simple)
+// Candidates: 0x5c9,0x5cc
 // Relationship: IV = V
-X_TUNE_1(blk_mq_map_swqueue, "+0x41e") {
+X_TUNE_1(__blk_mq_sched_dispatch_requests, "+0x5c9") {
     if (!x_transition_done(x_ctx)) return 0;
 
     // Write your tuning logic here
-    u64 val = 8; // original value
+    u64 val = 3; // original value
     x_set(x_ctx, val);
     return 0;
 }

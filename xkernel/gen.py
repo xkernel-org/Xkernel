@@ -193,6 +193,106 @@ def generate_bb_files():
     return results
 
 
+def generate_bb_files_single(config, const_id: int):
+    """Generate BB files for a single tunable config.
+
+    Unlike generate_bb_files(), this does NOT wipe bb_cache/.
+    It only writes the three BB files for this ConstID.
+
+    Args:
+        config: TunableConfig instance (from xkernel.config)
+        const_id: ConstID to use as file prefix
+
+    Returns:
+        (v1_file, v2_file, v3_file) tuple, or None on failure.
+    """
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(script_dir)
+
+    bb_dir = os.path.join(script_dir, 'bb_cache')
+    os.makedirs(bb_dir, exist_ok=True)
+
+    prefix = str(const_id)
+    v1_file = os.path.join(bb_dir, f'{prefix}_bb_v1.txt')
+    v2_file = os.path.join(bb_dir, f'{prefix}_bb_v2.txt')
+    v3_file = os.path.join(bb_dir, f'{prefix}_bb_v3.txt')
+
+    cmd1 = build_diff_command(config.file, config.original, config.modified[0], config.lines)
+    cmd2 = build_diff_command(config.file, config.original, config.modified[1], config.lines)
+
+    print(f"Processing ConstID {prefix} ({config.name})...")
+    print(f"  Command 1: {' '.join(cmd1)}")
+    print(f"  Command 2: {' '.join(cmd2)}")
+
+    # Execute first command
+    print("  -> Executing command 1...")
+    try:
+        result1 = subprocess.run(
+            cmd1, capture_output=True, text=True,
+            cwd=project_root, env={**os.environ, 'PYTHONUNBUFFERED': '1'}
+        )
+        output1 = strip_ansi(result1.stdout + result1.stderr)
+    except Exception as e:
+        print(f"  -> Error: Command 1 failed: {e}")
+        return None
+
+    if result1.returncode != 0:
+        print(f"  -> Error: Command 1 failed with exit code {result1.returncode}")
+        return None
+
+    # Extract step 11 -> v1
+    step11 = extract_step11(output1)
+    if step11:
+        with open(v1_file, 'w') as f:
+            f.write(step11 + '\n')
+        print(f"    -> Step 11 (original) written to {v1_file}")
+    else:
+        print("    -> Warning: No step 11 output found for v1")
+        with open(v1_file, 'w') as f:
+            f.write("# No step 11 output found\n")
+
+    # Extract step 11b -> v2
+    step11b = extract_step11b(output1)
+    if step11b:
+        with open(v2_file, 'w') as f:
+            f.write(step11b + '\n')
+        print(f"    -> Step 11b (recompiled) from command 1 written to {v2_file}")
+    else:
+        print("    -> Warning: No step 11b output found for v2")
+        with open(v2_file, 'w') as f:
+            f.write("# No step 11b output found\n")
+
+    # Execute second command
+    print("  -> Executing command 2...")
+    try:
+        result2 = subprocess.run(
+            cmd2, capture_output=True, text=True,
+            cwd=project_root, env={**os.environ, 'PYTHONUNBUFFERED': '1'}
+        )
+        output2 = strip_ansi(result2.stdout + result2.stderr)
+    except Exception as e:
+        print(f"  -> Error: Command 2 failed: {e}")
+        return None
+
+    if result2.returncode != 0:
+        print(f"  -> Error: Command 2 failed with exit code {result2.returncode}")
+        return None
+
+    # Extract step 11b -> v3
+    step11b2 = extract_step11b(output2)
+    if step11b2:
+        with open(v3_file, 'w') as f:
+            f.write(step11b2 + '\n')
+        print(f"    -> Step 11b (recompiled) from command 2 written to {v3_file}")
+    else:
+        print("    -> Warning: No step 11b output found for v3")
+        with open(v3_file, 'w') as f:
+            f.write("# No step 11b output found\n")
+
+    print()
+    return (v1_file, v2_file, v3_file)
+
+
 def main():
     generate_bb_files()
 

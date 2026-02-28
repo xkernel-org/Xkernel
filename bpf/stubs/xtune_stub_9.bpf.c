@@ -3,15 +3,15 @@
 
 #include "xtune_stub_9.bpf.h"
 
-// void blk_add_rq_to_plug(struct blk_plug * plug, struct request * rq)
-// Kprobe 1: blk_add_rq_to_plug+0xd1 (irreversible)
-// Candidates: 0xd1
-// Relationship: IV = -V + 4294967296
-X_TUNE_0(blk_add_rq_to_plug, "+0xd1") {
+// int migrate_pages(struct list_head * from, new_folio_t * get_new_folio, free_folio_t * put_new_folio, long unsigned int private, enum migrate_mode mode, int reason, unsigned int * ret_succeeded)
+// Kprobe 1: migrate_pages+0x877 (cmp_immediate)
+// Candidates: 0x877
+// Relationship: IV = V + -1
+X_TUNE_0(migrate_pages, "+0x877") {
     if (!x_transition_done(x_ctx)) return 0;
 
     // Write your tuning logic here
-    u64 val = 32; // original value
+    u64 val = 512; // original value
     x_set(x_ctx, val);
     return 0;
 }

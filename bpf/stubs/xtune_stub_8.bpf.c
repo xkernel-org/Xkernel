@@ -3,15 +3,15 @@
 
 #include "xtune_stub_8.bpf.h"
 
-// int migrate_pages(struct list_head * from, new_folio_t * get_new_folio, free_folio_t * put_new_folio, long unsigned int private, enum migrate_mode mode, int reason, unsigned int * ret_succeeded)
-// Kprobe 1: migrate_pages+0x877 (cmp_immediate)
-// Candidates: 0x877
-// Relationship: IV = V + -1
-X_TUNE_0(migrate_pages, "+0x877") {
+// long unsigned int do_shrink_slab(struct shrink_control * shrinkctl, struct shrinker * shrinker, int priority)
+// Kprobe 1: do_shrink_slab+0xb (simple)
+// Candidates: 0xb,0xe,0x10,0x12,0x15,0x17,0x19,0x1a,0x1d,0x21,0x25,0x28,0x2b
+// Relationship: IV = V
+X_TUNE_0(do_shrink_slab, "+0xb") {
     if (!x_transition_done(x_ctx)) return 0;
 
     // Write your tuning logic here
-    u64 val = 512; // original value
+    u64 val = 128; // original value
     x_set(x_ctx, val);
     return 0;
 }

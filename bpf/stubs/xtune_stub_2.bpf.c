@@ -3,11 +3,11 @@
 
 #include "xtune_stub_2.bpf.h"
 
-// bool blk_mq_dispatch_rq_list(struct blk_mq_hw_ctx * hctx, struct list_head * list, unsigned int nr_budgets)
-// Kprobe 1: blk_mq_dispatch_rq_list+0x406 (simple)
-// Candidates: 0x406,0x409
+// void cubictcp_acked(struct sock * sk, struct ack_sample * sample)
+// Kprobe 1: cubictcp_acked+0x21a (irreversible)
+// Candidates: 0x21a
 // Relationship: IV = V
-X_TUNE_0(blk_mq_dispatch_rq_list, "+0x406") {
+X_TUNE_0(cubictcp_acked, "+0x21a") {
     if (!x_transition_done(x_ctx)) return 0;
 
     // Write your tuning logic here
