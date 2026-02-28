@@ -1,3 +1,5 @@
+kernel_dir = "~/linux-6.14.0-xkernel"
+
 name = "SHRINK_BATCH"
 description = "mm/shrinker.c SHRINK_BATCH"
 

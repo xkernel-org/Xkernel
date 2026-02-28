@@ -257,13 +257,14 @@ def _cmd_build_single(toml_file, skip_gen, verbose, project_root):
         print(f"Error: Config file not found: {toml_file}")
         sys.exit(1)
 
-    configs = load_configs(toml_file)
+    kernel_dir, configs = load_configs(toml_file)
     if not configs:
         print(f"Error: No tunables found in {toml_file}")
         sys.exit(1)
 
     print("==========================================")
     print(f"Xkernel Build: {len(configs)} tunable(s) from {toml_file}")
+    print(f"  Kernel source: {kernel_dir}")
     print("==========================================")
 
     assigned_ids = []
@@ -278,7 +279,7 @@ def _cmd_build_single(toml_file, skip_gen, verbose, project_root):
         if not skip_gen:
             print(f"  [Step 1/3] Running gen.py for {config.name}...")
             from src.gen import generate_bb_files_single
-            result = generate_bb_files_single(config, const_id)
+            result = generate_bb_files_single(config, const_id, kernel_dir=kernel_dir)
             if result is None:
                 print(f"  Error: BB file generation failed for {config.name}, skipping")
                 continue
@@ -298,14 +299,25 @@ def _cmd_build_single(toml_file, skip_gen, verbose, project_root):
         print("Error: BPF compilation failed")
         sys.exit(1)
 
-    print("\n==========================================")
-    print(f"Build completed: {len(assigned_ids)} tunable(s)")
+    BOLD = '\033[1m'
+    GREEN = '\033[32m'
+    CYAN = '\033[36m'
+    DIM = '\033[2m'
+    RST = '\033[0m'
+
+    print(f"\n{BOLD}=========================================={RST}")
+    print(f"{BOLD}Build completed: {len(assigned_ids)} tunable(s){RST}")
     for name, cid in assigned_ids:
-        print(f"  {name} -> ConstID {cid}")
-    print("==========================================")
-    print(f"\nNext steps:")
+        print(f"  {GREEN}{name}{RST} -> ConstID {BOLD}{cid}{RST}")
+    print(f"{BOLD}=========================================={RST}")
+    print(f"\n{BOLD}Next steps:{RST}")
+    print(f"  {CYAN}1. Edit your X-tune policy:{RST}")
     for name, cid in assigned_ids:
-        print(f"  ./xkernel-tool load <MODE> {cid}    # Load {name}")
+        stub_path = os.path.join('bpf', 'stubs', f'xtune_stub_{cid}.bpf.c')
+        print(f"     {GREEN}{stub_path}{RST}  {DIM}# {name}{RST}")
+    print(f"  {CYAN}2. Load:{RST}")
+    for name, cid in assigned_ids:
+        print(f"     {GREEN}sudo ./xkernel-tool load <MODE> {cid}{RST}  {DIM}# {name}{RST}")
 
 
 def _cmd_build_all(skip_gen, verbose, project_root):
