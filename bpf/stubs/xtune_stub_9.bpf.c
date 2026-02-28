@@ -11,7 +11,8 @@ X_TUNE_0(blk_add_rq_to_plug, "+0xd1") {
     if (!x_transition_done(x_ctx)) return 0;
 
     // Get tunable value (V=32 originally)
-    u64 val = 32; // TODO: Read from BPF map
+    u64 val = 32;
     x_set(x_ctx, val);
+    // Write your tuning logic here
     return 0;
 }

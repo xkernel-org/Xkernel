@@ -11,7 +11,8 @@ X_TUNE_0(blk_mq_dispatch_rq_list, "+0x406") {
     if (!x_transition_done(x_ctx)) return 0;
 
     // Get tunable value (V=3 originally)
-    u64 val = 3; // TODO: Read from BPF map
+    u64 val = 3;
     x_set(x_ctx, val);
+    // Write your tuning logic here
     return 0;
 }

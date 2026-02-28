@@ -11,8 +11,9 @@ X_TUNE_0(io_cqring_wait, "+0x7c") {
     if (!x_transition_done(x_ctx)) return 0;
 
     // Get tunable value (V=20 originally)
-    u64 val = 20; // TODO: Read from BPF map
+    u64 val = 20;
     x_set(x_ctx, val);
+    // Write your tuning logic here
     return 0;
 }
 
@@ -24,8 +25,9 @@ X_TUNE_1(__do_sys_io_uring_enter, "+0x264") {
     if (!x_transition_done(x_ctx)) return 0;
 
     // Get tunable value (V=20 originally)
-    u64 val = 20; // TODO: Read from BPF map
+    u64 val = 20;
     x_set(x_ctx, val);
+    // Write your tuning logic here
     return 0;
 }
 
@@ -37,8 +39,9 @@ X_TUNE_2(__do_sys_io_uring_enter, "+0x6bb") {
     if (!x_transition_done(x_ctx)) return 0;
 
     // Get tunable value (V=20 originally)
-    u64 val = 20; // TODO: Read from BPF map
+    u64 val = 20;
     x_set(x_ctx, val);
+    // Write your tuning logic here
     return 0;
 }
 
@@ -50,7 +53,8 @@ X_TUNE_3(io_run_task_work_sig, "+0x53") {
     if (!x_transition_done(x_ctx)) return 0;
 
     // Get tunable value (V=20 originally)
-    u64 val = 20; // TODO: Read from BPF map
+    u64 val = 20;
     x_set(x_ctx, val);
+    // Write your tuning logic here
     return 0;
 }

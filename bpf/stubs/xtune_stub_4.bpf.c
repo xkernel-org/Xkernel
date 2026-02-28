@@ -11,7 +11,8 @@ X_TUNE_0(tcp_rack_detect_loss, "+0x6e") {
     if (!x_transition_done(x_ctx)) return 0;
 
     // Get tunable value (V=2 originally)
-    u64 val = 2; // TODO: Read from BPF map
+    u64 val = 2;
     x_set(x_ctx, val);
+    // Write your tuning logic here
     return 0;
 }

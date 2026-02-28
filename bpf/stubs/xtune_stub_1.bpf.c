@@ -3,15 +3,15 @@
 
 #include "xtune_stub_1.bpf.h"
 
-// void cubictcp_acked(struct sock * sk, struct ack_sample * sample)
-// Kprobe 1: cubictcp_acked+0x21a (irreversible)
-// Candidates: 0x21a
-// Relationship: IV = V
-X_TUNE_0(cubictcp_acked, "+0x21a") {
+// void blk_add_rq_to_plug(struct blk_plug * plug, struct request * rq)
+// Kprobe 1: blk_add_rq_to_plug+0xd1 (irreversible)
+// Candidates: 0xd1
+// Relationship: IV = -V + 4294967296
+X_TUNE_0(blk_add_rq_to_plug, "+0xd1") {
     if (!x_transition_done(x_ctx)) return 0;
 
-    // Get tunable value (V=3 originally)
-    u64 val = 3; // TODO: Read from BPF map
+    // Write your tuning logic here
+    u64 val = 32; // original value
     x_set(x_ctx, val);
     return 0;
 }

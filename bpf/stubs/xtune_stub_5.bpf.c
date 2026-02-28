@@ -11,8 +11,9 @@ X_TUNE_0(__blk_mq_sched_dispatch_requests, "+0x57c") {
     if (!x_transition_done(x_ctx)) return 0;
 
     // Get tunable value (V=3 originally)
-    u64 val = 3; // TODO: Read from BPF map
+    u64 val = 3;
     x_set(x_ctx, val);
+    // Write your tuning logic here
     return 0;
 }
 
@@ -24,7 +25,8 @@ X_TUNE_1(__blk_mq_sched_dispatch_requests, "+0x5c9") {
     if (!x_transition_done(x_ctx)) return 0;
 
     // Get tunable value (V=3 originally)
-    u64 val = 3; // TODO: Read from BPF map
+    u64 val = 3;
     x_set(x_ctx, val);
+    // Write your tuning logic here
     return 0;
 }
