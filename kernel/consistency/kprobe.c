@@ -1,166 +1,138 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * kprobe.c — Auxiliary kprobe management for global consistency
+ *
+ * Manages guard/unguard kprobe pairs at SS entry/exit points.
+ * During a transition the kprobes track a global refcount:
+ *   - guard  (SS entry): if refcount was already 0, record end time
+ *   - unguard (SS exit): decrement; if it hits 0, record end time
+ */
+
+#define pr_fmt(fmt) "xkernel: " fmt
+
 #include "kprobe.h"
 #include "core.h"
 
 #include <linux/kernel.h>
 #include <linux/kprobes.h>
-#include <linux/ktime.h>
-#include <linux/module.h>
 #include <linux/mutex.h>
 
-bool aux_kprobes_on = false;
-static DEFINE_MUTEX(aux_kprobes_mtx);
+/* ── State ───────────────────────────────────────────────────────── */
 
-extern ktime_t start;
-extern ktime_t end;
+static bool		enabled;
+static DEFINE_MUTEX(kprobe_mtx);
 
-int xk_enable_auxiliary_kprobes(void) {
-  WRITE_ONCE(aux_kprobes_on, true);
-  return 0;
-}
+/* ── Enable / disable ────────────────────────────────────────────── */
 
-int xk_disable_auxiliary_kprobes(void) {
-  WRITE_ONCE(aux_kprobes_on, false);
-  return 0;
-}
+void xk_enable_aux_kprobes(void)	{ WRITE_ONCE(enabled, true); }
+void xk_disable_aux_kprobes(void)	{ WRITE_ONCE(enabled, false); }
+bool xk_aux_kprobes_enabled(void)	{ return READ_ONCE(enabled); }
 
-int xk_is_auxiliary_kprobes_on(void) { return READ_ONCE(aux_kprobes_on); }
+/* ── Kprobe handlers ─────────────────────────────────────────────── */
 
-// Forward transition: guard at SS entry increments refcount.
-// When xk_inc_not_zero() returns 0, refcount was already 0 — transition done.
-static int handler_guard(struct kprobe *kp, struct pt_regs *regs) {
-  if (!xk_is_auxiliary_kprobes_on())
-    return 0;
-
-  if (xk_inc_not_zero() == 0) {
-    if (end == 0)
-      end = ktime_get();
-  }
-
-  return 0;
-}
-
-// Forward transition: unguard at SS exit decrements refcount.
-// When xk_dec_if_positive() returns 0, last thread left SS — transition done.
-static int handler_unguard(struct kprobe *kp, struct pt_regs *regs) {
-  if (!xk_is_auxiliary_kprobes_on())
-    return 0;
-
-  if (xk_dec_if_positive() == 0) {
-    if (end == 0)
-      end = ktime_get();
-  }
-
-  return 0;
-}
-
-// Reverse transition: same refcount logic, used during module unload.
-static int reverse_handler_guard(struct kprobe *kp, struct pt_regs *regs) {
-  if (!xk_is_auxiliary_kprobes_on())
-    return 0;
-
-  if (xk_inc_not_zero() == 0) {
-    if (end == 0)
-      end = ktime_get();
-  }
-
-  return 0;
-}
-
-static int reverse_handler_unguard(struct kprobe *kp, struct pt_regs *regs) {
-  if (!xk_is_auxiliary_kprobes_on())
-    return 0;
-
-  if (xk_dec_if_positive() == 0) {
-    if (end == 0)
-      end = ktime_get();
-  }
-
-  return 0;
-}
-
-/**
- * Initialize the guard/unguard kprobe pair for a target function.
- * @param func: The target function.
- * @param direction: true = forward transition, false = reverse transition.
+/*
+ * Guard handler (SS entry): if inc_not_zero returns 0 the refcount
+ * was already 0 → transition is complete, record the timestamp.
  */
-static void xk_init_aux_kp(struct xk_target_function *func, bool direction) {
-  memset(&func->guard_kp, 0, sizeof(func->guard_kp));
-  memset(&func->unguard_kp, 0, sizeof(func->unguard_kp));
+static int handler_guard(struct kprobe *kp, struct pt_regs *regs)
+{
+	if (!xk_aux_kprobes_enabled())
+		return 0;
 
-  func->guard_kp.symbol_name = func->name;
-  func->unguard_kp.symbol_name = func->name;
+	if (xk_refcount_inc_not_zero() == 0)
+		xk_record_end_time();
 
-  func->guard_kp.offset = func->soff;
-  func->unguard_kp.offset = func->eoff;
-
-  if (direction) {
-    func->guard_kp.pre_handler = handler_guard;
-    func->unguard_kp.pre_handler = handler_unguard;
-  } else {
-    func->guard_kp.pre_handler = reverse_handler_guard;
-    func->unguard_kp.pre_handler = reverse_handler_unguard;
-  }
-
-  func->attached_guard_kp = false;
-  func->attached_unguard_kp = false;
+	return 0;
 }
 
-int xk_attach_auxiliary_kprobes(bool direction, char *debug_info) {
-  struct xk_target_function *func;
-  int ret;
+/*
+ * Unguard handler (SS exit): decrement refcount.  When it hits 0
+ * the last thread has left SS → record the timestamp.
+ */
+static int handler_unguard(struct kprobe *kp, struct pt_regs *regs)
+{
+	if (!xk_aux_kprobes_enabled())
+		return 0;
 
-  pr_debug("xk_attach_auxiliary_kprobes called by %s\n", debug_info);
+	if (xk_refcount_dec_if_positive() == 0)
+		xk_record_end_time();
 
-  mutex_lock(&aux_kprobes_mtx);
-
-  xk_disable_auxiliary_kprobes();
-
-  xk_reset_refcount();
-
-  list_for_each_entry(func, &xk_target_functions, list) {
-    xk_init_aux_kp(func, direction);
-    ret = register_kprobe(&func->guard_kp);
-    if (ret < 0) {
-      pr_warn("Skipping Guard Kprobe for [%s+0x%lx], error: %d "
-              "(offset may not be at instruction boundary)\n",
-              func->name, func->soff, ret);
-      /* Continue without this guard — stop_machine stack check
-       * still covers this span via address range comparison. */
-    } else {
-      func->attached_guard_kp = true;
-    }
-    ret = register_kprobe(&func->unguard_kp);
-    if (ret < 0) {
-      pr_warn("Skipping Unguard Kprobe for [%s+0x%lx], error: %d "
-              "(offset may not be at instruction boundary)\n",
-              func->name, func->eoff, ret);
-    } else {
-      func->attached_unguard_kp = true;
-    }
-    if (func->attached_guard_kp || func->attached_unguard_kp)
-      pr_debug("Attached Guard/Unguard Kprobes to [%s]\n", func->name);
-  }
-  mutex_unlock(&aux_kprobes_mtx);
-  return 0;
+	return 0;
 }
 
-void xk_detach_auxiliary_kprobes(char *debug_info) {
-  struct xk_target_function *func;
+/* ── Attach / detach ─────────────────────────────────────────────── */
 
-  pr_debug("xk_detach_auxiliary_kprobes called by %s\n", debug_info);
+static void init_kprobe_pair(struct xk_target_func *func, bool forward)
+{
+	memset(&func->guard_kp, 0, sizeof(func->guard_kp));
+	memset(&func->unguard_kp, 0, sizeof(func->unguard_kp));
 
-  mutex_lock(&aux_kprobes_mtx);
+	func->guard_kp.symbol_name   = func->name;
+	func->unguard_kp.symbol_name = func->name;
+	func->guard_kp.offset        = func->soff;
+	func->unguard_kp.offset      = func->eoff;
 
-  list_for_each_entry(func, &xk_target_functions, list) {
-    if (func->attached_guard_kp) {
-      unregister_kprobe(&func->guard_kp);
-      func->attached_guard_kp = false;
-    }
-    if (func->attached_unguard_kp) {
-      unregister_kprobe(&func->unguard_kp);
-      func->attached_unguard_kp = false;
-    }
-    pr_debug("Detached Guard/Unguard Kprobes from [%s]\n", func->name);
-  }
-  mutex_unlock(&aux_kprobes_mtx);
+	/*
+	 * Forward and reverse transitions use the same refcount logic:
+	 * guard increments (if non-zero), unguard decrements.
+	 */
+	(void)forward;  /* reserved for future asymmetric handlers */
+	func->guard_kp.pre_handler   = handler_guard;
+	func->unguard_kp.pre_handler = handler_unguard;
+
+	func->guard_attached   = false;
+	func->unguard_attached = false;
+}
+
+int xk_attach_aux_kprobes(bool forward)
+{
+	struct xk_target_func *func;
+	int ret;
+
+	mutex_lock(&kprobe_mtx);
+	xk_disable_aux_kprobes();
+	xk_refcount_reset();
+
+	list_for_each_entry(func, &xk_target_funcs, list) {
+		init_kprobe_pair(func, forward);
+
+		ret = register_kprobe(&func->guard_kp);
+		if (ret < 0) {
+			pr_warn("skip guard [%s+0x%lx]: %d\n",
+				func->name, func->soff, ret);
+		} else {
+			func->guard_attached = true;
+		}
+
+		ret = register_kprobe(&func->unguard_kp);
+		if (ret < 0) {
+			pr_warn("skip unguard [%s+0x%lx]: %d\n",
+				func->name, func->eoff, ret);
+		} else {
+			func->unguard_attached = true;
+		}
+	}
+
+	mutex_unlock(&kprobe_mtx);
+	return 0;
+}
+
+void xk_detach_aux_kprobes(void)
+{
+	struct xk_target_func *func;
+
+	mutex_lock(&kprobe_mtx);
+
+	list_for_each_entry(func, &xk_target_funcs, list) {
+		if (func->guard_attached) {
+			unregister_kprobe(&func->guard_kp);
+			func->guard_attached = false;
+		}
+		if (func->unguard_attached) {
+			unregister_kprobe(&func->unguard_kp);
+			func->unguard_attached = false;
+		}
+	}
+
+	mutex_unlock(&kprobe_mtx);
 }

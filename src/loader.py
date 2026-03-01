@@ -70,6 +70,10 @@ def generate_cs_artifact_header(spans_path, output_path):
         func_name = parts[0]
         soff = int(parts[2], 16)
         eoff = int(parts[3], 16)
+        if soff == eoff:
+            print(f"Skipping {func_name} (soff == eoff, zero-width span)",
+                  file=sys.stderr)
+            continue
         span_entries.append((func_name, soff, eoff))
 
     # Generate BPF header with guard/unguard pairs

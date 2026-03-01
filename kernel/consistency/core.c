@@ -1,427 +1,424 @@
-#include "core.h"
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * core.c — Xkernel global consistency module (Mode 2)
+ *
+ * Implements the stop_machine-based global transition protocol:
+ *   1. module_init:  stop_machine + stack scan → identify threads in SS
+ *   2. daemon thread: poll refcount until all threads exit SS
+ *   3. module_exit:   reverse transition (same protocol)
+ *
+ * The refcount is incremented by stop_machine for each thread found inside
+ * SS, and decremented at runtime by auxiliary kprobes at SS exit points.
+ */
 
-#include <linux/cpumask.h>
+#define pr_fmt(fmt) "xkernel: " fmt
+
+#include "core.h"
+#include "kprobe.h"
+
 #include <linux/fs.h>
 #include <linux/init.h>
 #include <linux/kernel.h>
 #include <linux/kthread.h>
+#include <linux/ktime.h>
 #include <linux/module.h>
 #include <linux/sched.h>
 #include <linux/sched/signal.h>
 #include <linux/stacktrace.h>
 #include <linux/stop_machine.h>
-#include <linux/uaccess.h>
-#include <linux/version.h>
-
-#include "kprobe.h"
-
-#define DEBUG
 
 MODULE_LICENSE("GPL");
-MODULE_AUTHOR("Zhongjie");
-MODULE_DESCRIPTION("A kernel module for Xkernel's consistency model");
+MODULE_AUTHOR("Zhongjie Chen");
+MODULE_DESCRIPTION("Xkernel global consistency transition (Mode 2)");
 
-#define TARGET_FUNCTIONS_FILE "/dev/shm/xkernel/cs"
-#define SAFE_SPANS_FILE "/dev/shm/xkernel/ss"
+/* ── File paths (populated by userspace loader) ──────────────────── */
 
-LIST_HEAD(xk_target_functions);
+#define CS_FILE		"/dev/shm/xkernel/cs"
+#define SS_FILE		"/dev/shm/xkernel/ss"
 
-#define MAX_STACK_ENTRIES 100
-static unsigned long xk_stack_entries[MAX_STACK_ENTRIES];
+/* ── Module parameters ───────────────────────────────────────────── */
 
-#define INTERVAL_MS 1
+static int timeout_sec = 5;
+module_param(timeout_sec, int, 0644);
+MODULE_PARM_DESC(timeout_sec, "Timeout in seconds for transition (default: 5)");
 
-static int kTimeout = 5;
-module_param(kTimeout, int, 0644);
-MODULE_PARM_DESC(kTimeout,
-                 "Timeout seconds for the transition. Default: 5s");
+/* ── Globals ─────────────────────────────────────────────────────── */
 
-static struct task_struct *daemon_task = NULL;
+LIST_HEAD(xk_target_funcs);
 
-ktime_t start = 0;
-ktime_t end = 0;
+static struct task_struct	*daemon_task;
+static atomic_t			refcount = ATOMIC_INIT(0);
+static enum xk_state		state    = XK_STATE_PENDING;
+static ktime_t			t_start, t_end;
 
-// Global refcount
-atomic_t xk_global_refcount = ATOMIC_INIT(0);
-static enum xkernel_state xk_state = XK_FLAGS_PENDING;
+#define POLL_INTERVAL_MS	1
 
-static inline void set_xk_state(enum xkernel_state state) {
-  WRITE_ONCE(xk_state, state);
+/* ── State accessors ─────────────────────────────────────────────── */
+
+static inline void set_state(enum xk_state s)  { WRITE_ONCE(state, s); }
+static inline enum xk_state get_state(void)    { return READ_ONCE(state); }
+
+/* ── Refcount operations ─────────────────────────────────────────── */
+
+void xk_refcount_reset(void)		{ atomic_set(&refcount, 0); }
+int  xk_refcount_read(void)		{ return atomic_read(&refcount); }
+void xk_refcount_inc(void)		{ atomic_inc(&refcount); }
+int  xk_refcount_inc_not_zero(void)	{ return atomic_inc_not_zero(&refcount); }
+void xk_refcount_dec(void)		{ atomic_dec(&refcount); }
+int  xk_refcount_dec_if_positive(void)	{ return atomic_dec_if_positive(&refcount); }
+
+/* ── Transition timing ───────────────────────────────────────────── */
+
+void xk_record_end_time(void)
+{
+	cmpxchg64((s64 *)&t_end, 0, ktime_get());
 }
 
-static inline enum xkernel_state get_xk_state(void) {
-  return READ_ONCE(xk_state);
-}
+/* ── Stack inspection (runs inside stop_machine) ─────────────────── */
+
+static unsigned long stack_buf[XK_MAX_STACK_ENTRIES];
 
 #ifdef DEBUG
-static void xk_print_stack(struct task_struct *task, unsigned long *entries,
-                           int nb_entries) {
-  unsigned long address;
-  pr_info("Stack trace for task [%s]:\n", task->comm);
-  for (int i = 0; i < nb_entries; i++) {
-    address = entries[i];
-    printk("  [%d] %pS\n", i, (void *)address);
-  }
+static void print_stack(struct task_struct *task, unsigned long *entries, int n)
+{
+	int i;
+
+	pr_info("stack trace for [%s/%d]:\n", task->comm, task->pid);
+	for (i = 0; i < n; i++)
+		pr_info("  [%d] %pS\n", i, (void *)entries[i]);
 }
+#else
+static inline void print_stack(struct task_struct *t, unsigned long *e, int n) {}
 #endif
 
-static bool xk_check_functions(struct task_struct *task, unsigned long *entries,
-                               int nb_entries) {
-  struct xk_target_function *func;
-  bool found = false;
-  list_for_each_entry(func, &xk_target_functions, list) {
-    for (int i = 0; i < nb_entries; i++) {
-      if (xk_compare_function(entries[i], func->address, func->soff,
-                              func->eoff)) {
-        pr_info(
-            "Function %s[0x%lx, 0x%lx] found in stack trace for task [%s/%d]\n",
-            func->name, func->soff, func->eoff, task->comm, task->pid);
-        /**
-         * Increment the global refcount to indicate that the function
-         * is being executed. This is used to fix the refcount of the task.
-         */
-         xk_inc_refcount();
+/**
+ * check_task_in_spans() - Check whether any stack frame is inside a span.
+ *
+ * If a match is found, increment the global refcount so the daemon knows
+ * to wait for that thread to exit SS.
+ */
+static bool check_task_in_spans(struct task_struct *task,
+				unsigned long *entries, int n)
+{
+	struct xk_target_func *func;
+	bool found = false;
+	int i;
 
-        found = true;
-      }
-    }
-  }
+	list_for_each_entry(func, &xk_target_funcs, list) {
+		for (i = 0; i < n; i++) {
+			if (!xk_addr_in_span(entries[i], func->addr,
+					     func->soff, func->eoff))
+				continue;
 
-#ifdef DEBUG
-  if (found) {
-    xk_print_stack(task, entries, nb_entries);
-  }
-#endif
+			pr_info("%s [0x%lx,0x%lx] found in [%s/%d] stack\n",
+				func->name, func->soff, func->eoff,
+				task->comm, task->pid);
+			xk_refcount_inc();
+			found = true;
+		}
+	}
 
-  return found;
+	if (found)
+		print_stack(task, entries, n);
+
+	return found;
 }
 
-static int xk_dump_stack(struct task_struct *task) {
-  int nb_entries;
+static int save_stack(struct task_struct *task)
+{
+	int n;
 
-  nb_entries =
-      stack_trace_save_tsk(task, xk_stack_entries, MAX_STACK_ENTRIES, 0);
-
-  if (nb_entries == 0) {
-    if (strncmp(task->comm, "migration/", 10) != 0) {
-      pr_err("Failed to save stack trace for task %s\n", task->comm);
-      return -1;
-    }
-  }
-
-  return nb_entries;
-}
-
-// Note: This function is called in a stop_machine context, so it is not allowed
-// to sleep.
-static int xk_check_stacks(void *data) {
-  struct task_struct *g, *task;
-  unsigned long *entries = xk_stack_entries;
-  int nb_entries;
-  bool need_transition = false;
-
-  // Traverse all processes and threads to check their stacks.
-  for_each_process_thread(g, task) {
-    nb_entries = xk_dump_stack(task);
-    if (nb_entries < 0)
-      return 0;
-    if (nb_entries == 0)
-      continue;
-    need_transition |= xk_check_functions(task, entries, nb_entries);
-  }
-
-  if (need_transition) {
-    pr_info("Initial refcount: %d\n", xk_refcount());
-    xk_enable_auxiliary_kprobes();
-    start = ktime_get();
-  }
-  // If !need_transition, no threads are in any SS — transition is instant.
-  // The userspace will set xk_active=1 via BSS update after module completes.
-
-  return 0;
-}
-
-static int xk_read_spans_from_file(const char *filepath) {
-  struct file *filp;
-  loff_t pos = 0;
-  char buf[256];
-  ssize_t bytes;
-  int ret = 0;
-
-  filp = filp_open(filepath, O_RDONLY, 0);
-  if (IS_ERR(filp))
-    return -ENOENT;
-
-  // The use of set_fs/get_fs/KERNEL_DS is deprecated and not available in
-  // recent kernels. kernel_read() as of 4.14+ does not require set_fs hack; use
-  // kernel_read directly.
-
-  while ((bytes = kernel_read(filp, buf, sizeof(buf) - 1, &pos)) > 0) {
-    char *line, *cur;
-    buf[bytes] = '\0';
-    cur = buf;
-
-    while ((line = strsep(&cur, "\n")) != NULL) {
-      char *p, *tok;
-      char *tokens[4];
-      int i = 0;
-
-      if (line[0] == '\0')
-        continue;
-
-      p = line;
-      while ((tok = strsep(&p, ",")) && i < 4) {
-        tokens[i++] = tok;
-      }
-      if (i != 4) {
-        pr_err("Malformed line in %s: %s\n", TARGET_FUNCTIONS_FILE, line);
-        continue;
-      }
-
-      struct xk_target_function *func = kmalloc(sizeof(*func), GFP_KERNEL);
-      if (!func) {
-        pr_err("kmalloc failed for xk_target_function\n");
-        ret = -ENOMEM;
-        goto out;
-      }
-
-      strncpy(func->name, tokens[0], MAX_FUNC_NAME_LEN - 1);
-      func->name[MAX_FUNC_NAME_LEN - 1] = '\0';
-      if (kstrtoul(tokens[1], 0, &func->address)) {
-        pr_err("Failed to parse address for function %s\n", tokens[0]);
-        kfree(func);
-        continue;
-      }
-      if (kstrtoul(tokens[2], 0, &func->soff)) {
-        pr_err("Failed to parse soff for function %s\n", tokens[0]);
-        kfree(func);
-        continue;
-      }
-      if (kstrtoul(tokens[3], 0, &func->eoff)) {
-        pr_err("Failed to parse eoff for function %s\n", tokens[0]);
-        kfree(func);
-        continue;
-      }
-
-      INIT_LIST_HEAD(&func->list);
-      list_add_tail(&func->list, &xk_target_functions);
-
-      pr_info("[Target Functions] [%s] at 0x%lx with span [0x%lx, 0x%lx]\n",
-              func->name, func->address, func->soff, func->eoff);
-    }
-  }
-  if (bytes < 0) {
-    pr_err("Error reading file %s: %zd\n", filepath, bytes);
-    ret = -EIO;
-  }
-
-out:
-  filp_close(filp, NULL);
-
-  if (ret)
-    return ret;
-
-  return 0;
+	n = stack_trace_save_tsk(task, stack_buf, XK_MAX_STACK_ENTRIES, 0);
+	if (n == 0 && strncmp(task->comm, "migration/", 10) != 0) {
+		pr_err("failed to save stack for [%s/%d]\n",
+		       task->comm, task->pid);
+		return -1;
+	}
+	return n;
 }
 
 /**
- * xk_read_target_functions() - Read span ranges for stack checking.
+ * stop_machine_check_stacks() - Scan all threads for SS occupancy.
  *
- * Tries Safe Span (SS) file first; falls back to Critical Span (CS) file
- * if SS is not available. SS is the correct range for transition checking
- * per the paper; CS is used as a conservative approximation when SS data
- * has not been generated.
+ * Called via stop_machine().  If any thread is inside SS, the refcount
+ * is set and auxiliary kprobes are enabled so they can decrement it.
  */
-static int xk_read_target_functions(void) {
-  int ret;
+static int stop_machine_check_stacks(void *data)
+{
+	struct task_struct *g, *task;
+	bool need_wait = false;
+	int n;
 
-  ret = xk_read_spans_from_file(SAFE_SPANS_FILE);
-  if (ret == 0) {
-    pr_info("Loaded safe spans from %s\n", SAFE_SPANS_FILE);
-    return 0;
-  }
+	for_each_process_thread(g, task) {
+		n = save_stack(task);
+		if (n < 0)
+			return 0;
+		if (n == 0)
+			continue;
+		need_wait |= check_task_in_spans(task, stack_buf, n);
+	}
 
-  /* SS file not found or empty — fall back to CS */
-  pr_info("SS file not available, falling back to CS file\n");
-  ret = xk_read_spans_from_file(TARGET_FUNCTIONS_FILE);
-  if (ret) {
-    pr_err("Failed to read target functions from %s\n", TARGET_FUNCTIONS_FILE);
-    return ret;
-  }
+	if (need_wait) {
+		pr_info("initial refcount: %d\n", xk_refcount_read());
+		xk_enable_aux_kprobes();
+		t_start = ktime_get();
+	}
+	/* If !need_wait: no threads in SS → transition is instant.
+	 * Userspace sets xk_active=1 via BSS update after module completes. */
 
-  return 0;
+	return 0;
 }
 
-// Global refcount
-int xk_refcount(void) { return atomic_read(&xk_global_refcount); }
-void xk_inc_refcount(void) { atomic_inc(&xk_global_refcount); }
-int xk_inc_not_zero(void) { return atomic_inc_not_zero(&xk_global_refcount); }
-void xk_dec_refcount(void) { atomic_dec(&xk_global_refcount); }
-int xk_dec_if_positive(void) {
-  return atomic_dec_if_positive(&xk_global_refcount);
-}
-void xk_reset_refcount(void) { atomic_set(&xk_global_refcount, 0); }
+/* ── File I/O — read span ranges ─────────────────────────────────── */
 
-static int daemon_main(void *data) {
-  int times = 0;
-  int times_reverse = 0;
-  int ret = 0;
+static int read_spans_from_file(const char *path)
+{
+	struct file *filp;
+	loff_t pos = 0;
+	char buf[256];
+	ssize_t bytes;
+	int ret = 0;
 
-  while (!kthread_should_stop()) {
+	filp = filp_open(path, O_RDONLY, 0);
+	if (IS_ERR(filp))
+		return -ENOENT;
 
-    if (get_xk_state() == XK_FLAGS_FAILED ||
-        get_xk_state() == XK_FLAGS_REVERSE_FAILED ||
-        get_xk_state() == XK_FLAGS_DONE ||
-        get_xk_state() == XK_FLAGS_REVERSE_DONE) {
-      set_current_state(TASK_INTERRUPTIBLE);
-      schedule();
-      // Let consistency_exit() to stop the daemon task.
-      continue;
-    }
+	while ((bytes = kernel_read(filp, buf, sizeof(buf) - 1, &pos)) > 0) {
+		char *line, *cur;
 
-    if (get_xk_state() == XK_FLAGS_PENDING) {
-      if (xk_refcount() == 0) {
-        pr_info("[Transition] Transition done, time: %lld us\n",
-                ktime_to_us(ktime_sub(end, start)));
-        start = end = 0;
-        // It's time to detach the auxiliary kprobes
-        BUG_ON(!xk_is_auxiliary_kprobes_on());
-        xk_detach_auxiliary_kprobes("daemon_main");
-        set_xk_state(XK_FLAGS_DONE);
+		buf[bytes] = '\0';
+		cur = buf;
 
-        set_current_state(TASK_INTERRUPTIBLE);
-        schedule();
-      } else {
-        set_current_state(TASK_INTERRUPTIBLE);
-        schedule_timeout(msecs_to_jiffies(INTERVAL_MS));
-        if (times++ > kTimeout * 1000 / INTERVAL_MS) {
-          pr_err("[Transition] Transition failed\n");
-          BUG_ON(!xk_is_auxiliary_kprobes_on());
-          xk_detach_auxiliary_kprobes("daemon_main");
-          set_xk_state(XK_FLAGS_FAILED);
-          ret = -ETIMEDOUT;
-        }
-      }
-    } else if (get_xk_state() == XK_FLAGS_REVERSE_PENDING) {
-      if (xk_refcount() == 0) {
-        // It's time to detach the auxiliary kprobes
-        pr_info("[Reverse Transition] Reverse transition done, time: %lld us\n",
-                ktime_to_us(ktime_sub(end, start)));
-        start = end = 0;
-        BUG_ON(!xk_is_auxiliary_kprobes_on());
-        xk_detach_auxiliary_kprobes("daemon_main");
-        set_xk_state(XK_FLAGS_REVERSE_DONE);
+		while ((line = strsep(&cur, "\n")) != NULL) {
+			struct xk_target_func *func;
+			char *p, *tok, *tokens[4];
+			int i = 0;
 
-        set_current_state(TASK_INTERRUPTIBLE);
-        schedule();
-      } else {
-        set_current_state(TASK_INTERRUPTIBLE);
-        schedule_timeout(msecs_to_jiffies(INTERVAL_MS));
-        if (times_reverse++ > kTimeout * 1000 / INTERVAL_MS) {
-          pr_err("[Reverse Transition] Reverse transition failed\n");
-          BUG_ON(!xk_is_auxiliary_kprobes_on());
-          xk_detach_auxiliary_kprobes("daemon_main");
-          set_xk_state(XK_FLAGS_REVERSE_FAILED);
-          ret = -ETIMEDOUT;
-        }
-      }
-    }
-  }
-  return ret;
+			if (*line == '\0')
+				continue;
+
+			p = line;
+			while ((tok = strsep(&p, ",")) && i < 4)
+				tokens[i++] = tok;
+			if (i != 4) {
+				pr_err("malformed line in %s: %s\n", path, line);
+				continue;
+			}
+
+			func = kmalloc(sizeof(*func), GFP_KERNEL);
+			if (!func) {
+				ret = -ENOMEM;
+				goto out;
+			}
+
+			strscpy(func->name, tokens[0], XK_MAX_FUNC_NAME_LEN);
+			if (kstrtoul(tokens[1], 0, &func->addr) ||
+			    kstrtoul(tokens[2], 0, &func->soff) ||
+			    kstrtoul(tokens[3], 0, &func->eoff)) {
+				pr_err("failed to parse: %s\n", line);
+				kfree(func);
+				continue;
+			}
+
+			if (func->soff == func->eoff) {
+				pr_info("skip zero-width span: %s\n",
+					func->name);
+				kfree(func);
+				continue;
+			}
+
+			INIT_LIST_HEAD(&func->list);
+			list_add_tail(&func->list, &xk_target_funcs);
+
+			pr_info("span: %s @ 0x%lx [0x%lx, 0x%lx]\n",
+				func->name, func->addr, func->soff, func->eoff);
+		}
+	}
+
+	if (bytes < 0) {
+		pr_err("read error on %s: %zd\n", path, bytes);
+		ret = -EIO;
+	}
+out:
+	filp_close(filp, NULL);
+	return ret;
 }
 
-static int __init consistency_init(void) {
-  pr_info("Xkernel global consistency module loaded\n");
+/**
+ * load_target_spans() - Load SS (or CS as fallback) span ranges.
+ *
+ * Tries Safe Span file first.  If not available, falls back to
+ * Critical Span file as a conservative approximation.
+ */
+static int load_target_spans(void)
+{
+	int ret;
 
-  pr_info("Timeout: %d seconds\n", kTimeout);
+	ret = read_spans_from_file(SS_FILE);
+	if (ret == 0) {
+		pr_info("loaded safe spans from %s\n", SS_FILE);
+		return 0;
+	}
 
-  INIT_LIST_HEAD(&xk_target_functions);
+	pr_info("SS not available, falling back to CS\n");
+	ret = read_spans_from_file(CS_FILE);
+	if (ret)
+		pr_err("failed to read spans from %s\n", CS_FILE);
 
-#ifdef DEBUG
-  measure_stop_machine_overhead();
-#endif
-
-  daemon_task = kthread_create(daemon_main, NULL, "xkernel-daemon");
-
-  if (IS_ERR(daemon_task)) {
-    pr_err("Failed to create daemon task\n");
-    return PTR_ERR(daemon_task);
-  }
-
-  if (xk_read_target_functions()) {
-    pr_err("Failed to read target functions\n");
-    return -1;
-  }
-
-  // Since register_kprobe() is not allowed to be called in a stop_machine
-  // context, we need to attach the auxiliary kprobes here but don't enable
-  // them.
-  if (xk_attach_auxiliary_kprobes(true, "consistency_init")) {
-    pr_err("Failed to attach auxiliary kprobes\n");
-    return -1;
-  }
-
-  set_xk_state(XK_FLAGS_PENDING);
-
-  stop_machine(xk_check_stacks, NULL, NULL);
-
-  if (xk_is_auxiliary_kprobes_on()) {
-    pr_info("[Transition] Waiting for transition to be done or failed\n");
-    wake_up_process(daemon_task);
-  } else {
-    pr_info("[Transition] Transition done, time: 0 us\n");
-    xk_detach_auxiliary_kprobes("consistency_init");
-    set_xk_state(XK_FLAGS_DONE);
-  }
-
-  return 0;
+	return ret;
 }
 
-static void __exit consistency_exit(void) {
-  pr_info("Xkernel global consistency module unloaded\n");
+static void free_target_spans(void)
+{
+	struct xk_target_func *func, *tmp;
 
-  while (get_xk_state() == XK_FLAGS_PENDING) {
-    // Wait for the transition being done or failed
-    cpu_relax();
-  }
+	list_for_each_entry_safe(func, tmp, &xk_target_funcs, list) {
+		list_del(&func->list);
+		kfree(func);
+	}
+}
 
-  if (get_xk_state() == XK_FLAGS_FAILED) {
-    goto out;
-  }
+/* ── Daemon thread ───────────────────────────────────────────────── */
 
-  // Since register_kprobe() is not allowed to be called in a stop_machine
-  // context, we need to attach the auxiliary kprobes here but don't enable
-  // them.
-  if (xk_attach_auxiliary_kprobes(false, "consistency_exit")) {
-    pr_err("Failed to attach auxiliary kprobes\n");
-    goto out;
-  }
+static int transition_daemon(void *data)
+{
+	int poll_count = 0;
+	int max_polls  = timeout_sec * 1000 / POLL_INTERVAL_MS;
 
-  stop_machine(xk_check_stacks, NULL, NULL);
+	while (!kthread_should_stop()) {
+		enum xk_state s = get_state();
 
-  if (xk_is_auxiliary_kprobes_on()) {
-    set_xk_state(XK_FLAGS_REVERSE_PENDING);
-    pr_info("[Reverse Transition] Waiting for reverse transition to be done or "
-            "failed\n");
-    wake_up_process(daemon_task);
-  } else {
-    BUG_ON(get_xk_state() != XK_FLAGS_DONE);
-    pr_info("[Reverse Transition] Reverse transition done, time: 0 us\n");
-    xk_detach_auxiliary_kprobes("consistency_exit");
-    set_xk_state(XK_FLAGS_REVERSE_DONE);
-  }
+		/* Terminal states — sleep until kthread_stop() */
+		if (s == XK_STATE_DONE || s == XK_STATE_FAILED ||
+		    s == XK_STATE_REVERSE_DONE || s == XK_STATE_REVERSE_FAILED) {
+			set_current_state(TASK_INTERRUPTIBLE);
+			schedule();
+			continue;
+		}
 
-  while (get_xk_state() == XK_FLAGS_REVERSE_PENDING) {
-    // Wait for the reverse transition being done or failed
-    cpu_relax();
-  }
+		/* Waiting for refcount → 0 */
+		if (xk_refcount_read() == 0) {
+			s64 elapsed = ktime_to_us(ktime_sub(t_end, t_start));
+			bool is_reverse = (s == XK_STATE_REVERSE_PENDING);
+
+			pr_info("%stransition done, time: %lld us\n",
+				is_reverse ? "reverse " : "", elapsed);
+			t_start = t_end = 0;
+
+			BUG_ON(!xk_aux_kprobes_enabled());
+			xk_detach_aux_kprobes();
+			set_state(is_reverse ? XK_STATE_REVERSE_DONE
+					     : XK_STATE_DONE);
+
+			poll_count = 0;
+			set_current_state(TASK_INTERRUPTIBLE);
+			schedule();
+		} else {
+			set_current_state(TASK_INTERRUPTIBLE);
+			schedule_timeout(msecs_to_jiffies(POLL_INTERVAL_MS));
+
+			if (++poll_count > max_polls) {
+				bool is_reverse = (s == XK_STATE_REVERSE_PENDING);
+
+				pr_err("%stransition timed out\n",
+				       is_reverse ? "reverse " : "");
+				BUG_ON(!xk_aux_kprobes_enabled());
+				xk_detach_aux_kprobes();
+				set_state(is_reverse ? XK_STATE_REVERSE_FAILED
+						     : XK_STATE_FAILED);
+				poll_count = 0;
+			}
+		}
+	}
+
+	return 0;
+}
+
+/* ── Module init / exit ──────────────────────────────────────────── */
+
+static int __init consistency_init(void)
+{
+	int ret;
+
+	pr_info("module loaded (timeout=%ds)\n", timeout_sec);
+
+	INIT_LIST_HEAD(&xk_target_funcs);
+
+	daemon_task = kthread_create(transition_daemon, NULL, "xk-transition");
+	if (IS_ERR(daemon_task)) {
+		pr_err("failed to create daemon thread\n");
+		return PTR_ERR(daemon_task);
+	}
+
+	ret = load_target_spans();
+	if (ret) {
+		pr_err("failed to load target spans\n");
+		return ret;
+	}
+
+	/*
+	 * register_kprobe() cannot be called inside stop_machine, so
+	 * attach kprobes now (disabled) and enable inside the callback.
+	 */
+	ret = xk_attach_aux_kprobes(/*forward=*/true);
+	if (ret) {
+		pr_err("failed to attach auxiliary kprobes\n");
+		return ret;
+	}
+
+	set_state(XK_STATE_PENDING);
+	stop_machine(stop_machine_check_stacks, NULL, NULL);
+
+	if (xk_aux_kprobes_enabled()) {
+		pr_info("waiting for forward transition...\n");
+		wake_up_process(daemon_task);
+	} else {
+		pr_info("transition instant (no threads in SS)\n");
+		xk_detach_aux_kprobes();
+		set_state(XK_STATE_DONE);
+	}
+
+	return 0;
+}
+
+static void __exit consistency_exit(void)
+{
+	/* Wait for forward transition to finish */
+	while (get_state() == XK_STATE_PENDING)
+		cpu_relax();
+
+	if (get_state() != XK_STATE_FAILED) {
+		int ret = xk_attach_aux_kprobes(/*forward=*/false);
+
+		if (ret) {
+			pr_err("failed to attach reverse kprobes\n");
+			goto out;
+		}
+
+		stop_machine(stop_machine_check_stacks, NULL, NULL);
+
+		if (xk_aux_kprobes_enabled()) {
+			set_state(XK_STATE_REVERSE_PENDING);
+			pr_info("waiting for reverse transition...\n");
+			wake_up_process(daemon_task);
+		} else {
+			pr_info("reverse transition instant\n");
+			xk_detach_aux_kprobes();
+			set_state(XK_STATE_REVERSE_DONE);
+		}
+
+		while (get_state() == XK_STATE_REVERSE_PENDING)
+			cpu_relax();
+	}
 
 out:
+	if (daemon_task) {
+		kthread_stop(daemon_task);
+		daemon_task = NULL;
+	}
+	free_target_spans();
 
-  if (daemon_task) {
-    kthread_stop(daemon_task);
-    daemon_task = NULL;
-  }
+	pr_info("module unloaded\n");
 }
 
 module_init(consistency_init);
