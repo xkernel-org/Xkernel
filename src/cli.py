@@ -178,6 +178,7 @@ def generate_ss_file(const_ids_str):
         pass
 
     entries = []
+    has_ss_raw = False  # True if ss_raw has any rows for the requested ConstIDs
 
     # Priority 1: Read from ss_raw (populated during build from safe_spans or CS fallback)
     if os.path.exists(SS_RAW):
@@ -189,14 +190,18 @@ def generate_ss_file(const_ids_str):
                     continue
                 cid, func_name, soff, eoff = parts[0], parts[1], parts[2], parts[3]
                 if cid in const_ids:
+                    has_ss_raw = True
+                    if soff == eoff:
+                        print(f"SS: skipping {func_name} (soff == eoff, zero-width span)")
+                        continue
                     func_addr = resolve_func_addr(func_name)
                     if func_addr:
                         entries.append(f"{func_name},{func_addr},{soff},{eoff}")
                     else:
                         print(f"Warning: Could not resolve address for function {func_name} (SS)")
 
-    # Priority 2: Fall back to CS file if no SS entries at all
-    if not entries and os.path.exists(CS_FILE):
+    # Priority 2: Fall back to CS file only if ss_raw had NO data for these ConstIDs
+    if not has_ss_raw and not entries and os.path.exists(CS_FILE):
         with open(CS_FILE, 'r') as f:
             entries = [l.strip() for l in f if l.strip()]
         if entries:
@@ -674,7 +679,7 @@ def cmd_load(args):
         )
         baseline_lines = len(dmesg_before.stdout.splitlines()) if dmesg_before.returncode == 0 else 0
 
-        cmd = ['sudo', 'insmod', consistency_path, f'kTimeout={timeout_val}']
+        cmd = ['sudo', 'insmod', consistency_path, f'timeout_sec={timeout_val}']
         result = subprocess.run(cmd, capture_output=True, text=True)
         if result.returncode != 0:
             print(f"Error: Failed to load consistency module: {result.stderr}")
@@ -714,13 +719,13 @@ def cmd_load(args):
                     continue
                 new_lines = dmesg_poll.stdout.splitlines()[baseline_lines:]
                 for line in reversed(new_lines):
-                    if '[Transition] Transition done' in line:
+                    if 'transition done' in line or 'transition instant' in line:
                         transition_done = True
                         break
-                    if '[Transition] Transition failed' in line:
+                    if 'transition timed out' in line:
                         print("Warning: Global transition failed (timeout)")
                         break
-                if transition_done or any('[Transition] Transition failed' in l for l in new_lines):
+                if transition_done or any('transition timed out' in l for l in new_lines):
                     break
             if not transition_done:
                 print(f"Warning: Transition status unclear after {max_wait}s")
@@ -842,8 +847,100 @@ def cmd_status(args):
         print(f"  ConstID {cid}: mode={mode_str}, file={bpf_file}, status={status}")
 
 
+def _unload_active_constids(const_ids):
+    """Unload any active ConstIDs before deleting their table entries.
+
+    Args:
+        const_ids: set of ConstID strings to check and unload.
+
+    Returns:
+        Number of ConstIDs unloaded.
+    """
+    from src.loader import unload_constid, get_runtime_state
+
+    state = get_runtime_state()
+    active = state.get("active_const_ids", {})
+    unloaded = 0
+
+    for cid in sorted(const_ids):
+        if str(cid) in active:
+            print(f"ConstID {cid} is active — unloading before delete...")
+            unload_constid(str(cid))
+            update_status(str(cid), "ready")
+            unloaded += 1
+
+    return unloaded
+
+
+def _collect_constids_to_delete(args):
+    """Determine which ConstIDs a 'table delete' command would affect.
+
+    Replicates the filter logic in table.py delete_entries() without
+    actually modifying any files.
+
+    Returns:
+        set of ConstID strings, or None if not a delete command.
+    """
+    if not args or args[0] != 'delete':
+        return None
+
+    delete_all = '--all' in args
+    const_id = val = status = None
+    i = 1
+    while i < len(args):
+        if args[i] == '--const-id' and i + 1 < len(args):
+            const_id = args[i + 1]; i += 2
+        elif args[i] == '--val' and i + 1 < len(args):
+            val = args[i + 1]; i += 2
+        elif args[i] == '--status' and i + 1 < len(args):
+            status = args[i + 1]; i += 2
+        elif args[i] == '--all':
+            i += 1
+        else:
+            i += 1
+
+    if not os.path.exists(SCOPE_TABLE):
+        return set()
+
+    # Read scope table to find matching ConstIDs
+    import csv
+    affected = set()
+    with open(SCOPE_TABLE, 'r') as f:
+        reader = csv.reader(f, delimiter='\t')
+        header = next(reader, None)
+        if not header:
+            return set()
+        for row in reader:
+            if len(row) < 7:
+                continue
+            entry_cid = row[0].strip()
+            entry_val = row[1].strip()
+            entry_status = row[6].strip()
+
+            if delete_all:
+                affected.add(entry_cid)
+                continue
+
+            match = True
+            if const_id and entry_cid != const_id:
+                match = False
+            if val and entry_val != val:
+                match = False
+            if status and entry_status != status:
+                match = False
+            if match and (const_id or val or status):
+                affected.add(entry_cid)
+
+    return affected
+
+
 def cmd_table(args):
     """Manage scope tables."""
+    # Before delete: unload any active ConstIDs that would be affected
+    affected = _collect_constids_to_delete(args)
+    if affected:
+        _unload_active_constids(affected)
+
     project_root = get_project_root()
     table_script = os.path.join(project_root, 'src', 'table.py')
     ret = subprocess.run([sys.executable, table_script] + args)

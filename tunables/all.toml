@@ -60,6 +60,11 @@ original = "tcp_min_rtt(tp) >> 2"
 modified = ["tcp_min_rtt(tp) >> 1", "tcp_min_rtt(tp) >> 3"]
 values = [2, 1, 3]
 
+  [[tunables.safe_spans]]
+  function = "tcp_identify_packet_loss"
+  start_offset = "0x50"
+  end_offset = "0x50"
+
 [[tunables]]
 name = "BLK_MQ_BUDGET_DELAY"
 description = "block/blk-mq-sched.c budget delay"
@@ -68,6 +73,16 @@ original = "#define BLK_MQ_BUDGET_DELAY\t3"
 modified = ["#define BLK_MQ_BUDGET_DELAY\t5", "#define BLK_MQ_BUDGET_DELAY\t7"]
 values = [3, 5, 7]
 lines = "156,248"
+
+  [[tunables.safe_spans]]
+  function = "__blk_mq_sched_dispatch_requests"
+  start_offset = "0x577"
+  end_offset = "0x57f"
+
+  [[tunables.safe_spans]]
+  function = "__blk_mq_sched_dispatch_requests"
+  start_offset = "0x5c4"
+  end_offset = "0x5cc"
 
 [[tunables]]
 name = "BLK_MQ_CPU_WORK_BATCH"
