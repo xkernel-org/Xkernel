@@ -4655,9 +4655,9 @@ def _populate_ss_raw_single(const_id: int, config):
         for func_name, soff, eoff in config.safe_spans:
             add_ss_raw_entry(cid, func_name, soff, eoff)
         ss_ranges_by_id[cid] = list(config.safe_spans)
-        print(f"  ConstID {cid}: wrote {len(config.safe_spans)} manual SS entries")
+        print(f"  ConstID {cid}: wrote {len(config.safe_spans)} SS entries")
     else:
-        # Fallback: copy CS entries as SS
+        # Final fallback: copy CS entries as SS
         cs_entries = []
         if os.path.exists(CS_RAW_PATH):
             with open(CS_RAW_PATH, 'r', newline='') as f:

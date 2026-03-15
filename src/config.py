@@ -6,14 +6,21 @@ TunableConfig dataclass instances compatible with the codegen pipeline.
 Supports two formats:
   1. Single-tunable file (top-level name/description/[source]/[[safe_spans]])
   2. Multi-tunable file ([[tunables]] array of tables)
+
+Safe-span resolution order (per tunable):
+  1. Manually specified safe_spans in the TOML
+  2. CSV lookup by tunable name
+
 """
 
+import csv
 import os
 import tomllib
-from dataclasses import dataclass
-from typing import List, Optional, Tuple
+from dataclasses import dataclass, replace
+from typing import Dict, List, Optional, Tuple
 
 DEFAULT_KERNEL_DIR = "~/linux-6.14.0-xkernel"
+DEFAULT_SAFE_SPANS_CSV = "ss/dataset.csv"
 
 
 @dataclass(frozen=True)
@@ -27,6 +34,43 @@ class TunableConfig:
     values: tuple       # (V1, V2, V3)
     lines: str = None   # optional --lines filter
     safe_spans: list = None  # [(func_name, "0xNN", "0xMM"), ...]
+
+
+def load_safe_spans_csv(csv_path: str) -> Dict[str, List[Tuple[str, str, str]]]:
+    """Load safe-span definitions from a CSV file.
+
+    CSV format (header required):
+        name,function,start_offset,end_offset
+        SHRINK_BATCH,__pfx_perf_trace_mm_shrink_slab_end,0x10,0x15145
+        IO_LOCAL_TW_DEFAULT_MAX,io_run_task_work_sig,0x4b,0x6b
+
+    FIXME Multiple rows with the same name are grouped into a list of spans.
+
+    Returns:
+        Dict mapping tunable name -> [(function, start_offset, end_offset), ...]
+    """
+    spans_by_name: Dict[str, List[Tuple[str, str, str]]] = {}
+
+    if not os.path.exists(csv_path):
+        return spans_by_name
+
+    with open(csv_path, 'r', newline='') as f:
+        reader = csv.DictReader(f)
+        expected = {'name', 'function', 'start_offset', 'end_offset'}
+        if not reader.fieldnames or not expected.issubset(set(reader.fieldnames)):
+            print(f"Warning: CSV {csv_path} missing required columns {expected}, "
+                  f"found {reader.fieldnames}")
+            exit(1)
+
+        for row in reader:
+            name = row['name'].strip()
+            func = row['function'].strip()
+            soff = row['start_offset'].strip()
+            eoff = row['end_offset'].strip()
+            if name and func and soff and eoff:
+                spans_by_name.setdefault(name, []).append((func, soff, eoff))
+
+    return spans_by_name
 
 
 def _parse_tunable(data: dict, context: str) -> TunableConfig:
@@ -108,6 +152,9 @@ def load_configs(path: str) -> Tuple[str, List[TunableConfig]]:
       1. Single: top-level name/description/[source] -> returns [TunableConfig]
       2. Multi:  [[tunables]] array -> returns list of TunableConfig
 
+    For tunables without inline [[safe_spans]], attempts CSV lookup by name
+    from ss/dataset.csv.
+
     Args:
         path: Path to the TOML config file.
 
@@ -124,7 +171,40 @@ def load_configs(path: str) -> Tuple[str, List[TunableConfig]]:
         configs = []
         for i, entry in enumerate(data['tunables']):
             configs.append(_parse_tunable(entry, f"{path} tunables[{i}]"))
-        return kernel_dir, configs
+    else:
+        # Single-tunable format: top-level fields
+        configs = [_parse_tunable(data, path)]
 
-    # Single-tunable format: top-level fields
-    return kernel_dir, [_parse_tunable(data, path)]
+    # Resolve safe_spans from CSV for tunables that don't have inline spans
+    configs = _backfill_safe_spans_from_csv(configs, path)
+
+    return kernel_dir, configs
+
+
+def _backfill_safe_spans_from_csv(
+    configs: List[TunableConfig],
+    toml_path: str,
+) -> List[TunableConfig]:
+    """Fill in missing safe_spans from a CSV file.
+
+    Only tunables with safe_spans=None are updated. Tunables that already
+    have inline [[safe_spans]] are left untouched.
+    """
+    needs_lookup = any(c.safe_spans is None for c in configs)
+    if not needs_lookup:
+        return configs
+
+    csv_path = DEFAULT_SAFE_SPANS_CSV
+    csv_spans = load_safe_spans_csv(csv_path)
+    if not csv_spans:
+        return configs
+
+    resolved = []
+    for config in configs:
+        if config.safe_spans is None and config.name in csv_spans:
+            spans = csv_spans[config.name]
+            config = replace(config, safe_spans=spans)
+            print(f"  {config.name}: resolved {len(spans)} safe_span(s) from {csv_path}")
+        resolved.append(config)
+
+    return resolved
