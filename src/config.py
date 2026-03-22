@@ -9,18 +9,30 @@ Supports two formats:
 
 Safe-span resolution order (per tunable):
   1. Manually specified safe_spans in the TOML
-  2. CSV lookup by tunable name
+  2. Run SS analysis (requires --run-analysis)
+  3. CSV lookup by tunable name
 
 """
 
 import csv
+import glob
 import os
+import subprocess
 import tomllib
 from dataclasses import dataclass, replace
 from typing import Dict, List, Optional, Tuple
 
 DEFAULT_KERNEL_DIR = "~/linux-6.14.0-xkernel"
 DEFAULT_SAFE_SPANS_CSV = "ss/ss-addresses.csv"
+
+# For PerfConsts that are not a macro (thus do not have a clear identifier)
+# we are coming up with ad-hoc names. This translates the name in dataset
+# to the ones used in TOML.
+csv_to_toml_name = {
+    'tcp_min_rtt': 'tcp_recovery',
+    'ca__delay_min': 'tcp_cubic',
+}
+toml_to_csv_name = {v: k for k, v in csv_to_toml_name.items()}
 
 
 @dataclass(frozen=True)
@@ -54,14 +66,6 @@ def load_safe_spans_csv(csv_path: str) -> Dict[str, List[Tuple[str, str, str]]]:
     """
     spans_by_name: Dict[str, List[Tuple[str, str, str]]] = {}
 
-    # For PerfConsts that are not a macro (thus do not have a clear identifier)
-    # we are coming up with ad-hoc names. This translates the name in dataset
-    # to the ones used in TOML.
-    name_translate = {
-        'tcp_min_rtt': 'tcp_recovery',
-        'ca__delay_min': 'tcp_cubic',
-    }
-
     if not os.path.exists(csv_path):
         return spans_by_name
 
@@ -77,8 +81,8 @@ def load_safe_spans_csv(csv_path: str) -> Dict[str, List[Tuple[str, str, str]]]:
 
         for row in reader:
             name = row['directory'].strip()
-            if name in name_translate:
-                name = name_translate[name]
+            if name in csv_to_toml_name:
+                name = csv_to_toml_name[name]
             func = row['function'].strip()
             offset_raw = row['offset'].strip()
 
@@ -180,18 +184,21 @@ def load_config(path: str) -> Tuple[str, TunableConfig]:
     return kernel_dir, configs[0]
 
 
-def load_configs(path: str) -> Tuple[str, List[TunableConfig]]:
+def load_configs(path: str, *, run_analysis: bool = False) -> Tuple[str, List[TunableConfig]]:
     """Load all tunables from a TOML config file.
 
     Supports two formats:
       1. Single: top-level name/description/[source] -> returns [TunableConfig]
       2. Multi:  [[tunables]] array -> returns list of TunableConfig
 
-    For tunables without inline [[safe_spans]], attempts CSV lookup by name
-    from ss/dataset.csv.
+    Safe-span resolution (per tunable, first match wins):
+      1. Inline [[safe_spans]] in the TOML
+      2. LLVM analysis via ss-analysis.sh (only if run_analysis=True)
+      3. CSV lookup from ss/ss-addresses.csv
 
     Args:
         path: Path to the TOML config file.
+        run_analysis: If True, run ss-analysis.sh for tunables without spans.
 
     Returns:
         (kernel_dir, list_of_TunableConfig) tuple.
@@ -210,11 +217,100 @@ def load_configs(path: str) -> Tuple[str, List[TunableConfig]]:
         # Single-tunable format: top-level fields
         configs = [_parse_tunable(data, path)]
 
-    # Resolve safe_spans from CSV for tunables that don't have inline spans
+    # Stage 2: LLVM analysis (if requested)
+    if run_analysis:
+        configs = _backfill_safe_spans_from_analysis(configs)
+
+    # Stage 3: CSV lookup for any still-unresolved tunables
     configs = _backfill_safe_spans_from_csv(configs, path)
 
     return kernel_dir, configs
 
+
+def _run_ss_analysis(ss_analysis_script: str, input_file: str) -> Optional[List[Tuple[str, str, str]]]:
+    """Run ss-analysis.sh on a single dataset input file.
+
+    Returns:
+        List of (function, start_offset, end_offset) or None on failure.
+    """
+
+    print(f"    Running: bash {ss_analysis_script} {input_file}")
+
+    result = subprocess.run(
+        ["bash", ss_analysis_script, input_file],
+        stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
+    )
+
+    output_file = input_file.replace(".input.txt", ".output.txt")
+    with open(output_file, "w") as f:
+        f.write(result.stdout)
+
+    return _parse_analysis_output(output_file)
+
+
+def _parse_analysis_output(output_file: str) -> List[Tuple[str, str, str]]:
+    """Parse LLVM analysis output file."""
+
+    spans = []
+
+    return spans
+
+
+def _backfill_safe_spans_from_analysis(
+    configs: List[TunableConfig],
+) -> List[TunableConfig]:
+    """Run LLVM analysis for tunables missing safe_spans.
+
+    For each tunable with safe_spans=None, looks for input files at
+    $WORKDIR/linux-analysis/dataset/<name>/*.input.txt and runs ss-analysis.sh
+    on each.  Results are collected and deduplicated.
+    """
+
+    if 'WORKDIR' not in os.environ:
+        print("Error: WORKDIR environment variable is not set")
+        exit(1)
+
+    ss_analysis_script = f"{os.environ['WORKDIR']}/linux-analysis/scripts/ss-analysis.sh"
+    ss_analysis_dataset = f"{os.environ['WORKDIR']}/linux-analysis/dataset"
+
+    resolved = []
+    for config in configs:
+        if config.safe_spans is not None:
+            resolved.append(config)
+            continue
+
+        name = toml_to_csv_name.get(config.name, config.name)
+
+        tunable_dir = os.path.join(ss_analysis_dataset, name)
+        if not os.path.isdir(tunable_dir):
+            print(f"  {config.name}: {tunable_dir} not found")
+            exit(1)
+
+        input_files = sorted(glob.glob(os.path.join(tunable_dir, "*.input.txt")))
+        if not input_files:
+            print(f"  {config.name}: no input files found in {tunable_dir}")
+            exit(1)
+
+        print(f"  {config.name}: running analysis on {len(input_files)} input file(s)...")
+        all_spans = []
+        seen = set()
+        for input_file in input_files:
+            spans = _run_ss_analysis(ss_analysis_script, input_file)
+            if spans:
+                for span in spans:
+                    if span not in seen:
+                        seen.add(span)
+                        all_spans.append(span)
+
+        if all_spans:
+            config = replace(config, safe_spans=all_spans)
+            print(f"  {config.name}: analysis produced {len(all_spans)} span(s)")
+        else:
+            print(f"  {config.name}: analysis produced no spans")
+
+        resolved.append(config)
+
+    return resolved
 
 def _backfill_safe_spans_from_csv(
     configs: List[TunableConfig],

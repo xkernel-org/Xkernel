@@ -227,9 +227,10 @@ def cmd_build(args):
     project_root = get_project_root()
     skip_gen = '--skip-gen' in args
     verbose = '--verbose' in args or '-v' in args
+    run_analysis = '--run-analysis' in args
 
     # Separate flags from positional args
-    flags = {'--skip-gen', '--verbose', '-v', '--all'}
+    flags = {'--skip-gen', '--verbose', '-v', '--all', '--run-analysis'}
     positional = [a for a in args if a not in flags]
     use_all = '--all' in args
 
@@ -241,19 +242,19 @@ def cmd_build(args):
             toml_file = candidate
 
     if toml_file:
-        _cmd_build_single(toml_file, skip_gen, verbose, project_root)
+        _cmd_build_single(toml_file, skip_gen, verbose, run_analysis, project_root)
     elif use_all:
-        _cmd_build_all(skip_gen, verbose, project_root)
+        _cmd_build_all(skip_gen, verbose, run_analysis, project_root)
     else:
-        print("Usage: xkernel-tool build <config.toml> [--skip-gen] [--verbose/-v]")
-        print("       xkernel-tool build --all [--skip-gen] [--verbose/-v]")
+        print("Usage: xkernel-tool build <config.toml> [--skip-gen] [--run-analysis] [--verbose/-v]")
+        print("       xkernel-tool build --all [--skip-gen] [--run-analysis] [--verbose/-v]")
         print()
         print("  <config.toml>  Build a single tunable from a TOML config file")
         print("  --all          Rebuild all tunables from tunables/all.toml (clean rebuild)")
         sys.exit(1)
 
 
-def _cmd_build_single(toml_file, skip_gen, verbose, project_root):
+def _cmd_build_single(toml_file, skip_gen, verbose, run_analysis, project_root):
     """Build tunables from a TOML config file (single or multi-tunable)."""
     from src.config import load_configs
     from src.codegen import next_const_id, run_codegen_single
@@ -262,7 +263,7 @@ def _cmd_build_single(toml_file, skip_gen, verbose, project_root):
         print(f"Error: Config file not found: {toml_file}")
         sys.exit(1)
 
-    kernel_dir, configs = load_configs(toml_file)
+    kernel_dir, configs = load_configs(toml_file, run_analysis=run_analysis)
     if not configs:
         print(f"Error: No tunables found in {toml_file}")
         sys.exit(1)
@@ -325,7 +326,7 @@ def _cmd_build_single(toml_file, skip_gen, verbose, project_root):
         print(f"     {GREEN}sudo ./xkernel-tool load <MODE> {cid}{RST}  {DIM}# {name}{RST}")
 
 
-def _cmd_build_all(skip_gen, verbose, project_root):
+def _cmd_build_all(skip_gen, verbose, run_analysis, project_root):
     """Batch build: rebuild all tunables from tunables/all.toml."""
     from src.codegen import clear_all_tables
     clear_all_tables()
@@ -336,7 +337,7 @@ def _cmd_build_all(skip_gen, verbose, project_root):
         print(f"Error: {all_toml} not found")
         sys.exit(1)
 
-    _cmd_build_single(all_toml, skip_gen, verbose, project_root)
+    _cmd_build_single(all_toml, skip_gen, verbose, run_analysis, project_root)
 
 
 def resolve_constid_to_bpf(const_id, project_root):
@@ -965,10 +966,11 @@ def show_help():
     print("  trace     Trace the kernel logs")
     print()
     print("Options for 'build':")
-    print("  <config.toml> Build tunables from a TOML config file")
-    print("  --all         Clean rebuild: clear tables + build all from tunables/all.toml")
-    print("  --skip-gen    Skip running gen.py (only run codegen.py and make)")
-    print("  --verbose/-v  Show detailed intermediate output (symbolic execution, diffs)")
+    print("  <config.toml>  Build tunables from a TOML config file")
+    print("  --all          Clean rebuild: clear tables + build all from tunables/all.toml")
+    print("  --skip-gen     Skip running gen.py (only run codegen.py and make)")
+    print("  --run-analysis Run SS analysis for missing safe_spans")
+    print("  --verbose/-v   Show detailed intermediate output (symbolic execution, diffs)")
     print()
     print("Options for 'load':")
     print("  <MODE>        0=Immediate, 1=Per-task, 2=Global")

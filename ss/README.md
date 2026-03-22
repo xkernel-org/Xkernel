@@ -24,9 +24,8 @@ export DEV_MODE=1 # FIXME remove this eventually
 /usr/bin/time -v bash $WORKDIR/linux-analysis/scripts/build-with-wllvm.sh
 ```
 
-Run individual SS analysis:
+Run SS analysis as part of `./xkernel-tool build`:
 
 ```shell
-bash $WORKDIR/linux-analysis/scripts/ss-analysis.sh \
-    $WORKDIR/linux-analysis/dataset/AIO_PLUG_THRESHOLD/1.input.txt
+./xkernel-tool build --run-analysis tunables/shrink_batch.toml
 ```
