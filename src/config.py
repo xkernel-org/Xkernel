@@ -20,7 +20,7 @@ from dataclasses import dataclass, replace
 from typing import Dict, List, Optional, Tuple
 
 DEFAULT_KERNEL_DIR = "~/linux-6.14.0-xkernel"
-DEFAULT_SAFE_SPANS_CSV = "ss/dataset.csv"
+DEFAULT_SAFE_SPANS_CSV = "ss/ss-addresses.csv"
 
 
 @dataclass(frozen=True)
@@ -37,38 +37,73 @@ class TunableConfig:
 
 
 def load_safe_spans_csv(csv_path: str) -> Dict[str, List[Tuple[str, str, str]]]:
-    """Load safe-span definitions from a CSV file.
+    """Load safe-span definitions from ss-addresses.csv.
 
-    CSV format (header required):
-        name,function,start_offset,end_offset
-        SHRINK_BATCH,__pfx_perf_trace_mm_shrink_slab_end,0x10,0x15145
-        IO_LOCAL_TW_DEFAULT_MAX,io_run_task_work_sig,0x4b,0x6b
+    Expected format (header required):
+        ID,directory,file,function,offset,source start,source end
+        40,SHRINK_BATCH,...,__pfx_perf_trace_mm_shrink_slab_end,0x15145 - 0x10,...
 
-    FIXME Multiple rows with the same name are grouped into a list of spans.
+    The 'directory' column is used as the tunable name for lookup.
+    The 'offset' column contains "0xSTART - 0xEND".
+
+    Rows with identical (directory, function, start_offset, end_offset) are
+    deduplicated.
 
     Returns:
         Dict mapping tunable name -> [(function, start_offset, end_offset), ...]
     """
     spans_by_name: Dict[str, List[Tuple[str, str, str]]] = {}
 
+    # For PerfConsts that are not a macro (thus do not have a clear identifier)
+    # we are coming up with ad-hoc names. This translates the name in dataset
+    # to the ones used in TOML.
+    name_translate = {
+        'tcp_min_rtt': 'tcp_recovery',
+        'ca__delay_min': 'tcp_cubic',
+    }
+
     if not os.path.exists(csv_path):
         return spans_by_name
 
+    seen: set = set()
+
     with open(csv_path, 'r', newline='') as f:
         reader = csv.DictReader(f)
-        expected = {'name', 'function', 'start_offset', 'end_offset'}
-        if not reader.fieldnames or not expected.issubset(set(reader.fieldnames)):
-            print(f"Warning: CSV {csv_path} missing required columns {expected}, "
+        required = {'directory', 'function', 'offset'}
+        if not reader.fieldnames or not required.issubset(set(reader.fieldnames)):
+            print(f"Error: CSV {csv_path} missing required columns {required}, "
                   f"found {reader.fieldnames}")
             exit(1)
 
         for row in reader:
-            name = row['name'].strip()
+            name = row['directory'].strip()
+            if name in name_translate:
+                name = name_translate[name]
             func = row['function'].strip()
-            soff = row['start_offset'].strip()
-            eoff = row['end_offset'].strip()
-            if name and func and soff and eoff:
-                spans_by_name.setdefault(name, []).append((func, soff, eoff))
+            offset_raw = row['offset'].strip()
+
+            if not name or not func or not offset_raw:
+                print("Error: malformed CSV entry: {row}")
+                exit(1)
+
+            parts = offset_raw.split(' - ')
+            if len(parts) != 2:
+                print("Error: malformed CSV entry: {row}")
+                exit(1)
+            soff = parts[0].strip()
+            eoff = parts[1].strip()
+
+            if int(soff, 16) >= int(eoff, 16):
+                swap = soff
+                soff = eoff
+                eoff = swap
+
+            key = (name, func, soff, eoff)
+            if key in seen:
+                continue
+            seen.add(key)
+
+            spans_by_name.setdefault(name, []).append((func, soff, eoff))
 
     return spans_by_name
 
@@ -205,6 +240,7 @@ def _backfill_safe_spans_from_csv(
             spans = csv_spans[config.name]
             config = replace(config, safe_spans=spans)
             print(f"  {config.name}: resolved {len(spans)} safe_span(s) from {csv_path}")
+            print(f"  {config.name}: {spans}")
         resolved.append(config)
 
     return resolved
