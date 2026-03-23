@@ -227,31 +227,75 @@ def load_configs(path: str, *, run_analysis: bool = False) -> Tuple[str, List[Tu
     return kernel_dir, configs
 
 
-def _run_ss_analysis(ss_analysis_script: str, input_file: str) -> Optional[List[Tuple[str, str, str]]]:
+def _run_ss_analysis(ss_analysis_script: str, ir_to_assembly_script: str, input_file: str) -> Optional[List[Tuple[str, str, str]]]:
     """Run ss-analysis.sh on a single dataset input file.
 
     Returns:
         List of (function, start_offset, end_offset) or None on failure.
     """
 
-    print(f"    Running: bash {ss_analysis_script} {input_file}")
+    output_file = input_file.replace(".input.txt", ".output.txt")
+
+    if not os.path.exists(output_file):
+
+        print(f"    Running: bash {ss_analysis_script} {input_file}")
+
+        result = subprocess.run(
+            ["bash", ss_analysis_script, input_file],
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
+        )
+
+        output_file = input_file.replace(".input.txt", ".output.txt")
+        with open(output_file, "w") as f:
+            f.write(result.stdout)
+
+    else:
+
+        print(f"    File exists: {output_file}")
+        print(f"    Skip running: bash {ss_analysis_script} {input_file}")
+
+    return _parse_analysis_output(ir_to_assembly_script, output_file)
+
+
+def _parse_analysis_output(
+    ir_to_assembly_script: str, output_file: str,
+) -> List[Tuple[str, str, str]]:
+    """Run ir_to_assembly.py on an analysis output file.
+
+    Runs the script as a subprocess:
+        python3 ir_to_assembly.py <output_file>
+
+    and parses stdout for lines prefixed with "SPAN, ":
+        SPAN, source_start, source_end, abs_start, abs_end, func, start_off, end_off
+
+    Returns:
+        List of (function_name, start_offset, end_offset) tuples.
+    """
+    if not os.path.isfile(ir_to_assembly_script):
+        print(f"  Error: {ir_to_assembly_script} not found")
+        exit(1)
+
+    print(f"    Running: python3 {ir_to_assembly_script} {output_file}")
 
     result = subprocess.run(
-        ["bash", ss_analysis_script, input_file],
-        stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
+        ["python3", ir_to_assembly_script, output_file],
+        capture_output=True, text=True,
     )
 
-    output_file = input_file.replace(".input.txt", ".output.txt")
-    with open(output_file, "w") as f:
-        f.write(result.stdout)
-
-    return _parse_analysis_output(output_file)
-
-
-def _parse_analysis_output(output_file: str) -> List[Tuple[str, str, str]]:
-    """Parse LLVM analysis output file."""
-
     spans = []
+    for line in result.stdout.splitlines():
+        line = line.strip()
+        if not line.startswith("SPAN, "):
+            continue
+        # SPAN, source_start, source_end, abs_start, abs_end, func, start_off, end_off
+        parts = [p.strip() for p in line.split(", ")]
+        if len(parts) == 8:
+            func, soff, eoff = parts[5], parts[6], parts[7]
+            if int(soff, 16) >= int(eoff, 16):
+                swap = soff
+                soff = eoff
+                eoff = swap
+            spans.append((func, soff, eoff))
 
     return spans
 
@@ -272,6 +316,7 @@ def _backfill_safe_spans_from_analysis(
 
     ss_analysis_script = f"{os.environ['WORKDIR']}/linux-analysis/scripts/ss-analysis.sh"
     ss_analysis_dataset = f"{os.environ['WORKDIR']}/linux-analysis/dataset"
+    ir_to_assembly_script = f"{os.environ['WORKDIR']}/linux-analysis/scripts/ir_to_assembly.py"
 
     resolved = []
     for config in configs:
@@ -295,7 +340,7 @@ def _backfill_safe_spans_from_analysis(
         all_spans = []
         seen = set()
         for input_file in input_files:
-            spans = _run_ss_analysis(ss_analysis_script, input_file)
+            spans = _run_ss_analysis(ss_analysis_script, ir_to_assembly_script, input_file)
             if spans:
                 for span in spans:
                     if span not in seen:
@@ -305,6 +350,7 @@ def _backfill_safe_spans_from_analysis(
         if all_spans:
             config = replace(config, safe_spans=all_spans)
             print(f"  {config.name}: analysis produced {len(all_spans)} span(s)")
+            print(f"  {config.name}: {all_spans}")
         else:
             print(f"  {config.name}: analysis produced no spans")
 
