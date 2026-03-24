@@ -17,4 +17,4 @@ replay_no_stall=1
 name=regioned-rand4k
 read_iolog=write_128.txt
 # If your iolog uses /dev/target, map it to the real device here:
-replay_redirect=/dev/sdb     # <--- set to your raw device; remove if iolog already has /dev/sdX
+replay_redirect=/dev/sdb     # <--- set to your raw HDD device

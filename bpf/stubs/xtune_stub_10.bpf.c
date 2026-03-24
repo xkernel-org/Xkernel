@@ -11,7 +11,7 @@ X_TUNE_0(blk_add_rq_to_plug, "+0xd1") {
     if (!x_transition_done(x_ctx)) return 0;
 
     // Write your tuning logic here
-    u64 val = 32; // original value
+    u64 val = 128; // patched value (original: 32)
     x_set(x_ctx, val);
     return 0;
 }

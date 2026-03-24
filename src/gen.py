@@ -61,7 +61,7 @@ def extract_step11b(output):
     return '\n'.join(result).strip()
 
 
-def build_diff_command(file, original, modified, lines=None, kernel_dir=None):
+def build_diff_command(file, original, modified, lines=None, kernel_dir=None, vmlinux=False):
     """Build a diff.py command as an argv list (no shell=True needed).
 
     Args:
@@ -70,6 +70,7 @@ def build_diff_command(file, original, modified, lines=None, kernel_dir=None):
         modified: replacement expression
         lines: optional --lines filter string
         kernel_dir: path to kernel source tree (passed as -p to diff.py)
+        vmlinux: if True, pass --vmlinux flag (needed for header files)
 
     Returns:
         list of command arguments for subprocess.run()
@@ -81,6 +82,8 @@ def build_diff_command(file, original, modified, lines=None, kernel_dir=None):
         cmd.extend(['-p', kernel_dir])
     if lines:
         cmd.extend(['--lines', lines])
+    if vmlinux:
+        cmd.append('--vmlinux')
     return cmd
 
 
@@ -222,8 +225,8 @@ def generate_bb_files_single(config, const_id: int, kernel_dir=None):
     v2_file = os.path.join(bb_dir, f'{prefix}_bb_v2.txt')
     v3_file = os.path.join(bb_dir, f'{prefix}_bb_v3.txt')
 
-    cmd1 = build_diff_command(config.file, config.original, config.modified[0], config.lines, kernel_dir=kernel_dir)
-    cmd2 = build_diff_command(config.file, config.original, config.modified[1], config.lines, kernel_dir=kernel_dir)
+    cmd1 = build_diff_command(config.file, config.original, config.modified[0], config.lines, kernel_dir=kernel_dir, vmlinux=config.vmlinux)
+    cmd2 = build_diff_command(config.file, config.original, config.modified[1], config.lines, kernel_dir=kernel_dir, vmlinux=config.vmlinux)
 
     print(f"Processing ConstID {prefix} ({config.name})...")
     print(f"  Command 1: {' '.join(cmd1)}")

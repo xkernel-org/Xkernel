@@ -2,7 +2,7 @@
 
 BPF_CLANG=clang
 BPF_CFLAGS=-g -O2 -target bpf -D__TARGET_ARCH_x86 -I.
-LIBBPF_DIR=/usr/include/bpf
+LIBBPF_DIR=/usr/include
 BTF_FILE=/sys/kernel/btf/vmlinux
 
 BPF_SRCS := $(wildcard stubs/*.bpf.c)

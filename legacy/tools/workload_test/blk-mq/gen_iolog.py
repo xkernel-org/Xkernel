@@ -24,11 +24,10 @@ def main():
 
     # region size = ios_per_region * bs
     region_sz = args.ios_per_region * args.bs
-    ts = 0
     with open(args.outfile, "w") as f:
-        f.write("fio version 3 iolog\n")
-        f.write(f"{ts} {args.dev_name} add\n"); ts += 1
-        f.write(f"{ts} {args.dev_name} open\n"); ts += 1
+        f.write("fio version 2 iolog\n")
+        f.write(f"{args.dev_name} add\n")
+        f.write(f"{args.dev_name} open\n")
 
         for _rep in range(args.repeat):
             base0 = args.start_offset
@@ -42,16 +41,14 @@ def main():
                     # For mix mode, determine read/write operations for each IO
                     for off in offs:
                         op = "read" if random.random() < args.read_ratio else "write"
-                        f.write(f"{ts} {args.dev_name} {op} {off} {args.bs}\n")
-                        ts += 1
+                        f.write(f"{args.dev_name} {op} {off} {args.bs}\n")
                 else:
                     # For read/write mode, use the specified operation
                     for off in offs:
-                        f.write(f"{ts} {args.dev_name} {args.task_type} {off} {args.bs}\n")
-                        ts += 1
+                        f.write(f"{args.dev_name} {args.task_type} {off} {args.bs}\n")
             # next repeat continues immediately after previous (no gaps)
 
-        f.write(f"{ts} {args.dev_name} close\n")
+        f.write(f"{args.dev_name} close\n")
 
 if __name__ == "__main__":
     sys.exit(main())

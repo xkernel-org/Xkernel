@@ -16,10 +16,31 @@
 #include "xkernel.bpf.h"
 #include "cs_artifact.bpf.h"
 
-// SIE helper 0: simple -> %esi
+// Per-CPU input-save map for kprobe 0 (irreversible synthesis)
+struct {
+    __uint(type, BPF_MAP_TYPE_PERCPU_ARRAY);
+    __uint(max_entries, 1);
+    __type(key, __u32);
+    __type(value, __u64);
+} xk_save_0 SEC(".maps");
+
+// SIE helper 0: irreversible (and) -> %eax
 static __always_inline void __sie_2_0(struct pt_regs *regs, u64 val) {
-    u64 new_val = val;
-    sie_write_kernel(&regs->si, sizeof(regs->si), &new_val);
+    __u32 key = 0;
+    __u64 *saved = bpf_map_lookup_elem(&xk_save_0, &key);
+    if (!saved) return;
+    u64 result = (u64)(((*saved) & (u32)(((-val) + 4294967296))) + (u32)((val * 2)));
+    sie_write_kernel(&regs->ax, sizeof(regs->ax), &result);
+}
+
+// Save handler 0: blk_add_rq_to_plug+0xc5 (fires BEFORE and)
+SEC("kprobe/blk_add_rq_to_plug+0xc5")
+int BPF_KPROBE(__xk_save_2_0_blk_add_rq_to_plug) {
+    if (!transition_done(ctx)) return 0;
+    __u32 key = 0;
+    __u64 val = BPF_RAX(ctx);
+    bpf_map_update_elem(&xk_save_0, &key, &val, BPF_ANY);
+    return 0;
 }
 
 #define X_TUNE_0(func_name, location_str) \

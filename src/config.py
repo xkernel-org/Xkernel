@@ -9,7 +9,10 @@ Supports two formats:
 """
 
 import os
-import tomllib
+try:
+    import tomllib
+except ModuleNotFoundError:
+    import tomli as tomllib
 from dataclasses import dataclass
 from typing import List, Optional, Tuple
 
@@ -27,6 +30,7 @@ class TunableConfig:
     values: tuple       # (V1, V2, V3)
     lines: str = None   # optional --lines filter
     safe_spans: list = None  # [(func_name, "0xNN", "0xMM"), ...]
+    vmlinux: bool = False   # use --vmlinux mode (needed for header files)
 
 
 def _parse_tunable(data: dict, context: str) -> TunableConfig:
@@ -74,6 +78,9 @@ def _parse_tunable(data: dict, context: str) -> TunableConfig:
                 )
             safe_spans.append((func, soff, eoff))
 
+    # Auto-detect vmlinux mode for header files, or read from config
+    vmlinux = data.get('vmlinux', source['file'].endswith('.h'))
+
     return TunableConfig(
         name=data['name'],
         description=data['description'],
@@ -83,6 +90,7 @@ def _parse_tunable(data: dict, context: str) -> TunableConfig:
         values=values,
         lines=lines,
         safe_spans=safe_spans,
+        vmlinux=vmlinux,
     )
 
 

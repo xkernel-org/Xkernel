@@ -3,15 +3,15 @@
 
 #include "xtune_stub_2.bpf.h"
 
-// bool blk_mq_dispatch_rq_list(struct blk_mq_hw_ctx * hctx, struct list_head * list, unsigned int nr_budgets)
-// Kprobe 1: blk_mq_dispatch_rq_list+0x406 (simple)
-// Candidates: 0x406,0x409
-// Relationship: IV = V
-X_TUNE_0(blk_mq_dispatch_rq_list, "+0x406") {
+// void blk_add_rq_to_plug(struct blk_plug * plug, struct request * rq)
+// Kprobe 1: blk_add_rq_to_plug+0xcb (irreversible)
+// Candidates: 0xcb
+// Relationship: IV = -V + 4294967296
+X_TUNE_0(blk_add_rq_to_plug, "+0xcb") {
     if (!x_transition_done(x_ctx)) return 0;
 
     // Write your tuning logic here
-    u64 val = 3; // original value
+    u64 val = 128; // original value
     x_set(x_ctx, val);
     return 0;
 }
