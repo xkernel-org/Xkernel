@@ -1,4 +1,3 @@
-CLAUDE.md
 proxychains.conf
 paper.pdf
 *.o
@@ -11,8 +10,6 @@ paper.pdf
 *.cmd
 *.ko.unsigned
 *.o.d
-!legacy/tools/plot/**/*.txt
-!legacy/tests/*.txt
 *.pyc
 
 compile_commands.json
@@ -20,9 +17,18 @@ compile_commands.json
 
 .vscode
 
-__pycache__/*
+__pycache__/
 
+# Generated artifacts
 bpf/vmlinux.h
-legacy/tools/workload_test/io_uring/latency_workload
 bb_cache/
-bpf/stubs
+bpf/stubs/*.bpf.o
+
+# Build outputs
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+
+# AE results (generated)
+ae/results/

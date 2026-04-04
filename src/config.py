@@ -13,7 +13,10 @@ import tomllib
 from dataclasses import dataclass
 from typing import List, Optional, Tuple
 
-DEFAULT_KERNEL_DIR = "~/linux-6.14.0-xkernel"
+# Kernel source directory resolution order:
+#   1. KERNEL_DIR environment variable
+#   2. kernel_dir field in the TOML config
+#   3. Error if neither is set
 
 
 @dataclass(frozen=True)
@@ -117,7 +120,20 @@ def load_configs(path: str) -> Tuple[str, List[TunableConfig]]:
     with open(path, 'rb') as f:
         data = tomllib.load(f)
 
-    kernel_dir = os.path.expanduser(data.get('kernel_dir', DEFAULT_KERNEL_DIR))
+    # Resolve kernel source directory: env var > TOML field > error
+    env_kernel_dir = os.environ.get('KERNEL_DIR')
+    toml_kernel_dir = data.get('kernel_dir')
+    if env_kernel_dir:
+        kernel_dir = os.path.expanduser(env_kernel_dir)
+    elif toml_kernel_dir:
+        kernel_dir = os.path.expanduser(toml_kernel_dir)
+    else:
+        raise ValueError(
+            f"Kernel source directory not specified.\n"
+            f"Set the KERNEL_DIR environment variable:\n"
+            f"  export KERNEL_DIR=~/linux-6.14.0-xkernel\n"
+            f"Or add 'kernel_dir = \"~/linux-6.14.0-xkernel\"' to {path}"
+        )
 
     # Multi-tunable format: [[tunables]] array
     if 'tunables' in data:

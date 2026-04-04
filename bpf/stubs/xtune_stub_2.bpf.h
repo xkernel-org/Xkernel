@@ -16,10 +16,10 @@
 #include "xkernel.bpf.h"
 #include "cs_artifact.bpf.h"
 
-// SIE helper 0: simple -> %esi
+// SIE helper 0: simple -> %eax
 static __always_inline void __sie_2_0(struct pt_regs *regs, u64 val) {
     u64 new_val = val;
-    sie_write_kernel(&regs->si, sizeof(regs->si), &new_val);
+    sie_write_kernel(&regs->ax, sizeof(regs->ax), &new_val);
 }
 
 #define X_TUNE_0(func_name, location_str) \

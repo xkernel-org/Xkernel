@@ -221,19 +221,17 @@ def cmd_build(args):
     """Build pipeline: gen -> codegen -> compile.
 
     Usage:
-      xkernel-tool build <config.toml>           # Build single tunable from TOML config
-      xkernel-tool build --all                    # Rebuild all from testcases.py (legacy)
+      xkernel-tool build <config.toml>           # Build tunables from TOML config
     """
     project_root = get_project_root()
     skip_gen = '--skip-gen' in args
     verbose = '--verbose' in args or '-v' in args
 
     # Separate flags from positional args
-    flags = {'--skip-gen', '--verbose', '-v', '--all'}
+    flags = {'--skip-gen', '--verbose', '-v'}
     positional = [a for a in args if a not in flags]
-    use_all = '--all' in args
 
-    # Detect mode: TOML file or legacy --all
+    # Detect TOML file
     toml_file = None
     if positional:
         candidate = positional[0]
@@ -242,14 +240,14 @@ def cmd_build(args):
 
     if toml_file:
         _cmd_build_single(toml_file, skip_gen, verbose, project_root)
-    elif use_all:
-        _cmd_build_all(skip_gen, verbose, project_root)
     else:
         print("Usage: xkernel-tool build <config.toml> [--skip-gen] [--verbose/-v]")
-        print("       xkernel-tool build --all [--skip-gen] [--verbose/-v]")
         print()
-        print("  <config.toml>  Build a single tunable from a TOML config file")
-        print("  --all          Rebuild all tunables from tunables/all.toml (clean rebuild)")
+        print("  <config.toml>  TOML config file (single or multi-tunable)")
+        print("  --skip-gen     Skip gen.py (only run codegen + compile)")
+        print("  --verbose/-v   Show detailed intermediate output")
+        print()
+        print("Tip: Use 'xkernel-tool run <config.toml>' to build AND load in one step")
         sys.exit(1)
 
 
@@ -265,6 +263,12 @@ def _cmd_build_single(toml_file, skip_gen, verbose, project_root):
     kernel_dir, configs = load_configs(toml_file)
     if not configs:
         print(f"Error: No tunables found in {toml_file}")
+        sys.exit(1)
+
+    if not os.path.isdir(kernel_dir):
+        print(f"Error: Kernel source directory not found: {kernel_dir}")
+        print(f"Set KERNEL_DIR to the correct path:")
+        print(f"  export KERNEL_DIR=/path/to/linux-source")
         sys.exit(1)
 
     print("==========================================")
@@ -295,14 +299,28 @@ def _cmd_build_single(toml_file, skip_gen, verbose, project_root):
         print(f"  [Step 2/3] Running codegen for ConstID {const_id}...")
         run_codegen_single(config, const_id, verbose=verbose)
 
-    # Step 3: Compile all BPF programs at once
-    print("\n[Step 3/3] Compiling BPF programs...")
-    print("==========================================")
-    bpf_dir = os.path.join(project_root, 'bpf')
-    ret = subprocess.run(['make', f'-j{os.cpu_count()}'], cwd=bpf_dir)
-    if ret.returncode != 0:
-        print("Error: BPF compilation failed")
-        sys.exit(1)
+    # Step 3: Compile only the BPF stubs for this build
+    stub_targets = []
+    for name, cid in assigned_ids:
+        stub_src = os.path.join('stubs', f'xtune_stub_{cid}.bpf.c')
+        stub_obj = os.path.join('stubs', f'xtune_stub_{cid}.bpf.o')
+        bpf_dir = os.path.join(project_root, 'bpf')
+        if os.path.exists(os.path.join(bpf_dir, stub_src)):
+            stub_targets.append(stub_obj)
+
+    if stub_targets:
+        print(f"\n[Step 3/3] Compiling {len(stub_targets)} BPF program(s)...")
+        print("==========================================")
+        bpf_dir = os.path.join(project_root, 'bpf')
+        ret = subprocess.run(
+            ['make', f'-j{os.cpu_count()}'] + stub_targets,
+            cwd=bpf_dir,
+        )
+        if ret.returncode != 0:
+            print("Error: BPF compilation failed")
+            sys.exit(1)
+    else:
+        print("\n[Step 3/3] No BPF stubs to compile")
 
     BOLD = '\033[1m'
     GREEN = '\033[32m'
@@ -325,18 +343,156 @@ def _cmd_build_single(toml_file, skip_gen, verbose, project_root):
         print(f"     {GREEN}sudo ./xkernel-tool load <MODE> {cid}{RST}  {DIM}# {name}{RST}")
 
 
-def _cmd_build_all(skip_gen, verbose, project_root):
-    """Batch build: rebuild all tunables from tunables/all.toml."""
-    from src.codegen import clear_all_tables
-    clear_all_tables()
-    print("Cleared all tables for full rebuild")
+def cmd_run(args):
+    """Build + load in one step.
 
-    all_toml = os.path.join(project_root, 'tunables', 'all.toml')
-    if not os.path.exists(all_toml):
-        print(f"Error: {all_toml} not found")
+    Usage:
+      xkernel-tool run <config.toml> [--mode 0|1|2] [--skip-gen] [--verbose]
+    """
+    # Parse flags
+    mode = 0
+    skip_gen = '--skip-gen' in args
+    verbose = '--verbose' in args or '-v' in args
+    jump_opt = '--jump-opt' in args
+    flags = {'--skip-gen', '--verbose', '-v', '--jump-opt'}
+
+    # Parse --mode N
+    filtered = []
+    i = 0
+    while i < len(args):
+        if args[i] == '--mode' and i + 1 < len(args):
+            mode = int(args[i + 1])
+            i += 2
+        elif args[i] in flags:
+            i += 1
+        else:
+            filtered.append(args[i])
+            i += 1
+
+    if not filtered or not (filtered[0].endswith('.toml') or os.path.isfile(filtered[0])):
+        print("Usage: xkernel-tool run <config.toml> [--mode 0|1|2] [--skip-gen] [--verbose]")
+        print()
+        print("  Builds the tunable(s) and loads them in one step.")
+        print("  --mode N  Consistency mode: 0=Immediate (default), 1=Per-task, 2=Global")
         sys.exit(1)
 
-    _cmd_build_single(all_toml, skip_gen, verbose, project_root)
+    toml_file = filtered[0]
+    project_root = get_project_root()
+
+    # Step 1: Build
+    _cmd_build_single(toml_file, skip_gen, verbose, project_root)
+
+    # Step 2: Read assigned ConstIDs from scope table
+    if not os.path.exists(SCOPE_TABLE):
+        print("Error: Scope table not found after build")
+        sys.exit(1)
+
+    from src.config import load_configs
+    _, configs = load_configs(toml_file)
+    config_names = {c.name for c in configs}
+
+    # Find ConstIDs matching the tunables we just built
+    const_ids = []
+    with open(SCOPE_TABLE, 'r') as f:
+        lines = f.readlines()
+    if lines:
+        header = lines[0].rstrip('\n').split('\t')
+        try:
+            cid_col = header.index('ConstID')
+            name_col = header.index('Name')
+        except ValueError:
+            cid_col, name_col = 0, 1
+        for line in lines[1:]:
+            fields = line.rstrip('\n').split('\t')
+            if len(fields) > max(cid_col, name_col) and fields[name_col] in config_names:
+                const_ids.append(fields[cid_col])
+
+    if not const_ids:
+        print("Warning: No ConstIDs found after build — nothing to load")
+        return
+
+    # Step 3: Load each ConstID
+    for cid in const_ids:
+        print(f"\n>>> Loading ConstID {cid} (mode={mode})...")
+        load_args = [str(mode), cid]
+        if jump_opt:
+            load_args.append('--jump-opt')
+        cmd_load(load_args)
+
+
+def cmd_clean(args):
+    """Clean runtime state, build artifacts, or everything.
+
+    Usage:
+      xkernel-tool clean          # Runtime state + compiled objects
+      xkernel-tool clean --all    # Also remove generated stubs and kernel modules
+    """
+    project_root = get_project_root()
+    clean_all = '--all' in args
+    removed = []
+
+    # 1. Runtime state
+    shm_dir = '/dev/shm/xkernel'
+    if os.path.isdir(shm_dir):
+        import shutil
+        try:
+            shutil.rmtree(shm_dir)
+            removed.append(shm_dir)
+        except PermissionError:
+            subprocess.run(['sudo', 'rm', '-rf', shm_dir])
+            removed.append(f"{shm_dir} (sudo)")
+
+    # 2. BPF pinned files
+    bpf_pin_dir = '/sys/fs/bpf/xkernel'
+    if os.path.isdir(bpf_pin_dir):
+        subprocess.run(['sudo', 'rm', '-rf', bpf_pin_dir])
+        removed.append(f"{bpf_pin_dir} (sudo)")
+
+    # 3. Compiled .o files
+    stubs_dir = os.path.join(project_root, 'bpf', 'stubs')
+    for f in os.listdir(stubs_dir) if os.path.isdir(stubs_dir) else []:
+        if f.endswith('.bpf.o'):
+            path = os.path.join(stubs_dir, f)
+            try:
+                os.remove(path)
+            except PermissionError:
+                subprocess.run(['sudo', 'rm', '-f', path])
+            removed.append(f"bpf/stubs/{f}")
+
+    # 4. bb_cache
+    bb_dir = os.path.join(project_root, 'bb_cache')
+    if os.path.isdir(bb_dir):
+        import shutil
+        shutil.rmtree(bb_dir)
+        removed.append('bb_cache/')
+
+    # 5. --all: also remove generated stubs and kernel modules
+    if clean_all:
+        for f in os.listdir(stubs_dir) if os.path.isdir(stubs_dir) else []:
+            if f.endswith(('.bpf.c', '.bpf.h')):
+                os.remove(os.path.join(stubs_dir, f))
+                removed.append(f"bpf/stubs/{f}")
+
+        cs_artifact = os.path.join(project_root, 'bpf', 'cs_artifact.bpf.h')
+        if os.path.exists(cs_artifact):
+            os.remove(cs_artifact)
+            removed.append('bpf/cs_artifact.bpf.h')
+
+        for mod_dir in ['kfuncs', 'consistency']:
+            ko_dir = os.path.join(project_root, 'kernel', mod_dir)
+            if os.path.isdir(ko_dir):
+                subprocess.run(['make', 'clean'], cwd=ko_dir,
+                               capture_output=True)
+                removed.append(f"kernel/{mod_dir}/ (make clean)")
+
+    if removed:
+        print(f"Cleaned {len(removed)} item(s):")
+        for r in removed[:10]:
+            print(f"  - {r}")
+        if len(removed) > 10:
+            print(f"  ... and {len(removed) - 10} more")
+    else:
+        print("Nothing to clean")
 
 
 def resolve_constid_to_bpf(const_id, project_root):
@@ -593,9 +749,12 @@ def cmd_load(args):
     bpf_o_path, bpf_filename = resolve_constid_to_bpf(const_id, project_root)
     if not bpf_o_path:
         print(f"Error: ConstID {const_id} not found in Scope Table")
+        print(f"  Run './xkernel-tool table list' to see available ConstIDs")
+        print(f"  Or build first: './xkernel-tool build <config.toml>'")
         sys.exit(1)
     if not os.path.exists(bpf_o_path.replace('.bpf.o', '.bpf.c')):
         print(f"Error: BPF source not found for ConstID {const_id}")
+        print(f"  Run './xkernel-tool build <config.toml>' to generate BPF stubs")
         sys.exit(1)
 
     # Step 1: Generate CS and SS files for this ConstID
@@ -665,11 +824,23 @@ def cmd_load(args):
         consistency_path = os.path.join(project_root, 'kernel', 'consistency',
                                         'xk-consistency.ko')
         if not os.path.exists(consistency_path):
-            print(f"Error: Consistency module not found: {consistency_path}")
-            print("Cleaning up loaded BPF programs...")
-            from src.loader import unload_constid
-            unload_constid(const_id)
-            sys.exit(1)
+            # Auto-build the module
+            consistency_dir = os.path.join(project_root, 'kernel', 'consistency')
+            print("Consistency module not found, building...")
+            env = os.environ.copy()
+            env['PWD'] = consistency_dir
+            ret = subprocess.run(['make', f'-j{os.cpu_count()}'], cwd=consistency_dir,
+                                 capture_output=True, text=True, env=env)
+            if ret.returncode != 0 or not os.path.exists(consistency_path):
+                print(f"Error: Failed to build consistency module")
+                if ret.stderr:
+                    print(ret.stderr.rstrip())
+                print(f"Try manually: cd {consistency_dir} && make")
+                print("Cleaning up loaded BPF programs...")
+                from src.loader import unload_constid
+                unload_constid(const_id)
+                sys.exit(1)
+            print("Consistency module built successfully")
 
         timeout_val = int(args[2]) if len(args) > 2 else 5
 
@@ -952,51 +1123,78 @@ def cmd_trace(args):
     subprocess.run(['sudo', 'bpftool', 'prog', 'tracelog'])
 
 
+def cmd_doctor(args):
+    """Check system prerequisites for KernelX."""
+    project_root = get_project_root()
+    check_deps = os.path.join(project_root, 'scripts', 'check_deps.sh')
+    if os.path.exists(check_deps):
+        subprocess.run(['bash', check_deps])
+    else:
+        print("Error: scripts/check_deps.sh not found")
+        sys.exit(1)
+
+
+def cmd_setup(args):
+    """Install all dependencies (requires sudo)."""
+    project_root = get_project_root()
+    install_script = os.path.join(project_root, 'scripts', 'install_deps.sh')
+    if not os.path.exists(install_script):
+        print("Error: scripts/install_deps.sh not found")
+        sys.exit(1)
+    cmd = ['sudo', 'bash', install_script] + args
+    sys.exit(subprocess.call(cmd))
+
+
 def show_help():
     """Show help message."""
     print("Usage: xkernel-tool <command> [options]")
     print()
     print("Commands:")
-    print("  build     Build tunables from TOML config (or --all for clean rebuild)")
+    print("  run       Build + load in one step (recommended)")
+    print("  build     Build tunables from TOML config")
     print("  load      Load BPF kprobes for a single ConstID")
     print("  unload    Unload BPF kprobes (per-ConstID or all)")
     print("  status    Show runtime status of loaded ConstIDs")
     print("  table     Manage scope tables (list, query, delete, cs, ss)")
     print("  trace     Trace the kernel logs")
+    print("  gen       Generate an X-tune policy stub for a ConstID")
+    print("  clean     Remove runtime state and build artifacts")
+    print("  doctor    Check system prerequisites")
+    print("  setup     Install all dependencies (clang, llvm, libbpf, ...)")
+    print()
+    print("Environment:")
+    print("  KERNEL_DIR  Path to kernel source tree (overrides TOML kernel_dir)")
+    print()
+    print("Quick start:")
+    print("  xkernel-tool setup                                # Install dependencies")
+    print("  export KERNEL_DIR=~/linux-6.14.0-xkernel          # Set kernel source")
+    print("  xkernel-tool run tunables/shrink_batch.toml       # Build + load")
+    print("  sudo xkernel-tool status                          # Check status")
+    print()
+    print("Options for 'run':")
+    print("  <config.toml>  TOML config file")
+    print("  --mode N       Consistency mode: 0=Immediate (default), 1=Per-task, 2=Global")
+    print("  --skip-gen     Skip gen.py (only run codegen + compile)")
+    print("  --jump-opt     Try candidate kprobe offsets for JMP optimization")
     print()
     print("Options for 'build':")
-    print("  <config.toml> Build tunables from a TOML config file")
-    print("  --all         Clean rebuild: clear tables + build all from tunables/all.toml")
-    print("  --skip-gen    Skip running gen.py (only run codegen.py and make)")
-    print("  --verbose/-v  Show detailed intermediate output (symbolic execution, diffs)")
+    print("  <config.toml>  TOML config file (single or multi-tunable)")
+    print("  --skip-gen     Skip running gen.py (only run codegen.py and make)")
+    print("  --verbose/-v   Show detailed intermediate output")
     print()
     print("Options for 'load':")
-    print("  <MODE>        0=Immediate, 1=Per-task, 2=Global")
-    print("  <ConstID>     Single ConstID to load")
-    print("  [timeout]     Optional timeout in seconds (for Mode 2)")
-    print("  --jump-opt    Try candidate kprobe offsets for JMP optimization")
+    print("  <MODE>         0=Immediate, 1=Per-task, 2=Global")
+    print("  <ConstID>      Single ConstID to load")
+    print("  [timeout]      Optional timeout in seconds (for Mode 2)")
+    print("  --jump-opt     Try candidate kprobe offsets for JMP optimization")
     print()
     print("Options for 'unload':")
-    print("  <ConstID>     Unload a specific ConstID")
-    print("  --all         Unload all active ConstIDs and kfuncs module")
+    print("  <ConstID>      Unload a specific ConstID")
+    print("  --all          Unload all active ConstIDs and kfuncs module")
     print()
-    print("Options for 'table':")
-    print("  list                    List all scope table entries")
-    print("  query [filters]         Query entries")
-    print("  delete [filters|--all]  Delete entries")
-    print("  cs [--index N]          Show Critical Span entries")
-    print("  ss [--index N]          Show Symbolic State entries")
-    print()
-    print("Examples:")
-    print("  xkernel-tool build tunables/shrink_batch.toml  # Build single tunable")
-    print("  xkernel-tool build --all                       # Legacy batch build")
-    print("  xkernel-tool load 0 1             # Load ConstID 1 in Immediate mode")
-    print("  xkernel-tool load 2 2 5           # Load ConstID 2 in Global mode, 5s timeout")
-    print("  xkernel-tool unload 1             # Unload ConstID 1")
-    print("  xkernel-tool unload --all         # Unload everything")
-    print("  xkernel-tool status               # Show loaded ConstIDs")
-    print("  xkernel-tool table list           # List scope table")
-    print("  xkernel-tool table delete --all   # Clear all tables")
+    print("Options for 'clean':")
+    print("  (default)      Remove runtime state, .bpf.o files, bb_cache/")
+    print("  --all          Also remove generated stubs and kernel module builds")
     sys.exit(1)
 
 
@@ -1009,12 +1207,17 @@ def main():
     args = sys.argv[2:]
 
     commands = {
+        'run': cmd_run,
         'build': cmd_build,
         'load': cmd_load,
         'unload': cmd_unload,
         'status': cmd_status,
         'table': cmd_table,
         'trace': cmd_trace,
+        'gen': lambda args: __import__('src.xtune', fromlist=['cmd_gen']).cmd_gen(args),
+        'clean': cmd_clean,
+        'doctor': cmd_doctor,
+        'setup': cmd_setup,
     }
 
     if command in commands:

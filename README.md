@@ -4,6 +4,22 @@
 
 Paper: *Principled Performance Tunability in Operating System Kernels* ([arXiv 2512.12530](https://arxiv.org/abs/2512.12530))
 
+## 30-Second Demo
+
+```bash
+# 0. Install dependencies (first time only)
+./xkernel-tool setup
+
+# 1. Set kernel source path
+export KERNEL_DIR=~/linux-6.14.0-xkernel
+
+# 2. Build + load in one step
+./xkernel-tool run tunables/shrink_batch.toml
+
+# 3. Check status
+sudo ./xkernel-tool status
+```
+
 ## How It Works
 
 Linux contains hundreds of performance constants (`BLK_MAX_REQUEST_COUNT=128`, `MAX_SOFTIRQ_RESTART=10`, etc.) baked into the binary at compile time. SIE modifies their effect at runtime through three steps:
@@ -11,6 +27,15 @@ Linux contains hundreds of performance constants (`BLK_MAX_REQUEST_COUNT=128`, `
 1. **Binary Diff** — Recompile the kernel with modified constant values and diff the assembly to locate the *Critical Span* (CS): the instruction sequence where the constant enters the architectural state.
 2. **Symbolic Execution** — Derive the compiler's transformation `IV = f(V)` (e.g., `IV = V`, `IV = V << 3`) by symbolically executing the three BB versions.
 3. **BPF Kprobe Synthesis** — Attach a kprobe after the CS that overwrites the register/memory with the new value, effectively replacing the constant at runtime.
+
+```
+tunables/*.toml ──→ gen.py (binary diff) ──→ codegen.py (symbolic exec) ──→ BPF stubs
+                                                                               │
+                    xkernel-tool load ←── bpftool loadall ←── clang -target bpf
+                         │
+                         ▼
+                    Kprobe fires → overwrites register/memory → constant is tuned
+```
 
 ### Consistency Models
 
@@ -32,6 +57,22 @@ sudo bash install.sh
 
 ### Install dependencies
 
+One-click install (clang, llvm, libbpf, vmlinux.h, pytest):
+
+```shell
+./xkernel-tool setup
+```
+
+Or install selectively:
+
+```shell
+sudo bash scripts/install_deps.sh --apt      # Only apt packages
+sudo bash scripts/install_deps.sh --libbpf   # Only libbpf
+sudo bash scripts/install_deps.sh --vmlinux  # Only vmlinux.h
+```
+
+<details><summary>Manual installation</summary>
+
 ```shell
 sudo apt-get install clang llvm pahole pkg-config libelf-dev -y
 ```
@@ -43,7 +84,23 @@ git clone https://github.com/libbpf/libbpf.git && \
   sudo cp ./*.so /usr/local/lib/ && sudo ldconfig && popd
 ```
 
-### Build kernel modules
+</details>
+
+### Set kernel source path
+
+The build pipeline needs the kernel source tree. Set `KERNEL_DIR` to point to it:
+
+```shell
+export KERNEL_DIR=~/linux-6.14.0-xkernel
+```
+
+Alternatively, add `kernel_dir = "~/linux-6.14.0-xkernel"` in your TOML config.
+The env var takes precedence over the TOML field.
+
+### Build kernel modules (optional)
+
+Kernel modules (`xk-kfuncs.ko`, `xk-consistency.ko`) are **auto-built** on first `load`.
+To build them manually:
 
 ```shell
 cd kernel && ./build.sh
@@ -74,17 +131,23 @@ Each tunable provides three values `(V1, V2, V3)`. The pipeline recompiles the k
 
 The optional `safe_spans` field specifies Safe Span (SS) ranges as `(function, start_offset, end_offset)` entries. These ranges tell the consistency model where constant-derived values are still live. When omitted, CS ranges are used as a conservative approximation.
 
-### 2. Build (full pipeline)
+### 2. Build + load (one step)
 
 ```shell
-# Build a single tunable config
-./xkernel-tool build tunables/shrink_batch.toml
+# Set kernel source path (if not in TOML)
+export KERNEL_DIR=~/linux-6.14.0-xkernel
 
-# Build all tunables (clears tables first)
-./xkernel-tool build --all
+# Build and load in one step (default: immediate mode)
+./xkernel-tool run tunables/shrink_batch.toml
+
+# With per-task consistency
+./xkernel-tool run tunables/shrink_batch.toml --mode 1
+
+# Build only (no load)
+./xkernel-tool build tunables/shrink_batch.toml
 ```
 
-This runs the three-stage pipeline:
+The build pipeline runs three stages:
 1. **gen.py** — Binary diff + Basic Block extraction → `bb_cache/`
 2. **codegen.py** — Symbolic execution + BPF code generation → `bpf/stubs/xtune_stub_N.bpf.c`
 3. **make** — Compile BPF programs → `.bpf.o`
@@ -92,23 +155,25 @@ This runs the three-stage pipeline:
 Use `--skip-gen` to skip the (slow) diff/BB stage when only codegen or compilation is needed:
 
 ```shell
-./xkernel-tool build tunables/all.toml --skip-gen
+./xkernel-tool run tunables/all.toml --skip-gen
 ```
 
 ### 3. Load a constant
 
+Kernel modules are auto-built and loaded as needed.
+
 ```shell
 # Immediate mode
-sudo ./xkernel-tool load 0 1
+./xkernel-tool load 0 1
 
 # Per-task consistency
-sudo ./xkernel-tool load 1 2
+./xkernel-tool load 1 2
 
 # Global consistency (5s timeout)
-sudo ./xkernel-tool load 2 3 5
+./xkernel-tool load 2 3 5
 
 # With jump optimization
-sudo ./xkernel-tool load 0 1 --jump-opt
+./xkernel-tool load 0 1 --jump-opt
 ```
 
 ### 4. Check status
@@ -127,22 +192,46 @@ sudo ./xkernel-tool unload 1
 sudo ./xkernel-tool unload --all
 ```
 
+### 6. Clean up
+
+```shell
+# Remove runtime state, compiled .bpf.o, bb_cache/
+./xkernel-tool clean
+
+# Also remove generated source files and kernel module builds
+./xkernel-tool clean --all
+```
+
 ## CLI Reference
 
 ```
 Usage: xkernel-tool <command> [options]
 
 Commands:
+  run       Build + load in one step (recommended)
   build     Run the full pipeline (gen → codegen → compile)
   load      Load BPF kprobes for a single ConstID
   unload    Unload BPF kprobes (per-ConstID or all)
   status    Show runtime status of loaded ConstIDs
   table     Manage scope tables (list, query, delete, cs, ss)
   trace     Display kernel BPF trace logs
+  gen       Generate an X-tune policy stub for a ConstID
+  clean     Remove generated artifacts and runtime state
+  doctor    Check system prerequisites
+  setup     Install all dependencies (clang, llvm, libbpf, ...)
+
+Environment:
+  KERNEL_DIR  Path to kernel source tree (overrides TOML kernel_dir)
+
+Options for 'run':
+  <config.toml> TOML config file
+  --mode N      Consistency mode: 0=Immediate (default), 1=Per-task, 2=Global
+  --skip-gen    Skip gen.py (only run codegen + compile + load)
+  --verbose     Show detailed codegen output
+  --jump-opt    Probe candidate offsets for 5-byte JMP optimization
 
 Options for 'build':
-  <config.toml> TOML config file (single or multi-tunable)
-  --all         Build all tunables from tunables/all.toml (clears tables first)
+  <config.toml> TOML config file
   --skip-gen    Skip gen.py (only run codegen + make)
   --verbose     Show detailed codegen output
 
@@ -155,6 +244,10 @@ Options for 'load':
 Options for 'unload':
   <ConstID>     Unload a specific ConstID
   --all         Unload all active ConstIDs and kernel modules
+
+Options for 'clean':
+  (no args)     Remove runtime state, .bpf.o files, bb_cache/
+  --all         Also remove generated .bpf.c/.bpf.h and kernel module builds
 
 Options for 'table':
   list                    List all scope table entries
@@ -175,29 +268,37 @@ Xkernel/
 │   ├── codegen.py                  # Symbolic execution + BPF code generation
 │   ├── config.py                   # TOML config loader (TunableConfig)
 │   ├── loader.py                   # BPF loading/unloading lifecycle
-│   └── table.py                    # Scope/CS/SS table management
+│   ├── table.py                    # Scope/CS/SS table management
+│   └── xtune.py                    # X-tune stub generator
 ├── bpf/                            # BPF runtime
 │   ├── xkernel.bpf.h              # BPF runtime (transition_done, cs_map, etc.)
 │   ├── kfuncs.bpf.h               # kfunc declarations
 │   ├── util.bpf.h                 # Register read/write macros (BPF_SET_EAX, etc.)
+│   ├── x_tune.h                   # X-tune programmable policy API
 │   ├── cs_artifact.bpf.h          # Auto-generated: per-task CS handler
 │   ├── Makefile
 │   └── stubs/                     # Auto-generated SIE stubs
-├── kernel/                         # Kernel modules
+├── kernel/                         # Kernel modules (auto-built on first load)
 │   ├── kfuncs/                     # xk-kfuncs.ko: exports kfuncs to BPF
 │   ├── consistency/                # xk-consistency.ko: global transition coordinator
 │   └── build.sh
 ├── tunables/                       # TOML config files
 │   ├── all.toml                    # All 9 tunables
 │   └── shrink_batch.toml           # Single tunable example
+├── tests/                          # Unit tests (pytest)
+├── scripts/                        # Helper scripts
+│   ├── check_deps.sh              # Prerequisite checker (xkernel-tool doctor)
+│   └── install_deps.sh            # Dependency installer (xkernel-tool setup)
+├── ae/                             # Artifact evaluation scripts
+├── examples/policy/                # Sample X-tune policies from the paper
+├── docs/                           # Documentation
+│   ├── quickstart.md              # End-to-end walkthrough
+│   ├── adding-a-tunable.md        # Guide for new tunables
+│   └── jump_optimization.md       # Jump optimization design
 ├── bb_cache/                       # (generated) Basic Block files
-├── legacy/                         # Old code kept for reference
-│   ├── testcases.py, solver.py, objdump_helper.py
-│   ├── examples/                   # Hand-written BPF evaluation programs
-│   └── tools/                      # Evaluation scripts, plots, workloads
-├── docs/
-│   └── jump_optimization.md        # Jump optimization design
+├── legacy/                         # Earlier prototypes and experiment scripts
 ├── xkernel-tool                    # CLI entry point
+├── pyproject.toml                  # Python packaging config
 ├── build.sh                        # Full build script (deps + modules + BPF)
 └── install.sh                      # Kernel installation
 ```
@@ -218,7 +319,7 @@ xkernel-tool build <config.toml>
     ▼
 xkernel-tool load <mode> <N>   ← Attach kprobes, manage consistency
     ├── Resolve function addresses via /proc/kallsyms
-    ├── Load xk-kfuncs.ko (if needed)
+    ├── Auto-build & load xk-kfuncs.ko (if needed)
     ├── bpftool loadall → /sys/fs/bpf/xkernel/N/
     ├── Populate cs_map/ss_map with CS/SS ranges
     └── [Mode 2] insmod xk-consistency.ko → wait → activate → rmmod
@@ -250,3 +351,60 @@ The codegen automatically detects and handles three synthesis patterns:
 ├── progs/          ← Pinned BPF programs
 └── maps/           ← Pinned BPF maps (cs_map, ss_map, task_storage, etc.)
 ```
+
+## Writing Tuning Policies (X-tune)
+
+KernelX provides a programmable policy plane where you write eBPF code to decide
+when and how to change a perf-const value:
+
+```bash
+# 1. Build a tunable (or use 'run' to build + load)
+./xkernel-tool build tunables/shrink_batch.toml
+
+# 2. Generate a fresh policy stub (or edit the auto-generated one)
+./xkernel-tool gen 1 -o my_policy.bpf.c
+
+# 3. Edit my_policy.bpf.c with your logic, then load
+sudo ./xkernel-tool load 0 1
+```
+
+See `examples/policy/` for sample X-tune programs from the paper, including
+RTT-aware TCP CUBIC tuning, per-shrinker memory control, and application-hinted
+block I/O.
+
+## Testing
+
+```bash
+# Run unit tests (no custom kernel needed)
+python3 -m pytest tests/ -v
+
+# Check system prerequisites
+bash scripts/check_deps.sh
+# or:
+./xkernel-tool doctor
+```
+
+## Artifact Evaluation
+
+Experiment scripts for reproducing paper figures are in `ae/`:
+
+```bash
+sudo bash ae/run_all.sh        # Run reproducible experiments
+sudo bash ae/exp3_shrink_batch.sh  # Run a single experiment
+```
+
+See [ae/README.md](ae/README.md) for details on each experiment.
+
+## Troubleshooting
+
+| Problem | Solution |
+|---------|----------|
+| `Kernel source directory not specified` | `export KERNEL_DIR=~/linux-6.14.0-xkernel` or add `kernel_dir` to your TOML |
+| `Kernel source directory not found` | Verify `KERNEL_DIR` points to a valid kernel source tree |
+| `bpftool: command not found` | `./xkernel-tool setup` or build from kernel source |
+| `vmlinux.h not found` | `./xkernel-tool setup --vmlinux` or `bpftool btf dump file /sys/kernel/btf/vmlinux format c > bpf/vmlinux.h` |
+| `kfuncs module not loaded` | Auto-built on `load`. Manual: `cd kernel && ./build.sh && sudo insmod kfuncs/xk-kfuncs.ko` |
+| `ConstID not found` | Run `./xkernel-tool build` first, then `./xkernel-tool table list` |
+| `BPF compilation fails` | `./xkernel-tool doctor` to check deps. Need clang ≥14 + `bpf/vmlinux.h` |
+| `Operation not permitted` on `.bpf.o` | Stale root-owned file from `sudo`. Fixed automatically, or `sudo rm bpf/stubs/*.o` |
+| `Permission denied` | Load/unload commands need root — `xkernel-tool` will call `sudo` as needed |
