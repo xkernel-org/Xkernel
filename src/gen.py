@@ -5,12 +5,10 @@ Runs diff.py commands and extracts Basic Block output into
 *_bb_v1.txt, *_bb_v2.txt, *_bb_v3.txt files.
 
 Primary entry point: generate_bb_files_single(config, const_id)
-Legacy batch entry: generate_bb_files() (reads from legacy/testcases.py)
 """
 
 import os
 import re
-import shutil
 import subprocess
 import sys
 
@@ -84,123 +82,10 @@ def build_diff_command(file, original, modified, lines=None, kernel_dir=None):
     return cmd
 
 
-def generate_bb_files():
-    """Generate BB files for all testcases.
-
-    Returns:
-        list of (test_num, v1_file, v2_file, v3_file) tuples for files written.
-    """
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    project_root = os.path.dirname(script_dir)
-
-    from legacy.testcases import TESTCASES
-
-    # Use a dedicated subdirectory for BB files; clear it to avoid stale files
-    bb_dir = os.path.join(project_root, 'bb_cache')
-    if os.path.exists(bb_dir):
-        shutil.rmtree(bb_dir)
-    os.makedirs(bb_dir)
-
-    results = []
-
-    for test_num, tc in enumerate(TESTCASES, 1):
-        cmd1 = build_diff_command(tc.file, tc.original, tc.modified[0], tc.lines)
-        cmd2 = build_diff_command(tc.file, tc.original, tc.modified[1], tc.lines)
-
-        v1_file = os.path.join(bb_dir, f'{test_num}_bb_v1.txt')
-        v2_file = os.path.join(bb_dir, f'{test_num}_bb_v2.txt')
-        v3_file = os.path.join(bb_dir, f'{test_num}_bb_v3.txt')
-
-        print(f"Processing TEST GROUP {test_num}...")
-        print(f"  Command 1: {' '.join(cmd1)}")
-        print(f"  Command 2: {' '.join(cmd2)}")
-
-        # Execute first command
-        print("  -> Executing command 1...")
-        try:
-            result1 = subprocess.run(
-                cmd1, capture_output=True, text=True,
-                cwd=project_root, env={**os.environ, 'PYTHONUNBUFFERED': '1'}
-            )
-            output1 = strip_ansi(result1.stdout + result1.stderr)
-        except Exception as e:
-            print(f"  -> Error: Command 1 failed: {e}")
-            for f in [v1_file, v2_file, v3_file]:
-                with open(f, 'w') as fh:
-                    fh.write(f"# Command 1 failed: {' '.join(cmd1)}\n")
-            continue
-
-        if result1.returncode != 0:
-            print(f"  -> Error: Command 1 failed with exit code {result1.returncode}")
-            for f in [v1_file, v2_file, v3_file]:
-                with open(f, 'w') as fh:
-                    fh.write(f"# Command 1 failed: {' '.join(cmd1)}\n")
-            continue
-
-        # Extract step 11 -> v1
-        step11 = extract_step11(output1)
-        if step11:
-            with open(v1_file, 'w') as f:
-                f.write(step11 + '\n')
-            print(f"    -> Step 11 (original) written to {v1_file}")
-        else:
-            print("    -> Warning: No step 11 output found for v1")
-            with open(v1_file, 'w') as f:
-                f.write("# No step 11 output found\n")
-
-        # Extract step 11b -> v2
-        step11b = extract_step11b(output1)
-        if step11b:
-            with open(v2_file, 'w') as f:
-                f.write(step11b + '\n')
-            print(f"    -> Step 11b (recompiled) from command 1 written to {v2_file}")
-        else:
-            print("    -> Warning: No step 11b output found for v2")
-            with open(v2_file, 'w') as f:
-                f.write("# No step 11b output found\n")
-
-        # Execute second command
-        print("  -> Executing command 2...")
-        try:
-            result2 = subprocess.run(
-                cmd2, capture_output=True, text=True,
-                cwd=project_root, env={**os.environ, 'PYTHONUNBUFFERED': '1'}
-            )
-            output2 = strip_ansi(result2.stdout + result2.stderr)
-        except Exception as e:
-            print(f"  -> Error: Command 2 failed: {e}")
-            with open(v3_file, 'w') as f:
-                f.write(f"# Command 2 failed: {' '.join(cmd2)}\n")
-            continue
-
-        if result2.returncode != 0:
-            print(f"  -> Error: Command 2 failed with exit code {result2.returncode}")
-            with open(v3_file, 'w') as f:
-                f.write(f"# Command 2 failed: {' '.join(cmd2)}\n")
-            continue
-
-        # Extract step 11b -> v3
-        step11b2 = extract_step11b(output2)
-        if step11b2:
-            with open(v3_file, 'w') as f:
-                f.write(step11b2 + '\n')
-            print(f"    -> Step 11b (recompiled) from command 2 written to {v3_file}")
-        else:
-            print("    -> Warning: No step 11b output found for v3")
-            with open(v3_file, 'w') as f:
-                f.write("# No step 11b output found\n")
-
-        results.append((test_num, v1_file, v2_file, v3_file))
-        print()
-
-    print("Done processing all test groups.")
-    return results
-
-
 def generate_bb_files_single(config, const_id: int, kernel_dir=None):
     """Generate BB files for a single tunable config.
 
-    Unlike generate_bb_files(), this does NOT wipe bb_cache/.
+    Does NOT wipe bb_cache/.
     It only writes the three BB files for this ConstID.
 
     Args:
@@ -296,11 +181,3 @@ def generate_bb_files_single(config, const_id: int, kernel_dir=None):
 
     print()
     return (v1_file, v2_file, v3_file)
-
-
-def main():
-    generate_bb_files()
-
-
-if __name__ == "__main__":
-    main()

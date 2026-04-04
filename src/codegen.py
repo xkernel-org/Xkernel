@@ -13,7 +13,7 @@ import json
 from collections import OrderedDict
 from typing import Dict, List, Tuple, Optional, Set
 
-# Module-level verbose flag, set by run_codegen(verbose=...)
+# Module-level verbose flag, set by run_codegen_single(verbose=...)
 _verbose = False
 
 def vprint(*args, **kwargs):
@@ -4348,178 +4348,6 @@ def generate_bpf_file_for_group(prefix: str, v1_file: str, relationship: Optiona
     return (internal_file, None)
 
 
-def run_codegen(verbose: bool = False):
-    """Run the code generation pipeline. Callable from cli.py or standalone."""
-    global _verbose
-    _verbose = verbose
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-
-    # Determine output directory for BPF files (bpf_kprobe/bpf/examples/)
-    project_root = os.path.dirname(script_dir)  # Go up from UnitTestsCS to Xkernel
-    bpf_output_dir = os.path.join(project_root, 'bpf', 'stubs')
-    os.makedirs(bpf_output_dir, exist_ok=True)
-
-    # Clear all tables before regenerating to avoid stale indices
-    clear_all_tables()
-    print("Cleared all tables (Scope, CS, SS)")
-
-    # Extract source values and file paths from testcases module (legacy path)
-    try:
-        from legacy.testcases import TESTCASES
-    except ImportError:
-        # Fallback: try relative import or direct import
-        import importlib.util
-        tc_path = os.path.join(os.path.dirname(script_dir), 'legacy', 'testcases.py')
-        tc_mod = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(tc_mod)
-        TESTCASES = tc_mod.TESTCASES
-
-    source_values = {}
-    file_paths = {}
-    for i, tc in enumerate(TESTCASES, 1):
-        source_values[str(i)] = tc.values
-        file_paths[str(i)] = tc.file
-    
-    # Find all *_bb_v1.txt, *_bb_v2.txt, *_bb_v3.txt files from bb_cache/
-    bb_dir = os.path.join(project_root, 'bb_cache')
-    v1_files = sorted(glob.glob(os.path.join(bb_dir, '*_bb_v1.txt')))
-    v2_files = sorted(glob.glob(os.path.join(bb_dir, '*_bb_v2.txt')))
-    v3_files = sorted(glob.glob(os.path.join(bb_dir, '*_bb_v3.txt')))
-
-    if not v1_files and not v2_files and not v3_files:
-        print(f"No *_bb_v1.txt, *_bb_v2.txt, or *_bb_v3.txt files found in {bb_dir}")
-        return
-    
-    # Group files by prefix (e.g., "1_bb_v1.txt", "1_bb_v2.txt", "1_bb_v3.txt" -> group "1")
-    file_groups = {}
-    
-    # Process v1 files
-    for v1_file in v1_files:
-        basename = os.path.basename(v1_file)
-        # Extract prefix (e.g., "1" from "1_bb_v1.txt")
-        match = re.match(r'^(\d+)_bb_v1\.txt$', basename)
-        if match:
-            prefix = match.group(1)
-            if prefix not in file_groups:
-                file_groups[prefix] = {}
-            file_groups[prefix]['v1'] = v1_file
-    
-    # Process v2 files
-    for v2_file in v2_files:
-        basename = os.path.basename(v2_file)
-        match = re.match(r'^(\d+)_bb_v2\.txt$', basename)
-        if match:
-            prefix = match.group(1)
-            if prefix not in file_groups:
-                file_groups[prefix] = {}
-            file_groups[prefix]['v2'] = v2_file
-    
-    # Process v3 files
-    for v3_file in v3_files:
-        basename = os.path.basename(v3_file)
-        match = re.match(r'^(\d+)_bb_v3\.txt$', basename)
-        if match:
-            prefix = match.group(1)
-            if prefix not in file_groups:
-                file_groups[prefix] = {}
-            file_groups[prefix]['v3'] = v3_file
-    
-    # Sort groups by prefix number
-    sorted_groups = sorted(file_groups.items(), key=lambda x: int(x[0]))
-    
-    print(f"Found {len(sorted_groups)} test group(s)")
-
-    # Process each group
-    for prefix, files in sorted_groups:
-        vprint(f"\n{'='*80}")
-        vprint(f"Processing Test Group {prefix}")
-        vprint(f"{'='*80}")
-
-        seq_v1 = None
-        seq_v2 = None
-        seq_v3 = None
-
-        # Process v1 file (original)
-        if 'v1' in files:
-            vprint(f"\n--- Processing v1 (original) ---")
-            seq_v1 = process_res_file(files['v1'], return_expressions=True)
-
-        # Process v2 file (recompiled from first command)
-        if 'v2' in files:
-            vprint(f"\n--- Processing v2 (recompiled from first command) ---")
-            seq_v2 = process_res_file(files['v2'], return_expressions=True)
-
-        # Process v3 file (recompiled from second command)
-        if 'v3' in files:
-            vprint(f"\n--- Processing v3 (recompiled from second command) ---")
-            seq_v3 = process_res_file(files['v3'], return_expressions=True)
-
-        # Compare expressions
-        if seq_v1 and seq_v2:
-            print_expression_diff(f"Test Group {prefix}", seq_v1, seq_v2, seq_v3)
-        elif seq_v1 and seq_v3:
-            print_expression_diff(f"Test Group {prefix}", seq_v1, seq_v3)
-        elif seq_v2 and seq_v3:
-            print_expression_diff(f"Test Group {prefix}", seq_v2, seq_v3)
-        
-        # Analyze linear relationship
-        if 'v1' in files and 'v2' in files and 'v3' in files:
-            # Get differences between v1 and v2 for insertion point analysis
-            diff_v1_v2_for_insertion = None
-            if seq_v1 and seq_v2:
-                diff_v1_v2_for_insertion = compare_expressions(seq_v1, seq_v2, "v1", "v2")
-            
-            file_path = file_paths.get(prefix)
-            analyze_linear_relationship(prefix, files['v1'], files['v2'], files['v3'],
-                                      source_values, seq_v1, diff_v1_v2_for_insertion, file_path, bpf_output_dir)
-
-    # Populate ss_raw: use manual safe_spans from testcases, or fall back to cs_raw
-    _populate_ss_raw(TESTCASES)
-
-
-def _populate_ss_raw(testcases):
-    """Populate ss_raw from testcase safe_spans or fall back to cs_raw entries.
-
-    Also populates ss_table with address ranges and updates scope_table SS_Index.
-    """
-    # Read existing cs_raw entries (grouped by ConstID)
-    cs_raw_by_id = {}
-    if os.path.exists(CS_RAW_PATH):
-        with open(CS_RAW_PATH, 'r', newline='') as f:
-            reader = csv.reader(f, delimiter='\t')
-            next(reader, None)  # skip header
-            for row in reader:
-                if len(row) >= 4:
-                    cs_raw_by_id.setdefault(row[0], []).append(row)
-
-    # Collect SS ranges per ConstID for ss_table population
-    ss_ranges_by_id = {}
-
-    for i, tc in enumerate(testcases, 1):
-        const_id = str(i)
-        if tc.safe_spans:
-            # Use manually specified SS ranges
-            for func_name, soff, eoff in tc.safe_spans:
-                add_ss_raw_entry(const_id, func_name, soff, eoff)
-            ss_ranges_by_id[const_id] = [
-                (func_name, soff, eoff) for func_name, soff, eoff in tc.safe_spans
-            ]
-            print(f"  ConstID {const_id}: wrote {len(tc.safe_spans)} manual SS entries")
-        elif const_id in cs_raw_by_id:
-            # Fallback: copy CS entries as SS (CS ⊆ SS)
-            ranges = []
-            for row in cs_raw_by_id[const_id]:
-                add_ss_raw_entry(const_id, row[1], row[2], row[3])
-                ranges.append((row[1], row[2], row[3]))
-            ss_ranges_by_id[const_id] = ranges
-            print(f"  ConstID {const_id}: copied {len(ranges)} CS entries as SS (no safe_spans specified)")
-        else:
-            print(f"  ConstID {const_id}: no CS entries and no safe_spans, skipping SS")
-
-    # Populate ss_table and update scope_table SS_Index
-    _update_scope_table_ss_index(ss_ranges_by_id)
-
-
 def _update_scope_table_ss_index(ss_ranges_by_id: dict):
     """Populate ss_table with address ranges and update scope_table SS_Index.
 
@@ -4566,8 +4394,7 @@ def _update_scope_table_ss_index(ss_ranges_by_id: dict):
 def run_codegen_single(config, const_id: int, verbose: bool = False):
     """Run code generation for a single tunable config.
 
-    Unlike run_codegen(), this does NOT clear all tables. It appends to
-    the shared scope table incrementally.
+    Appends to the shared scope table incrementally.
 
     Args:
         config: TunableConfig instance (from src.config)
@@ -4679,14 +4506,4 @@ def _populate_ss_raw_single(const_id: int, config):
 
     # Populate ss_table and update scope_table SS_Index
     _update_scope_table_ss_index(ss_ranges_by_id)
-
-
-def main():
-    """Entry point for standalone execution."""
-    verbose = '--verbose' in sys.argv or '-v' in sys.argv
-    run_codegen(verbose=verbose)
-
-
-if __name__ == '__main__':
-    main()
 

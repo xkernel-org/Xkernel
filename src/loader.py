@@ -263,6 +263,12 @@ def compile_single_bpf(bpf_c_path, bpf_dir):
         Path to the compiled .bpf.o file, or None on failure
     """
     obj = bpf_c_path[:-2] + '.o'  # .bpf.c -> .bpf.o
+    # Remove stale .o if not writable (e.g. left behind by a previous sudo run)
+    if os.path.exists(obj) and not os.access(obj, os.W_OK):
+        try:
+            os.remove(obj)
+        except OSError:
+            subprocess.run(['sudo', 'rm', '-f', obj])
     cmd = [
         'clang', '-g', '-O2', '-target', 'bpf',
         '-D__TARGET_ARCH_x86',
@@ -563,8 +569,20 @@ def ensure_kfuncs_loaded(project_root):
 
     kfuncs_path = os.path.join(project_root, 'kernel', 'kfuncs', 'xk-kfuncs.ko')
     if not os.path.exists(kfuncs_path):
-        print(f"Error: kfuncs module not found: {kfuncs_path}", file=sys.stderr)
-        return False
+        # Auto-build the module
+        kfuncs_dir = os.path.join(project_root, 'kernel', 'kfuncs')
+        print("kfuncs module not found, building...", file=sys.stderr)
+        env = os.environ.copy()
+        env['PWD'] = kfuncs_dir
+        ret = subprocess.run(['make', f'-j{os.cpu_count()}'], cwd=kfuncs_dir,
+                             capture_output=True, text=True, env=env)
+        if ret.returncode != 0 or not os.path.exists(kfuncs_path):
+            print(f"Error: Failed to build kfuncs module", file=sys.stderr)
+            if ret.stderr:
+                print(ret.stderr.rstrip(), file=sys.stderr)
+            print(f"Try manually: cd {kfuncs_dir} && make", file=sys.stderr)
+            return False
+        print("kfuncs module built successfully", file=sys.stderr)
 
     print("Loading kfuncs module...", file=sys.stderr)
     result = subprocess.run(['sudo', 'insmod', kfuncs_path],
