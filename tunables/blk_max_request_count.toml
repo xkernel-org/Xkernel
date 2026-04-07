@@ -1,0 +1,20 @@
+kernel_dir = "~/linux-6.14.0-xkernel"
+
+name = "BLK_MAX_REQUEST_COUNT"
+description = "block/blk-mq.c BLK_MAX_REQUEST_COUNT"
+
+[source]
+file = "block/blk-mq.c"
+original = "BLK_MAX_REQUEST_COUNT"
+modified = ["8", "16"]
+values = [32, 8, 16]
+
+[[safe_spans]]
+function = "blk_start_plug_nr_ios"
+start_offset = "0x29"
+end_offset = "0x584"
+
+[[safe_spans]]
+function = "blk_add_rq_to_plug"
+start_offset = "0xd1"
+end_offset = "0xd5"
