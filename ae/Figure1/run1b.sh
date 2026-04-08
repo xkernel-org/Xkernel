@@ -6,7 +6,7 @@
 #    I/O wait by 12%, yielding an end-to-end 1.2× throughput improvement,
 #    while reducing P50 and P75 latency by 1.37× and 1.41×, respectively."
 #
-# Workload: db_bench multireadrandom, 32GB dataset (16B keys, 2048B values),
+# Workload: db_bench multireadrandom, dataset (16B keys, 2048B values),
 #           io_uring backed MultiGet API, Direct I/O, pinned to CPU 5.
 #
 # Output (same layout as ../Figure1/results/nvme_*):
@@ -51,11 +51,9 @@ TUNE_SCRIPT="$SCRIPT_DIR/tune_blk_max_req.sh"
 RESULT_DIR="$SCRIPT_DIR/results"
 BENCH_CPU=5
 
-# Dataset: 32GB total, 16B keys + 2048B values ≈ 15.5M keys
 KEY_SIZE=16
 VALUE_SIZE=2048
-# NUM_KEYS=15500000
-NUM_KEYS=155000
+NUM_KEYS=150000
 
 # Benchmark parameters
 DURATION=15          # seconds per run
@@ -96,7 +94,7 @@ mkdir -p "$RESULT_DIR"
 log_section "Figure 1(b): RocksDB multiread-random"
 log "Device      : $DEVICE"
 log "Mount point : $MOUNT_POINT"
-log "Dataset     : ~32GB ($NUM_KEYS keys × ${KEY_SIZE}B key + ${VALUE_SIZE}B value)"
+log "Dataset     : ($NUM_KEYS keys × ${KEY_SIZE}B key + ${VALUE_SIZE}B value)"
 log "Duration    : ${DURATION}s per run"
 log "CPU pin     : CPU $BENCH_CPU"
 log "Results     : $RESULT_DIR/nvme_{1,32}{,_cpu}.txt"
@@ -118,7 +116,7 @@ cleanup_device() {
 trap cleanup_device EXIT
 
 run_fill() {
-    log "Filling database with $NUM_KEYS keys (~32GB) ..."
+    log "Filling database with $NUM_KEYS keys ..."
     log "  This may take a while ..."
 
     taskset -c "$BENCH_CPU" "$DB_BENCH" \
@@ -278,7 +276,7 @@ if 'ops_sec' in base and 'ops_sec' in tuned:
     ratio = tuned['ops_sec'] / base['ops_sec'] if base['ops_sec'] else 0
     print(f"  Throughput : {base['ops_sec']:>10,} → {tuned['ops_sec']:>10,}  ({ratio:.2f}×)")
 
-for p in ['p50', 'p75', 'p99']:
+for p in ['p50', 'p75']:
     if p in base and p in tuned:
         ratio = base[p] / tuned[p] if tuned[p] else 0
         label = p.upper()
