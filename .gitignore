@@ -11,6 +11,8 @@ paper.pdf
 *.ko.unsigned
 *.o.d
 *.pyc
+*.pdf
+*.log
 
 compile_commands.json
 .cache
