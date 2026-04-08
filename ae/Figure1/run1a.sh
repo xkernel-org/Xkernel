@@ -19,3 +19,4 @@ sudo bash fio_bench.sh READ.fio > results/hdd_128_read.log
 
 sudo ./tune_blk_max_req.sh unload
 sudo ~/Xkernel/xkernel-tool table delete --all -y
+rm -rf ~/Xkernel/bpf/stubs/*

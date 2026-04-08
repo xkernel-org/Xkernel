@@ -43,7 +43,7 @@ log_section() {
 }
 
 # ── Configuration ────────────────────────────────────────────────────
-DEVICE="${1:-/dev/sdb}"
+DEVICE="${1:-/dev/nvme1n1}"
 MOUNT_POINT="/mnt/rocksdb_bench"
 DB_BENCH="$SCRIPT_DIR/rocksdb/db_bench"
 DB_PATH="$MOUNT_POINT/rocksdb_data"
@@ -54,10 +54,11 @@ BENCH_CPU=5
 # Dataset: 32GB total, 16B keys + 2048B values ≈ 15.5M keys
 KEY_SIZE=16
 VALUE_SIZE=2048
-NUM_KEYS=15500000
+# NUM_KEYS=15500000
+NUM_KEYS=15500
 
 # Benchmark parameters
-DURATION=120          # seconds per run
+DURATION=15          # seconds per run
 BATCH_SIZE=64         # MultiGet batch size
 NUM_THREADS=1         # single-threaded, pinned to one CPU
 
@@ -316,6 +317,8 @@ run_multiread 1
 # ── Unload tunable ───────────────────────────────────────────────────
 log "Unloading BLK_MAX_REQUEST_COUNT tunable ..."
 bash "$TUNE_SCRIPT" unload || true
+sudo ~/Xkernel/xkernel-tool table delete --all -y
+rm -rf ~/Xkernel/bpf/stubs/*
 
 # ── Compare ──────────────────────────────────────────────────────────
 log_section "Comparison"
