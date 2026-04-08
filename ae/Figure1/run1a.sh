@@ -7,8 +7,8 @@ mkdir -p iolog
 
 echo "Generating I/O logs..."
 
-python gen_iolog.py --dev sdb --op write --outfile iolog/iolog_write.txt
-python gen_iolog.py --dev sdb --op read --outfile iolog/iolog_read.txt
+python gen_iolog.py --dev sdb --op write --outfile iolog/iolog_write.txt --bs 512
+python gen_iolog.py --dev sdb --op read --outfile iolog/iolog_read.txt --bs 512
 
 mkdir -p results
 

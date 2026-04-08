@@ -13,7 +13,7 @@ def main():
     p.add_argument("--stride", type=int, default=0, help="Byte spacing between adjacent sorted IOs (default: 0)")
     p.add_argument("--start-offset", type=int, default=0, help="Starting byte offset")
     p.add_argument("--region-gap", type=int, default=0, help="Extra byte gap between regions (default: 0, regions are contiguous)")
-    p.add_argument("--repeat", type=int, default=20, help="Repeat the entire pattern N times")
+    p.add_argument("--repeat", type=int, default=5, help="Repeat the entire pattern N times")
     p.add_argument("--shuffle", default="random", choices=["random","adversarial"],
                    help="Shuffle mode: random (default) or adversarial (minimize merging in small batches)")
     p.add_argument("--seed", type=int, default=42, help="RNG seed for reproducibility")

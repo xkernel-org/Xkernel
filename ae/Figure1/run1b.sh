@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# run.sh — Figure 1(b): RocksDB multiread-random benchmark
+# run1b.sh — Figure 1(b): RocksDB multiread-random benchmark
 #
 # Reproduces Figure 1(b) from the paper:
 #   "Reducing BLK_MAX_REQUEST_COUNT from 32 to 1 reduces CPU time spent on
@@ -9,26 +9,26 @@
 # Workload: db_bench multireadrandom, dataset (16B keys, 2048B values),
 #           io_uring backed MultiGet API, Direct I/O, pinned to CPU 5.
 #
-# Output (same layout as ../Figure1/results/nvme_*):
-#   ../Figure1/results/nvme_32.txt      — db_bench output (baseline, V=32)
-#   ../Figure1/results/nvme_32_cpu.txt  — sar CPU usage  (baseline)
-#   ../Figure1/results/nvme_1.txt       — db_bench output (tuned,    V=1)
-#   ../Figure1/results/nvme_1_cpu.txt   — sar CPU usage  (tuned)
+# Output:
+#   results/nvme_32.txt      — db_bench output (baseline, V=32)
+#   results/nvme_32_cpu.txt  — sar CPU usage  (baseline)
+#   results/nvme_1.txt       — db_bench output (tuned,    V=1)
+#   results/nvme_1_cpu.txt   — sar CPU usage  (tuned)
 #
 # Usage:
-#   sudo bash ae/Figure1b/run.sh              # uses /dev/sdb
-#   sudo bash ae/Figure1b/run.sh /dev/nvme0n1  # specify device
+#   bash run1b.sh                  # uses /dev/nvme1n1
+#   bash run1b.sh /dev/sdb         # specify device
 #
 # Prerequisites:
-#   - RocksDB installed: bash ae/Figure1b/install_rocksdb.sh
-#   - xkernel kernel booted + tunables built: sudo bash build.sh
+#   - RocksDB installed (rocksdb/db_bench must exist)
+#   - xkernel kernel booted + tunables built
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)"
 PROJECT_ROOT="$(dirname "$(dirname "$SCRIPT_DIR")")"
 XKTOOL="$PROJECT_ROOT/xkernel-tool"
 
-# ── Logging helpers (self-contained, no common.sh) ───────────────────
+# ── Logging helpers ──────────────────────────────────────────────────
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[0;33m'
 BOLD='\033[1m'; CYAN='\033[36m'; RST='\033[0m'
 log()         { echo -e "${BOLD}[$(date '+%H:%M:%S')]${RST} $*"; }
@@ -61,14 +61,14 @@ BATCH_SIZE=256         # MultiGet batch size
 NUM_THREADS=1         # single-threaded, pinned to one CPU
 
 # ── Preflight checks ────────────────────────────────────────────────
-if [[ $EUID -ne 0 ]]; then
-    log_err "This script requires root. Run with: sudo $0"
-    exit 1
+if ! sudo -n true 2>/dev/null; then
+    log "This script needs sudo privileges. You may be prompted for your password."
+    sudo true || { log_err "Failed to obtain sudo. Aborting."; exit 1; }
 fi
 
 if [[ ! -x "$DB_BENCH" ]]; then
     log_err "db_bench not found at $DB_BENCH"
-    log_err "Run: bash ae/Figure1b/install_rocksdb.sh"
+    log_err "Run: bash install_rocksdb.sh"
     exit 1
 fi
 
@@ -102,16 +102,17 @@ log "Results     : $RESULT_DIR/nvme_{1,32}{,_cpu}.txt"
 # ── Helper functions ─────────────────────────────────────────────────
 setup_device() {
     log "Formatting $DEVICE as ext4 and mounting at $MOUNT_POINT ..."
-    umount "$MOUNT_POINT" 2>/dev/null || true
-    mkfs.ext4 -F "$DEVICE" 2>&1 | tail -1
-    mkdir -p "$MOUNT_POINT"
-    mount -o noatime,nodiratime "$DEVICE" "$MOUNT_POINT"
+    sudo umount "$MOUNT_POINT" 2>/dev/null || true
+    sudo mkfs.ext4 -F "$DEVICE" 2>&1 | tail -1
+    sudo mkdir -p "$MOUNT_POINT"
+    sudo mount -o noatime,nodiratime "$DEVICE" "$MOUNT_POINT"
+    sudo chmod 777 "$MOUNT_POINT"
     log_ok "Mounted $DEVICE at $MOUNT_POINT"
 }
 
 cleanup_device() {
     log "Cleaning up mount ..."
-    umount "$MOUNT_POINT" 2>/dev/null || true
+    sudo umount "$MOUNT_POINT" 2>/dev/null || true
 }
 trap cleanup_device EXIT
 
@@ -141,7 +142,7 @@ run_fill() {
 
     # Drop page cache
     sync
-    echo 3 > /proc/sys/vm/drop_caches
+    sudo sh -c 'echo 3 > /proc/sys/vm/drop_caches'
     log_ok "Database fill complete"
 }
 
@@ -161,7 +162,7 @@ run_multiread() {
 
     # Drop page cache between runs
     sync
-    echo 3 > /proc/sys/vm/drop_caches
+    sudo sh -c 'echo 3 > /proc/sys/vm/drop_caches'
 
     # Start sar on the pinned CPU (1-second intervals, raw per-second output)
     sar -u -P "$BENCH_CPU" 1 > "$cpu_out" 2>&1 &
@@ -306,7 +307,7 @@ run_multiread 32
 
 # ── Tune: Set BLK_MAX_REQUEST_COUNT = 1 via KernelX ─────────────────
 log_section "Tuning BLK_MAX_REQUEST_COUNT = 1"
-bash "$TUNE_SCRIPT" 1
+sudo bash "$TUNE_SCRIPT" 1
 
 # ── Run 2: Tuned (BLK_MAX_REQUEST_COUNT = 1) ────────────────────────
 log_section "Run 2: Tuned (BLK_MAX_REQUEST_COUNT = 1)"
@@ -314,9 +315,9 @@ run_multiread 1
 
 # ── Unload tunable ───────────────────────────────────────────────────
 log "Unloading BLK_MAX_REQUEST_COUNT tunable ..."
-bash "$TUNE_SCRIPT" unload || true
-sudo ~/Xkernel/xkernel-tool table delete --all -y
-rm -rf ~/Xkernel/bpf/stubs/*
+sudo bash "$TUNE_SCRIPT" unload || true
+sudo "$XKTOOL" table delete --all -y
+sudo rm -rf "$PROJECT_ROOT/bpf/stubs/"*
 
 # ── Compare ──────────────────────────────────────────────────────────
 log_section "Comparison"
