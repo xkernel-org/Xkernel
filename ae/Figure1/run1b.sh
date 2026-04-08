@@ -55,11 +55,11 @@ BENCH_CPU=5
 KEY_SIZE=16
 VALUE_SIZE=2048
 # NUM_KEYS=15500000
-NUM_KEYS=15500
+NUM_KEYS=155000
 
 # Benchmark parameters
 DURATION=15          # seconds per run
-BATCH_SIZE=64         # MultiGet batch size
+BATCH_SIZE=256         # MultiGet batch size
 NUM_THREADS=1         # single-threaded, pinned to one CPU
 
 # ── Preflight checks ────────────────────────────────────────────────
