@@ -3,17 +3,17 @@ import argparse, random, sys
 
 def main():
     p = argparse.ArgumentParser(description="Generate fio iolog of randomized 4K IOs per region.")
-    p.add_argument("--outfile", default="iolog.txt", help="Output iolog filename")
-    p.add_argument("--dev", dest="dev_name", default="/dev/target", help="Device token/path in iolog")
-    p.add_argument("--op", dest="task_type", default="read", choices=["read","write","mix"], help="I/O op")
+    p.add_argument("--outfile", default="iolog_write.txt", help="Output iolog filename")
+    p.add_argument("--dev", dest="dev_name", default="/dev/sdb", help="Device token/path in iolog")
+    p.add_argument("--op", dest="task_type", default="write", choices=["read","write","mix"], help="I/O op")
     p.add_argument("--read-ratio", type=float, default=0.5, help="Read ratio for mix mode (0.0-1.0, default 0.5)")
     p.add_argument("--regions", type=int, default=256, help="# of regions")
     p.add_argument("--ios-per-region", type=int, default=128, help="# of IOs per region")
-    p.add_argument("--bs", type=int, default=512, help="IO size in bytes (default 512, must align to device LBS)")
-    p.add_argument("--stride", type=int, default=None, help="Byte spacing between adjacent sorted IOs (default: same as bs)")
+    p.add_argument("--bs", type=int, default=4096, help="IO size in bytes (default 4096, must align to device LBS)")
+    p.add_argument("--stride", type=int, default=0, help="Byte spacing between adjacent sorted IOs (default: 0)")
     p.add_argument("--start-offset", type=int, default=0, help="Starting byte offset")
     p.add_argument("--region-gap", type=int, default=0, help="Extra byte gap between regions (default: 0, regions are contiguous)")
-    p.add_argument("--repeat", type=int, default=4, help="Repeat the entire pattern N times")
+    p.add_argument("--repeat", type=int, default=20, help="Repeat the entire pattern N times")
     p.add_argument("--shuffle", default="random", choices=["random","adversarial"],
                    help="Shuffle mode: random (default) or adversarial (minimize merging in small batches)")
     p.add_argument("--seed", type=int, default=42, help="RNG seed for reproducibility")

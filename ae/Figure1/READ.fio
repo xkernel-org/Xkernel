@@ -15,6 +15,6 @@ replay_no_stall=1
 
 [job]
 name=regioned-rand4k
-read_iolog=iolog_read.txt
+read_iolog=iolog/iolog_read.txt
 replay_redirect=/dev/sdb
     
