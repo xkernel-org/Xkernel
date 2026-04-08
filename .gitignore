@@ -23,6 +23,7 @@ __pycache__/
 
 # Generated artifacts
 bpf/vmlinux.h
+bpf/stubs/*.bpf.*
 bb_cache/
 bpf/stubs/*.bpf.o
 
@@ -34,3 +35,4 @@ build/
 
 # AE results (generated)
 ae/results/
+ae/Figure1/rocksdb

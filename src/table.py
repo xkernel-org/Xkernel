@@ -561,6 +561,8 @@ Examples:
     delete_parser.add_argument('--status', help='Delete entries matching Status')
     delete_parser.add_argument('--all', action='store_true', 
                                help='Delete all entries (use with caution!)')
+    delete_parser.add_argument('-y', '--yes', action='store_true',
+                               help='Skip confirmation prompt')
     
     # List command
     list_parser = subparsers.add_parser('list', help='List all tables (Scope, CS, SS)')
@@ -635,7 +637,7 @@ Examples:
     
     elif args.command == 'delete':
         # Safety check for --all
-        if args.all:
+        if args.all and not args.yes:
             response = input("Are you sure you want to delete ALL entries? (yes/no): ")
             if response.lower() != 'yes':
                 print("Operation cancelled.")

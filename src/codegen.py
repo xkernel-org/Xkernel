@@ -2684,6 +2684,7 @@ def analyze_linear_relationship(prefix: str, v1_file: str, v2_file: str, v3_file
         synthesis_type = 'simple'
         seed_offset = None
         base_seed_mnemonic = ''
+        sbb_self_before_seed = False  # True if preceding instruction is sbb %reg,%reg
         if step_idx < len(all_insts_v1):
             seed_inst_line = all_insts_v1[step_idx]
             clean_seed = re.sub(r'^\s*\[\*\]\s*', '', seed_inst_line.strip())
@@ -2699,6 +2700,27 @@ def analyze_linear_relationship(prefix: str, v1_file: str, v2_file: str, v3_file
                 if addr_m:
                     raw_seed = int(addr_m.group(1), 16)
                     seed_offset = (raw_seed - func_base) if func_base is not None else raw_seed
+
+                # --- Check for sbb %reg,%reg optimization ---
+                # If the instruction immediately before the seed is `sbb %reg,%reg`
+                # (same register as both operands), the saved value is binary
+                # (0 or 0xFFFFFFFF).  We can infer which case from the current
+                # register value using the original V, eliminating the save kprobe.
+                if step_idx > 0 and step_idx - 1 < len(all_insts_v1):
+                    prev_line = all_insts_v1[step_idx - 1]
+                    prev_clean = re.sub(r'^\s*\[\*\]\s*', '', prev_line.strip())
+                    prev_tab = prev_clean.find('\t')
+                    if prev_tab >= 0:
+                        prev_asm = prev_clean[prev_tab + 1:].strip()
+                        prev_parts = prev_asm.split()
+                        prev_mnemonic_raw = prev_parts[0].lower() if prev_parts else ''
+                        if prev_mnemonic_raw in ('sbb', 'sbbl', 'sbbw', 'sbbq') and len(prev_parts) >= 2:
+                            operand_str = ' '.join(prev_parts[1:])
+                            ops = [o.strip() for o in operand_str.split(',')]
+                            if len(ops) == 2 and ops[0] == ops[1]:
+                                sbb_self_before_seed = True
+                                print(f"  SBB-self optimization: preceding instruction is `{prev_asm}` → saved ∈ {{0, 0xFFFFFFFF}}")
+
         print(f"  Synthesis type: {synthesis_type} (seed mnemonic: {base_seed_mnemonic or 'unknown'})")
 
         # --- Scan forward for effective end (compound irreversible) ---
@@ -2821,6 +2843,7 @@ def analyze_linear_relationship(prefix: str, v1_file: str, v2_file: str, v3_file
             'seed_offset': seed_offset,
             'seed_mnemonic': base_seed_mnemonic,
             'compound_expr': compound_expr,
+            'sbb_self_before_seed': sbb_self_before_seed,
         })
 
     if not found_any_relationship:
@@ -3089,9 +3112,11 @@ def generate_multi_kprobe_bpf_file(prefix: str, kprobes: List[Dict], v1_src: int
     hdr.append('#include "cs_artifact.bpf.h"')
     hdr.append('')
 
-    # --- Per-CPU save maps (irreversible kprobes only) ---
+    # --- Per-CPU save maps (irreversible kprobes only, skip if sbb-self optimized) ---
     for i, kp in enumerate(kprobes):
-        if kp.get('synthesis_type') == 'irreversible' and kp.get('seed_offset') is not None:
+        if (kp.get('synthesis_type') == 'irreversible'
+                and kp.get('seed_offset') is not None
+                and not kp.get('sbb_self_before_seed', False)):
             hdr.append(f'// Per-CPU input-save map for kprobe {i} (irreversible synthesis)')
             hdr.append('struct {')
             hdr.append('    __uint(type, BPF_MAP_TYPE_PERCPU_ARRAY);')
@@ -3129,15 +3154,40 @@ def generate_multi_kprobe_bpf_file(prefix: str, kprobes: List[Dict], v1_src: int
             field = reg_to_ptregs_field.get(target_reg, target_reg)
             compound = kp.get('compound_expr')
 
-            hdr.append(f'// SIE helper {i}: irreversible ({seed_mnemonic}) -> %{target_reg}')
-            hdr.append(f'static __always_inline void {helper_name}(struct pt_regs *regs, u64 val) {{')
-            hdr.append(f'    __u32 key = 0;')
-            hdr.append(f'    __u64 *saved = bpf_map_lookup_elem(&xk_save_{i}, &key);')
-            hdr.append(f'    if (!saved) return;')
-            hdr.append(f'    u64 result = (u64){compound};')
-            hdr.append(f'    sie_write_kernel(&regs->{field}, sizeof(regs->{field}), &result);')
-            hdr.append('}')
-            hdr.append('')
+            if kp.get('sbb_self_before_seed', False):
+                # Optimized path: preceding sbb %reg,%reg means saved ∈ {0, 0xFFFFFFFF}.
+                # We infer which case from the current register value (computed with V_orig).
+                # With saved=0:          result_orig = compound(0, V_orig)
+                # With saved=0xFFFFFFFF: result_orig = compound(0xFFFFFFFF, V_orig)
+                # At the kprobe point, cur_reg equals one of these two values.
+                v_orig = v1_src
+                # Evaluate compound for both saved cases using V_orig
+                eval_compound_0 = compound.replace('(*saved)', '((u64)0)')
+                eval_compound_f = compound.replace('(*saved)', '((u64)0xFFFFFFFF)')
+
+                hdr.append(f'#define V_ORIG_{i} {v_orig}  // original source value')
+                hdr.append(f'')
+                hdr.append(f'// SIE helper {i}: irreversible ({seed_mnemonic}) -> %{target_reg}')
+                hdr.append(f'// Optimized: sbb-self before seed → infer saved from current reg')
+                hdr.append(f'static __always_inline void {helper_name}(struct pt_regs *regs, u64 val) {{')
+                hdr.append(f'    u32 cur = (u32)(regs->{field});')
+                hdr.append(f'    // With V_orig, saved=0 gives {eval_compound_0},')
+                hdr.append(f'    //              saved=-1 gives {eval_compound_f}')
+                hdr.append(f'    u64 saved_inferred = (cur > V_ORIG_{i}) ? (u64)0 : (u64)0xFFFFFFFF;')
+                hdr.append(f'    u64 result = (u64){compound.replace("(*saved)", "saved_inferred")};')
+                hdr.append(f'    sie_write_kernel(&regs->{field}, sizeof(regs->{field}), &result);')
+                hdr.append('}')
+                hdr.append('')
+            else:
+                hdr.append(f'// SIE helper {i}: irreversible ({seed_mnemonic}) -> %{target_reg}')
+                hdr.append(f'static __always_inline void {helper_name}(struct pt_regs *regs, u64 val) {{')
+                hdr.append(f'    __u32 key = 0;')
+                hdr.append(f'    __u64 *saved = bpf_map_lookup_elem(&xk_save_{i}, &key);')
+                hdr.append(f'    if (!saved) return;')
+                hdr.append(f'    u64 result = (u64){compound};')
+                hdr.append(f'    sie_write_kernel(&regs->{field}, sizeof(regs->{field}), &result);')
+                hdr.append('}')
+                hdr.append('')
 
         elif synthesis_type == 'cmp_immediate':
             cmp_reg = kp.get('cmp_reg', 'eax')
@@ -3162,9 +3212,11 @@ def generate_multi_kprobe_bpf_file(prefix: str, kprobes: List[Dict], v1_src: int
             hdr.append('}')
             hdr.append('')
 
-    # --- Save handlers for irreversible kprobes (raw BPF_KPROBE in header) ---
+    # --- Save handlers for irreversible kprobes (skip if sbb-self optimized) ---
     for i, kp in enumerate(kprobes):
-        if kp.get('synthesis_type') == 'irreversible' and kp.get('seed_offset') is not None:
+        if (kp.get('synthesis_type') == 'irreversible'
+                and kp.get('seed_offset') is not None
+                and not kp.get('sbb_self_before_seed', False)):
             func_name = kp['function_name']
             seed_offset = kp['seed_offset']
             target_reg = kp['actual_reg_name']
