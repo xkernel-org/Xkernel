@@ -3,7 +3,7 @@
 """Plot fio throughput bar chart from results/ log files.
 
 Expected files in ../results/:
-  hdd_32_read.log, hdd_128_read.log, hdd_32_write.log, hdd_128_write.log
+  hdd_32_read.txt, hdd_128_read.txt, hdd_32_write.txt, hdd_128_write.txt
 """
 import matplotlib.pyplot as plt
 import numpy as np
@@ -44,10 +44,10 @@ def parse_log(path):
 
 # Read results
 log_files = {
-    'read_32':  os.path.join(results_dir, 'hdd_32_read.log'),
-    'read_128': os.path.join(results_dir, 'hdd_128_read.log'),
-    'write_32': os.path.join(results_dir, 'hdd_32_write.log'),
-    'write_128': os.path.join(results_dir, 'hdd_128_write.log'),
+    'read_32':  os.path.join(results_dir, 'hdd_32_read.txt'),
+    'read_128': os.path.join(results_dir, 'hdd_128_read.txt'),
+    'write_32': os.path.join(results_dir, 'hdd_32_write.txt'),
+    'write_128': os.path.join(results_dir, 'hdd_128_write.txt'),
 }
 
 results = {}

@@ -19,7 +19,7 @@ done
 
 # Temp files (cleaned up on exit)
 FIO_JSON=$(mktemp /tmp/fio_bench.XXXXXX.json)
-SAR_LOG=$(mktemp /tmp/fio_bench_sar.XXXXXX.log)
+SAR_LOG=$(mktemp /tmp/fio_bench_sar.XXXXXX.txt)
 trap 'rm -f "$FIO_JSON" "$SAR_LOG"' EXIT
 
 if [ $# -gt 0 ]; then

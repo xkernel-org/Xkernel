@@ -10,12 +10,12 @@ python gen_iolog.py --dev sdb --op read --outfile iolog/iolog_read.txt
 
 mkdir -p results
 
-sudo bash fio_bench.sh WRITE.fio > results/hdd_32_write.log
-sudo bash fio_bench.sh READ.fio > results/hdd_32_read.log
+sudo bash fio_bench.sh WRITE.fio > results/hdd_32_write.txt
+sudo bash fio_bench.sh READ.fio > results/hdd_32_read.txt
 
 sudo ./tune_blk_max_req.sh 128
-sudo bash fio_bench.sh WRITE.fio > results/hdd_128_write.log
-sudo bash fio_bench.sh READ.fio > results/hdd_128_read.log
+sudo bash fio_bench.sh WRITE.fio > results/hdd_128_write.txt
+sudo bash fio_bench.sh READ.fio > results/hdd_128_read.txt
 
 sudo ./tune_blk_max_req.sh unload
 sudo ~/Xkernel/xkernel-tool table delete --all -y

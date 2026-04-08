@@ -52,10 +52,10 @@ def parse_hdd_log(path):
 
 # --- Part A: Throughput 数据 (from HDD results) ---
 try:
-    t_32_read  = parse_hdd_log(os.path.join(results_dir, 'hdd_32_read.log'))
-    t_128_read = parse_hdd_log(os.path.join(results_dir, 'hdd_128_read.log'))
-    t_32_write  = parse_hdd_log(os.path.join(results_dir, 'hdd_32_write.log'))
-    t_128_write = parse_hdd_log(os.path.join(results_dir, 'hdd_128_write.log'))
+    t_32_read  = parse_hdd_log(os.path.join(results_dir, 'hdd_32_read.txt'))
+    t_128_read = parse_hdd_log(os.path.join(results_dir, 'hdd_128_read.txt'))
+    t_32_write  = parse_hdd_log(os.path.join(results_dir, 'hdd_32_write.txt'))
+    t_128_write = parse_hdd_log(os.path.join(results_dir, 'hdd_128_write.txt'))
 except FileNotFoundError as e:
     print(f"Warning: HDD log not found ({e}). Using dummy data.", file=sys.stderr)
     t_32_read, t_128_read = 28.1, 201
