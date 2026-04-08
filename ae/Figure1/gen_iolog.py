@@ -9,9 +9,13 @@ def main():
     p.add_argument("--read-ratio", type=float, default=0.5, help="Read ratio for mix mode (0.0-1.0, default 0.5)")
     p.add_argument("--regions", type=int, default=256, help="# of regions")
     p.add_argument("--ios-per-region", type=int, default=128, help="# of IOs per region")
-    p.add_argument("--bs", type=int, default=4096, help="IO size in bytes (default 4096, must align to device LBS)")
+    p.add_argument("--bs", type=int, default=512, help="IO size in bytes (default 512, must align to device LBS)")
+    p.add_argument("--stride", type=int, default=None, help="Byte spacing between adjacent sorted IOs (default: same as bs)")
     p.add_argument("--start-offset", type=int, default=0, help="Starting byte offset")
-    p.add_argument("--repeat", type=int, default=128, help="Repeat the entire pattern N times")
+    p.add_argument("--region-gap", type=int, default=0, help="Extra byte gap between regions (default: 0, regions are contiguous)")
+    p.add_argument("--repeat", type=int, default=4, help="Repeat the entire pattern N times")
+    p.add_argument("--shuffle", default="random", choices=["random","adversarial"],
+                   help="Shuffle mode: random (default) or adversarial (minimize merging in small batches)")
     p.add_argument("--seed", type=int, default=42, help="RNG seed for reproducibility")
     args = p.parse_args()
 
@@ -22,8 +26,9 @@ def main():
 
     random.seed(args.seed)
 
-    # region size = ios_per_region * bs
-    region_sz = args.ios_per_region * args.bs
+    stride = args.stride if args.stride else args.bs
+    # region size = ios_per_region * stride
+    region_sz = args.ios_per_region * stride
     with open(args.outfile, "w") as f:
         f.write("fio version 2 iolog\n")
         f.write(f"{args.dev_name} add\n")
@@ -32,10 +37,18 @@ def main():
         for _rep in range(args.repeat):
             base0 = args.start_offset
             for r in range(args.regions):
-                base = base0 + r * region_sz
+                base = base0 + r * (region_sz + args.region_gap)
                 # Generate all 4K-aligned offsets within this region
-                offs = [base + i*args.bs for i in range(args.ios_per_region)]
-                random.shuffle(offs)  # random order *within* region
+                offs = [base + i*stride for i in range(args.ios_per_region)]
+                if args.shuffle == "adversarial":
+                    # Interleave: pick every Nth element so that consecutive
+                    # groups of ~32 IOs have no adjacent offsets → zero merging
+                    n = args.ios_per_region
+                    k = n // 32 if n >= 32 else 1  # stride factor
+                    offs_sorted = sorted(offs)
+                    offs = [offs_sorted[(i * k) % n + (i * k) // n] for i in range(n)]
+                else:
+                    random.shuffle(offs)
                 
                 if args.task_type == "mix":
                     for off in offs:
