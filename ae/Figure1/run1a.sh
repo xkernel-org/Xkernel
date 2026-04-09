@@ -1,8 +1,5 @@
 #!/bin/bash
 
-sudo apt-get update
-sudo apt-get install -y fio liburing-dev
-
 mkdir -p iolog
 
 echo "Generating I/O logs..."

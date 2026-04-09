@@ -15,6 +15,7 @@ source ~/xk-py/bin/activate
 Please run this script on Cloudlab c220g5.
 
 ```bash
+bash install_fio.sh
 bash ./run1a.sh
 python plot/plot_1a.py      # → plot/figure1a.pdf
 ```
