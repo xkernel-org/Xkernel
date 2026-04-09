@@ -4,15 +4,18 @@
 
 Reads result files from the results directory, each named <batch_value>.txt.
 Each line has format: iter=N dmajflt=M dt_us=T
+The last few lines contain `time` output with CPU usage (e.g., "12%CPU").
 
-Produces a grouped bar chart of P50/P90/P99 latency per iteration (µs)
-on a log scale, with SHRINK_BATCH values on the x-axis.
+Produces a grouped bar chart of P50/P90/P99 delta time (µs, log scale)
+with a twin-axis CPU usage line, SHRINK_BATCH values on the x-axis.
+The default value (128) x-tick label is bolded.
 
 Usage:
-    python plot/plot.py                          # auto-detect latest results
-    python plot/plot.py results/20251126-034820  # specific results dir
+    python plot/plot.py                    # use results/ directory
+    python plot/plot.py path/to/results    # specific results dir
 """
 import os
+import re
 import sys
 import numpy as np
 
@@ -20,6 +23,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 import plot_common
 
 import matplotlib.pyplot as plt
+from matplotlib.ticker import LogLocator
 import seaborn as sns
 
 TEXT_SIZE = 18
@@ -28,44 +32,46 @@ TEXT_SIZE_XYAXIS = 20
 TEXT_SIZE_LEGEND = 20
 TICK_LENGTH_X = 5
 TICK_WIDTH_X = 1
+HEIGHT = 4.5
+
+DEFAULT_VALUE = '128'
 
 palette = sns.color_palette("mako", 6)
-COLOR_P50 = palette[1]
-COLOR_P90 = palette[3]
-COLOR_P99 = palette[5]
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 figure_dir = os.path.join(script_dir, '..')
 
 
-def find_latest_results():
-    """Find the most recent results subdirectory."""
-    results_base = os.path.join(figure_dir, 'results')
-    if not os.path.isdir(results_base):
-        return None
-    subdirs = sorted([
-        d for d in os.listdir(results_base)
-        if os.path.isdir(os.path.join(results_base, d))
-    ])
-    return os.path.join(results_base, subdirs[-1]) if subdirs else None
+def find_results_dir():
+    """Return the results directory."""
+    return os.path.join(figure_dir, 'results')
 
 
-def extract_dt_us(filepath):
-    """Extract dt_us values from a result file."""
+def extract_data_from_file(filepath):
+    """Extract dt_us values and CPU usage from a result file."""
     dt_us = []
+    cpu_usage = []
+
     with open(filepath) as f:
         for line in f:
             if 'dt_us=' in line:
-                for part in line.split():
+                parts = line.split()
+                for part in parts:
                     if part.startswith('dt_us='):
                         dt_us.append(int(part.split('=')[1]))
-    return dt_us
+            elif 'elapsed' in line:
+                m = re.search(r'([\d.]+)%CPU', line)
+                if m:
+                    cpu_usage.append(float(m.group(1)))
+
+    return dt_us, cpu_usage
 
 
 def process_results(results_dir):
-    """Process all result files, return sorted labels and percentiles."""
+    """Process all result files, return sorted percentiles, cpu usage, and labels."""
+    all_dt_us = []
+    all_cpu_usage = []
     labels = []
-    percentiles = []
 
     for fname in os.listdir(results_dir):
         if not fname.endswith('.txt') or fname == 'log.txt':
@@ -77,7 +83,7 @@ def process_results(results_dir):
             continue
 
         filepath = os.path.join(results_dir, fname)
-        dt_us = extract_dt_us(filepath)
+        dt_us, cpu_usage = extract_data_from_file(filepath)
         if not dt_us:
             print(f"Warning: no data in {fname}", file=sys.stderr)
             continue
@@ -87,44 +93,87 @@ def process_results(results_dir):
         p99 = np.percentile(dt_us, 99)
 
         labels.append(batch_val)
-        percentiles.append((p50, p90, p99))
+        all_dt_us.append((p50, p90, p99))
+        all_cpu_usage.append(np.mean(cpu_usage) if cpu_usage else 0)
 
     # Sort by numeric value
-    sorted_indices = sorted(range(len(labels)), key=lambda i: int(labels[i]))
-    labels = [labels[i] for i in sorted_indices]
-    percentiles = [percentiles[i] for i in sorted_indices]
+    sorted_labels = sorted(labels, key=lambda x: int(x))
+    sorted_dt_us = [all_dt_us[labels.index(l)] for l in sorted_labels]
+    sorted_cpu = [all_cpu_usage[labels.index(l)] for l in sorted_labels]
 
-    return labels, percentiles
+    return sorted_dt_us, sorted_cpu, sorted_labels
 
 
-def plot_figure10(labels, percentiles):
-    """Create Figure 10: latency bar chart."""
-    p50 = [max(p[0], 1) for p in percentiles]
-    p90 = [max(p[1], 1) for p in percentiles]
-    p99 = [max(p[2], 1) for p in percentiles]
+def plot_figure10(results_dir):
+    """Create Figure 10: delta time bar chart + CPU usage line."""
+    if not os.path.isdir(results_dir):
+        print(f"[skip] {results_dir} not found")
+        return
 
-    fig, ax = plt.subplots(figsize=(8, 4.5))
+    fig, ax = plt.subplots(figsize=(6, HEIGHT))
 
-    width = 0.22
+    all_dt_us, all_cpu_usage, labels = process_results(results_dir)
+
+    if not labels:
+        print("Error: No valid result files found.", file=sys.stderr)
+        plt.close(fig)
+        return
+
+    print(f"[*] Found {len(labels)} SHRINK_BATCH values: {', '.join(labels)}")
+    for label, (p50, p90, p99) in zip(labels, all_dt_us):
+        print(f"    SHRINK_BATCH={label:>4s}  P50={p50:>10.0f}  P90={p90:>10.0f}  P99={p99:>10.0f} µs")
+
+    p50 = [max(x[0], 1) for x in all_dt_us]
+    p90 = [max(x[1], 1) for x in all_dt_us]
+    p99 = [max(x[2], 1) for x in all_dt_us]
+
+    width = 0.2
     x = np.arange(len(labels))
 
-    ax.bar(x - width, p50, width, label='P50', color=COLOR_P50, zorder=2)
-    ax.bar(x,         p90, width, label='P90', color=COLOR_P90, zorder=2)
-    ax.bar(x + width, p99, width, label='P99', color=COLOR_P99, zorder=2)
+    ax.bar(x - width, p50, label='P50', color=palette[2], width=width, zorder=2)
+    ax.bar(x, p90, label='P90', color=palette[3], width=width, zorder=2)
+    ax.bar(x + width, p99, label='P99', color=palette[1], width=width, zorder=2)
 
-    ax.set_xlabel('SHRINK_BATCH', fontsize=TEXT_SIZE_XYLABEL)
-    ax.set_ylabel('Latency per Iteration (µs, log)', fontsize=TEXT_SIZE_XYLABEL)
+    ax.set_ylabel('Delta Time (μs)', fontsize=TEXT_SIZE_XYLABEL)
     ax.set_xticks(x)
-    ax.set_xticklabels(labels, fontsize=TEXT_SIZE_XYAXIS)
-    ax.tick_params(axis='y', labelsize=TEXT_SIZE_XYAXIS)
-    ax.tick_params(axis='x', length=TICK_LENGTH_X, width=TICK_WIDTH_X)
+    ax.set_xticklabels(labels, fontsize=TEXT_SIZE_XYAXIS, ha='center')
+    ax.set_xlabel('Value of Perf-Const', fontsize=TEXT_SIZE_XYLABEL)
+    ax.tick_params(axis='x', length=TICK_LENGTH_X, width=TICK_WIDTH_X, labelsize=TEXT_SIZE_XYAXIS)
+
+    # Bold the default value tick label
+    for tick in ax.xaxis.get_major_ticks():
+        if tick.label1.get_text() == DEFAULT_VALUE:
+            tick.label1.set_fontweight('bold')
+
     ax.set_yscale('log')
-    ax.grid(True, which='major', axis='y', linestyle='--', linewidth=0.5)
+    ax.yaxis.set_major_locator(LogLocator(base=10, numticks=20))
+    ax.yaxis.set_minor_locator(LogLocator(base=10, subs=np.arange(2, 10), numticks=100))
+    ax.tick_params(axis='y', which='major', length=8, width=2, labelsize=TEXT_SIZE_XYAXIS)
+    ax.tick_params(axis='y', which='minor', length=4, width=1.5)
+
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
-    ax.legend(loc='upper left', frameon=False, fontsize=TEXT_SIZE_LEGEND)
+    ax.spines['left'].set_linewidth(1)
+    ax.spines['bottom'].set_linewidth(1)
 
-    plt.tight_layout()
+    # Twin axis for CPU usage
+    ax_twin = ax.twinx()
+    ax_twin.plot(labels, all_cpu_usage, label='CPU Usage', color=palette[0],
+                 linewidth=2, marker=plot_common.markers[0], markersize=10, zorder=1)
+    ax_twin.set_ylabel('CPU Usage (%)', fontsize=TEXT_SIZE_XYLABEL)
+    ax_twin.set_ylim(0, 100)
+    ax_twin.tick_params(axis='y', length=10, width=2, labelsize=TEXT_SIZE_XYAXIS)
+    ax_twin.spines['top'].set_visible(False)
+    ax_twin.spines['right'].set_linewidth(1)
+
+    # Combined legend
+    handles1, labels1 = ax.get_legend_handles_labels()
+    handles2, labels2 = ax_twin.get_legend_handles_labels()
+    ax.legend(handles1 + handles2, labels1 + labels2,
+              loc='upper left', bbox_to_anchor=(-0.01, 0.93),
+              frameon=False, fontsize=TEXT_SIZE_LEGEND)
+
+    fig.tight_layout()
     plot_common.save_fig(script_dir, 'figure10')
     plt.close(fig)
     print(f"[✓] Saved: {script_dir}/figure10.pdf")
@@ -134,7 +183,7 @@ def main():
     if len(sys.argv) > 1:
         results_dir = sys.argv[1]
     else:
-        results_dir = find_latest_results()
+        results_dir = find_results_dir()
 
     if not results_dir or not os.path.isdir(results_dir):
         print("Error: No results directory found.", file=sys.stderr)
@@ -142,17 +191,7 @@ def main():
         sys.exit(1)
 
     print(f"[*] Reading results from: {results_dir}")
-    labels, percentiles = process_results(results_dir)
-
-    if not labels:
-        print("Error: No valid result files found.", file=sys.stderr)
-        sys.exit(1)
-
-    print(f"[*] Found {len(labels)} SHRINK_BATCH values: {', '.join(labels)}")
-    for label, (p50, p90, p99) in zip(labels, percentiles):
-        print(f"    SHRINK_BATCH={label:>4s}  P50={p50:>10.0f}  P90={p90:>10.0f}  P99={p99:>10.0f} µs")
-
-    plot_figure10(labels, percentiles)
+    plot_figure10(results_dir)
 
 
 if __name__ == '__main__':

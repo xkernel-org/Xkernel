@@ -32,17 +32,15 @@ ok()   { echo "[✓] $*"; }
 find_const_id() {
     [[ -f "$SCOPE_TABLE" ]] || die "Scope table not found at $SCOPE_TABLE — build first"
     local id
-    id=$(awk -F'\t' '$2 == "SHRINK_BATCH" {print $1; exit}' "$SCOPE_TABLE")
+    # BPF_File column (6) contains xtune_stub_<ConstID>.bpf.o — match by stub pattern
+    id=$(awk -F'\t' 'NR>1 && $6 ~ /xtune_stub_.*\.bpf\.o/ {print $1; exit}' "$SCOPE_TABLE")
     [[ -n "$id" ]] || die "Could not find ConstID for SHRINK_BATCH in $SCOPE_TABLE"
     echo "$id"
 }
 
 find_stub_src() {
     local const_id="$1"
-    local bpf_obj
-    bpf_obj=$(awk -F'\t' -v id="$const_id" '$1 == id {print $6; exit}' "$SCOPE_TABLE")
-    [[ -n "$bpf_obj" ]] || die "No BPF_File found for ConstID=$const_id"
-    local stub_src="${STUBS_DIR}/${bpf_obj%.bpf.o}.bpf.c"
+    local stub_src="${STUBS_DIR}/xtune_stub_${const_id}.bpf.c"
     [[ -f "$stub_src" ]] || die "Stub source not found: $stub_src"
     echo "$stub_src"
 }
@@ -60,10 +58,15 @@ fi
 
 # 1. Build the tunable
 log "Building tunable from $TOML ..."
-"$XKTOOL" build "$TOML"
+BUILD_OUT=$("$XKTOOL" build "$TOML" 2>&1)
+echo "$BUILD_OUT"
 
-# 2. Resolve ConstID
-CONST_ID=$(find_const_id)
+# 2. Resolve ConstID from build output (e.g., "SHRINK_BATCH -> ConstID 1")
+CONST_ID=$(echo "$BUILD_OUT" | grep -oP 'ConstID \K[0-9]+' | tail -1)
+if [[ -z "$CONST_ID" ]]; then
+    # Fallback: look up from scope table
+    CONST_ID=$(find_const_id)
+fi
 log "SHRINK_BATCH → ConstID=$CONST_ID"
 
 # 3. Patch the BPF stub: change val from original to NEW_VALUE

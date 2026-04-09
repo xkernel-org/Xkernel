@@ -8,7 +8,7 @@
 #   4. Results saved to results/<timestamp>/
 #
 # Usage:
-#   sudo bash ae/Figure10/run.sh
+#   bash ae/Figure10/run.sh
 #
 # Prerequisites:
 #   - Custom kernel (6.14.0-xkernel) running
@@ -24,7 +24,7 @@ XKTOOL="$PROJECT_ROOT/xkernel-tool"
 TUNE_SCRIPT="$SCRIPT_DIR/tune_shrink_batch.sh"
 ZSWAP_MIN="$SCRIPT_DIR/bin/zswap_min"
 
-# Benchmark parameters (matching yltang's configuration)
+# Benchmark parameters
 TOTAL_MB=4096
 BLOCK_PAGES=128
 REUSE_DIST=16
@@ -36,8 +36,7 @@ LOOPS=2000
 BASELINE_VALUE=128
 TUNED_VALUES=(8 16 24 28 32 64)
 
-TIMESTAMP="$(date +%Y%m%d-%H%M%S)"
-RESULT_DIR="$SCRIPT_DIR/results/$TIMESTAMP"
+RESULT_DIR="$SCRIPT_DIR/results"
 UNIT_NAME="zswap_min_fig10"
 
 RED='\033[0;31m'; GREEN='\033[0;32m'; BOLD='\033[1m'; RST='\033[0m'
@@ -49,7 +48,6 @@ die()         { echo -e "${RED}[$(date '+%H:%M:%S')] ✗${RST} $*" >&2; exit 1; 
 # ── Preflight checks ────────────────────────────────────────────────
 [[ -x "$ZSWAP_MIN" ]] || die "zswap_min not found. Run: bash install_zswap_min.sh"
 [[ -x "$XKTOOL" ]]    || die "xkernel-tool not found at $XKTOOL"
-[[ $(id -u) -eq 0 ]]  || die "Must run as root: sudo bash $0"
 
 mkdir -p "$RESULT_DIR"
 
@@ -58,28 +56,28 @@ setup_zswap() {
     log_section "Setting up zswap environment"
 
     # Stop zram if running
-    systemctl stop zramswap.service 2>/dev/null || true
+    sudo systemctl stop zramswap.service 2>/dev/null || true
 
     # Enable zswap and shrinker
-    echo 1 > /sys/module/zswap/parameters/enabled
-    echo Y > /sys/module/zswap/parameters/shrinker_enabled
+    echo 1 | sudo tee /sys/module/zswap/parameters/enabled > /dev/null
+    echo Y | sudo tee /sys/module/zswap/parameters/shrinker_enabled > /dev/null
 
     # Lower pool limit to make writeback more aggressive
-    echo 5 > /sys/module/zswap/parameters/max_pool_percent
+    echo 5 | sudo tee /sys/module/zswap/parameters/max_pool_percent > /dev/null
 
     # Mount debugfs
-    mount -t debugfs none /sys/kernel/debug 2>/dev/null || true
+    sudo mount -t debugfs none /sys/kernel/debug 2>/dev/null || true
 
     # Increase swappiness
-    sysctl -w vm.swappiness=180
+    sudo sysctl -w vm.swappiness=180
 
     # Disable THP
-    echo never > /sys/kernel/mm/transparent_hugepage/enabled
-    echo never > /sys/kernel/mm/transparent_hugepage/defrag
+    echo never | sudo tee /sys/kernel/mm/transparent_hugepage/enabled > /dev/null
+    echo never | sudo tee /sys/kernel/mm/transparent_hugepage/defrag > /dev/null
 
     # Default zswap parameters
-    echo zbud > /sys/module/zswap/parameters/zpool
-    echo lzo  > /sys/module/zswap/parameters/compressor
+    echo zbud | sudo tee /sys/module/zswap/parameters/zpool > /dev/null
+    echo lzo  | sudo tee /sys/module/zswap/parameters/compressor > /dev/null
 
     log_ok "zswap environment configured"
     log "  enabled=$(cat /sys/module/zswap/parameters/enabled)"
@@ -97,15 +95,16 @@ run_benchmark() {
 
     # Drop caches before each run
     sync
-    echo 3 > /proc/sys/vm/drop_caches
+    echo 3 | sudo tee /proc/sys/vm/drop_caches > /dev/null
     sleep 2
 
-    systemd-run --unit="$UNIT_NAME" \
+    sudo systemd-run --unit="$UNIT_NAME" \
         -p MemoryHigh=1G \
         -p MemoryMax=1200M \
         -p MemorySwapMax=6G \
-        --same-dir --collect --wait \
+        --same-dir --collect --pipe \
         numactl --cpunodebind=0 --membind=0 \
+        /usr/bin/time -o "$outfile" --append \
         "$ZSWAP_MIN" \
             --total-mb "$TOTAL_MB" \
             --block-pages "$BLOCK_PAGES" \
@@ -158,23 +157,23 @@ for val in "${TUNED_VALUES[@]}"; do
     log_section "Tuning SHRINK_BATCH = $val"
 
     # Unload previous tunable if loaded
-    bash "$TUNE_SCRIPT" unload 2>/dev/null || true
-    "$XKTOOL" table delete --all -y 2>/dev/null || true
+    sudo bash "$TUNE_SCRIPT" unload 2>/dev/null || true
+    sudo "$XKTOOL" table delete --all -y 2>/dev/null || true
     rm -rf "$PROJECT_ROOT/bpf/stubs/"* 2>/dev/null || true
 
     # Tune to new value
-    bash "$TUNE_SCRIPT" "$val"
+    sudo bash "$TUNE_SCRIPT" "$val"
 
     # Run benchmark
     run_benchmark "$val"
 
     # Unload
-    bash "$TUNE_SCRIPT" unload 2>/dev/null || true
+    sudo bash "$TUNE_SCRIPT" unload 2>/dev/null || true
 done
 
 # ── Cleanup ──────────────────────────────────────────────────────────
 log_section "Cleanup"
-"$XKTOOL" table delete --all -y 2>/dev/null || true
+sudo "$XKTOOL" table delete --all -y 2>/dev/null || true
 rm -rf "$PROJECT_ROOT/bpf/stubs/"* 2>/dev/null || true
 
 log_ok "Figure 10 experiment complete."
