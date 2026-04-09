@@ -35,23 +35,10 @@ parse_cyclictest() {
     } END{print max+0, avg+0}' "$file"
 }
 
-# Parse mpstat output for average CPU utilization (100 - %idle)
-# Handles both per-second lines and Average line; falls back to per-second data
-# if mpstat was killed before writing Average
-parse_mpstat() {
+# Parse sar output for average CPU utilization (100 - %idle)
+parse_sar() {
     local file="$1"
-    local result
-    # First try the Average line
-    result=$(awk '/^Average:/ && $2 != "CPU" {printf "%.0f", 100 - $NF}' "$file")
-    if [[ -n "$result" ]]; then
-        echo "$result"
-        return
-    fi
-    # Fallback: compute average from per-second sample lines
-    result=$(awk '/^[0-9]/ && NF >= 10 {
-        sum += 100 - $NF; n++
-    } END { if(n>0) printf "%.0f", sum/n; else print 0 }' "$file")
-    echo "${result:-0}"
+    awk '/^Average:/ && $2 != "CPU" {printf "%.0f", 100 - $NF}' "$file"
 }
 
 # ── CSV header ───────────────────────────────────────────────────────
@@ -76,19 +63,18 @@ for val in "${VALUES[@]}"; do
         lat_file="results/lat_${tag}.txt"
         cpu_file="results/cpu_${tag}.txt"
 
-        stdbuf -oL mpstat -P "$CPU" 1 > "$cpu_file" 2>/dev/null &
-        MPSTAT_PID=$!
+        sar -u -P "$CPU" 1 > "$cpu_file" &
+        SAR_PID=$!
 
         sudo cyclictest -t 1 -a "$CPU" -p 99 -d 1000 -l "$CYCLICTEST_LOOPS" \
             2>&1 | tee "$lat_file"
 
-        # Give mpstat time to flush final sample, then stop it
-        sleep 2
-        kill $MPSTAT_PID 2>/dev/null || true
-        wait $MPSTAT_PID 2>/dev/null || true
+        # sar writes Average line on SIGINT
+        kill -INT $SAR_PID 2>/dev/null || true
+        wait $SAR_PID 2>/dev/null || true
 
         read -r worst avg <<< "$(parse_cyclictest "$lat_file")"
-        cpu_pct=$(parse_mpstat "$cpu_file")
+        cpu_pct=$(parse_sar "$cpu_file")
 
         echo "$val,$worst,$avg,$cpu_pct" | tee -a "$OUTFILE"
     done
