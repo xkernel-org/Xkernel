@@ -23,21 +23,24 @@ mkdir -p results
 # ── helpers ──────────────────────────────────────────────────────────
 
 # Parse cyclictest output for Max and Avg latency (microseconds)
-# Example line: "T: 0 ( 1234) P:99 I:1000 C:  20000 Min:      5 Act:   12 Avg:   13 Max:     143"
+# cyclictest format: "T: 0 (991565) P:99 I:1000 C:    100 Min:      3 Act:    4 Avg:    5 Max:      18"
+# Note: fields like "Max:" and "18" are separate whitespace-delimited tokens
 parse_cyclictest() {
     local file="$1"
     awk '/^T:/{
         for(i=1;i<=NF;i++){
-            if($i~/^Max:/){max=substr($i,5)+0}
-            if($i~/^Avg:/){avg=substr($i,5)+0}
+            if($i=="Max:") max=$(i+1)+0
+            if($i=="Avg:") avg=$(i+1)+0
         }
-    } END{print max, avg}' "$file"
+    } END{print max+0, avg+0}' "$file"
 }
 
 # Parse mpstat output for average CPU utilization (100 - %idle)
 parse_mpstat() {
     local file="$1"
-    awk '/^Average:/ && $2 != "CPU" {printf "%.0f", 100 - $NF}' "$file"
+    local result
+    result=$(awk '/^Average:/ && $2 != "CPU" {printf "%.0f", 100 - $NF}' "$file")
+    echo "${result:-0}"
 }
 
 # ── CSV header ───────────────────────────────────────────────────────
