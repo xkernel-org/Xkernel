@@ -142,9 +142,7 @@ install_kernel_source() {
     kver=$(uname -r)
     info "Downloading Ubuntu kernel source for running kernel ($kver)..."
 
-    # Determine the target directory: ~/linux-<base_version>
-    # e.g., for 6.8.0-101-generic → ~/linux-6.8.0
-    local base_ver="${kver%%-*}"                     # 6.8.0
+    local base_ver="${kver%%-*}"
     local kernel_dir="${HOME}/linux-${base_ver}"
 
     if [[ -d "$kernel_dir" && -f "$kernel_dir/Makefile" ]]; then
@@ -153,10 +151,10 @@ install_kernel_source() {
         return
     fi
 
-    # Resolve the source package name from the installed kernel image package.
+    # Resolve source package name from installed kernel image package
     local src_pkg=""
+    local candidate info_line
     for candidate in "linux-image-unsigned-${kver}" "linux-image-${kver}"; do
-        local info_line
         info_line=$(apt-cache show "$candidate" 2>/dev/null | grep -m1 "^Source:" || true)
         if [[ -n "$info_line" ]]; then
             src_pkg=$(echo "$info_line" | awk '{print $2}')
@@ -169,40 +167,35 @@ install_kernel_source() {
             "Make sure linux-image-*-${kver} is installed and apt cache is up to date."
     fi
 
-    # The exact installed version (e.g., 6.8.0-101.101) may no longer be in
-    # the apt repos — Ubuntu only keeps the original release and latest update.
-    # Pick the newest available source version for this package instead; the
-    # source tree is the same across all ABI bumps within a series, and we
-    # apply the running kernel's /boot/config anyway.
+    # Ensure deb-src repositories are enabled BEFORE querying source versions
+    if ! apt-get indextargets --format '$(CREATED_BY)' 2>/dev/null | grep -q '^Sources$'; then
+        warn "deb-src repositories not enabled — attempting to enable..."
+        if [[ -f /etc/apt/sources.list.d/ubuntu.sources ]]; then
+            # Ubuntu deb822 format
+            sed -i '/^Types:/ s/\bdeb-src\b//g; /^Types:/ s/\bdeb\b.*/deb deb-src/' /etc/apt/sources.list.d/ubuntu.sources
+        elif [[ -f /etc/apt/sources.list ]]; then
+            sed -i 's/^# *deb-src/deb-src/' /etc/apt/sources.list
+        fi
+        apt-get update -qq
+    else
+        apt-get update -qq
+    fi
+
+    # Now source indexes should exist
     local pkg_ver
     pkg_ver=$(apt-cache madison "$src_pkg" 2>/dev/null \
         | awk -F'|' '/Sources/ {gsub(/ /,"",$2); print $2}' \
         | sort -V | tail -1)
 
     if [[ -z "$pkg_ver" ]]; then
-        die "No source version found for package '$src_pkg' in apt repos. " \
-            "Check that deb-src repositories are enabled and run 'apt-get update'."
+        die "No source version found for package '$src_pkg' in apt repos even after enabling deb-src. " \
+            "Check your Ubuntu source repositories."
     fi
 
     info "Source package: ${src_pkg}=${pkg_ver}"
 
-    # Ensure deb-src repositories are enabled
-    if ! apt-get indextargets --format '$(CREATED_BY)' 2>/dev/null | grep -q "^Sources"; then
-        warn "deb-src repositories not enabled — attempting to enable..."
-        if [[ -f /etc/apt/sources.list.d/ubuntu.sources ]]; then
-            # DEB822 format (Ubuntu 24.04+): ensure "deb-src" is in Types
-            sed -i 's/^Types: deb$/Types: deb deb-src/' /etc/apt/sources.list.d/ubuntu.sources
-        elif [[ -f /etc/apt/sources.list ]]; then
-            # Traditional format: uncomment deb-src lines
-            sed -i 's/^# *deb-src/deb-src/' /etc/apt/sources.list
-        fi
-        apt-get update -qq
-    fi
-
-    # Install build dependencies for apt-get source
     apt-get install -y dpkg-dev 2>&1 | tail -1
 
-    # Download and extract the source (drop root — apt-get source dislikes running as root)
     local tmpdir
     tmpdir=$(mktemp -d)
     chmod 777 "$tmpdir"
@@ -215,25 +208,21 @@ install_kernel_source() {
         apt-get source "${src_pkg}=${pkg_ver}" 2>&1 | tail -3
     fi
 
-    # Find the extracted source directory (largest directory matching linux-*)
     local src_dir
     src_dir=$(find . -maxdepth 1 -type d -name 'linux-*' | head -1)
     if [[ -z "$src_dir" || ! -f "$src_dir/Makefile" ]]; then
         die "Failed to extract kernel source — no linux-*/Makefile found in $tmpdir"
     fi
 
-    # Move to target location
     mv "$src_dir" "$kernel_dir"
     popd > /dev/null
     rm -rf "$tmpdir"
 
-    # Prepare the source tree with the running kernel's config and compile
     pushd "$kernel_dir" > /dev/null
     if [[ -f "/boot/config-${kver}" ]]; then
         cp "/boot/config-${kver}" .config
-        # Disable Ubuntu-specific signing keys (not available outside Canonical)
-        scripts/config -d CONFIG_SYSTEM_TRUSTED_KEYS
-        scripts/config -d CONFIG_SYSTEM_REVOCATION_KEYS
+        scripts/config -d CONFIG_SYSTEM_TRUSTED_KEYS || true
+        scripts/config -d CONFIG_SYSTEM_REVOCATION_KEYS || true
         make olddefconfig 2>&1 | tail -1
         info "Applied /boot/config-${kver} to source tree"
     fi
