@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
-# tune_nr_max_batched_migration.sh — Use xkernel-tool to set NR_MAX_BATCHED_MIGRATION
+# tune_nr_max_batched_migration.sh — Patch, reload, or unload NR_MAX_BATCHED_MIGRATION
 #
-# This script builds the NR_MAX_BATCHED_MIGRATION tunable, patches the generated
-# BPF stub to use the specified value (original: 512), recompiles, and loads it
-# in immediate mode (mode 0).
+# Assumes `xkernel-tool build` has already been run once (by run.sh).
+# This script only patches the BPF stub value, recompiles BPF, and reloads —
+# no kernel recompilation needed.  This is a key benefit of KernelX:
+# varying perf-const values at runtime without rebuilding the kernel.
 #
 # Usage:
-#   sudo bash tune_nr_max_batched_migration.sh 32      # set value to 32
-#   sudo bash tune_nr_max_batched_migration.sh unload   # unload the tunable
+#   sudo bash tune_nr_max_batched_migration.sh build     # one-time build
+#   sudo bash tune_nr_max_batched_migration.sh <VALUE>   # patch + reload
+#   sudo bash tune_nr_max_batched_migration.sh unload    # unload
 
 set -euo pipefail
 
@@ -17,11 +19,9 @@ XKTOOL="$PROJECT_ROOT/xkernel-tool"
 TOML="$PROJECT_ROOT/tunables/nr_max_batched_migration.toml"
 
 SCOPE_TABLE="/dev/shm/xkernel/scope_table"
-CS_RAW="/dev/shm/xkernel/cs_raw"
 STUBS_DIR="$PROJECT_ROOT/bpf/stubs"
 
 NEW_VALUE="${1:-32}"
-ORIG_VALUE=512
 MODE=0  # Immediate mode
 
 # ── helpers ──────────────────────────────────────────────────────────
@@ -30,19 +30,32 @@ log()  { echo "[*] $*"; }
 ok()   { echo "[✓] $*"; }
 
 find_const_id() {
-    [[ -f "$SCOPE_TABLE" ]] || die "Scope table not found at $SCOPE_TABLE — build first"
+    [[ -f "$SCOPE_TABLE" ]] || die "Scope table not found — run 'build' first"
     local id
     id=$(awk -F'\t' 'NR>1 && $6 ~ /xtune_stub_.*\.bpf\.o/ {print $1; exit}' "$SCOPE_TABLE")
-    [[ -n "$id" ]] || die "Could not find ConstID for NR_MAX_BATCHED_MIGRATION in $SCOPE_TABLE"
+    [[ -n "$id" ]] || die "Could not find ConstID in scope table"
     echo "$id"
 }
 
 find_stub_src() {
     local const_id="$1"
     local stub_src="${STUBS_DIR}/xtune_stub_${const_id}.bpf.c"
-    [[ -f "$stub_src" ]] || die "Stub source not found: $stub_src"
+    [[ -f "$stub_src" ]] || die "Stub not found: $stub_src — run 'build' first"
     echo "$stub_src"
 }
+
+# ── build: one-time kernel diff + codegen + compile ──────────────────
+if [[ "$NEW_VALUE" == "build" ]]; then
+    log "Building tunable from $TOML (one-time) ..."
+    BUILD_OUT=$("$XKTOOL" build "$TOML" 2>&1)
+    echo "$BUILD_OUT"
+    if echo "$BUILD_OUT" | grep -q "No BPF stubs to compile"; then
+        die "Codegen failed — no BPF stubs generated"
+    fi
+    CONST_ID=$(echo "$BUILD_OUT" | grep -oP 'ConstID \K[0-9]+' | tail -1)
+    ok "Build complete — ConstID=$CONST_ID"
+    exit 0
+fi
 
 # ── unload shortcut ──────────────────────────────────────────────────
 if [[ "$NEW_VALUE" == "unload" ]]; then
@@ -53,35 +66,28 @@ if [[ "$NEW_VALUE" == "unload" ]]; then
     exit 0
 fi
 
-# ── main flow ────────────────────────────────────────────────────────
+# ── patch + reload (no kernel rebuild) ───────────────────────────────
 
-# 1. Build the tunable
-log "Building tunable from $TOML ..."
-BUILD_OUT=$("$XKTOOL" build "$TOML" 2>&1)
-echo "$BUILD_OUT"
-
-# 2. Resolve ConstID from build output (e.g., "NR_MAX_BATCHED_MIGRATION -> ConstID 1")
-CONST_ID=$(echo "$BUILD_OUT" | grep -oP 'ConstID \K[0-9]+' | tail -1)
-if [[ -z "$CONST_ID" ]]; then
-    CONST_ID=$(find_const_id)
-fi
-log "NR_MAX_BATCHED_MIGRATION → ConstID=$CONST_ID"
-
-# 3. Patch the BPF stub: change val from original to NEW_VALUE
+CONST_ID=$(find_const_id)
 STUB_SRC=$(find_stub_src "$CONST_ID")
-log "Patching $STUB_SRC: val $ORIG_VALUE → $NEW_VALUE"
 
-if ! grep -q "u64 val = " "$STUB_SRC"; then
-    die "Cannot find 'u64 val = ...' in $STUB_SRC"
-fi
+# 1. Patch val in the BPF stub
+log "Patching $STUB_SRC: val → $NEW_VALUE"
+grep -q "u64 val = " "$STUB_SRC" || die "Cannot find 'u64 val = ...' in $STUB_SRC"
 sed -i "s/u64 val = [0-9]\+;/u64 val = ${NEW_VALUE};/" "$STUB_SRC"
 
-# 4. Recompile the patched stub
-log "Recompiling BPF stubs ..."
+# 2. Recompile BPF stub only (fast)
+log "Recompiling BPF stub ..."
 make -C "$PROJECT_ROOT/bpf/" -j"$(nproc)"
 
-# 5. Load with immediate mode
+# 3. Load
 log "Loading ConstID=$CONST_ID (mode=$MODE) ..."
 "$XKTOOL" load "$MODE" "$CONST_ID"
 
-ok "NR_MAX_BATCHED_MIGRATION is now set to $NEW_VALUE (ConstID=$CONST_ID, mode=$MODE)"
+# 4. Verify
+BPF_PROGS=$(bpftool prog show 2>/dev/null | grep -c "__xk_${CONST_ID}_") || true
+if [[ "$BPF_PROGS" -gt 0 ]]; then
+    ok "$BPF_PROGS BPF program(s) loaded — NR_MAX_BATCHED_MIGRATION = $NEW_VALUE"
+else
+    die "No BPF programs found — SIE not active"
+fi

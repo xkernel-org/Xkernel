@@ -166,31 +166,31 @@ save_log() {
 save_log
 setup_env
 
+# ── One-time build (kernel diff + codegen + BPF compile) ─────────────
+log_section "Building NR_MAX_BATCHED_MIGRATION tunable (one-time)"
+sudo bash "$TUNE_SCRIPT" build
+
 # ── Baseline: NR_MAX_BATCHED_MIGRATION = 512 (kernel default) ────────
 log_section "Baseline: NR_MAX_BATCHED_MIGRATION = $BASELINE_VALUE (kernel default)"
 run_benchmark "$BASELINE_VALUE"
 summarize_results "$BASELINE_VALUE"
 
-# ── Tuned runs ───────────────────────────────────────────────────────
+# ── Tuned runs (patch BPF stub only — no kernel rebuild) ─────────────
 for val in "${TUNED_VALUES[@]}"; do
     log_section "Tuning NR_MAX_BATCHED_MIGRATION = $val"
 
-    # Unload previous tunable if loaded
+    # Unload previous if loaded
     sudo bash "$TUNE_SCRIPT" unload 2>/dev/null || true
-    sudo "$XKTOOL" table delete --all -y 2>/dev/null || true
-    rm -rf "$PROJECT_ROOT/bpf/stubs/"* 2>/dev/null || true
 
-    # Tune to new value
+    # Patch BPF stub + recompile BPF + reload
     sudo bash "$TUNE_SCRIPT" "$val"
 
     # Run benchmark
     run_benchmark "$val"
     summarize_results "$val"
 
-    # Unload and clean up
+    # Unload after this round
     sudo bash "$TUNE_SCRIPT" unload 2>/dev/null || true
-    sudo "$XKTOOL" table delete --all -y 2>/dev/null || true
-    rm -rf "$PROJECT_ROOT/bpf/stubs/"* 2>/dev/null || true
 done
 
 # ── Cleanup ──────────────────────────────────────────────────────────

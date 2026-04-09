@@ -148,26 +148,28 @@ save_log() {
 save_log
 setup_zswap
 
+# ── One-time build (kernel diff + codegen + BPF compile) ─────────────
+log_section "Building SHRINK_BATCH tunable (one-time)"
+sudo bash "$TUNE_SCRIPT" build
+
 # ── Baseline: SHRINK_BATCH = 128 (kernel default, no tuning) ─────────
 log_section "Baseline: SHRINK_BATCH = $BASELINE_VALUE (kernel default)"
 run_benchmark "$BASELINE_VALUE"
 
-# ── Tuned runs ───────────────────────────────────────────────────────
+# ── Tuned runs (patch BPF stub only — no kernel rebuild) ─────────────
 for val in "${TUNED_VALUES[@]}"; do
     log_section "Tuning SHRINK_BATCH = $val"
 
-    # Unload previous tunable if loaded
+    # Unload previous if loaded
     sudo bash "$TUNE_SCRIPT" unload 2>/dev/null || true
-    sudo "$XKTOOL" table delete --all -y 2>/dev/null || true
-    rm -rf "$PROJECT_ROOT/bpf/stubs/"* 2>/dev/null || true
 
-    # Tune to new value
+    # Patch BPF stub + recompile BPF + reload
     sudo bash "$TUNE_SCRIPT" "$val"
 
     # Run benchmark
     run_benchmark "$val"
 
-    # Unload
+    # Unload after this round
     sudo bash "$TUNE_SCRIPT" unload 2>/dev/null || true
 done
 

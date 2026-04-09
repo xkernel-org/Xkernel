@@ -1,10 +1,14 @@
 #!/usr/bin/env bash
-# tune_softirq_restart.sh — Use xkernel-tool to set MAX_SOFTIRQ_RESTART
+# tune_softirq_restart.sh — Patch, reload, or unload MAX_SOFTIRQ_RESTART
+#
+# Assumes `xkernel-tool build` has already been run once (by run.sh).
+# This script only patches the BPF stub value, recompiles BPF, and reloads —
+# no kernel recompilation needed.
 #
 # Usage:
-#   bash tune_softirq_restart.sh          # default: set value to 1
-#   bash tune_softirq_restart.sh 5        # custom value
-#   bash tune_softirq_restart.sh unload   # unload the tunable
+#   sudo bash tune_softirq_restart.sh build     # one-time build
+#   sudo bash tune_softirq_restart.sh <VALUE>   # patch + reload
+#   sudo bash tune_softirq_restart.sh unload    # unload
 
 set -euo pipefail
 
@@ -18,7 +22,6 @@ CS_RAW="/dev/shm/xkernel/cs_raw"
 STUBS_DIR="$PROJECT_ROOT/bpf/stubs"
 
 NEW_VALUE="${1:-1}"
-ORIG_VALUE=10
 MODE=0  # Immediate mode
 TARGET_FUNC="handle_softirqs"
 
@@ -28,7 +31,7 @@ log()  { echo "[*] $*"; }
 ok()   { echo "[✓] $*"; }
 
 find_const_id() {
-    [[ -f "$CS_RAW" ]] || die "CS raw table not found at $CS_RAW — build first"
+    [[ -f "$CS_RAW" ]] || die "CS raw table not found — run 'build' first"
     local id
     id=$(awk -F'\t' -v fn="$TARGET_FUNC" '$2 == fn {print $1; exit}' "$CS_RAW")
     [[ -n "$id" ]] || die "Could not find ConstID for $TARGET_FUNC in $CS_RAW"
@@ -41,9 +44,18 @@ find_stub_src() {
     bpf_obj=$(awk -F'\t' -v id="$const_id" '$1 == id {print $6; exit}' "$SCOPE_TABLE")
     [[ -n "$bpf_obj" ]] || die "No BPF_File found for ConstID=$const_id"
     local stub_src="${STUBS_DIR}/${bpf_obj%.bpf.o}.bpf.c"
-    [[ -f "$stub_src" ]] || die "Stub source not found: $stub_src"
+    [[ -f "$stub_src" ]] || die "Stub not found: $stub_src — run 'build' first"
     echo "$stub_src"
 }
+
+# ── build: one-time kernel diff + codegen + compile ──────────────────
+if [[ "$NEW_VALUE" == "build" ]]; then
+    log "Building tunable from $TOML (one-time) ..."
+    "$XKTOOL" build "$TOML"
+    CONST_ID=$(find_const_id)
+    ok "Build complete — ConstID=$CONST_ID"
+    exit 0
+fi
 
 # ── unload shortcut ──────────────────────────────────────────────────
 if [[ "$NEW_VALUE" == "unload" ]]; then
@@ -54,31 +66,28 @@ if [[ "$NEW_VALUE" == "unload" ]]; then
     exit 0
 fi
 
-# ── main flow ────────────────────────────────────────────────────────
+# ── patch + reload (no kernel rebuild) ───────────────────────────────
 
-# 1. Build the tunable
-log "Building tunables from $TOML ..."
-"$XKTOOL" build "$TOML"
-
-# 2. Resolve ConstID
 CONST_ID=$(find_const_id)
-log "MAX_SOFTIRQ_RESTART → ConstID=$CONST_ID"
-
-# 3. Patch the BPF stub with the new value
 STUB_SRC=$(find_stub_src "$CONST_ID")
-log "Patching $STUB_SRC: val $ORIG_VALUE → $NEW_VALUE"
 
-if ! grep -q "u64 val = " "$STUB_SRC"; then
-    die "Cannot find 'u64 val = ...' in $STUB_SRC"
-fi
+# 1. Patch val in the BPF stub
+log "Patching $STUB_SRC: val → $NEW_VALUE"
+grep -q "u64 val = " "$STUB_SRC" || die "Cannot find 'u64 val = ...' in $STUB_SRC"
 sed -i "s/u64 val = [0-9]\+;/u64 val = ${NEW_VALUE};/" "$STUB_SRC"
 
-# 4. Recompile the patched stub
-log "Recompiling BPF stubs ..."
+# 2. Recompile BPF stub only (fast)
+log "Recompiling BPF stub ..."
 make -C "$PROJECT_ROOT/bpf/" -j"$(nproc)"
 
-# 5. Load with immediate mode
+# 3. Load
 log "Loading ConstID=$CONST_ID (mode=$MODE) ..."
 "$XKTOOL" load "$MODE" "$CONST_ID"
 
-ok "MAX_SOFTIRQ_RESTART is now set to $NEW_VALUE (ConstID=$CONST_ID, mode=$MODE)"
+# 4. Verify
+BPF_PROGS=$(bpftool prog show 2>/dev/null | grep -c "__xk_${CONST_ID}_") || true
+if [[ "$BPF_PROGS" -gt 0 ]]; then
+    ok "$BPF_PROGS BPF program(s) loaded — MAX_SOFTIRQ_RESTART = $NEW_VALUE"
+else
+    die "No BPF programs found — SIE not active"
+fi

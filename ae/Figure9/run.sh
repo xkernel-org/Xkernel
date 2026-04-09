@@ -12,6 +12,8 @@
 
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(dirname "$(dirname "$SCRIPT_DIR")")"
+XKTOOL="$PROJECT_ROOT/xkernel-tool"
 CPU=${1:-3}
 REPS=${2:-3}                       # repetitions per value
 VALUES=(1 5 10 15 20)
@@ -45,6 +47,11 @@ parse_sar() {
 
 echo "MAX_SOFTIRQ_RESTART,WorstLatUs,AvgLatUs,CpuUtilPct" | tee "$OUTFILE"
 
+# ── One-time build (kernel diff + codegen + BPF compile) ─────────────
+echo ""
+echo "========== Building MAX_SOFTIRQ_RESTART tunable (one-time) =========="
+sudo bash "$SCRIPT_DIR/tune_softirq_restart.sh" build
+
 # ── sweep ────────────────────────────────────────────────────────────
 
 for val in "${VALUES[@]}"; do
@@ -54,8 +61,11 @@ for val in "${VALUES[@]}"; do
     if [[ "$val" -eq 10 ]]; then
         # 10 is the default kernel value — no need to load tunable
         echo "[*] Using default kernel value (no tunable loaded)"
+        sudo bash "$SCRIPT_DIR/tune_softirq_restart.sh" unload 2>/dev/null || true
     else
-        bash "$SCRIPT_DIR/tune_softirq_restart.sh" "$val"
+        # Unload previous, then patch + reload (no kernel rebuild)
+        sudo bash "$SCRIPT_DIR/tune_softirq_restart.sh" unload 2>/dev/null || true
+        sudo bash "$SCRIPT_DIR/tune_softirq_restart.sh" "$val"
     fi
 
     for rep in $(seq 1 "$REPS"); do
@@ -80,13 +90,13 @@ for val in "${VALUES[@]}"; do
     done
 
     if [[ "$val" -ne 10 ]]; then
-        bash "$SCRIPT_DIR/tune_softirq_restart.sh" unload
+        sudo bash "$SCRIPT_DIR/tune_softirq_restart.sh" unload 2>/dev/null || true
     fi
-
-    # Clean tables and stubs between rounds to avoid stale state
-    ~/Xkernel/xkernel-tool table delete --all -y
-    rm -rf ~/Xkernel/bpf/stubs/*
 done
+
+# ── cleanup ──────────────────────────────────────────────────────────
+sudo "$XKTOOL" table delete --all -y 2>/dev/null || true
+rm -rf "$PROJECT_ROOT/bpf/stubs/"* 2>/dev/null || true
 
 # ── done ─────────────────────────────────────────────────────────────
 
