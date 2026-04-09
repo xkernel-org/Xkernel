@@ -20,7 +20,7 @@ echo "========== Baseline (MAX_SOFTIRQ_RESTART = 10) =========="
 bash "$SCRIPT_DIR/metric.sh" "$CPU" > /tmp/softirq_pre_baseline
 mpstat -P "$CPU" 1 25 > results/baseline_cpu.txt &
 MPSTAT_PID=$!
-cyclictest -t 1 -a "$CPU" -p 99 -d 1000 -l 20000 2>&1 | tee results/baseline_lat.txt
+sudo cyclictest -t 1 -a "$CPU" -p 99 -d 1000 -l 20000 2>&1 | tee results/baseline_lat.txt
 wait $MPSTAT_PID 2>/dev/null || true
 bash "$SCRIPT_DIR/metric.sh" "$CPU" > /tmp/softirq_post_baseline
 
@@ -35,7 +35,7 @@ bash "$SCRIPT_DIR/tune_softirq_restart.sh" 1
 bash "$SCRIPT_DIR/metric.sh" "$CPU" > /tmp/softirq_pre_tuned
 mpstat -P "$CPU" 1 25 > results/tuned_cpu.txt &
 MPSTAT_PID=$!
-cyclictest -t 1 -a "$CPU" -p 99 -d 1000 -l 20000 2>&1 | tee results/tuned_lat.txt
+sudo cyclictest -t 1 -a "$CPU" -p 99 -d 1000 -l 20000 2>&1 | tee results/tuned_lat.txt
 wait $MPSTAT_PID 2>/dev/null || true
 bash "$SCRIPT_DIR/metric.sh" "$CPU" > /tmp/softirq_post_tuned
 
