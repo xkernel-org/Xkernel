@@ -1,0 +1,1 @@
+sudo apt install rt-tests -y -qq

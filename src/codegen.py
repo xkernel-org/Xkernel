@@ -3142,9 +3142,10 @@ def generate_multi_kprobe_bpf_file(prefix: str, kprobes: List[Dict], v1_src: int
             c_type = WRITE_SIZE_TO_CTYPE.get(write_size, '__u32')
             field = reg_to_ptregs_field.get(mem_base_reg, mem_base_reg)
 
-            hdr.append(f'// SIE helper {i}: memory store -> mem[{mem_base_reg}+0x{mem_disp:x}] ({write_size}B)')
+            disp_str = f"-0x{-mem_disp:x}" if mem_disp < 0 else f"0x{mem_disp:x}"
+            hdr.append(f'// SIE helper {i}: memory store -> mem[{mem_base_reg}+{disp_str}] ({write_size}B)')
             hdr.append(f'static __always_inline void {helper_name}(struct pt_regs *regs, u64 val) {{')
-            hdr.append(f'    u64 addr = (u64)(regs->{field}) + 0x{mem_disp:x};')
+            hdr.append(f'    u64 addr = (u64)(regs->{field}) + {disp_str};')
             hdr.append(f'    {c_type} new_val = ({c_type}){expr};')
             hdr.append(f'    bpf_probe_write_kernel((void *)addr, sizeof(new_val), &new_val);')
             hdr.append('}')
