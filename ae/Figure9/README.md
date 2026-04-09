@@ -6,7 +6,7 @@ processing (from iperf3 network traffic), before and after tuning
 
 ## Setup (two machines)
 
-**Server** (192.168.25.1):
+**Server** (192.168.6.1):
 
 ```bash
 # 1. Steer all NIC flows to CPU 3
@@ -19,7 +19,7 @@ iperf3 -s -p 5200 & iperf3 -s -p 5201 & iperf3 -s -p 5202 &
 **Client(s)**:
 
 ```bash
-bash client.sh 192.168.25.1
+bash client.sh 192.168.6.1
 ```
 
 ## Run Experiment (server)
