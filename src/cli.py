@@ -297,7 +297,7 @@ def _cmd_build_single(toml_file, skip_gen, verbose, project_root):
 
         # Step 2: Run codegen
         print(f"  [Step 2/3] Running codegen for ConstID {const_id}...")
-        run_codegen_single(config, const_id, verbose=verbose)
+        run_codegen_single(config, const_id, verbose=verbose, kernel_dir=kernel_dir)
 
     # Step 3: Compile only the BPF stubs for this build
     stub_targets = []

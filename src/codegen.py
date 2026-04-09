@@ -10,6 +10,7 @@ import sys
 import glob
 import csv
 import json
+import subprocess
 from collections import OrderedDict
 from typing import Dict, List, Tuple, Optional, Set
 
@@ -2356,7 +2357,8 @@ def show_kprobe_placement_from_bpf_file(
 def analyze_linear_relationship(prefix: str, v1_file: str, v2_file: str, v3_file: str,
                                 source_values: Dict[str, Tuple[int, int, int]],
                                 seq1: List[Tuple] = None, diff_v1_v2: List[Tuple] = None,
-                                file_path: str = None, output_dir: str = None):
+                                file_path: str = None, output_dir: str = None,
+                                kernel_dir: str = None):
     """Analyze linear relationship between source values and immediate values.
 
     Supports multiple basic blocks - each basic block is analyzed independently.
@@ -2853,6 +2855,12 @@ def analyze_linear_relationship(prefix: str, v1_file: str, v2_file: str, v3_file
     # Generate BPF file(s) for all kprobes
     if generated_kprobes:
         print(f"\n--- Generating BPF code for {len(generated_kprobes)} kprobe(s) ---")
+
+        # Translate .o-file kprobe offsets to vmlinux offsets.
+        # Prefer /proc/kcore (always matches the running kernel).
+        # Fall back to vmlinux file (may not match the running kernel).
+        print(f"  Translating .o offsets to running-kernel offsets ...")
+        translate_kprobe_offsets_to_vmlinux(generated_kprobes, kernel_dir)
 
         result = generate_multi_kprobe_bpf_file(
             prefix, generated_kprobes, v1_src, file_path, output_dir
@@ -3767,6 +3775,360 @@ def convert_instruction_address_to_offset(instruction: str, func_base: int) -> s
     return instruction
 
 
+# ── vmlinux offset translation ────────────────────────────────────────────
+#
+# The build pipeline compiles individual .o files and extracts Basic Blocks
+# from them.  Kprobe offsets computed from .o addresses may NOT match the
+# running kernel's vmlinux when the compiler produces different code layout
+# (different inlining, LTO, function ordering, etc.).
+#
+# These helpers disassemble the function from vmlinux and translate .o-file
+# kprobe offsets to correct vmlinux-relative offsets by matching instruction
+# byte patterns.
+
+def find_vmlinux_path(kernel_dir: str = None) -> Optional[str]:
+    """Find vmlinux binary for the running kernel.
+
+    Search order:
+      1. /boot/vmlinux-<uname -r>
+      2. /usr/lib/debug/boot/vmlinux-<uname -r>
+      3. kernel_dir/vmlinux (from TOML config)
+      4. ~/linux-*/vmlinux (scan home directory)
+
+    Returns:
+        Absolute path to vmlinux, or None if not found.
+    """
+    uname_r = os.uname().release
+    candidates = [
+        f'/boot/vmlinux-{uname_r}',
+        f'/usr/lib/debug/boot/vmlinux-{uname_r}',
+    ]
+
+    for c in candidates:
+        if os.path.isfile(c):
+            return c
+
+    # Kernel source tree vmlinux — might not match running kernel
+    if kernel_dir:
+        kd = os.path.expanduser(kernel_dir)
+        vmlinux = os.path.join(kd, 'vmlinux')
+        if os.path.isfile(vmlinux):
+            return vmlinux
+
+    home = os.path.expanduser('~')
+    try:
+        for d in sorted(os.listdir(home)):
+            if d.startswith('linux-'):
+                vmlinux = os.path.join(home, d, 'vmlinux')
+                if os.path.isfile(vmlinux):
+                    return vmlinux
+    except OSError:
+        pass
+
+    return None
+
+
+def _disassemble_from_kcore(func_name: str) -> Optional[List[dict]]:
+    """Disassemble a function from /proc/kcore (running kernel).
+
+    Uses /proc/kallsyms to find function boundaries, then objdump to
+    disassemble.  Requires root/sudo.
+
+    Returns:
+        List of instruction dicts: {offset, bytes, asm}, or None.
+    """
+    # Get function start and next symbol's address from kallsyms
+    try:
+        result = subprocess.run(
+            ['sudo', 'grep', '-w', func_name, '/proc/kallsyms'],
+            capture_output=True, text=True, timeout=10,
+        )
+        if result.returncode != 0 or not result.stdout.strip():
+            return None
+    except (subprocess.TimeoutExpired, FileNotFoundError):
+        return None
+
+    # Find the line with type T/t (text section)
+    start_addr = None
+    for line in result.stdout.strip().splitlines():
+        parts = line.split()
+        if len(parts) >= 3 and parts[2] == func_name and parts[1] in ('T', 't'):
+            start_addr = int(parts[0], 16)
+            break
+
+    if start_addr is None:
+        return None
+
+    # Find the next symbol after our function (use -A1 to get the successor)
+    try:
+        result = subprocess.run(
+            f"sudo cat /proc/kallsyms | grep -w '{func_name}' -A1",
+            capture_output=True, text=True, timeout=10, shell=True,
+        )
+        if result.returncode != 0:
+            return None
+    except (subprocess.TimeoutExpired, FileNotFoundError):
+        return None
+
+    lines = result.stdout.strip().splitlines()
+    end_addr = None
+    found_target = False
+    for line in lines:
+        parts = line.split()
+        if len(parts) >= 3:
+            if found_target:
+                end_addr = int(parts[0], 16)
+                break
+            if parts[2] == func_name and parts[1] in ('T', 't'):
+                found_target = True
+
+    if end_addr is None:
+        return None
+
+    # Disassemble from kcore
+    try:
+        result = subprocess.run(
+            ['sudo', 'objdump', '-d',
+             f'--start-address=0x{start_addr:x}',
+             f'--stop-address=0x{end_addr:x}',
+             '/proc/kcore'],
+            capture_output=True, text=True, timeout=30,
+        )
+        if result.returncode != 0:
+            return None
+    except (subprocess.TimeoutExpired, FileNotFoundError):
+        return None
+
+    # Parse instructions
+    instructions: List[dict] = []
+    for line in result.stdout.splitlines():
+        m = re.match(
+            r'\s*([0-9a-fA-F]+):\s+((?:[0-9a-fA-F]{2}\s+)+)\s*(.+)', line
+        )
+        if m:
+            addr = int(m.group(1), 16)
+            byte_list = m.group(2).strip().split()
+            asm = m.group(3).strip()
+            instructions.append({
+                'offset': addr - start_addr,
+                'bytes': byte_list,
+                'asm': asm,
+            })
+
+    return instructions if instructions else None
+
+
+def disassemble_function_from_binary(
+    binary_path: str,
+    func_name: str,
+) -> Optional[List[dict]]:
+    """Disassemble a single function from a binary (vmlinux) via objdump.
+
+    Returns:
+        List of instruction dicts: {offset, bytes, asm}
+        where *offset* is relative to the function start.
+        Returns None on failure.
+    """
+    try:
+        result = subprocess.run(
+            ['objdump', '-d', f'--disassemble={func_name}', binary_path],
+            capture_output=True, text=True, timeout=120,
+        )
+    except (subprocess.TimeoutExpired, FileNotFoundError):
+        return None
+
+    if result.returncode != 0:
+        return None
+
+    instructions: List[dict] = []
+    func_start: Optional[int] = None
+    in_func = False
+
+    for line in result.stdout.splitlines():
+        # Function header: "ffffffff89cad030 <migrate_pages>:"
+        if f'<{func_name}>:' in line:
+            m = re.match(r'\s*([0-9a-fA-F]+)\s+<', line)
+            if m:
+                func_start = int(m.group(1), 16)
+                in_func = True
+            continue
+
+        if not in_func:
+            continue
+
+        # End of function: blank line or next function header
+        stripped = line.strip()
+        if not stripped:
+            if instructions:
+                break
+            continue
+        if re.match(r'^[0-9a-fA-F]+ <', stripped):
+            break
+
+        # Instruction line: "  ffffffff89cad13e:  81 ff ff 01 00 00  cmp  $0x1ff,%edi"
+        m = re.match(
+            r'\s*([0-9a-fA-F]+):\s+((?:[0-9a-fA-F]{2}\s+)+)\s*(.+)', line
+        )
+        if m and func_start is not None:
+            addr = int(m.group(1), 16)
+            byte_list = m.group(2).strip().split()
+            asm = m.group(3).strip()
+            instructions.append({
+                'offset': addr - func_start,
+                'bytes': byte_list,
+                'asm': asm,
+            })
+
+    return instructions if instructions else None
+
+
+def _find_byte_pattern_in_instrs(
+    vmlinux_instrs: List[dict],
+    pattern_bytes: List[str],
+    occurrence: int = 0,
+) -> Optional[int]:
+    """Find the N-th occurrence of an instruction byte pattern.
+
+    Args:
+        vmlinux_instrs: Parsed vmlinux instructions.
+        pattern_bytes: Exact byte list to match (e.g. ['81','ff','ff','01','00','00']).
+        occurrence: 0-based occurrence index.
+
+    Returns:
+        Index into vmlinux_instrs, or None.
+    """
+    count = 0
+    for idx, instr in enumerate(vmlinux_instrs):
+        if instr['bytes'] == pattern_bytes:
+            if count == occurrence:
+                return idx
+            count += 1
+    return None
+
+
+def translate_kprobe_offsets_to_vmlinux(
+    generated_kprobes: list,
+    kernel_dir: str = None,
+) -> None:
+    """Translate .o-file kprobe offsets to running-kernel offsets *in-place*.
+
+    For each kprobe, finds the instruction immediately before the kprobe
+    target in the BB (the seed instruction), matches its byte pattern in
+    the running kernel's disassembly, and takes the next instruction's
+    offset as the corrected kprobe target.
+
+    Tries /proc/kcore first (always matches running kernel), then falls
+    back to a vmlinux file.
+
+    Also translates seed_offset for irreversible synthesis.
+    """
+    # Group by function to avoid redundant disassembly
+    by_func: Dict[str, list] = {}
+    for kp in generated_kprobes:
+        by_func.setdefault(kp['function_name'], []).append(kp)
+
+    for func_name, kps in by_func.items():
+        # Try kcore first (matches the running kernel exactly)
+        vmlinux_instrs = _disassemble_from_kcore(func_name)
+        source = '/proc/kcore'
+
+        if not vmlinux_instrs:
+            # Fall back to vmlinux file
+            vmlinux_path = find_vmlinux_path(kernel_dir)
+            if vmlinux_path:
+                vmlinux_instrs = disassemble_function_from_binary(vmlinux_path, func_name)
+                source = vmlinux_path
+            if not vmlinux_instrs:
+                print(f"  ⚠ Could not disassemble {func_name} — keeping .o offsets")
+                continue
+
+        vmlinux_size = vmlinux_instrs[-1]['offset'] + len(vmlinux_instrs[-1]['bytes'])
+        print(f"  {func_name} ({source}): {len(vmlinux_instrs)} instrs, ~0x{vmlinux_size:x} bytes")
+
+        # Derive func_base from the first kprobe's BB instructions
+        sample_bb = kps[0].get('all_instructions', [])
+        func_base = None
+        for inst in sample_bb:
+            clean = re.sub(r'^\s*\[\*\]\s*', '', inst.strip())
+            pat = r'([0-9a-fA-F]+)\s+<' + re.escape(func_name) + r'\+0x([0-9a-fA-F]+)>'
+            m = re.search(pat, clean)
+            if m:
+                func_base = int(m.group(1), 16) - int(m.group(2), 16)
+                break
+
+        # Track per-pattern occurrence counters (so 2nd cmp $0x1ff matches 2nd in vmlinux)
+        pattern_counters: Dict[tuple, int] = {}
+
+        for kp in kps:
+            o_offset = kp['kprobe_offset']
+            all_insts = kp.get('all_instructions', [])
+
+            # ── Find the instruction right before the kprobe in the BB ──
+            preceding_bytes = None
+            for inst in all_insts:
+                clean = re.sub(r'^\s*\[\*\]\s*', '', inst.strip())
+                m = re.match(r'([0-9a-fA-F]+):\s+((?:[0-9a-fA-F]{2}\s+)+)', clean)
+                if m:
+                    addr = int(m.group(1), 16)
+                    inst_bytes = m.group(2).strip().split()
+                    inst_offset = (addr - func_base) if func_base is not None else addr
+                    if inst_offset + len(inst_bytes) == o_offset:
+                        preceding_bytes = inst_bytes
+                        break
+
+            if not preceding_bytes:
+                print(f"  ⚠ Kprobe 0x{o_offset:x}: could not identify preceding instruction")
+                continue
+
+            pkey = tuple(preceding_bytes)
+            occ = pattern_counters.get(pkey, 0)
+            pattern_counters[pkey] = occ + 1
+
+            match_idx = _find_byte_pattern_in_instrs(vmlinux_instrs, preceding_bytes, occ)
+            if match_idx is None:
+                print(f"  ⚠ Kprobe 0x{o_offset:x}: seed bytes {' '.join(preceding_bytes)} "
+                      f"not found in vmlinux (occ #{occ})")
+                continue
+
+            if match_idx + 1 >= len(vmlinux_instrs):
+                print(f"  ⚠ Kprobe 0x{o_offset:x}: matched instruction is last in function")
+                continue
+
+            new_offset = vmlinux_instrs[match_idx + 1]['offset']
+
+            if new_offset != o_offset:
+                print(f"  ↔ Kprobe 0x{o_offset:x} (.o) → 0x{new_offset:x} (vmlinux)")
+                kp['kprobe_offset'] = new_offset
+                kp['candidate_offsets'] = [new_offset]
+            else:
+                print(f"  ✓ Kprobe 0x{o_offset:x}: .o and vmlinux offsets match")
+
+            # ── Translate seed_offset (irreversible synthesis) ──
+            if kp.get('seed_offset') is not None:
+                old_seed = kp['seed_offset']
+                # The seed instruction itself should be found via its bytes too
+                seed_instr_bytes = None
+                for inst in all_insts:
+                    clean = re.sub(r'^\s*\[\*\]\s*', '', inst.strip())
+                    m = re.match(r'([0-9a-fA-F]+):\s+((?:[0-9a-fA-F]{2}\s+)+)', clean)
+                    if m:
+                        addr = int(m.group(1), 16)
+                        inst_offset = (addr - func_base) if func_base is not None else addr
+                        if inst_offset == old_seed:
+                            seed_instr_bytes = m.group(2).strip().split()
+                            break
+
+                if seed_instr_bytes:
+                    seed_match = _find_byte_pattern_in_instrs(
+                        vmlinux_instrs, seed_instr_bytes
+                    )
+                    if seed_match is not None:
+                        new_seed = vmlinux_instrs[seed_match]['offset']
+                        if new_seed != old_seed:
+                            print(f"  ↔ Seed  0x{old_seed:x} (.o) → 0x{new_seed:x} (vmlinux)")
+                            kp['seed_offset'] = new_seed
+
+
 def get_function_name_from_bb_file(filepath: str) -> Optional[str]:
     """Extract function name from BB file.
 
@@ -4444,7 +4806,7 @@ def _update_scope_table_ss_index(ss_ranges_by_id: dict):
             writer.writerows(entries)
 
 
-def run_codegen_single(config, const_id: int, verbose: bool = False):
+def run_codegen_single(config, const_id: int, verbose: bool = False, kernel_dir: str = None):
     """Run code generation for a single tunable config.
 
     Appends to the shared scope table incrementally.
@@ -4453,6 +4815,7 @@ def run_codegen_single(config, const_id: int, verbose: bool = False):
         config: TunableConfig instance (from src.config)
         const_id: Pre-assigned ConstID for this tunable
         verbose: Show detailed intermediate output
+        kernel_dir: Path to kernel source tree (for vmlinux lookup)
     """
     global _verbose
     _verbose = verbose
@@ -4515,7 +4878,7 @@ def run_codegen_single(config, const_id: int, verbose: bool = False):
 
     analyze_linear_relationship(prefix, v1_file, v2_file, v3_file,
                                 source_values, seq_v1, diff_v1_v2_for_insertion,
-                                file_path, bpf_output_dir)
+                                file_path, bpf_output_dir, kernel_dir)
 
     # Populate ss_raw for this single tunable
     _populate_ss_raw_single(const_id, config)

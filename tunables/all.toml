@@ -115,13 +115,13 @@ values = [512, 256, 1024]
 
   [[tunables.safe_spans]]
   function = "migrate_pages"
-  start_offset = "0x872"
-  end_offset = "0x877"
+  start_offset = "0x10e"
+  end_offset = "0x11a"
 
   [[tunables.safe_spans]]
   function = "migrate_pages"
-  start_offset = "0x8c4"
-  end_offset = "0x8ca"
+  start_offset = "0x166"
+  end_offset = "0x172"
 
 [[tunables]]
 name = "BLK_MAX_REQUEST_COUNT"
