@@ -40,12 +40,6 @@ parse_mpstat() {
     awk '/^Average:/ && $2 != "CPU" {printf "%.0f", 100 - $NF}' "$file"
 }
 
-# ── build tunable once ───────────────────────────────────────────────
-
-echo "[*] Building MAX_SOFTIRQ_RESTART tunable..."
-bash "$SCRIPT_DIR/tune_softirq_restart.sh" 1   # build + load (value=1 first)
-bash "$SCRIPT_DIR/tune_softirq_restart.sh" unload
-
 # ── CSV header ───────────────────────────────────────────────────────
 
 echo "MAX_SOFTIRQ_RESTART,WorstLatUs,AvgLatUs,CpuUtilPct" | tee "$OUTFILE"
@@ -85,14 +79,13 @@ for val in "${VALUES[@]}"; do
     if [[ "$val" -ne 10 ]]; then
         bash "$SCRIPT_DIR/tune_softirq_restart.sh" unload
     fi
+
+    # Clean tables and stubs between rounds to avoid stale state
+    ~/Xkernel/xkernel-tool table delete --all -y
+    rm -rf ~/Xkernel/bpf/stubs/*
 done
 
-# ── cleanup ──────────────────────────────────────────────────────────
-
-echo ""
-echo "========== Cleanup =========="
-~/Xkernel/xkernel-tool table delete --all -y
-rm -rf ~/Xkernel/bpf/stubs/*
+# ── done ─────────────────────────────────────────────────────────────
 
 echo ""
 echo "[✓] Done. Results: $OUTFILE"
