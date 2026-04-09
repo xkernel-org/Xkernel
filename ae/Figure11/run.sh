@@ -14,7 +14,7 @@
 #   - 8 GiB total memory, pages migrated from NUMA node 1 → node 0
 #
 # Usage:
-#   sudo bash ae/Figure11/run.sh
+#   bash ae/Figure11/run.sh
 #
 # Prerequisites:
 #   - Custom kernel (6.14.0-xkernel) running
@@ -47,14 +47,13 @@ QPS_SAMPLE_MS=10
 PROBE_OPS=2000
 PROBE_PERIOD_MS=50
 DURATION=30
-REPEATS=10
+REPEATS=1
 
 # NR_MAX_BATCHED_MIGRATION values to test (512 is baseline/kernel default)
 BASELINE_VALUE=512
 TUNED_VALUES=(32 64 128 256 1024)
 
-TIMESTAMP="$(date +%Y%m%d-%H%M%S)"
-RESULT_DIR="$SCRIPT_DIR/results/$TIMESTAMP"
+RESULT_DIR="$SCRIPT_DIR/results"
 
 RED='\033[0;31m'; GREEN='\033[0;32m'; BOLD='\033[1m'; RST='\033[0m'
 log()         { echo -e "${BOLD}[$(date '+%H:%M:%S')]${RST} $*"; }
@@ -65,7 +64,6 @@ die()         { echo -e "${RED}[$(date '+%H:%M:%S')] ✗${RST} $*" >&2; exit 1; 
 # ── Preflight checks ────────────────────────────────────────────────
 [[ -x "$BENCHMARK" ]] || die "benchmark not found. Run: bash install_benchmark.sh"
 [[ -x "$XKTOOL" ]]    || die "xkernel-tool not found at $XKTOOL"
-[[ $(id -u) -eq 0 ]]  || die "Must run as root: sudo bash $0"
 
 # Check NUMA availability
 if ! command -v numactl &>/dev/null; then
@@ -81,7 +79,7 @@ setup_env() {
     log_section "Setting up environment"
 
     # Disable automatic NUMA balancing
-    echo 0 > /proc/sys/kernel/numa_balancing
+    echo 0 | sudo tee /proc/sys/kernel/numa_balancing > /dev/null
     log "numa_balancing = $(cat /proc/sys/kernel/numa_balancing)"
 
     log_ok "Environment configured"
@@ -99,10 +97,10 @@ run_benchmark() {
 
         # Drop caches between runs
         sync
-        echo 3 > /proc/sys/vm/drop_caches
+        echo 3 | sudo tee /proc/sys/vm/drop_caches > /dev/null
         sleep 1
 
-        "$BENCHMARK" \
+        sudo "$BENCHMARK" \
             --pages "$PAGES" \
             --workers "$WORKERS" \
             --migrates "$MIGRATES" \
@@ -178,32 +176,34 @@ for val in "${TUNED_VALUES[@]}"; do
     log_section "Tuning NR_MAX_BATCHED_MIGRATION = $val"
 
     # Unload previous tunable if loaded
-    bash "$TUNE_SCRIPT" unload 2>/dev/null || true
-    "$XKTOOL" table delete --all -y 2>/dev/null || true
+    sudo bash "$TUNE_SCRIPT" unload 2>/dev/null || true
+    sudo "$XKTOOL" table delete --all -y 2>/dev/null || true
     rm -rf "$PROJECT_ROOT/bpf/stubs/"* 2>/dev/null || true
 
     # Tune to new value
-    bash "$TUNE_SCRIPT" "$val"
+    sudo bash "$TUNE_SCRIPT" "$val"
 
     # Run benchmark
     run_benchmark "$val"
     summarize_results "$val"
 
-    # Unload
-    bash "$TUNE_SCRIPT" unload 2>/dev/null || true
+    # Unload and clean up
+    sudo bash "$TUNE_SCRIPT" unload 2>/dev/null || true
+    sudo "$XKTOOL" table delete --all -y 2>/dev/null || true
+    rm -rf "$PROJECT_ROOT/bpf/stubs/"* 2>/dev/null || true
 done
 
 # ── Cleanup ──────────────────────────────────────────────────────────
 log_section "Cleanup"
-"$XKTOOL" table delete --all -y 2>/dev/null || true
+sudo "$XKTOOL" table delete --all -y 2>/dev/null || true
 rm -rf "$PROJECT_ROOT/bpf/stubs/"* 2>/dev/null || true
 
 # Re-enable numa_balancing
-echo 1 > /proc/sys/kernel/numa_balancing 2>/dev/null || true
+echo 1 | sudo tee /proc/sys/kernel/numa_balancing > /dev/null 2>&1 || true
 
 log_ok "Figure 11 experiment complete."
 log "Results in: $RESULT_DIR/"
 ls -la "$RESULT_DIR/"
 log ""
 log "Next steps:"
-log "  python plot/plot.py $RESULT_DIR       # → plot/figure11.pdf"
+log "  python plot/plot.py       # → plot/figure11.pdf"

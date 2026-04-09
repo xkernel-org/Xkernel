@@ -25,7 +25,7 @@ def calculate_and_append_averages(file_path):
     data = collections.defaultdict(list)
 
     result_blocks = re.findall(
-        r'=== Results ===(.*?)(?=\[start\] residency|Done!)',
+        r'=== Results ===(.*?)(?=\[start\] residency|Done!|\Z)',
         content, re.DOTALL
     )
 

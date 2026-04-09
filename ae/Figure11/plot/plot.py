@@ -7,12 +7,12 @@ Reads result files from the results directory, each named <batch_value>.txt.
 Parses the summarized probe latency percentiles (P50/P90/P95/P99) appended
 by summarize.py.
 
-Produces a grouped bar chart of probe latency (µs) with
-NR_MAX_BATCHED_MIGRATION values on the x-axis.
+Produces a grouped bar chart of probe latency (ms) with
+NR_MAX_BATCHED_MIGRATION values on the x-axis. Default value (512) is bolded.
 
 Usage:
-    python plot/plot.py                          # auto-detect latest results
-    python plot/plot.py results/20251126-034820  # specific results dir
+    python plot/plot.py                    # use results/ directory
+    python plot/plot.py path/to/results    # specific results dir
 """
 import os
 import re
@@ -32,12 +32,11 @@ TEXT_SIZE_XYAXIS = 20
 TEXT_SIZE_LEGEND = 20
 TICK_LENGTH_X = 5
 TICK_WIDTH_X = 1
+HEIGHT = 4.5
+
+DEFAULT_VALUE = '512'
 
 palette = sns.color_palette("mako", 8)
-COLOR_P50 = palette[1]
-COLOR_P90 = palette[3]
-COLOR_P95 = palette[4]
-COLOR_P99 = palette[6]
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 figure_dir = os.path.join(script_dir, '..')
@@ -45,16 +44,14 @@ figure_dir = os.path.join(script_dir, '..')
 SEPARATOR = '************************************'
 
 
-def find_latest_results():
-    """Find the most recent results subdirectory."""
-    results_base = os.path.join(figure_dir, 'results')
-    if not os.path.isdir(results_base):
-        return None
-    subdirs = sorted([
-        d for d in os.listdir(results_base)
-        if os.path.isdir(os.path.join(results_base, d))
-    ])
-    return os.path.join(results_base, subdirs[-1]) if subdirs else None
+def find_results_dir():
+    """Return the results directory."""
+    return os.path.join(figure_dir, 'results')
+
+
+def _extract_number_from_filename(fname):
+    m = re.search(r'(\d+)', os.path.basename(fname))
+    return int(m.group(1)) if m else 10**9
 
 
 def _clean_float(s):
@@ -106,65 +103,83 @@ def parse_latency_data(filepath):
         return None
 
 
-def process_results(results_dir):
-    """Process all result files, return sorted labels and latency stats."""
-    labels = []
-    stats_list = []
+def plot_figure11(results_dir):
+    """Create Figure 11: probe latency bar chart."""
+    if not os.path.isdir(results_dir):
+        print(f"[skip] {results_dir} not found")
+        return
 
-    for fname in os.listdir(results_dir):
-        if not fname.endswith('.txt') or fname == 'log.txt':
-            continue
-        batch_val = fname.replace('.txt', '')
-        try:
-            int(batch_val)
-        except ValueError:
-            continue
+    lat_txt_files = sorted(
+        glob.glob(os.path.join(results_dir, '*.txt')),
+        key=_extract_number_from_filename
+    )
 
-        filepath = os.path.join(results_dir, fname)
-        stats = parse_latency_data(filepath)
+    lat_labels = []
+    p50_values, p90_values, p95_values, p99_values = [], [], [], []
+
+    for path in lat_txt_files:
+        if os.path.basename(path) == 'log.txt':
+            continue
+        stats = parse_latency_data(path)
         if not stats:
             continue
+        m = re.search(r'(\d+)', os.path.basename(path))
+        label = m.group(1) if m else os.path.basename(path)
+        lat_labels.append(label)
+        p50_values.append(stats['p50'])
+        p90_values.append(stats['p90'])
+        p95_values.append(stats['p95'])
+        p99_values.append(stats['p99'])
 
-        labels.append(batch_val)
-        stats_list.append(stats)
+    if not lat_labels:
+        print("Error: No valid result files found.", file=sys.stderr)
+        return
 
-    # Sort by numeric value
-    sorted_indices = sorted(range(len(labels)), key=lambda i: int(labels[i]))
-    labels = [labels[i] for i in sorted_indices]
-    stats_list = [stats_list[i] for i in sorted_indices]
+    print(f"[*] Found {len(lat_labels)} NR_MAX_BATCHED_MIGRATION values: {', '.join(lat_labels)}")
+    for label, s50, s90, s95, s99 in zip(lat_labels, p50_values, p90_values, p95_values, p99_values):
+        print(f"    NR_MAX_BATCHED_MIGRATION={label:>5s}  "
+              f"P50={s50:>8.1f}  P90={s90:>8.1f}  "
+              f"P95={s95:>8.1f}  P99={s99:>8.1f} µs")
 
-    return labels, stats_list
+    # Convert to milliseconds
+    p50 = np.asarray(p50_values, dtype=float) / 1000.0
+    p90 = np.asarray(p90_values, dtype=float) / 1000.0
+    p95 = np.asarray(p95_values, dtype=float) / 1000.0
+    p99 = np.asarray(p99_values, dtype=float) / 1000.0
 
+    fig, ax = plt.subplots(figsize=(6, HEIGHT))
 
-def plot_figure11(labels, stats_list):
-    """Create Figure 11: probe latency bar chart."""
-    p50 = [s['p50'] for s in stats_list]
-    p90 = [s['p90'] for s in stats_list]
-    p95 = [s['p95'] for s in stats_list]
-    p99 = [s['p99'] for s in stats_list]
+    x = np.arange(len(lat_labels))
+    width = 0.2
 
-    fig, ax = plt.subplots(figsize=(10, 5))
+    ax.bar(x - 1.5 * width, p50, width, label='P50', color=palette[3], zorder=2)
+    ax.bar(x - 0.5 * width, p90, width, label='P90', color=palette[4], zorder=2)
+    ax.bar(x + 0.5 * width, p95, width, label='P95', color=palette[2], zorder=2)
+    ax.bar(x + 1.5 * width, p99, width, label='P99', color=palette[1], zorder=2)
 
-    width = 0.18
-    x = np.arange(len(labels))
-
-    ax.bar(x - 1.5 * width, p50, width, label='P50', color=COLOR_P50, zorder=2)
-    ax.bar(x - 0.5 * width, p90, width, label='P90', color=COLOR_P90, zorder=2)
-    ax.bar(x + 0.5 * width, p95, width, label='P95', color=COLOR_P95, zorder=2)
-    ax.bar(x + 1.5 * width, p99, width, label='P99', color=COLOR_P99, zorder=2)
-
-    ax.set_xlabel('NR_MAX_BATCHED_MIGRATION', fontsize=TEXT_SIZE_XYLABEL)
-    ax.set_ylabel('Probe Latency (µs)', fontsize=TEXT_SIZE_XYLABEL)
+    ax.set_ylabel('Latency (ms)', fontsize=TEXT_SIZE_XYLABEL)
     ax.set_xticks(x)
-    ax.set_xticklabels(labels, fontsize=TEXT_SIZE_XYAXIS)
+    ax.set_xticklabels(lat_labels, rotation=0, ha='center', fontsize=TEXT_SIZE_XYAXIS)
+    ax.set_xlabel('Value of Perf-Const', fontsize=TEXT_SIZE_XYLABEL)
+    ax.tick_params(axis='x', length=TICK_LENGTH_X, width=TICK_WIDTH_X, labelsize=TEXT_SIZE_XYAXIS)
+
+    # Bold the default value tick label
+    for tick in ax.xaxis.get_major_ticks():
+        if tick.label1.get_text() == DEFAULT_VALUE:
+            tick.label1.set_fontweight('bold')
+
+    ax.set_ylim(0, 6)
+    ax.set_yticks([0, 2, 4, 6])
     ax.tick_params(axis='y', labelsize=TEXT_SIZE_XYAXIS)
-    ax.tick_params(axis='x', length=TICK_LENGTH_X, width=TICK_WIDTH_X)
-    ax.grid(True, which='major', axis='y', linestyle='--', linewidth=0.5)
+
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
-    ax.legend(loc='upper left', frameon=False, fontsize=TEXT_SIZE_LEGEND)
+    ax.spines['left'].set_linewidth(1)
+    ax.spines['bottom'].set_linewidth(1)
 
-    plt.tight_layout()
+    ax.legend(loc='upper left', frameon=False, fontsize=TEXT_SIZE_LEGEND, ncol=2)
+
+    fig.tight_layout()
     plot_common.save_fig(script_dir, 'figure11')
     plt.close(fig)
     print(f"[✓] Saved: {script_dir}/figure11.pdf")
@@ -174,7 +189,7 @@ def main():
     if len(sys.argv) > 1:
         results_dir = sys.argv[1]
     else:
-        results_dir = find_latest_results()
+        results_dir = find_results_dir()
 
     if not results_dir or not os.path.isdir(results_dir):
         print("Error: No results directory found.", file=sys.stderr)
@@ -182,19 +197,7 @@ def main():
         sys.exit(1)
 
     print(f"[*] Reading results from: {results_dir}")
-    labels, stats_list = process_results(results_dir)
-
-    if not labels:
-        print("Error: No valid result files found.", file=sys.stderr)
-        sys.exit(1)
-
-    print(f"[*] Found {len(labels)} NR_MAX_BATCHED_MIGRATION values: {', '.join(labels)}")
-    for label, s in zip(labels, stats_list):
-        print(f"    NR_MAX_BATCHED_MIGRATION={label:>5s}  "
-              f"P50={s['p50']:>8.1f}  P90={s['p90']:>8.1f}  "
-              f"P95={s['p95']:>8.1f}  P99={s['p99']:>8.1f} µs")
-
-    plot_figure11(labels, stats_list)
+    plot_figure11(results_dir)
 
 
 if __name__ == '__main__':
