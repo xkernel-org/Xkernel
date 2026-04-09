@@ -6,8 +6,8 @@ description = "mm/migrate.c NR_MAX_BATCHED_MIGRATION"
 [source]
 file = "mm/migrate.c"
 original = "#define NR_MAX_BATCHED_MIGRATION\tHPAGE_PMD_NR"
-modified = ["#define NR_MAX_BATCHED_MIGRATION\t128", "#define NR_MAX_BATCHED_MIGRATION\t256"]
-values = [512, 128, 256]
+modified = ["#define NR_MAX_BATCHED_MIGRATION\t256", "#define NR_MAX_BATCHED_MIGRATION\t1024"]
+values = [512, 256, 1024]
 
 [[safe_spans]]
 function = "migrate_pages"
