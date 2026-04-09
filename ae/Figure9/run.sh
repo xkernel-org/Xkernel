@@ -1,53 +1,98 @@
 #!/bin/bash
-# run.sh — Full Figure 9 experiment (server side)
+# run.sh — Figure 9 experiment: vary MAX_SOFTIRQ_RESTART = {1,5,10,15,20}
 #
-# Measures cyclictest latency under heavy softirq load, then repeats
-# with MAX_SOFTIRQ_RESTART tuned down.
+# Measures cyclictest tail/avg latency and CPU utilization under heavy
+# softirq load for each value of MAX_SOFTIRQ_RESTART.
 #
 # Prerequisites:
 #   - 3 iperf3 clients already sending traffic (see client.sh)
 #   - Flows steered to CPU $CPU (see steer_flows.sh)
 #
-# Usage: bash run.sh [CPU]
+# Usage: bash run.sh [CPU] [REPS]
 
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CPU=${1:-3}
+REPS=${2:-3}                       # repetitions per value
+VALUES=(1 5 10 15 20)
+CYCLICTEST_LOOPS=20000             # ~20s per run
+OUTFILE="results/figure9.csv"
 
 mkdir -p results
 
-echo "========== Baseline (MAX_SOFTIRQ_RESTART = 10) =========="
-bash "$SCRIPT_DIR/metric.sh" "$CPU" > /tmp/softirq_pre_baseline
-mpstat -P "$CPU" 1 25 > results/baseline_cpu.txt &
-MPSTAT_PID=$!
-sudo cyclictest -t 1 -a "$CPU" -p 99 -d 1000 -l 20000 2>&1 | tee results/baseline_lat.txt
-wait $MPSTAT_PID 2>/dev/null || true
-bash "$SCRIPT_DIR/metric.sh" "$CPU" > /tmp/softirq_post_baseline
+# ── helpers ──────────────────────────────────────────────────────────
 
-echo -e "\n=== Baseline Softirq Increments ==="
-awk 'NR==FNR{pre[$1]=$2;next}{printf "%-20s %10d\n",$1,$2-(pre[$1]?pre[$1]:0)}' \
-    /tmp/softirq_pre_baseline /tmp/softirq_post_baseline | tee results/baseline_softirq.txt
+# Parse cyclictest output for Max and Avg latency (microseconds)
+# Example line: "T: 0 ( 1234) P:99 I:1000 C:  20000 Min:      5 Act:   12 Avg:   13 Max:     143"
+parse_cyclictest() {
+    local file="$1"
+    awk '/^T:/{
+        for(i=1;i<=NF;i++){
+            if($i~/^Max:/){max=substr($i,5)+0}
+            if($i~/^Avg:/){avg=substr($i,5)+0}
+        }
+    } END{print max, avg}' "$file"
+}
 
-echo ""
-echo "========== Tuned (MAX_SOFTIRQ_RESTART = 1) =========="
-bash "$SCRIPT_DIR/tune_softirq_restart.sh" 1
+# Parse mpstat output for average CPU utilization (100 - %idle)
+parse_mpstat() {
+    local file="$1"
+    awk '/^Average:/ && $2 != "CPU" {printf "%.0f", 100 - $NF}' "$file"
+}
 
-bash "$SCRIPT_DIR/metric.sh" "$CPU" > /tmp/softirq_pre_tuned
-mpstat -P "$CPU" 1 25 > results/tuned_cpu.txt &
-MPSTAT_PID=$!
-sudo cyclictest -t 1 -a "$CPU" -p 99 -d 1000 -l 20000 2>&1 | tee results/tuned_lat.txt
-wait $MPSTAT_PID 2>/dev/null || true
-bash "$SCRIPT_DIR/metric.sh" "$CPU" > /tmp/softirq_post_tuned
+# ── build tunable once ───────────────────────────────────────────────
 
-echo -e "\n=== Tuned Softirq Increments ==="
-awk 'NR==FNR{pre[$1]=$2;next}{printf "%-20s %10d\n",$1,$2-(pre[$1]?pre[$1]:0)}' \
-    /tmp/softirq_pre_tuned /tmp/softirq_post_tuned | tee results/tuned_softirq.txt
+echo "[*] Building MAX_SOFTIRQ_RESTART tunable..."
+bash "$SCRIPT_DIR/tune_softirq_restart.sh" 1   # build + load (value=1 first)
+bash "$SCRIPT_DIR/tune_softirq_restart.sh" unload
+
+# ── CSV header ───────────────────────────────────────────────────────
+
+echo "MAX_SOFTIRQ_RESTART,WorstLatUs,AvgLatUs,CpuUtilPct" | tee "$OUTFILE"
+
+# ── sweep ────────────────────────────────────────────────────────────
+
+for val in "${VALUES[@]}"; do
+    echo ""
+    echo "========== MAX_SOFTIRQ_RESTART = $val =========="
+
+    if [[ "$val" -eq 10 ]]; then
+        # 10 is the default kernel value — no need to load tunable
+        echo "[*] Using default kernel value (no tunable loaded)"
+    else
+        bash "$SCRIPT_DIR/tune_softirq_restart.sh" "$val"
+    fi
+
+    for rep in $(seq 1 "$REPS"); do
+        tag="${val}_rep${rep}"
+        lat_file="results/lat_${tag}.txt"
+        cpu_file="results/cpu_${tag}.txt"
+
+        mpstat -P "$CPU" 1 $((CYCLICTEST_LOOPS / 1000 + 5)) > "$cpu_file" &
+        MPSTAT_PID=$!
+
+        sudo cyclictest -t 1 -a "$CPU" -p 99 -d 1000 -l "$CYCLICTEST_LOOPS" \
+            2>&1 | tee "$lat_file"
+
+        wait $MPSTAT_PID 2>/dev/null || true
+
+        read -r worst avg <<< "$(parse_cyclictest "$lat_file")"
+        cpu_pct=$(parse_mpstat "$cpu_file")
+
+        echo "$val,$worst,$avg,$cpu_pct" | tee -a "$OUTFILE"
+    done
+
+    if [[ "$val" -ne 10 ]]; then
+        bash "$SCRIPT_DIR/tune_softirq_restart.sh" unload
+    fi
+done
+
+# ── cleanup ──────────────────────────────────────────────────────────
 
 echo ""
 echo "========== Cleanup =========="
-bash "$SCRIPT_DIR/tune_softirq_restart.sh" unload
 ~/Xkernel/xkernel-tool table delete --all -y
 rm -rf ~/Xkernel/bpf/stubs/*
 
 echo ""
-echo "[✓] Done. Results saved to results/"
+echo "[✓] Done. Results: $OUTFILE"

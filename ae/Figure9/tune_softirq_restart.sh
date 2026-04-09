@@ -2,9 +2,9 @@
 # tune_softirq_restart.sh — Use xkernel-tool to set MAX_SOFTIRQ_RESTART
 #
 # Usage:
-#   sudo bash tune_softirq_restart.sh          # default: set value to 1
-#   sudo bash tune_softirq_restart.sh 5        # custom value
-#   sudo bash tune_softirq_restart.sh unload   # unload the tunable
+#   bash tune_softirq_restart.sh          # default: set value to 1
+#   bash tune_softirq_restart.sh 5        # custom value
+#   bash tune_softirq_restart.sh unload   # unload the tunable
 
 set -euo pipefail
 
