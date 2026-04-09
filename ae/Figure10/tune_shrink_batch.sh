@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+# tune_shrink_batch.sh — Use xkernel-tool to set SHRINK_BATCH to a new value
+#
+# This script builds the SHRINK_BATCH tunable, patches the generated BPF stub
+# to use the specified value (original: 128), recompiles, and loads it in
+# immediate mode (mode 0).
+#
+# Usage:
+#   sudo bash tune_shrink_batch.sh 32         # set SHRINK_BATCH = 32
+#   sudo bash tune_shrink_batch.sh unload     # unload the tunable
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(dirname "$(dirname "$SCRIPT_DIR")")"
+XKTOOL="$PROJECT_ROOT/xkernel-tool"
+TOML="$PROJECT_ROOT/tunables/shrink_batch.toml"
+
+SCOPE_TABLE="/dev/shm/xkernel/scope_table"
+CS_RAW="/dev/shm/xkernel/cs_raw"
+STUBS_DIR="$PROJECT_ROOT/bpf/stubs"
+
+NEW_VALUE="${1:-32}"
+ORIG_VALUE=128
+MODE=0  # Immediate mode
+
+# ── helpers ──────────────────────────────────────────────────────────
+die()  { echo "[✗] $*" >&2; exit 1; }
+log()  { echo "[*] $*"; }
+ok()   { echo "[✓] $*"; }
+
+find_const_id() {
+    [[ -f "$SCOPE_TABLE" ]] || die "Scope table not found at $SCOPE_TABLE — build first"
+    local id
+    id=$(awk -F'\t' '$2 == "SHRINK_BATCH" {print $1; exit}' "$SCOPE_TABLE")
+    [[ -n "$id" ]] || die "Could not find ConstID for SHRINK_BATCH in $SCOPE_TABLE"
+    echo "$id"
+}
+
+find_stub_src() {
+    local const_id="$1"
+    local bpf_obj
+    bpf_obj=$(awk -F'\t' -v id="$const_id" '$1 == id {print $6; exit}' "$SCOPE_TABLE")
+    [[ -n "$bpf_obj" ]] || die "No BPF_File found for ConstID=$const_id"
+    local stub_src="${STUBS_DIR}/${bpf_obj%.bpf.o}.bpf.c"
+    [[ -f "$stub_src" ]] || die "Stub source not found: $stub_src"
+    echo "$stub_src"
+}
+
+# ── unload shortcut ──────────────────────────────────────────────────
+if [[ "$NEW_VALUE" == "unload" ]]; then
+    CONST_ID=$(find_const_id)
+    log "Unloading ConstID=$CONST_ID ..."
+    "$XKTOOL" unload "$CONST_ID"
+    ok "SHRINK_BATCH unloaded"
+    exit 0
+fi
+
+# ── main flow ────────────────────────────────────────────────────────
+
+# 1. Build the tunable
+log "Building tunable from $TOML ..."
+"$XKTOOL" build "$TOML"
+
+# 2. Resolve ConstID
+CONST_ID=$(find_const_id)
+log "SHRINK_BATCH → ConstID=$CONST_ID"
+
+# 3. Patch the BPF stub: change val from original to NEW_VALUE
+STUB_SRC=$(find_stub_src "$CONST_ID")
+log "Patching $STUB_SRC: val $ORIG_VALUE → $NEW_VALUE"
+
+if ! grep -q "u64 val = " "$STUB_SRC"; then
+    die "Cannot find 'u64 val = ...' in $STUB_SRC"
+fi
+sed -i "s/u64 val = [0-9]\+;/u64 val = ${NEW_VALUE};/" "$STUB_SRC"
+
+# 4. Recompile the patched stub
+log "Recompiling BPF stubs ..."
+make -C "$PROJECT_ROOT/bpf/" -j"$(nproc)"
+
+# 5. Load with immediate mode
+log "Loading ConstID=$CONST_ID (mode=$MODE) ..."
+"$XKTOOL" load "$MODE" "$CONST_ID"
+
+ok "SHRINK_BATCH is now set to $NEW_VALUE (ConstID=$CONST_ID, mode=$MODE)"
