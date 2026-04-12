@@ -446,7 +446,11 @@ static int __init consistency_init(void)
 		pr_info("waiting for forward transition...\n");
 		wake_up_process(daemon_task);
 	} else {
+		ktime_t now = ktime_get();
+		s64 now_ns = ktime_to_ns(now);
+
 		pr_info("transition instant (no threads in SS)\n");
+		write_transition_timing(now_ns, now_ns, 0, false);
 		xk_detach_aux_kprobes();
 		set_state(XK_STATE_DONE);
 	}
@@ -475,7 +479,11 @@ static void __exit consistency_exit(void)
 			pr_info("waiting for reverse transition...\n");
 			wake_up_process(daemon_task);
 		} else {
+			ktime_t now = ktime_get();
+			s64 now_ns = ktime_to_ns(now);
+
 			pr_info("reverse transition instant\n");
+			write_transition_timing(now_ns, now_ns, 0, true);
 			xk_detach_aux_kprobes();
 			set_state(XK_STATE_REVERSE_DONE);
 		}
