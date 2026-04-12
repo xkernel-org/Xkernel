@@ -1322,16 +1322,34 @@ def cmd_transition_stats(args):
             print("transition_stats_map is empty — no task has transitioned yet.")
             return
 
-        raw_bytes = entries[0].get("value", {}).get("bytes")
-        if not raw_bytes:
-            # bpftool may format value differently; try "value" as list
-            val_list = entries[0].get("value")
-            if isinstance(val_list, list):
-                raw_bytes = bytes(val_list)
-            else:
-                print("Unexpected bpftool map format.")
-                print(result.stdout[:400])
-                return
+        entry = entries[0]
+        raw_bytes = None
+
+        # bpftool output varies by version:
+        #   Format A (dict): [{"key": [...], "value": {"bytes": [...]}}]
+        #   Format B (dict): [{"key": [...], "value": ["0x00", ...]}]
+        #   Format C (list): [["0x00", ...], ["0x00", ...]]  (key, value pair)
+        if isinstance(entry, dict):
+            val = entry.get("value", {})
+            if isinstance(val, dict):
+                raw_bytes = val.get("bytes")
+            elif isinstance(val, list):
+                raw_bytes = val
+        elif isinstance(entry, list):
+            # Format C: entry is [key_list, value_list] or just value list
+            # Take the last list element as value
+            val = entry[-1] if len(entry) >= 2 else entry
+            if isinstance(val, list):
+                raw_bytes = val
+
+        if raw_bytes is None:
+            print("Unexpected bpftool map format.")
+            print(result.stdout[:400])
+            return
+
+        # Convert hex strings ("0x00") or ints to bytes
+        if raw_bytes and isinstance(raw_bytes[0], str):
+            raw_bytes = bytes(int(b, 16) for b in raw_bytes)
         else:
             raw_bytes = bytes(raw_bytes)
 
