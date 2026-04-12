@@ -25,16 +25,12 @@
 
 /* ── X-tune context ────────────────────────────────────────────────────── */
 
-/* Opaque handle passed to policy code. Wraps pt_regs and the SIE indirection
- * function pointer for the target perf-const's critical span. */
-typedef struct x_ctx {
-    struct pt_regs *regs;
-    void (*set_fn)(struct pt_regs *regs, __u64 val);
-} *x_handle_t;
+/* x_ctx is defined in xkernel.bpf.h; typedef the pointer for convenience. */
+typedef struct x_ctx *x_handle_t;
 
 /* ── Core APIs ─────────────────────────────────────────────────────────── */
 
-/* x_set — Update the perf-const to a new value.
+/* x_set — Update the perf-const to a new value (handle version).
  *
  * Invokes the SIE indirection: computes the new architectural state from the
  * symbolic expression and writes it back via pt_regs or kernel memory.
@@ -43,40 +39,16 @@ typedef struct x_ctx {
  * @val:   New source-level value V' of the perf-const.
  * Returns: 0 on success, negative on error.
  */
-static __always_inline long x_set(x_handle_t x_ctx, __u64 val) {
+static __always_inline long x_tune_set(x_handle_t x_ctx, __u64 val) {
     if (!x_ctx || !x_ctx->set_fn)
         return -1;
     x_ctx->set_fn(x_ctx->regs, val);
     return 0;
 }
 
-/* x_transition_done — Check if the value transition is complete.
- *
- * For per-task mode: checks if the current task has exited the Safe Span.
- * For immediate mode: always returns true.
- * For global mode: checks global refcount.
- *
- * Policy code MUST call this before invoking x_set() to ensure safety.
- *
- * @x_ctx: Handle from X_TUNE's first argument.
- * Returns: true if transition is complete and it's safe to apply new values.
- */
-static __always_inline bool x_transition_done(x_handle_t x_ctx) {
-    if (!x_ctx)
-        return false;
-
-    /* Immediate mode: always done */
-    if (xk_mode == 0)
-        return true;
-
-    /* Per-task / Global: check task storage */
-    struct task_struct *task = bpf_get_current_task_btf();
-    struct task_data *td = bpf_task_storage_get(&task_storage, task, 0, 0);
-    if (!td)
-        return false;
-
-    return td->transition_done == 1;
-}
+/* x_transition_done is defined in xkernel.bpf.h.
+ * Policy code MUST call x_transition_done(x_ctx) before x_set()
+ * to ensure the transition safety invariant. */
 
 /* ── X_TUNE macro ──────────────────────────────────────────────────────── */
 

@@ -9,12 +9,5 @@ original = "BLK_MAX_REQUEST_COUNT"
 modified = ["8", "16"]
 values = [32, 8, 16]
 
-[[safe_spans]]
-function = "blk_start_plug_nr_ios"
-start_offset = "0x29"
-end_offset = "0x584"
-
-[[safe_spans]]
-function = "blk_add_rq_to_plug"
-start_offset = "0xd1"
-end_offset = "0xd5"
+# Note: safe_spans intentionally omitted — auto-SS derivation will compute
+# the correct span from blk_add_rq_to_plug CS + /proc/kcore function bounds.

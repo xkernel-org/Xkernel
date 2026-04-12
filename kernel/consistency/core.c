@@ -33,14 +33,20 @@ MODULE_DESCRIPTION("Xkernel global consistency transition (Mode 2)");
 
 /* ── File paths (populated by userspace loader) ──────────────────── */
 
-#define CS_FILE		"/dev/shm/xkernel/cs"
-#define SS_FILE		"/dev/shm/xkernel/ss"
+#define CS_FILE			"/dev/shm/xkernel/cs"
+#define SS_FILE			"/dev/shm/xkernel/ss"
+#define TIMING_FILE		"/dev/shm/xkernel/transition_timing"
 
 /* ── Module parameters ───────────────────────────────────────────── */
 
 static int timeout_sec = 5;
 module_param(timeout_sec, int, 0644);
 MODULE_PARM_DESC(timeout_sec, "Timeout in seconds for transition (default: 5)");
+
+static int poll_interval_ms = 1;
+module_param(poll_interval_ms, int, 0644);
+MODULE_PARM_DESC(poll_interval_ms,
+		 "Daemon polling interval in ms for refcount check (default: 1)");
 
 /* ── Globals ─────────────────────────────────────────────────────── */
 
@@ -50,8 +56,6 @@ static struct task_struct	*daemon_task;
 static atomic_t			refcount = ATOMIC_INIT(0);
 static enum xk_state		state    = XK_STATE_PENDING;
 static ktime_t			t_start, t_end;
-
-#define POLL_INTERVAL_MS	1
 
 /* ── State accessors ─────────────────────────────────────────────── */
 
@@ -74,6 +78,42 @@ void xk_record_end_time(void)
 	cmpxchg64((s64 *)&t_end, 0, ktime_get());
 }
 
+/**
+ * write_transition_timing() - Write timing data to TIMING_FILE.
+ *
+ * Writes a simple key=value text file so userspace can read transition
+ * latency without parsing dmesg.  Called from the daemon after each
+ * completed (or failed) transition.
+ *
+ * Format:
+ *   start_ns=<nanoseconds>
+ *   end_ns=<nanoseconds>
+ *   elapsed_us=<microseconds>
+ *   direction=forward|reverse
+ */
+static void write_transition_timing(s64 start_ns, s64 end_ns,
+				    s64 elapsed_us, bool is_reverse)
+{
+	struct file *filp;
+	char buf[256];
+	int len;
+	loff_t pos = 0;
+
+	filp = filp_open(TIMING_FILE, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+	if (IS_ERR(filp)) {
+		pr_warn("failed to open %s: %ld\n", TIMING_FILE, PTR_ERR(filp));
+		return;
+	}
+
+	len = scnprintf(buf, sizeof(buf),
+			"start_ns=%lld\nend_ns=%lld\nelapsed_us=%lld\ndirection=%s\n",
+			start_ns, end_ns, elapsed_us,
+			is_reverse ? "reverse" : "forward");
+
+	kernel_write(filp, buf, len, &pos);
+	filp_close(filp, NULL);
+}
+
 /* ── Stack inspection (runs inside stop_machine) ─────────────────── */
 
 static unsigned long stack_buf[XK_MAX_STACK_ENTRIES];
@@ -93,6 +133,17 @@ static inline void print_stack(struct task_struct *t, unsigned long *e, int n) {
 
 /**
  * check_task_in_spans() - Check whether any stack frame is inside a span.
+ *
+ * Increments the global refcount **once per matching (frame, span) pair**.
+ * This is intentional: for a recursively-called function that appears N times
+ * on the stack, refcount is incremented N times.  Each return through the SS
+ * exit point fires the unguard kprobe exactly once, so refcount is decremented
+ * N times symmetrically.
+ *
+ * NOTE: Spans in xk_target_funcs must not overlap.  If two distinct
+ * xk_target_func entries cover the same address, a single frame would be
+ * counted twice, breaking the refcount symmetry.  The loader ensures
+ * non-overlapping spans.
  *
  * If a match is found, increment the global refcount so the daemon knows
  * to wait for that thread to exit SS.
@@ -283,10 +334,13 @@ static void free_target_spans(void)
 static int transition_daemon(void *data)
 {
 	int poll_count = 0;
-	int max_polls  = timeout_sec * 1000 / POLL_INTERVAL_MS;
+	int max_polls;
 
 	while (!kthread_should_stop()) {
 		enum xk_state s = get_state();
+
+		/* Recompute max_polls each wakeup to honour module_param changes */
+		max_polls = timeout_sec * 1000 / max(poll_interval_ms, 1);
 
 		/* Terminal states — sleep until kthread_stop() */
 		if (s == XK_STATE_DONE || s == XK_STATE_FAILED ||
@@ -298,14 +352,30 @@ static int transition_daemon(void *data)
 
 		/* Waiting for refcount → 0 */
 		if (xk_refcount_read() == 0) {
-			s64 elapsed = ktime_to_us(ktime_sub(t_end, t_start));
+			/*
+			 * Ensure t_end (written by a kprobe handler on another
+			 * CPU via cmpxchg64) is visible before we read it.
+			 * The atomic_read above provides a control dependency on
+			 * x86 but not on weakly-ordered architectures.
+			 */
+			smp_rmb();
+			ktime_t te      = READ_ONCE(t_end);
+			ktime_t ts      = t_start;
+			s64 start_ns    = ktime_to_ns(ts);
+			s64 end_ns      = ktime_to_ns(te);
+			s64 elapsed     = ktime_to_us(ktime_sub(te, ts));
 			bool is_reverse = (s == XK_STATE_REVERSE_PENDING);
 
 			pr_info("%stransition done, time: %lld us\n",
 				is_reverse ? "reverse " : "", elapsed);
-			t_start = t_end = 0;
 
-			BUG_ON(!xk_aux_kprobes_enabled());
+			write_transition_timing(start_ns, end_ns, elapsed,
+						is_reverse);
+
+			WRITE_ONCE(t_start, 0);
+			WRITE_ONCE(t_end, 0);
+
+			WARN_ON_ONCE(!xk_aux_kprobes_enabled());
 			xk_detach_aux_kprobes();
 			set_state(is_reverse ? XK_STATE_REVERSE_DONE
 					     : XK_STATE_DONE);
@@ -315,14 +385,16 @@ static int transition_daemon(void *data)
 			schedule();
 		} else {
 			set_current_state(TASK_INTERRUPTIBLE);
-			schedule_timeout(msecs_to_jiffies(POLL_INTERVAL_MS));
+			schedule_timeout(msecs_to_jiffies(max(poll_interval_ms, 1)));
 
 			if (++poll_count > max_polls) {
 				bool is_reverse = (s == XK_STATE_REVERSE_PENDING);
 
 				pr_err("%stransition timed out\n",
 				       is_reverse ? "reverse " : "");
-				BUG_ON(!xk_aux_kprobes_enabled());
+				write_transition_timing(ktime_to_ns(t_start),
+							0, -1, is_reverse);
+				WARN_ON_ONCE(!xk_aux_kprobes_enabled());
 				xk_detach_aux_kprobes();
 				set_state(is_reverse ? XK_STATE_REVERSE_FAILED
 						     : XK_STATE_FAILED);
@@ -340,7 +412,8 @@ static int __init consistency_init(void)
 {
 	int ret;
 
-	pr_info("module loaded (timeout=%ds)\n", timeout_sec);
+	pr_info("module loaded (timeout=%ds, poll_interval=%dms)\n",
+		timeout_sec, poll_interval_ms);
 
 	INIT_LIST_HEAD(&xk_target_funcs);
 

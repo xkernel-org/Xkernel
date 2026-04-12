@@ -11,10 +11,43 @@ char LICENSE[] SEC("license") = "GPL";
 
 #define MEASURE_TRANSITION_TIME
 
+/*
+ * Per-task state stored in BPF task-local storage.
+ *
+ * epoch: matches xk_epoch at the time transition_done was set.  If the
+ *        task's epoch diverges from xk_epoch (incremented by userspace when
+ *        a new transition round starts), transition_done is invalidated and
+ *        rechecked.  This allows multiple consecutive transitions within one
+ *        BPF program lifetime.
+ */
 struct task_data {
     u32 transition_done;
+    u32 epoch;            /* must match xk_epoch to be valid */
     u64 transition_start;
     u64 transition_end;
+};
+
+/*
+ * Transition latency event emitted to the ring buffer (mode 1 only,
+ * when MEASURE_TRANSITION_TIME is defined).
+ */
+struct transition_event {
+    u64 pid_tgid;
+    char comm[16];
+    u64 start_ns;
+    u64 end_ns;
+    u64 latency_ns;
+};
+
+/*
+ * Aggregate per-task transition stats (single entry, key = 0).
+ * Updated atomically each time a task completes its transition.
+ */
+struct transition_stats {
+    u64 min_ns;   /* minimum latency observed (0 = unset) */
+    u64 max_ns;   /* maximum latency observed */
+    u64 total_ns; /* sum of all latencies (for average) */
+    u64 count;    /* number of completed per-task transitions */
 };
 
 #define MAX_CS 64
@@ -39,6 +72,15 @@ int xk_mode = 0;
 SEC(".bss.xk_active")
 int xk_active = 0;
 
+/*
+ * xk_epoch is incremented by userspace each time a new transition round
+ * begins.  Per-task transition_done flags are invalidated when a task's
+ * stored epoch differs from xk_epoch, enabling multiple consecutive
+ * transitions in a single BPF program lifetime.
+ */
+SEC(".bss.xk_epoch")
+u32 xk_epoch = 0;
+
 struct {
     __uint(type, BPF_MAP_TYPE_ARRAY);
     __uint(max_entries, MAX_CS);
@@ -59,6 +101,29 @@ struct {
     __type(key, int);
     __type(value, struct task_data);          
 } task_storage SEC(".maps");
+
+#ifdef MEASURE_TRANSITION_TIME
+/*
+ * Ring buffer for per-task transition latency events.
+ * Capacity: 64 KB — holds ~1300 events before wrapping.
+ * Consumed by userspace via `xkernel-tool transition-stats`.
+ */
+struct {
+    __uint(type, BPF_MAP_TYPE_RINGBUF);
+    __uint(max_entries, 65536);
+} transition_rb SEC(".maps");
+
+/*
+ * Aggregate stats map (single entry, key = 0).
+ * Atomically updated on each per-task transition completion.
+ */
+struct {
+    __uint(type, BPF_MAP_TYPE_ARRAY);
+    __uint(max_entries, 1);
+    __type(key, __u32);
+    __type(value, struct transition_stats);
+} transition_stats_map SEC(".maps");
+#endif /* MEASURE_TRANSITION_TIME */
 
 #define MAX_STACK_ENTRIES 1024
 #define MAX_STACK_DEPTH 32
@@ -101,28 +166,6 @@ static __always_inline long bs_fn(u64 index, struct bs_ctx *ctx) {
     return 0;
 }
 
-static __always_inline bool contains_addr(__u64 addr) {
-    if (unlikely(cs_len > MAX_CS)) {
-        LOG_PANIC("cs_len > MAX_CS");
-        return false;
-    }
-    struct bs_ctx ctx = {
-        .addr = addr,
-        .left = 0,
-        .right = cs_len - 1,
-        .found = false,
-    };
-
-    long ret = bpf_loop(MAX_BPF_LOOP, bs_fn, &ctx, 0);
-    if (unlikely(ret < 0)) {
-        LOG_PANIC("bpf_loop failed");
-        return false;
-    }
-    if (!ctx.found) return false;
-
-    return ctx.end >= addr;
-}
-
 // Binary search callback for ss_map (parallel to bs_fn for cs_map)
 static __always_inline long ss_bs_fn(u64 index, struct bs_ctx *ctx) {
     if (!ctx) return 1;
@@ -141,28 +184,6 @@ static __always_inline long ss_bs_fn(u64 index, struct bs_ctx *ctx) {
         ctx->right = mid - 1;
     }
     return 0;
-}
-
-static __always_inline bool contains_ss_addr(__u64 addr) {
-    if (unlikely(ss_len > MAX_SS)) {
-        LOG_PANIC("ss_len > MAX_SS");
-        return false;
-    }
-    struct bs_ctx ctx = {
-        .addr = addr,
-        .left = 0,
-        .right = ss_len - 1,
-        .found = false,
-    };
-
-    long ret = bpf_loop(MAX_BPF_LOOP, ss_bs_fn, &ctx, 0);
-    if (unlikely(ret < 0)) {
-        LOG_PANIC("bpf_loop failed");
-        return false;
-    }
-    if (!ctx.found) return false;
-
-    return ctx.end >= addr;
 }
 
 static __always_inline bool check_stack_safe(struct pt_regs *ctx) {
@@ -211,6 +232,20 @@ static __always_inline void per_task_transition_handler(struct pt_regs *ctx) {
     task = bpf_get_current_task_btf();
     data = bpf_task_storage_get(&task_storage, task, NULL, BPF_LOCAL_STORAGE_GET_F_CREATE);
     if (unlikely(!data)) return;
+
+    /*
+     * Epoch check: if the stored epoch is stale (userspace incremented
+     * xk_epoch to start a new transition round), reset the per-task state
+     * so this task re-runs the transition check.
+     */
+    u32 current_epoch = xk_epoch;
+    if (data->epoch != current_epoch) {
+        data->transition_done  = 0;
+        data->transition_start = 0;
+        data->transition_end   = 0;
+        data->epoch            = current_epoch;
+    }
+
     if (likely(data->transition_done)) return;
 
     #ifdef MEASURE_TRANSITION_TIME
@@ -223,8 +258,37 @@ static __always_inline void per_task_transition_handler(struct pt_regs *ctx) {
     #ifdef MEASURE_TRANSITION_TIME
     if (data->transition_done && data->transition_end == 0) {
         data->transition_end = bpf_ktime_get_ns();
-        u64 check_time = data->transition_end - data->transition_start;
-        LOG_CPU("transition done [%s] at %pS, took %lld us", task->comm, (void *)PT_REGS_IP(ctx), check_time / 1000);
+        u64 latency_ns = data->transition_end - data->transition_start;
+        LOG_CPU("transition done [%s] at %pS, took %lld us",
+                task->comm, (void *)PT_REGS_IP(ctx), latency_ns / 1000);
+
+        /* Emit event to ring buffer */
+        struct transition_event *ev =
+            bpf_ringbuf_reserve(&transition_rb, sizeof(*ev), 0);
+        if (ev) {
+            ev->pid_tgid   = bpf_get_current_pid_tgid();
+            ev->start_ns   = data->transition_start;
+            ev->end_ns     = data->transition_end;
+            ev->latency_ns = latency_ns;
+            bpf_get_current_comm(ev->comm, sizeof(ev->comm));
+            bpf_ringbuf_submit(ev, 0);
+        }
+
+        /* Update aggregate stats (key = 0) */
+        u32 stats_key = 0;
+        struct transition_stats *st =
+            bpf_map_lookup_elem(&transition_stats_map, &stats_key);
+        if (st) {
+            __sync_fetch_and_add(&st->count, 1);
+            __sync_fetch_and_add(&st->total_ns, latency_ns);
+            /* min: use cmpxchg loop approximation via fetch-and-compare */
+            u64 old_min = st->min_ns;
+            if (old_min == 0 || latency_ns < old_min)
+                __sync_val_compare_and_swap(&st->min_ns, old_min, latency_ns);
+            u64 old_max = st->max_ns;
+            if (latency_ns > old_max)
+                __sync_val_compare_and_swap(&st->max_ns, old_max, latency_ns);
+        }
     }
     #endif
 }
@@ -245,44 +309,55 @@ static __always_inline void ss_unguard_handler(struct pt_regs *ctx) {
     (void)ctx;
 }
 
-static __always_inline bool per_task_transition_done(struct pt_regs *ctx) {
-    struct task_struct *task;
-    struct task_data *data;
-    
-    task = bpf_get_current_task_btf();
-    data = bpf_task_storage_get(&task_storage, task, NULL, BPF_LOCAL_STORAGE_GET_F_CREATE);
-    if (unlikely(!data))
-        return false;
-    
-    return data->transition_done;
-}
-
-static __always_inline bool global_transition_done(void) {
-    return xk_active == 1;
-}
-
+/*
+ * Check if the current task's transition is complete AND the ConstID is
+ * still active (xk_active == 1).
+ *
+ * Mode 0 (Immediate): always done (xk_active set to 1 at load time).
+ * Mode 1 (Per-task):  xk_active && task_storage.transition_done.
+ *                     xk_active is cleared during unload to stop applying
+ *                     new values before BPF programs are detached.
+ * Mode 2 (Global):    xk_active BSS flag, set by userspace after the
+ *                     kernel module completes the stop_machine protocol.
+ *
+ * Used by x_transition_done() in x_tune.h; called by X_TUNE policy bodies
+ * before invoking x_set().
+ */
 static __always_inline bool transition_done(struct pt_regs *ctx) {
+    /* Global kill-switch: if xk_active is 0, never apply new values.
+     * This enables safe reverse transition for all modes. */
+    if (!xk_active)
+        return false;
+
     int mode = xk_mode;
     if (mode == 0) return true;
-    if (mode == 1) return per_task_transition_done(ctx);
-    if (mode == 2) return global_transition_done();
+    if (mode == 1) {
+        struct task_struct *task = bpf_get_current_task_btf();
+        struct task_data *data = bpf_task_storage_get(
+            &task_storage, task, NULL, 0);
+        if (unlikely(!data))
+            return false;
+        return data->transition_done;
+    }
+    if (mode == 2) return true; /* xk_active already checked above */
     LOG_PANIC("Invalid consistency mode: %d", mode);
     return false;
 }
 
-// X_TUNE context structure for user policy
+/* X_TUNE context structure for user policy.
+ * Wraps pt_regs and the SIE indirection function pointer. */
 struct x_ctx {
     struct pt_regs *regs;
     void (*set_fn)(struct pt_regs *regs, u64 val);
 };
 
-// Wrapper for transition_done that takes x_ctx
+/* Check if the value transition is complete and safe to apply new values. */
 static __always_inline bool x_transition_done(struct x_ctx *x_ctx) {
     if (!x_ctx || !x_ctx->regs) return false;
     return transition_done(x_ctx->regs);
 }
 
-// Helper to set value using the set_fn callback
+/* Apply the new value via the SIE indirection function. */
 static __always_inline void x_set(struct x_ctx *x_ctx, u64 val) {
     if (!x_ctx || !x_ctx->set_fn || !x_ctx->regs) return;
     x_ctx->set_fn(x_ctx->regs, val);
