@@ -554,6 +554,24 @@ def is_kfuncs_loaded():
     return False
 
 
+def is_consistency_loaded():
+    """Check if xk-consistency module is currently loaded.
+
+    Returns:
+        True if the module is loaded.
+    """
+    result = subprocess.run(
+        ['lsmod'],
+        capture_output=True, text=True
+    )
+    if result.returncode != 0:
+        return False
+    for line in result.stdout.splitlines():
+        if line.startswith('xk_consistency '):
+            return True
+    return False
+
+
 def ensure_kfuncs_loaded(project_root):
     """Idempotently load xk-kfuncs.ko.
 

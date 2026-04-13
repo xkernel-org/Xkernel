@@ -829,6 +829,7 @@ def cmd_load(args):
 
     # Step 7: Mode 2 (Global) — load consistency module, wait, activate
     if mode == 2:
+        from src.loader import is_consistency_loaded
         print("Loading global consistency module for transition...")
         consistency_path = os.path.join(project_root, 'kernel', 'consistency',
                                         'xk-consistency.ko')
@@ -850,6 +851,19 @@ def cmd_load(args):
                 unload_constid(const_id)
                 sys.exit(1)
             print("Consistency module built successfully")
+
+        # If consistency module is already loaded (from a prior Mode 2 load),
+        # rmmod it first so we can insmod with the new ConstID's SS file.
+        if is_consistency_loaded():
+            print("  Consistency module already loaded — removing old instance...")
+            result = subprocess.run(['sudo', 'rmmod', 'xk-consistency'],
+                                    capture_output=True, text=True)
+            if result.returncode != 0:
+                print(f"  Warning: rmmod xk-consistency failed: {result.stderr}")
+                print("  Attempting insmod anyway...")
+            else:
+                print("  Old consistency module removed.")
+            time.sleep(0.5)
 
         timeout_val = int(args[2]) if len(args) > 2 else 5
 
@@ -952,9 +966,11 @@ def _reverse_transition_single(cid, cid_info):
 
     map_info = get_map_info_for_constid(cid)
     if not map_info:
-        print(f"  Warning: No pinned maps found for ConstID {cid}. "
-              "Skipping reverse transition, removing pins directly.")
-        unload_constid(cid)
+        # BPF pins already gone (prior crash or manual cleanup).
+        # Just remove any leftover pin directory and runtime state.
+        pin_dir = f"/sys/fs/bpf/xkernel/{cid}"
+        if os.path.exists(pin_dir):
+            unload_constid(cid)
         return
 
     print(f"  ConstID {cid} reverse transition "
@@ -992,38 +1008,43 @@ def _reverse_transition_single(cid, cid_info):
         deactivate_constid(cid, map_info)
         print(f"  ConstID {cid}: xk_active=0 (mode 2)")
 
-        # Unload the consistency module — its module_exit performs the
-        # reverse stop_machine protocol (scans stacks, waits for refcount=0)
-        print("  Unloading consistency module for reverse transition...")
-        result = subprocess.run(
-            ['sudo', 'rmmod', 'xk-consistency'],
-            capture_output=True, text=True
-        )
-        if result.returncode != 0:
-            print(f"  Warning: rmmod xk-consistency failed: {result.stderr}")
-            print("  Attempting to proceed with BPF unload anyway.")
-        else:
-            # Poll dmesg for reverse transition completion
-            MAX_POLL_S = 30
-            print(f"  Polling for reverse transition (max {MAX_POLL_S}s)...")
-            start = time.time()
-            done = False
-            while time.time() - start < MAX_POLL_S:
-                dmesg = subprocess.run(
-                    ['dmesg', '--since', '-30 seconds'],
-                    capture_output=True, text=True
-                )
-                output = dmesg.stdout.lower()
-                if 'reverse transition' in output or \
-                   'module unloaded' in output:
-                    done = True
-                    break
-                time.sleep(0.5)
-            if done:
-                print("  Global reverse transition completed.")
+        # Only rmmod if the consistency module is still loaded.
+        # When unloading multiple global-mode ConstIDs, the first one
+        # does rmmod; subsequent ones skip it.
+        from src.loader import is_consistency_loaded
+        if is_consistency_loaded():
+            print("  Unloading consistency module for reverse transition...")
+            result = subprocess.run(
+                ['sudo', 'rmmod', 'xk-consistency'],
+                capture_output=True, text=True
+            )
+            if result.returncode != 0:
+                print(f"  Warning: rmmod xk-consistency failed: {result.stderr}")
+                print("  Attempting to proceed with BPF unload anyway.")
             else:
-                print("  Warning: Could not confirm reverse transition "
-                      f"completion within {MAX_POLL_S}s.")
+                # Poll dmesg for reverse transition completion
+                MAX_POLL_S = 30
+                print(f"  Polling for reverse transition (max {MAX_POLL_S}s)...")
+                start = time.time()
+                done = False
+                while time.time() - start < MAX_POLL_S:
+                    dmesg = subprocess.run(
+                        ['dmesg', '--since', '-30 seconds'],
+                        capture_output=True, text=True
+                    )
+                    output = dmesg.stdout.lower()
+                    if 'reverse transition' in output or \
+                       'module unloaded' in output:
+                        done = True
+                        break
+                    time.sleep(0.5)
+                if done:
+                    print("  Global reverse transition completed.")
+                else:
+                    print("  Warning: Could not confirm reverse transition "
+                          f"completion within {MAX_POLL_S}s.")
+        else:
+            print("  Consistency module already unloaded (multi-ConstID batch).")
 
         unload_constid(cid)
         print(f"  ConstID {cid}: mode 2 unloaded with reverse transition.")
@@ -1036,7 +1057,7 @@ def _reverse_transition_single(cid, cid_info):
 def cmd_unload(args):
     """Unload BPF kprobes for specific ConstIDs or all."""
     from src.loader import (
-        unload_constid, is_kfuncs_loaded,
+        unload_constid, is_kfuncs_loaded, is_consistency_loaded,
         get_runtime_state, save_runtime_state,
     )
 
@@ -1048,13 +1069,23 @@ def cmd_unload(args):
         if not active:
             print("No active ConstIDs to unload.")
             # Cleanup: try rmmod consistency module in case it's stuck
-            subprocess.run(['sudo', 'rmmod', 'xk-consistency'],
-                           capture_output=True)
+            if is_consistency_loaded():
+                subprocess.run(['sudo', 'rmmod', 'xk-consistency'],
+                               capture_output=True)
         else:
             for cid in list(active.keys()):
                 _reverse_transition_single(cid, active[cid])
                 update_status(cid, "ready")
             print(f"Unloaded {len(active)} ConstID(s) with reverse transition.")
+
+        # Clean up any remaining BPF pin directories
+        bpf_pin_base = "/sys/fs/bpf/xkernel"
+        if os.path.isdir(bpf_pin_base):
+            for entry in os.listdir(bpf_pin_base):
+                entry_path = os.path.join(bpf_pin_base, entry)
+                if os.path.isdir(entry_path):
+                    subprocess.run(['sudo', 'rm', '-rf', entry_path],
+                                   capture_output=True)
 
         # Give BPF time to fully detach
         time.sleep(2)
