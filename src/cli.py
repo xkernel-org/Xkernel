@@ -1054,6 +1054,65 @@ def _reverse_transition_single(cid, cid_info):
         unload_constid(cid)
 
 
+def _cleanup_bpf_pins():
+    """Remove all BPF pin directories under /sys/fs/bpf/xkernel.
+
+    Uses sudo for listing and removal since bpffs requires root.
+    This is essential because os.path.isdir / os.listdir fail with
+    PermissionError on bpffs when running as non-root, even though
+    individual subprocess calls use sudo.
+    """
+    bpf_pin_base = "/sys/fs/bpf/xkernel"
+    # Use sudo to remove the whole tree — handles nested progs/ and maps/
+    result = subprocess.run(
+        ['sudo', 'rm', '-rf', bpf_pin_base],
+        capture_output=True, text=True,
+    )
+    if result.returncode != 0:
+        print(f"  Warning: Failed to clean BPF pins: {result.stderr.strip()}")
+    else:
+        # Verify removal succeeded
+        check = subprocess.run(
+            ['sudo', 'test', '-d', bpf_pin_base],
+            capture_output=True,
+        )
+        if check.returncode == 0:
+            print("  Warning: BPF pin directory still exists after cleanup")
+
+    # Give kernel time to release BPF program references
+    time.sleep(2)
+
+
+def _unload_kfuncs_module():
+    """Unload xk-kfuncs kernel module with retry.
+
+    BPF programs using kfuncs hold a module reference. After pin removal
+    the kernel may need a moment to fully release these references.
+    Retries up to 5 times with 2s intervals.
+    """
+    from src.loader import get_runtime_state, save_runtime_state
+
+    print("Unloading kfuncs module...")
+    for attempt in range(5):
+        result = subprocess.run(
+            ['sudo', 'rmmod', 'xk-kfuncs'],
+            capture_output=True, text=True,
+        )
+        if result.returncode == 0:
+            state = get_runtime_state()
+            state["kfuncs_loaded"] = False
+            save_runtime_state(state)
+            print("kfuncs module unloaded.")
+            return True
+        if attempt < 4:
+            time.sleep(2)
+
+    print(f"Warning: Failed to unload kfuncs after 5 attempts: "
+          f"{result.stderr.strip()}")
+    print("  Try: sudo rmmod xk-kfuncs")
+    return False
+
+
 def cmd_unload(args):
     """Unload BPF kprobes for specific ConstIDs or all."""
     from src.loader import (
@@ -1078,34 +1137,13 @@ def cmd_unload(args):
                 update_status(cid, "ready")
             print(f"Unloaded {len(active)} ConstID(s) with reverse transition.")
 
-        # Clean up any remaining BPF pin directories
-        bpf_pin_base = "/sys/fs/bpf/xkernel"
-        if os.path.isdir(bpf_pin_base):
-            for entry in os.listdir(bpf_pin_base):
-                entry_path = os.path.join(bpf_pin_base, entry)
-                if os.path.isdir(entry_path):
-                    subprocess.run(['sudo', 'rm', '-rf', entry_path],
-                                   capture_output=True)
-
-        # Give BPF time to fully detach
-        time.sleep(2)
+        # Clean up ALL BPF pin directories under /sys/fs/bpf/xkernel.
+        # Must use sudo because bpffs is typically root-only.
+        _cleanup_bpf_pins()
 
         # Unload kfuncs module if loaded.
-        # BPF programs may hold kfunc references briefly after pin removal;
-        # retry with increasing delays.
         if is_kfuncs_loaded():
-            print("Unloading kfuncs module...")
-            for _attempt in range(5):
-                result = subprocess.run(['sudo', 'rmmod', 'xk-kfuncs'],
-                                        capture_output=True, text=True)
-                if result.returncode == 0:
-                    print("kfuncs module unloaded.")
-                    break
-                time.sleep(2)
-            else:
-                print(f"Warning: Failed to unload kfuncs: "
-                      f"{result.stderr.strip()}")
-                print("  Try later: sudo rmmod xk-kfuncs")
+            _unload_kfuncs_module()
 
         # Clear runtime state
         state = {"kfuncs_loaded": False, "active_const_ids": {}}
@@ -1122,28 +1160,13 @@ def cmd_unload(args):
             update_status(cid, "ready")
             print(f"ConstID {cid} unloaded.")
 
-        # Give BPF time to detach
-        time.sleep(1)
-
-        # Refresh state and check if we should unload kfuncs
+        # Refresh state
         state["active_const_ids"] = active
         save_runtime_state(state)
         if not active:
+            _cleanup_bpf_pins()
             if is_kfuncs_loaded():
-                print("No more active ConstIDs. Unloading kfuncs module...")
-                for _attempt in range(5):
-                    result = subprocess.run(['sudo', 'rmmod', 'xk-kfuncs'],
-                                            capture_output=True, text=True)
-                    if result.returncode == 0:
-                        state["kfuncs_loaded"] = False
-                        save_runtime_state(state)
-                        print("kfuncs module unloaded.")
-                        break
-                    time.sleep(2)
-                else:
-                    print(f"Warning: Failed to unload kfuncs: "
-                          f"{result.stderr.strip()}")
-                    print("  Try later: sudo rmmod xk-kfuncs")
+                _unload_kfuncs_module()
 
 
 def cmd_status(args):
