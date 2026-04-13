@@ -1090,15 +1090,22 @@ def cmd_unload(args):
         # Give BPF time to fully detach
         time.sleep(2)
 
-        # Unload kfuncs module if loaded
+        # Unload kfuncs module if loaded.
+        # BPF programs may hold kfunc references briefly after pin removal;
+        # retry with increasing delays.
         if is_kfuncs_loaded():
             print("Unloading kfuncs module...")
-            result = subprocess.run(['sudo', 'rmmod', 'xk-kfuncs'],
-                                    capture_output=True, text=True)
-            if result.returncode != 0:
-                print(f"Warning: Failed to unload kfuncs: {result.stderr}")
+            for _attempt in range(5):
+                result = subprocess.run(['sudo', 'rmmod', 'xk-kfuncs'],
+                                        capture_output=True, text=True)
+                if result.returncode == 0:
+                    print("kfuncs module unloaded.")
+                    break
+                time.sleep(2)
             else:
-                print("kfuncs module unloaded.")
+                print(f"Warning: Failed to unload kfuncs: "
+                      f"{result.stderr.strip()}")
+                print("  Try later: sudo rmmod xk-kfuncs")
 
         # Clear runtime state
         state = {"kfuncs_loaded": False, "active_const_ids": {}}
@@ -1124,14 +1131,19 @@ def cmd_unload(args):
         if not active:
             if is_kfuncs_loaded():
                 print("No more active ConstIDs. Unloading kfuncs module...")
-                result = subprocess.run(['sudo', 'rmmod', 'xk-kfuncs'],
-                                        capture_output=True, text=True)
-                if result.returncode != 0:
-                    print(f"Warning: Failed to unload kfuncs: {result.stderr}")
+                for _attempt in range(5):
+                    result = subprocess.run(['sudo', 'rmmod', 'xk-kfuncs'],
+                                            capture_output=True, text=True)
+                    if result.returncode == 0:
+                        state["kfuncs_loaded"] = False
+                        save_runtime_state(state)
+                        print("kfuncs module unloaded.")
+                        break
+                    time.sleep(2)
                 else:
-                    state["kfuncs_loaded"] = False
-                    save_runtime_state(state)
-                    print("kfuncs module unloaded.")
+                    print(f"Warning: Failed to unload kfuncs: "
+                          f"{result.stderr.strip()}")
+                    print("  Try later: sudo rmmod xk-kfuncs")
 
 
 def cmd_status(args):
