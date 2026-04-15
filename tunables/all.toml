@@ -14,6 +14,14 @@ modified = ["ca->delay_min >> 2", "ca->delay_min >> 1"]
 values = [3, 2, 1]
 
 [[tunables]]
+name = "hystart_delay_max"
+description = "HyStart delay detection upper threshold (usec)"
+file = "net/ipv4/tcp_cubic.c"
+original = "#define HYSTART_DELAY_MAX\t(16000U)"
+modified = ["#define HYSTART_DELAY_MAX\t(32000U)", "#define HYSTART_DELAY_MAX\t(24000U)"]
+values = [16000, 32000, 24000]
+
+[[tunables]]
 name = "BLK_MQ_RESOURCE_DELAY"
 description = "block/blk-mq.c resource delay"
 file = "block/blk-mq.c"

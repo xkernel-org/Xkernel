@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
-# tune_tcp_cubic.sh — Build, load (adaptive or static), or unload tcp_cubic tunable
+# tune_tcp_cubic.sh — Build, load, or unload HyStart tunables (SF + DELAY_MAX)
 #
-# Assumes `xkernel-tool build` has already been run once (by run.sh or manual).
-# This script manages the tcp_cubic perf-const (delay_min shift / scaling factor).
+# KernelX tunes two perf-consts in tcp_cubic's HyStart delay detection:
+#   ConstID 1 (tcp_cubic):         delay_min >> SF   (SF: 3→1)
+#   ConstID 2 (hystart_delay_max): clamp upper bound (16ms→32ms)
 #
 # Usage:
-#   sudo bash tune_tcp_cubic.sh build              # one-time build
-#   sudo bash tune_tcp_cubic.sh <VALUE>             # patch SF to VALUE + reload (static)
-#   sudo bash tune_tcp_cubic.sh adaptive            # load adaptive X-tune policy
-#   sudo bash tune_tcp_cubic.sh unload              # unload
+#   sudo bash tune_tcp_cubic.sh build      # one-time: build tunables
+#   sudo bash tune_tcp_cubic.sh load       # load both ConstIDs (SF=1, DELAY_MAX=32ms)
+#   sudo bash tune_tcp_cubic.sh unload     # unload both ConstIDs
 
 set -euo pipefail
 
@@ -18,114 +18,82 @@ XKTOOL="$PROJECT_ROOT/xkernel-tool"
 TOML="$PROJECT_ROOT/tunables/all.toml"
 
 SCOPE_TABLE="/dev/shm/xkernel/scope_table"
-CS_RAW="/dev/shm/xkernel/cs_raw"
 STUBS_DIR="$PROJECT_ROOT/bpf/stubs"
 
-NEW_VALUE="${1:-1}"
-MODE=0  # Immediate mode for tcp_cubic (no per-task consistency needed)
-TARGET_NAME="tcp_cubic"
+ACTION="${1:-load}"
+MODE=0  # Immediate mode (no per-task consistency needed)
+
+# ConstID assignments (set after build)
+CONST_ID_SF=""         # tcp_cubic (scaling factor)
+CONST_ID_DELAY=""      # hystart_delay_max
 
 # ── helpers ──────────────────────────────────────────────────────────
 die()  { echo "[✗] $*" >&2; exit 1; }
 log()  { echo "[*] $*"; }
 ok()   { echo "[✓] $*"; }
 
-find_const_id() {
+find_const_ids() {
     [[ -f "$SCOPE_TABLE" ]] || die "Scope table not found — run 'build' first"
-    local id
-    # Find the ConstID for tcp_cubic tunable
-    id=$(awk -F'\t' -v name="$TARGET_NAME" 'NR>1 && $2 == name {print $1; exit}' "$SCOPE_TABLE")
-    if [[ -z "$id" ]]; then
-        # Fallback: search cs_raw for tcp_cubic_hystart or cubictcp_acked function
-        [[ -f "$CS_RAW" ]] || die "CS raw table not found"
-        id=$(awk -F'\t' '$2 ~ /cubictcp|hystart/ {print $1; exit}' "$CS_RAW")
-    fi
-    [[ -n "$id" ]] || die "Could not find ConstID for $TARGET_NAME"
-    echo "$id"
-}
-
-find_stub_src() {
-    local const_id="$1"
-    local stub_src="${STUBS_DIR}/xtune_stub_${const_id}.bpf.c"
-    [[ -f "$stub_src" ]] || die "Stub not found: $stub_src — run 'build' first"
-    echo "$stub_src"
+    CONST_ID_SF=$(awk -F'\t' 'NR>1 && $2 == "tcp_cubic" {print $1; exit}' "$SCOPE_TABLE")
+    CONST_ID_DELAY=$(awk -F'\t' 'NR>1 && $2 == "hystart_delay_max" {print $1; exit}' "$SCOPE_TABLE")
+    [[ -n "$CONST_ID_SF" ]]    || die "Could not find ConstID for tcp_cubic"
+    [[ -n "$CONST_ID_DELAY" ]] || die "Could not find ConstID for hystart_delay_max"
 }
 
 # ── build: one-time kernel diff + codegen + compile ──────────────────
-if [[ "$NEW_VALUE" == "build" ]]; then
-    log "Building tunable from $TOML (one-time) ..."
+if [[ "$ACTION" == "build" ]]; then
+    log "Building tunables from $TOML ..."
     "$XKTOOL" build "$TOML"
-    CONST_ID=$(find_const_id)
-    ok "Build complete — ConstID=$CONST_ID"
-    exit 0
-fi
+    find_const_ids
+    ok "Build complete — SF ConstID=$CONST_ID_SF, DELAY_MAX ConstID=$CONST_ID_DELAY"
 
-# ── unload shortcut ──────────────────────────────────────────────────
-if [[ "$NEW_VALUE" == "unload" ]]; then
-    CONST_ID=$(find_const_id)
-    log "Unloading ConstID=$CONST_ID ..."
-    "$XKTOOL" unload "$CONST_ID" 2>/dev/null || true
-    ok "tcp_cubic unloaded"
-    exit 0
-fi
+    # Patch stub values: SF=1, DELAY_MAX=32000
+    stub_sf="${STUBS_DIR}/xtune_stub_${CONST_ID_SF}.bpf.c"
+    stub_delay="${STUBS_DIR}/xtune_stub_${CONST_ID_DELAY}.bpf.c"
 
-# ── adaptive: load RTT-aware X-tune policy ───────────────────────────
-if [[ "$NEW_VALUE" == "adaptive" ]]; then
-    CONST_ID=$(find_const_id)
-    STUB_SRC=$(find_stub_src "$CONST_ID")
-
-    log "Installing adaptive X-tune policy for tcp_cubic (ConstID=$CONST_ID)"
-
-    # Patch the stub to implement the RTT-aware adaptive policy (Paper Fig. 7):
-    # If cur_rtt >= 80ms (80000 us), use SF=1; otherwise keep default SF=3
-    # We achieve this by modifying the stub to include RTT-check logic
-    log "Patching $STUB_SRC with adaptive policy ..."
-
-    # The stub contains a default x_set(x_ctx, val) call.
-    # We patch 'val' to 1 for the adaptive mode — the X-tune policy
-    # will conditionally apply based on RTT in the kprobe context.
-    grep -q "u64 val = " "$STUB_SRC" || die "Cannot find 'u64 val = ...' in $STUB_SRC"
-    sed -i "s/u64 val = [0-9]\+;/u64 val = 1;/" "$STUB_SRC"
-
-    # Recompile BPF stub
-    log "Recompiling BPF stub ..."
-    make -C "$PROJECT_ROOT/bpf/" -j"$(nproc)"
-
-    # Load with per-task mode
-    log "Loading ConstID=$CONST_ID (mode=$MODE, per-task) ..."
-    "$XKTOOL" load "$MODE" "$CONST_ID"
-
-    BPF_PROGS=$(bpftool prog show 2>/dev/null | grep -c "__xk_${CONST_ID}_") || true
-    if [[ "$BPF_PROGS" -gt 0 ]]; then
-        ok "$BPF_PROGS BPF program(s) loaded — tcp_cubic adaptive SF policy active"
-    else
-        die "No BPF programs found — SIE not active"
+    if [[ -f "$stub_sf" ]]; then
+        sed -i "s/u64 val = [0-9]\+;/u64 val = 1;/" "$stub_sf"
+        log "Patched $stub_sf: val=1 (SF=1)"
     fi
+    if [[ -f "$stub_delay" ]]; then
+        sed -i "s/u64 val = [0-9]\+;/u64 val = 32000;/" "$stub_delay"
+        log "Patched $stub_delay: val=32000 (DELAY_MAX=32ms)"
+    fi
+
+    # Recompile BPF stubs
+    log "Recompiling BPF stubs ..."
+    make -C "$PROJECT_ROOT/bpf/" -j"$(nproc)"
+    ok "BPF stubs compiled"
     exit 0
 fi
 
-# ── static: patch SF to specific value + reload ──────────────────────
-
-CONST_ID=$(find_const_id)
-STUB_SRC=$(find_stub_src "$CONST_ID")
-
-# 1. Patch val in the BPF stub
-log "Patching $STUB_SRC: val → $NEW_VALUE"
-grep -q "u64 val = " "$STUB_SRC" || die "Cannot find 'u64 val = ...' in $STUB_SRC"
-sed -i "s/u64 val = [0-9]\+;/u64 val = ${NEW_VALUE};/" "$STUB_SRC"
-
-# 2. Recompile BPF stub only (fast)
-log "Recompiling BPF stub ..."
-make -C "$PROJECT_ROOT/bpf/" -j"$(nproc)"
-
-# 3. Load
-log "Loading ConstID=$CONST_ID (mode=$MODE) ..."
-"$XKTOOL" load "$MODE" "$CONST_ID"
-
-# 4. Verify
-BPF_PROGS=$(bpftool prog show 2>/dev/null | grep -c "__xk_${CONST_ID}_") || true
-if [[ "$BPF_PROGS" -gt 0 ]]; then
-    ok "$BPF_PROGS BPF program(s) loaded — tcp_cubic SF = $NEW_VALUE"
-else
-    die "No BPF programs found — SIE not active"
+# ── unload ───────────────────────────────────────────────────────────
+if [[ "$ACTION" == "unload" ]]; then
+    find_const_ids 2>/dev/null || true
+    if [[ -n "$CONST_ID_SF" ]]; then
+        log "Unloading ConstID=$CONST_ID_SF (tcp_cubic SF) ..."
+        "$XKTOOL" unload "$CONST_ID_SF" 2>/dev/null || true
+    fi
+    if [[ -n "$CONST_ID_DELAY" ]]; then
+        log "Unloading ConstID=$CONST_ID_DELAY (hystart_delay_max) ..."
+        "$XKTOOL" unload "$CONST_ID_DELAY" 2>/dev/null || true
+    fi
+    ok "HyStart tunables unloaded"
+    exit 0
 fi
+
+# ── load: load both ConstIDs ─────────────────────────────────────────
+if [[ "$ACTION" == "load" ]]; then
+    find_const_ids
+
+    log "Loading ConstID=$CONST_ID_SF (SF=1, mode=$MODE) ..."
+    "$XKTOOL" load "$MODE" "$CONST_ID_SF"
+
+    log "Loading ConstID=$CONST_ID_DELAY (DELAY_MAX=32ms, mode=$MODE) ..."
+    "$XKTOOL" load "$MODE" "$CONST_ID_DELAY"
+
+    ok "Both HyStart tunables loaded (SF=1, DELAY_MAX=32ms)"
+    exit 0
+fi
+
+die "Unknown action: $ACTION (use: build, load, unload)"

@@ -105,9 +105,24 @@ generate_workload() {
     done
 
     echo ""
+
+    # Sort files by size so file_1 is smallest (Zipf concentrates on small files)
+    log "Sorting files by size (file_1 = smallest) ..."
+    local tmpdir
+    tmpdir=$(sudo mktemp -d "${target_dir}/sort_XXXX")
+    local idx=1
+    for f in $(ls -S -r "${target_dir}"/file_*.bin 2>/dev/null); do
+        sudo mv "$f" "${tmpdir}/file_${idx}.bin"
+        idx=$((idx + 1))
+    done
+    sudo mv "${tmpdir}"/file_*.bin "${target_dir}/"
+    sudo rmdir "$tmpdir"
+
     log_ok "Workload generated: $(du -sh "$target_dir" | cut -f1) total"
-    log "Largest 5 files:"
-    ls -lhS "${target_dir}"/file_*.bin | head -5
+    log "Smallest 3 files (most requested):"
+    ls -lhS -r "${target_dir}"/file_*.bin | head -3
+    log "Largest 3 files:"
+    ls -lhS "${target_dir}"/file_*.bin | head -3
 }
 
 # ── Client: Install wrk2 ────────────────────────────────────────────

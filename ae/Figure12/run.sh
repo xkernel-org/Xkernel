@@ -1,15 +1,19 @@
 #!/usr/bin/env bash
-# run.sh — Reproduce Figure 12: NGINX FCT under different TCP CUBIC scaling factors
+# run.sh — Reproduce Figure 12: NGINX FCT under different TCP CUBIC HyStart parameters
 #
 # This experiment measures tail latency (FCT) of NGINX serving heavy-tailed
 # content under different network RTTs, comparing:
-#   - Vanilla kernel (SF=3, default tcp_cubic scaling factor)
-#   - KernelX adaptive policy (SF=1 for high-RTT flows, SF=3 for low-RTT)
+#   - Vanilla kernel (SF=3, HYSTART_DELAY_MAX=16ms — default tcp_cubic)
+#   - KernelX tuned  (SF=1, HYSTART_DELAY_MAX=32ms — relaxed HyStart detection)
+#
+# KernelX tunes two perf-consts in tcp_cubic's HyStart delay detection:
+#   ConstID 1 (tcp_cubic):       delay_min >> SF   (SF: 3→1, wider threshold)
+#   ConstID 2 (hystart_delay_max): clamp upper bound (16ms→32ms)
 #
 # Setup:
 #   - Server: 192.168.6.1 (runs NGINX + KernelX, this script)
 #   - Client: 192.168.6.2 (runs wrk2)
-#   - NIC: ens1f1np1 (netem for RTT simulation)
+#   - NIC: ens1f1np1 (netem for RTT simulation + rate limiting)
 #
 # Usage:
 #   sudo bash run.sh [--duration SECS] [--rate RPS] [--threads N] [--connections N]
@@ -33,13 +37,13 @@ NIC="ens1f1np1"
 
 # wrk2 parameters
 DURATION=60             # seconds per run
-RATE=50                 # target requests/sec (moderate load on 1Gbps link)
+RATE=2000               # target requests/sec
 THREADS=4               # wrk2 threads
 CONNECTIONS=200         # wrk2 connections
 TIMEOUT=120             # request timeout in seconds
 
 # Network shaping: netem delay + rate limit
-RATE_LIMIT="1gbit"      # bottleneck bandwidth (netem rate)
+RATE_LIMIT="3gbit"      # bottleneck bandwidth (netem rate)
 NETEM_LIMIT=100000      # netem queue limit in packets
 
 # RTT values to test (netem delay applied on server NIC, one-way;
@@ -86,6 +90,10 @@ log_ok "Server: NGINX running on $SERVER_IP"
 log_ok "Client: wrk2 available on $CLIENT_IP"
 log_ok "NIC: $NIC (rate limit: $RATE_LIMIT)"
 log_ok "Duration: ${DURATION}s, Rate: ${RATE} req/s, Threads: $THREADS, Conns: $CONNECTIONS"
+
+# ── Sysctl tuning ───────────────────────────────────────────────────
+log "Disabling TCP metrics cache (tcp_no_metrics_save=1) ..."
+sudo sysctl -w net.ipv4.tcp_no_metrics_save=1 -q
 
 # ── Save experiment metadata ─────────────────────────────────────────
 {
@@ -141,27 +149,19 @@ run_wrk2() {
     # Copy Lua script to client
     scp -q "$LUA_SCRIPT" "${CLIENT_IP}:/tmp/zipf.lua"
 
-    # Run wrk2 on client via nohup to avoid SSH timeout on long experiments.
+    # Run wrk2 directly via SSH (blocking).
     # wrk2 --latency outputs HdrHistogram-compatible percentile data.
-    ssh "$CLIENT_IP" "nohup wrk2 -t$THREADS -c$CONNECTIONS -d${DURATION}s -R$RATE \
+    ssh "$CLIENT_IP" "wrk2 -t$THREADS -c$CONNECTIONS -d${DURATION}s -R$RATE \
         --timeout ${TIMEOUT}s --latency -s /tmp/zipf.lua \
-        http://${SERVER_IP}/ > /tmp/wrk2_result.txt 2>&1 &"
-
-    # Wait for wrk2 to finish (duration + calibration overhead)
-    local wait_secs=$(( DURATION + 15 ))
-    log "  Waiting ${wait_secs}s for wrk2 to finish..."
-    sleep "$wait_secs"
-
-    # Retrieve results
-    scp -q "${CLIENT_IP}:/tmp/wrk2_result.txt" "$outfile"
+        http://${SERVER_IP}/" > "$outfile" 2>&1
 
     local lines
     lines=$(wc -l < "$outfile")
     log_ok "  Collected $lines lines → $(basename "$outfile")"
 }
 
-# ── Phase 1: Vanilla kernel (SF=3 default) ───────────────────────────
-log_section "Phase 1: Vanilla kernel (SF=3, default tcp_cubic)"
+# ── Phase 1: Vanilla kernel (default tcp_cubic) ─────────────────────
+log_section "Phase 1: Vanilla kernel (SF=3, HYSTART_DELAY_MAX=16ms)"
 
 # Make sure no KernelX tunables are loaded
 sudo bash "$TUNE_SCRIPT" unload 2>/dev/null || true
@@ -177,18 +177,15 @@ for rtt in "${RTTS[@]}"; do
     sleep 2
 done
 
-# ── Phase 2: Build tcp_cubic tunable (one-time) ──────────────────────
-log_section "Building tcp_cubic tunable (one-time)"
+# ── Phase 2: KernelX tuned HyStart ──────────────────────────────────
+log_section "Phase 2: KernelX tuned (SF=1, HYSTART_DELAY_MAX=32ms)"
+
+# Build tunables (one-time) and load both ConstIDs
 sudo bash "$TUNE_SCRIPT" build
-
-# ── Phase 3: KernelX adaptive policy ─────────────────────────────────
-log_section "Phase 2: KernelX adaptive SF (SF=1 for high-RTT flows)"
-
-# Load adaptive X-tune policy
-sudo bash "$TUNE_SCRIPT" adaptive
+sudo bash "$TUNE_SCRIPT" load
 
 for rtt in "${RTTS[@]}"; do
-    log_section "KernelX Adaptive: RTT = ${rtt}ms"
+    log_section "KernelX: RTT = ${rtt}ms"
     set_delay "$rtt"
     sleep 2
 
@@ -198,15 +195,13 @@ for rtt in "${RTTS[@]}"; do
     sleep 2
 done
 
-# Unload after all adaptive runs
-sudo bash "$TUNE_SCRIPT" unload 2>/dev/null || true
+# Unload after all runs
+sudo bash "$TUNE_SCRIPT" unload
 
 # ── Cleanup ──────────────────────────────────────────────────────────
 log_section "Cleanup"
 
 clear_delay
-sudo "$XKTOOL" table delete --all -y 2>/dev/null || true
-rm -rf "$PROJECT_ROOT/bpf/stubs/"* 2>/dev/null || true
 
 # ── Summary ──────────────────────────────────────────────────────────
 log_ok "Figure 12 experiment complete."
@@ -219,4 +214,4 @@ for f in "$RESULT_DIR"/*.txt; do
 done
 echo ""
 log "Next steps:"
-log "  python plot/plot.py       # → plot/figure12.pdf"
+log "  python3 plot/plot.py       # → plot/figure12.pdf"
