@@ -3918,6 +3918,25 @@ def _disassemble_from_kcore(func_name: str) -> Optional[List[dict]]:
     return instructions if instructions else None
 
 
+def get_function_end_offset(func_name: str) -> Optional[int]:
+    """Return the offset of the last instruction of a running-kernel function.
+
+    Uses _disassemble_from_kcore() to read the actual function boundary
+    from /proc/kcore.  Returns the offset of the *last instruction* (not
+    the byte-past-end), so that a kprobe can be attached there as a valid
+    unguard point.
+
+    Returns:
+        Offset of the last instruction as an integer, or None.
+    """
+    instrs = _disassemble_from_kcore(func_name)
+    if not instrs:
+        return None
+    # Use the last instruction's offset as the unguard point.
+    # This is always a valid kprobe attachment site.
+    return instrs[-1]['offset']
+
+
 def disassemble_function_from_binary(
     binary_path: str,
     func_name: str,
@@ -4887,6 +4906,11 @@ def run_codegen_single(config, const_id: int, verbose: bool = False, kernel_dir:
 def _populate_ss_raw_single(const_id: int, config):
     """Populate ss_raw for a single tunable's safe_spans.
 
+    When manual safe_spans are provided in the TOML, use those directly.
+    When none are provided, derive conservative safe spans automatically
+    from the CS entries: for each CS function, the SS spans from the CS
+    seed offset to the end of the function (read from /proc/kcore).
+
     Args:
         const_id: ConstID for this tunable
         config: TunableConfig instance
@@ -4894,32 +4918,66 @@ def _populate_ss_raw_single(const_id: int, config):
     cid = str(const_id)
     ss_ranges_by_id = {}
 
+    # Read CS entries for this ConstID so we can validate / auto-derive SS
+    cs_entries = []
+    if os.path.exists(CS_RAW_PATH):
+        with open(CS_RAW_PATH, 'r', newline='') as f:
+            reader = csv.reader(f, delimiter='\t')
+            next(reader, None)
+            for row in reader:
+                if len(row) >= 4 and row[0] == cid:
+                    cs_entries.append(row)   # [ConstID, FuncName, StartOff, EndOff]
+
+    cs_functions = {row[1] for row in cs_entries}
+
     if config.safe_spans:
+        # Validate manual SS: warn when SS function not among CS functions
         for func_name, soff, eoff in config.safe_spans:
+            if cs_functions and func_name not in cs_functions:
+                print(f"  ⚠  SS function '{func_name}' (soff={soff}, eoff={eoff}) "
+                      f"is NOT among CS functions {sorted(cs_functions)} — "
+                      f"this may be incorrect; consider removing it and letting "
+                      f"auto-SS take over.")
             add_ss_raw_entry(cid, func_name, soff, eoff)
         ss_ranges_by_id[cid] = list(config.safe_spans)
         print(f"  ConstID {cid}: wrote {len(config.safe_spans)} manual SS entries")
+    elif cs_entries:
+        # Auto-derive SS: for each CS function, span the entire function
+        # (from offset 0 to the last instruction).  This is conservative
+        # but correct: during transition, any task inside the function
+        # must finish before the new value is applied.
+        #
+        # We use function-entry (0x0) rather than the CS seed offset
+        # because cs_raw stores .o-file offsets which may differ from
+        # vmlinux offsets (e.g. due to -ffunction-sections).
+        # get_function_end_offset() returns the vmlinux last-instruction
+        # offset, so using 0x0 keeps everything vmlinux-relative.
+        seen_funcs = set()
+        ranges = []
+        for row in cs_entries:
+            func_name = row[1]
+            if func_name in seen_funcs:
+                continue  # one SS per function is enough
+            seen_funcs.add(func_name)
+            end_off = get_function_end_offset(func_name)
+            if end_off is not None:
+                soff_hex = hex(0)  # function entry
+                eoff_hex = hex(end_off)
+                add_ss_raw_entry(cid, func_name, soff_hex, eoff_hex)
+                ranges.append((func_name, soff_hex, eoff_hex))
+                print(f"  ConstID {cid}: auto-SS for {func_name}: "
+                      f"[{soff_hex}, {eoff_hex}] (derived from CS + /proc/kcore)")
+            else:
+                # Last-resort: use the CS offsets as SS (tiny but safe)
+                add_ss_raw_entry(cid, func_name, row[2], row[3])
+                ranges.append((func_name, row[2], row[3]))
+                print(f"  ConstID {cid}: auto-SS for {func_name}: "
+                      f"[{row[2]}, {row[3]}] (kcore unavail — using CS end)")
+        ss_ranges_by_id[cid] = ranges
     else:
-        # Fallback: copy CS entries as SS
-        cs_entries = []
-        if os.path.exists(CS_RAW_PATH):
-            with open(CS_RAW_PATH, 'r', newline='') as f:
-                reader = csv.reader(f, delimiter='\t')
-                next(reader, None)  # skip header
-                for row in reader:
-                    if len(row) >= 4 and row[0] == cid:
-                        cs_entries.append(row)
-
-        if cs_entries:
-            ranges = []
-            for row in cs_entries:
-                add_ss_raw_entry(cid, row[1], row[2], row[3])
-                ranges.append((row[1], row[2], row[3]))
-            ss_ranges_by_id[cid] = ranges
-            print(f"  ConstID {cid}: copied {len(ranges)} CS entries as SS (no safe_spans)")
-        else:
-            print(f"  ConstID {cid}: no CS entries and no safe_spans, skipping SS")
+        print(f"  ConstID {cid}: no CS entries and no safe_spans, skipping SS")
 
     # Populate ss_table and update scope_table SS_Index
     _update_scope_table_ss_index(ss_ranges_by_id)
+
 

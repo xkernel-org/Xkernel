@@ -8,13 +8,3 @@ file = "mm/migrate.c"
 original = "#define NR_MAX_BATCHED_MIGRATION\tHPAGE_PMD_NR"
 modified = ["#define NR_MAX_BATCHED_MIGRATION\t256", "#define NR_MAX_BATCHED_MIGRATION\t1024"]
 values = [512, 256, 1024]
-
-[[safe_spans]]
-function = "migrate_pages"
-start_offset = "0x10e"
-end_offset = "0x11a"
-
-[[safe_spans]]
-function = "migrate_pages"
-start_offset = "0x166"
-end_offset = "0x172"

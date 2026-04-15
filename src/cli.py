@@ -818,8 +818,18 @@ def cmd_load(args):
     load_critical_spans_for_constid(CS_FILE, const_id, map_info)
     load_safe_spans_for_constid(SS_FILE, const_id, map_info)
 
+    # Step 6b: Activate for modes 0 and 1.
+    # Mode 0: already activated in load_and_attach_per_constid().
+    # Mode 1: activate now — guard kprobes handle per-task safety checks,
+    #         and transition_done() requires xk_active==1 to return true.
+    # Mode 2: activated later after the consistency module confirms transition.
+    if mode == 1:
+        activate_constid(const_id, map_info)
+        print(f"ConstID {const_id}: xk_active=1 (per-task mode ready)")
+
     # Step 7: Mode 2 (Global) — load consistency module, wait, activate
     if mode == 2:
+        from src.loader import is_consistency_loaded
         print("Loading global consistency module for transition...")
         consistency_path = os.path.join(project_root, 'kernel', 'consistency',
                                         'xk-consistency.ko')
@@ -841,6 +851,19 @@ def cmd_load(args):
                 unload_constid(const_id)
                 sys.exit(1)
             print("Consistency module built successfully")
+
+        # If consistency module is already loaded (from a prior Mode 2 load),
+        # rmmod it first so we can insmod with the new ConstID's SS file.
+        if is_consistency_loaded():
+            print("  Consistency module already loaded — removing old instance...")
+            result = subprocess.run(['sudo', 'rmmod', 'xk-consistency'],
+                                    capture_output=True, text=True)
+            if result.returncode != 0:
+                print(f"  Warning: rmmod xk-consistency failed: {result.stderr}")
+                print("  Attempting insmod anyway...")
+            else:
+                print("  Old consistency module removed.")
+            time.sleep(0.5)
 
         timeout_val = int(args[2]) if len(args) > 2 else 5
 
@@ -903,10 +926,8 @@ def cmd_load(args):
             # Activate the ConstID
             activate_constid(const_id, map_info)
             print(f"ConstID {const_id} activated after global transition.")
-            # Unload consistency module (mission accomplished)
-            subprocess.run(['sudo', 'rmmod', 'xk-consistency'],
-                           capture_output=True)
-            print("Consistency module unloaded.")
+            # Keep consistency module loaded — it will be unloaded during
+            # cmd_unload to trigger the reverse transition via module_exit.
 
     # Step 8: Update scope table + runtime state
     update_status(const_id, "active")
@@ -926,16 +947,178 @@ def cmd_load(args):
     print(f"\nConstID {const_id} loaded successfully (mode={mode_names[mode]}).")
 
 
+def _reverse_transition_single(cid, cid_info):
+    """Perform a reverse transition for a single ConstID.
+
+    For mode 0 (Immediate): nothing needed, just deactivate.
+    For mode 1 (Per-task): set xk_active=0, bump epoch, wait for tasks
+                           to re-check and stop applying the new value.
+    For mode 2 (Global): set xk_active=0, then rmmod xk-consistency which
+                         triggers the kernel module's stop_machine reverse.
+    """
+    from src.loader import (
+        deactivate_constid, bump_epoch,
+        get_map_info_for_constid, unload_constid,
+    )
+
+    mode = cid_info.get("mode", 0)
+    mode_names = {0: 'Immediate', 1: 'Per-task', 2: 'Global'}
+
+    map_info = get_map_info_for_constid(cid)
+    if not map_info:
+        # BPF pins already gone (prior crash or manual cleanup).
+        # Just remove any leftover pin directory and runtime state.
+        pin_dir = f"/sys/fs/bpf/xkernel/{cid}"
+        if os.path.exists(pin_dir):
+            unload_constid(cid)
+        return
+
+    print(f"  ConstID {cid} reverse transition "
+          f"(mode={mode_names.get(mode, '?')})...")
+
+    if mode == 0:
+        # Immediate: just deactivate and unload
+        deactivate_constid(cid, map_info)
+        unload_constid(cid)
+        print(f"  ConstID {cid}: immediate mode unloaded.")
+
+    elif mode == 1:
+        # Per-task: deactivate → bump epoch → grace period → unload
+        deactivate_constid(cid, map_info)
+        print(f"  ConstID {cid}: xk_active=0 (mode 1)")
+
+        bump_epoch(cid, map_info)
+        print(f"  ConstID {cid}: epoch bumped, tasks will re-check")
+
+        # Grace period: tasks that already checked transition_done in this
+        # epoch will still apply the new value until they re-enter the SS
+        # guard. With the epoch bump, next guard check will see transition_done
+        # is stale, and with xk_active=0, transition_done() returns false.
+        # Wait a short time for in-flight operations to complete.
+        GRACE_PERIOD_S = 2
+        print(f"  Waiting {GRACE_PERIOD_S}s grace period for in-flight "
+              "tasks to stop applying new value...")
+        time.sleep(GRACE_PERIOD_S)
+
+        unload_constid(cid)
+        print(f"  ConstID {cid}: mode 1 unloaded with reverse transition.")
+
+    elif mode == 2:
+        # Global: deactivate → rmmod triggers stop_machine reverse → unload
+        deactivate_constid(cid, map_info)
+        print(f"  ConstID {cid}: xk_active=0 (mode 2)")
+
+        # Only rmmod if the consistency module is still loaded.
+        # When unloading multiple global-mode ConstIDs, the first one
+        # does rmmod; subsequent ones skip it.
+        from src.loader import is_consistency_loaded
+        if is_consistency_loaded():
+            print("  Unloading consistency module for reverse transition...")
+            result = subprocess.run(
+                ['sudo', 'rmmod', 'xk-consistency'],
+                capture_output=True, text=True
+            )
+            if result.returncode != 0:
+                print(f"  Warning: rmmod xk-consistency failed: {result.stderr}")
+                print("  Attempting to proceed with BPF unload anyway.")
+            else:
+                # Poll dmesg for reverse transition completion
+                MAX_POLL_S = 30
+                print(f"  Polling for reverse transition (max {MAX_POLL_S}s)...")
+                start = time.time()
+                done = False
+                while time.time() - start < MAX_POLL_S:
+                    dmesg = subprocess.run(
+                        ['dmesg', '--since', '-30 seconds'],
+                        capture_output=True, text=True
+                    )
+                    output = dmesg.stdout.lower()
+                    if 'reverse transition' in output or \
+                       'module unloaded' in output:
+                        done = True
+                        break
+                    time.sleep(0.5)
+                if done:
+                    print("  Global reverse transition completed.")
+                else:
+                    print("  Warning: Could not confirm reverse transition "
+                          f"completion within {MAX_POLL_S}s.")
+        else:
+            print("  Consistency module already unloaded (multi-ConstID batch).")
+
+        unload_constid(cid)
+        print(f"  ConstID {cid}: mode 2 unloaded with reverse transition.")
+
+    else:
+        print(f"  Warning: Unknown mode {mode}, removing pins directly.")
+        unload_constid(cid)
+
+
+def _cleanup_bpf_pins():
+    """Remove all BPF pin directories under /sys/fs/bpf/xkernel.
+
+    Uses sudo for listing and removal since bpffs requires root.
+    This is essential because os.path.isdir / os.listdir fail with
+    PermissionError on bpffs when running as non-root, even though
+    individual subprocess calls use sudo.
+    """
+    bpf_pin_base = "/sys/fs/bpf/xkernel"
+    # Use sudo to remove the whole tree — handles nested progs/ and maps/
+    result = subprocess.run(
+        ['sudo', 'rm', '-rf', bpf_pin_base],
+        capture_output=True, text=True,
+    )
+    if result.returncode != 0:
+        print(f"  Warning: Failed to clean BPF pins: {result.stderr.strip()}")
+    else:
+        # Verify removal succeeded
+        check = subprocess.run(
+            ['sudo', 'test', '-d', bpf_pin_base],
+            capture_output=True,
+        )
+        if check.returncode == 0:
+            print("  Warning: BPF pin directory still exists after cleanup")
+
+    # Give kernel time to release BPF program references
+    time.sleep(2)
+
+
+def _unload_kfuncs_module():
+    """Unload xk-kfuncs kernel module with retry.
+
+    BPF programs using kfuncs hold a module reference. After pin removal
+    the kernel may need a moment to fully release these references.
+    Retries up to 5 times with 2s intervals.
+    """
+    from src.loader import get_runtime_state, save_runtime_state
+
+    print("Unloading kfuncs module...")
+    for attempt in range(5):
+        result = subprocess.run(
+            ['sudo', 'rmmod', 'xk-kfuncs'],
+            capture_output=True, text=True,
+        )
+        if result.returncode == 0:
+            state = get_runtime_state()
+            state["kfuncs_loaded"] = False
+            save_runtime_state(state)
+            print("kfuncs module unloaded.")
+            return True
+        if attempt < 4:
+            time.sleep(2)
+
+    print(f"Warning: Failed to unload kfuncs after 5 attempts: "
+          f"{result.stderr.strip()}")
+    print("  Try: sudo rmmod xk-kfuncs")
+    return False
+
+
 def cmd_unload(args):
     """Unload BPF kprobes for specific ConstIDs or all."""
     from src.loader import (
-        unload_constid, is_kfuncs_loaded,
+        unload_constid, is_kfuncs_loaded, is_consistency_loaded,
         get_runtime_state, save_runtime_state,
     )
-
-    # Unload consistency module if loaded (safety measure)
-    subprocess.run(['sudo', 'rmmod', 'xk-consistency'],
-                   capture_output=True)
 
     state = get_runtime_state()
     active = state.get("active_const_ids", {})
@@ -944,24 +1127,23 @@ def cmd_unload(args):
         # Unload all active ConstIDs
         if not active:
             print("No active ConstIDs to unload.")
+            # Cleanup: try rmmod consistency module in case it's stuck
+            if is_consistency_loaded():
+                subprocess.run(['sudo', 'rmmod', 'xk-consistency'],
+                               capture_output=True)
         else:
             for cid in list(active.keys()):
-                unload_constid(cid)
+                _reverse_transition_single(cid, active[cid])
                 update_status(cid, "ready")
-            print(f"Unloaded {len(active)} ConstID(s).")
+            print(f"Unloaded {len(active)} ConstID(s) with reverse transition.")
 
-        # Give BPF time to detach
-        time.sleep(2)
+        # Clean up ALL BPF pin directories under /sys/fs/bpf/xkernel.
+        # Must use sudo because bpffs is typically root-only.
+        _cleanup_bpf_pins()
 
-        # Unload kfuncs module if loaded
+        # Unload kfuncs module if loaded.
         if is_kfuncs_loaded():
-            print("Unloading kfuncs module...")
-            result = subprocess.run(['sudo', 'rmmod', 'xk-kfuncs'],
-                                    capture_output=True, text=True)
-            if result.returncode != 0:
-                print(f"Warning: Failed to unload kfuncs: {result.stderr}")
-            else:
-                print("kfuncs module unloaded.")
+            _unload_kfuncs_module()
 
         # Clear runtime state
         state = {"kfuncs_loaded": False, "active_const_ids": {}}
@@ -973,26 +1155,18 @@ def cmd_unload(args):
             if cid not in active:
                 print(f"Warning: ConstID {cid} is not active, skipping.")
                 continue
-            unload_constid(cid)
+            _reverse_transition_single(cid, active[cid])
+            del active[cid]
             update_status(cid, "ready")
             print(f"ConstID {cid} unloaded.")
 
-        # Give BPF time to detach
-        time.sleep(1)
-
-        # Refresh state and check if we should unload kfuncs
-        state = get_runtime_state()
-        if not state.get("active_const_ids"):
+        # Refresh state
+        state["active_const_ids"] = active
+        save_runtime_state(state)
+        if not active:
+            _cleanup_bpf_pins()
             if is_kfuncs_loaded():
-                print("No more active ConstIDs. Unloading kfuncs module...")
-                result = subprocess.run(['sudo', 'rmmod', 'xk-kfuncs'],
-                                        capture_output=True, text=True)
-                if result.returncode != 0:
-                    print(f"Warning: Failed to unload kfuncs: {result.stderr}")
-                else:
-                    state["kfuncs_loaded"] = False
-                    save_runtime_state(state)
-                    print("kfuncs module unloaded.")
+                _unload_kfuncs_module()
 
 
 def cmd_status(args):
@@ -1118,9 +1292,155 @@ def cmd_table(args):
     sys.exit(ret.returncode)
 
 
-def cmd_trace(args):
-    """Trace kernel BPF logs."""
-    subprocess.run(['sudo', 'bpftool', 'prog', 'tracelog'])
+def cmd_transition_stats(args):
+    """Show transition latency statistics for a loaded ConstID.
+
+    Usage: xkernel-tool transition-stats <constID>
+
+    For per-task mode (mode 1): reads the transition_stats_map BPF map
+    and optionally drains the transition_rb ring buffer for per-event data.
+
+    For global mode (mode 2): reads /dev/shm/xkernel/transition_timing.
+    """
+    import struct
+
+    TIMING_FILE = "/dev/shm/xkernel/transition_timing"
+
+    if not args:
+        print("Usage: xkernel-tool transition-stats <constID>")
+        sys.exit(1)
+
+    const_id = args[0]
+
+    # Determine mode from runtime state
+    from src.loader import get_runtime_state
+    state = get_runtime_state()
+    entry = state.get("active_const_ids", {}).get(const_id)
+    if not entry:
+        print(f"ConstID {const_id} is not currently active.")
+        print(f"Load it first with: sudo xkernel-tool load <mode> {const_id}")
+        sys.exit(1)
+
+    mode = entry.get("mode", -1)
+    mode_names = {0: "Immediate", 1: "Per-task", 2: "Global"}
+    print(f"ConstID {const_id} — mode {mode} ({mode_names.get(mode, '?')})")
+    print()
+
+    # ── Global mode: read timing file ────────────────────────────────
+    if mode == 2:
+        if not os.path.exists(TIMING_FILE):
+            print("No timing data available.")
+            print(f"  (expected: {TIMING_FILE})")
+            print("  Timing is written after a global transition completes.")
+        else:
+            data = {}
+            with open(TIMING_FILE) as f:
+                for line in f:
+                    line = line.strip()
+                    if '=' in line:
+                        k, v = line.split('=', 1)
+                        data[k.strip()] = v.strip()
+
+            direction = data.get('direction', 'forward')
+            elapsed_us = data.get('elapsed_us', 'N/A')
+            start_ns   = data.get('start_ns', '0')
+            end_ns     = data.get('end_ns', '0')
+
+            print(f"  Direction   : {direction}")
+            if elapsed_us == '-1':
+                print(f"  Result      : TIMED OUT")
+            else:
+                try:
+                    elapsed_f = float(elapsed_us)
+                    print(f"  Elapsed     : {elapsed_f:.1f} µs")
+                except ValueError:
+                    print(f"  Elapsed     : {elapsed_us} µs")
+            print(f"  start_ns    : {start_ns}")
+            print(f"  end_ns      : {end_ns}")
+        return
+
+    # ── Per-task mode: read BPF stats map ────────────────────────────
+    if mode == 1:
+        # BPF map names are truncated to 15 chars: transition_stats_map → transition_stat
+        result = subprocess.run(
+            ['sudo', 'bpftool', '-j', 'map', 'dump', 'name',
+             'transition_stat'],
+            capture_output=True, text=True
+        )
+        if result.returncode != 0 or not result.stdout.strip():
+            print("Could not read transition_stat BPF map.")
+            print("  Make sure ConstID is loaded with mode 1.")
+            print("  Hint: check sudo bpftool map list")
+            if result.stderr:
+                print(f"  Error: {result.stderr.strip()}")
+            return
+
+        import json as _json
+        try:
+            entries = _json.loads(result.stdout)
+        except _json.JSONDecodeError:
+            print(f"Failed to parse bpftool output:\n{result.stdout[:200]}")
+            return
+
+        # transition_stats_map has a single entry (key=0).
+        # Layout: {min_ns, max_ns, total_ns, count} — 4 × u64 = 32 bytes
+        if not entries:
+            print("transition_stats_map is empty — no task has transitioned yet.")
+            return
+
+        entry = entries[0]
+        raw_bytes = None
+
+        # bpftool output varies by version:
+        #   Format A (dict): [{"key": [...], "value": {"bytes": [...]}}]
+        #   Format B (dict): [{"key": [...], "value": ["0x00", ...]}]
+        #   Format C (list): [["0x00", ...], ["0x00", ...]]  (key, value pair)
+        if isinstance(entry, dict):
+            val = entry.get("value", {})
+            if isinstance(val, dict):
+                raw_bytes = val.get("bytes")
+            elif isinstance(val, list):
+                raw_bytes = val
+        elif isinstance(entry, list):
+            # Format C: entry is [key_list, value_list] or just value list
+            # Take the last list element as value
+            val = entry[-1] if len(entry) >= 2 else entry
+            if isinstance(val, list):
+                raw_bytes = val
+
+        if raw_bytes is None:
+            print("Unexpected bpftool map format.")
+            print(result.stdout[:400])
+            return
+
+        # Convert hex strings ("0x00") or ints to bytes
+        if raw_bytes and isinstance(raw_bytes[0], str):
+            raw_bytes = bytes(int(b, 16) for b in raw_bytes)
+        else:
+            raw_bytes = bytes(raw_bytes)
+
+        if len(raw_bytes) < 32:
+            print(f"Unexpected map value size: {len(raw_bytes)} bytes (expected 32)")
+            return
+
+        min_ns, max_ns, total_ns, count = struct.unpack_from('<QQQQ', raw_bytes)
+
+        print(f"  Tasks transitioned : {count}")
+        if count == 0:
+            print("  No transition data yet.")
+        else:
+            avg_ns = total_ns // count
+            print(f"  Min latency        : {min_ns / 1000:.1f} µs  ({min_ns} ns)")
+            print(f"  Max latency        : {max_ns / 1000:.1f} µs  ({max_ns} ns)")
+            print(f"  Avg latency        : {avg_ns / 1000:.1f} µs  ({avg_ns} ns)")
+            print(f"  Total accumulated  : {total_ns / 1_000_000:.3f} ms")
+        print()
+        print("  Tip: for per-event detail, run:")
+        print("    sudo cat /sys/kernel/debug/tracing/trace_pipe | grep 'transition done'")
+        return
+
+    # ── Immediate mode ────────────────────────────────────────────────
+    print("  Mode 0 (Immediate): no transition latency — values applied instantly.")
 
 
 def cmd_doctor(args):
@@ -1156,8 +1476,9 @@ def show_help():
     print("  unload    Unload BPF kprobes (per-ConstID or all)")
     print("  status    Show runtime status of loaded ConstIDs")
     print("  table     Manage scope tables (list, query, delete, cs, ss)")
-    print("  trace     Trace the kernel logs")
-    print("  gen       Generate an X-tune policy stub for a ConstID")
+    print("  trace             Tail kernel BPF trace_pipe logs")
+    print("  transition-stats  Show transition latency stats for a ConstID")
+    print("  gen               Generate an X-tune policy stub for a ConstID")
     print("  clean     Remove runtime state and build artifacts")
     print("  doctor    Check system prerequisites")
     print("  setup     Install all dependencies (clang, llvm, libbpf, ...)")
@@ -1213,7 +1534,8 @@ def main():
         'unload': cmd_unload,
         'status': cmd_status,
         'table': cmd_table,
-        'trace': cmd_trace,
+        'trace': lambda args: print("trace command not yet implemented"),
+        'transition-stats': cmd_transition_stats,
         'gen': lambda args: __import__('src.xtune', fromlist=['cmd_gen']).cmd_gen(args),
         'clean': cmd_clean,
         'doctor': cmd_doctor,

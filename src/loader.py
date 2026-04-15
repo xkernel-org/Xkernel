@@ -554,6 +554,24 @@ def is_kfuncs_loaded():
     return False
 
 
+def is_consistency_loaded():
+    """Check if xk-consistency module is currently loaded.
+
+    Returns:
+        True if the module is loaded.
+    """
+    result = subprocess.run(
+        ['lsmod'],
+        capture_output=True, text=True
+    )
+    if result.returncode != 0:
+        return False
+    for line in result.stdout.splitlines():
+        if line.startswith('xk_consistency '):
+            return True
+    return False
+
+
 def ensure_kfuncs_loaded(project_root):
     """Idempotently load xk-kfuncs.ko.
 
@@ -685,12 +703,20 @@ def set_bss_variable(map_info, map_name, value):
     BSS sections containing a single int/u32 have value_size=4.
     Packs the value as little-endian u32.
 
+    Supports both original map names (e.g. '.bss.xk_mode') and pin-derived
+    names (e.g. '_bss_xk_mode') in map_info.
+
     Args:
         map_info: dict mapping map name to map ID (from load_and_attach_per_constid)
         map_name: BSS section name (e.g. '.bss.xk_mode')
         value: Integer value to set
     """
     map_id = map_info.get(map_name)
+    if map_id is None:
+        # Try pin-name variant: replace dots with underscores, strip leading _
+        pin_name = map_name.replace('.', '_').lstrip('_')
+        pin_name = '_' + pin_name  # pin names have leading underscore
+        map_id = map_info.get(pin_name)
     if map_id is None:
         print(f"Warning: Map '{map_name}' not found in map_info "
               f"(available: {list(map_info.keys())})", file=sys.stderr)
@@ -768,6 +794,106 @@ def activate_constid(const_id, map_info):
         map_info: dict mapping map name to map ID
     """
     return set_bss_variable(map_info, '.bss.xk_active', 1)
+
+
+def deactivate_constid(const_id, map_info):
+    """Deactivate a ConstID by setting xk_active=0.
+
+    After this call, transition_done() will return false for all modes,
+    so X_TUNE policies will stop applying the new value.  This is the
+    first step of a reverse transition.
+
+    Args:
+        const_id: ConstID string
+        map_info: dict mapping map name to map ID
+    """
+    return set_bss_variable(map_info, '.bss.xk_active', 0)
+
+
+def get_map_info_for_constid(const_id):
+    """Discover map IDs for a loaded ConstID from its pin directory.
+
+    Args:
+        const_id: ConstID string
+
+    Returns:
+        dict mapping map name to map ID, or empty dict if not found.
+    """
+    maps_dir = f"{BPF_PIN_BASE}/{const_id}/maps"
+    if not os.path.isdir(maps_dir):
+        return {}
+
+    map_info = {}
+    try:
+        for name in os.listdir(maps_dir):
+            pin_path = os.path.join(maps_dir, name)
+            result = subprocess.run(
+                ['sudo', 'bpftool', '-j', 'map', 'show', 'pinned', pin_path],
+                capture_output=True, text=True
+            )
+            if result.returncode == 0 and result.stdout.strip():
+                data = json.loads(result.stdout)
+                if isinstance(data, dict) and 'id' in data:
+                    map_info[name] = data['id']
+                elif isinstance(data, list) and data and 'id' in data[0]:
+                    map_info[name] = data[0]['id']
+    except (OSError, json.JSONDecodeError):
+        pass
+
+    return map_info
+
+
+def bump_epoch(const_id, map_info):
+    """Increment xk_epoch to invalidate per-task transition_done flags.
+
+    Call this before triggering a new transition round on an already-loaded
+    ConstID so that tasks re-run the safety check for the new value.
+
+    Args:
+        const_id: ConstID string
+        map_info: dict mapping map name to map ID
+
+    Returns:
+        True on success, False if the map was not found.
+    """
+    epoch_id = map_info.get('.bss.xk_epoch')
+    if epoch_id is None:
+        # Try pin-derived name
+        epoch_id = map_info.get('_bss_xk_epoch')
+    if epoch_id is None:
+        print(f"Warning: .bss.xk_epoch map not found for ConstID {const_id}",
+              file=sys.stderr)
+        return False
+
+    # Read current epoch value
+    result = subprocess.run(
+        ['sudo', 'bpftool', '-j', 'map', 'dump', 'id', str(epoch_id)],
+        capture_output=True, text=True
+    )
+    current_epoch = 0
+    if result.returncode == 0 and result.stdout.strip():
+        try:
+            entries = json.loads(result.stdout)
+            if entries:
+                val = entries[0].get('value', [])
+                # val can be a list of hex strings ["0x00", ...] or
+                # a dict with 'bytes' key
+                if isinstance(val, dict):
+                    raw = val.get('bytes', [])
+                elif isinstance(val, list):
+                    raw = val
+                else:
+                    raw = []
+                if raw and len(raw) >= 4:
+                    # Convert hex strings to ints
+                    byte_vals = [int(x, 16) if isinstance(x, str) else x
+                                 for x in raw[:4]]
+                    current_epoch = int.from_bytes(bytes(byte_vals), 'little')
+        except (json.JSONDecodeError, TypeError, ValueError):
+            pass
+
+    new_epoch = current_epoch + 1
+    return set_bss_variable(map_info, '.bss.xk_epoch', new_epoch)
 
 
 def unload_constid(const_id):
