@@ -33,9 +33,14 @@ NIC="ens1f1np1"
 
 # wrk2 parameters
 DURATION=60             # seconds per run
-RATE=1000               # target requests/sec
+RATE=50                 # target requests/sec (moderate load on 1Gbps link)
 THREADS=4               # wrk2 threads
 CONNECTIONS=200         # wrk2 connections
+TIMEOUT=120             # request timeout in seconds
+
+# Network shaping: netem delay + rate limit
+RATE_LIMIT="1gbit"      # bottleneck bandwidth (netem rate)
+NETEM_LIMIT=100000      # netem queue limit in packets
 
 # RTT values to test (netem delay applied on server NIC, one-way;
 # TCP effectively sees this as the RTT since return path is ~0ms)
@@ -79,7 +84,7 @@ mkdir -p "$RESULT_DIR"
 
 log_ok "Server: NGINX running on $SERVER_IP"
 log_ok "Client: wrk2 available on $CLIENT_IP"
-log_ok "NIC: $NIC"
+log_ok "NIC: $NIC (rate limit: $RATE_LIMIT)"
 log_ok "Duration: ${DURATION}s, Rate: ${RATE} req/s, Threads: $THREADS, Conns: $CONNECTIONS"
 
 # ── Save experiment metadata ─────────────────────────────────────────
@@ -97,23 +102,24 @@ log_ok "Duration: ${DURATION}s, Rate: ${RATE} req/s, Threads: $THREADS, Conns: $
     echo "RATE=$RATE"
     echo "THREADS=$THREADS"
     echo "CONNECTIONS=$CONNECTIONS"
-    echo "RTTS=${RTTS[*]}"
+    echo "RATE_LIMIT=$RATE_LIMIT"
+    echo "NETEM_LIMIT=$NETEM_LIMIT"
+    echo "TIMEOUT=$TIMEOUT"
 } > "$RESULT_DIR/log.txt"
 
 # ── Helper: configure netem delay ────────────────────────────────────
 set_delay() {
     local rtt_ms="$1"
-    # netem on server NIC: one-way delay = rtt_ms/2.
-    # TCP sees effective RTT ≈ rtt_ms (since return path is ~0ms for same-rack).
-    # Using rtt_ms/2 as the netem delay gives a reasonable approximation.
-    local delay_ms=$(( rtt_ms / 2 ))
 
     # Clear existing qdisc
     sudo tc qdisc del dev "$NIC" root 2>/dev/null || true
 
     if [[ "$rtt_ms" -gt 0 ]]; then
-        sudo tc qdisc add dev "$NIC" root netem delay "${delay_ms}ms"
-        log "netem: ${delay_ms}ms delay on $NIC (target RTT ≈ ${rtt_ms}ms)"
+        # netem on server egress: full RTT delay + rate limit.
+        # On a back-to-back link the return path is ~0ms, so netem delay ≈ RTT.
+        sudo tc qdisc add dev "$NIC" root netem \
+            delay "${rtt_ms}ms" rate "$RATE_LIMIT" limit "$NETEM_LIMIT"
+        log "netem: ${rtt_ms}ms delay, rate $RATE_LIMIT on $NIC"
     else
         log "netem: cleared on $NIC"
     fi
@@ -135,43 +141,23 @@ run_wrk2() {
     # Copy Lua script to client
     scp -q "$LUA_SCRIPT" "${CLIENT_IP}:/tmp/zipf.lua"
 
-    # Run wrk2 on client and collect histogram output
-    # wrk2 --latency outputs HdrHistogram-compatible percentile data
-    # The Lua script (zipf.lua) generates request paths, so the base URL
-    # just needs to point to the server (any valid path works as a placeholder)
-    ssh "$CLIENT_IP" bash -c "'
-        wrk2 -t$THREADS -c$CONNECTIONS -d${DURATION}s -R$RATE \
-            --latency -s /tmp/zipf.lua \
-            http://${SERVER_IP}/ 2>&1
-    '" > "${outfile}.raw"
+    # Run wrk2 on client via nohup to avoid SSH timeout on long experiments.
+    # wrk2 --latency outputs HdrHistogram-compatible percentile data.
+    ssh "$CLIENT_IP" "nohup wrk2 -t$THREADS -c$CONNECTIONS -d${DURATION}s -R$RATE \
+        --timeout ${TIMEOUT}s --latency -s /tmp/zipf.lua \
+        http://${SERVER_IP}/ > /tmp/wrk2_result.txt 2>&1 &"
 
-    # Extract the latency histogram section (HdrHistogram percentile format)
-    # wrk2 outputs "Detailed Percentile spectrum:" followed by:
-    #   Value   Percentile   TotalCount   1/(1-Percentile)
-    # We also keep the header line for compatibility with the plot script
-    {
-        echo "       Value   Percentile   TotalCount 1/(1-Percentile)"
-        echo ""
-        awk '
-            /Detailed Percentile spectrum:/ { found=1; next }
-            /^[[:space:]]*Value/ && found { next }
-            /^#/ && found { exit }
-            /^--/ && found { exit }
-            found && /^[[:space:]]*[0-9]/ { print }
-        ' "${outfile}.raw"
-    } > "$outfile"
+    # Wait for wrk2 to finish (duration + calibration overhead)
+    local wait_secs=$(( DURATION + 15 ))
+    log "  Waiting ${wait_secs}s for wrk2 to finish..."
+    sleep "$wait_secs"
 
-    # If no histogram data extracted, use the raw wrk2 output
-    if [[ $(wc -l < "$outfile") -le 2 ]]; then
-        mv "${outfile}.raw" "$outfile"
-        log "  WARNING: Could not extract histogram; using raw output"
-    else
-        rm -f "${outfile}.raw"
-    fi
+    # Retrieve results
+    scp -q "${CLIENT_IP}:/tmp/wrk2_result.txt" "$outfile"
 
     local lines
     lines=$(wc -l < "$outfile")
-    log_ok "  Collected $lines data points → $(basename "$outfile")"
+    log_ok "  Collected $lines lines → $(basename "$outfile")"
 }
 
 # ── Phase 1: Vanilla kernel (SF=3 default) ───────────────────────────

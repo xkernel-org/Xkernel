@@ -64,12 +64,22 @@ def parse_histogram_file(file_path):
                     continue
 
     raw_values = np.array(raw_values)
-    # Auto-detect unit: if median < 1000, assume values are already in ms;
-    # otherwise assume µs and convert to ms
-    if len(raw_values) > 0 and np.median(raw_values) >= 1000:
-        values_ms = raw_values / 1_000.0  # µs → ms
+
+    # Detect format: wrk2 outputs ms, legacy HdrHistogram outputs µs.
+    # wrk2 files contain "Detailed Percentile spectrum:" header.
+    is_wrk2 = False
+    with open(file_path, 'r') as f:
+        for line in f:
+            if 'Detailed Percentile spectrum' in line:
+                is_wrk2 = True
+                break
+
+    if is_wrk2:
+        values_ms = raw_values  # wrk2 values are already in ms
+    elif len(raw_values) > 0 and np.median(raw_values) >= 1000:
+        values_ms = raw_values / 1_000.0  # legacy µs → ms
     else:
-        values_ms = raw_values  # already ms
+        values_ms = raw_values
 
     return values_ms, np.array(percentiles), np.array(inv_one_minus_p)
 

@@ -22,7 +22,7 @@ CS_RAW="/dev/shm/xkernel/cs_raw"
 STUBS_DIR="$PROJECT_ROOT/bpf/stubs"
 
 NEW_VALUE="${1:-1}"
-MODE=1  # Per-task mode for TCP (flow-level isolation)
+MODE=0  # Immediate mode for tcp_cubic (no per-task consistency needed)
 TARGET_NAME="tcp_cubic"
 
 # ── helpers ──────────────────────────────────────────────────────────

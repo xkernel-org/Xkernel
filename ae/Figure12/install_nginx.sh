@@ -70,33 +70,38 @@ generate_workload() {
     sudo mkdir -p "$target_dir"
     sudo rm -rf "${target_dir:?}"/*
 
-    log "Generating 100 files with heavy-tailed web content distribution ..."
+    log "Generating 100 files with HD Photo distribution (heavy-tailed) ..."
 
     for i in $(seq 1 100); do
         rand=$((RANDOM % 100 + 1))
 
-        if [ "$rand" -le 40 ]; then
-            # Class A: 1–5KB (40%) — tiny resources: icons, thumbnails
-            size_kb=$(( (RANDOM % 5) + 1 ))
+        if [ "$rand" -le 20 ]; then
+            # 20%: 10–50KB — thumbnails, icons
+            size_kb=$(( (RANDOM % 40) + 10 ))
         elif [ "$rand" -le 70 ]; then
-            # Class B: 5–20KB (30%) — small images, scripts
-            size_kb=$(( (RANDOM % 16) + 5 ))
-        elif [ "$rand" -le 85 ]; then
-            # Class C: 20–50KB (15%) — medium images
-            size_kb=$(( (RANDOM % 31) + 20 ))
-        elif [ "$rand" -le 95 ]; then
-            # Class D: 50–200KB (10%) — photos
-            size_kb=$(( (RANDOM % 151) + 50 ))
+            # 50%: 50–200KB — standard photos
+            size_kb=$(( (RANDOM % 150) + 50 ))
+        elif [ "$rand" -le 90 ]; then
+            # 20%: 200KB–1.5MB — high-res photos
+            size_kb=$(( (RANDOM % 1300) + 200 ))
+        elif [ "$rand" -le 98 ]; then
+            # 8%: 1.5MB–8MB — photo albums, documents
+            size_kb=$(( (RANDOM % 6500) + 1500 ))
         else
-            # Class E: 200–500KB (5%) — larger photos/documents
-            size_kb=$(( (RANDOM % 301) + 200 ))
+            # 2%: 10MB–100MB — extreme tail (video, archives)
+            size_kb=$(( (RANDOM % 90000) + 10000 ))
         fi
 
-        size_bytes=$(( size_kb * 1024 ))
-
-        echo -ne "[File $i/100] ${size_kb}KB\r"
-        sudo dd if=/dev/urandom of="${target_dir}/file_${i}.bin" \
-            bs=1K count=${size_kb} status=none
+        if [ "$size_kb" -lt 1024 ]; then
+            echo -ne "[File $i/100] ${size_kb}KB\r"
+            sudo dd if=/dev/urandom of="${target_dir}/file_${i}.bin" \
+                bs=1K count=${size_kb} status=none
+        else
+            local size_mb=$(( size_kb / 1024 ))
+            echo -ne "[File $i/100] ${size_mb}MB   \r"
+            sudo dd if=/dev/urandom of="${target_dir}/file_${i}.bin" \
+                bs=1M count=${size_mb} status=none
+        fi
     done
 
     echo ""
