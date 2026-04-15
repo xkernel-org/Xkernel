@@ -1,0 +1,151 @@
+#!/usr/bin/env bash
+# run.sh — Reproduce Figure 16: kprobe trigger overhead on io_uring path
+#
+# Measures the per-trigger overhead of BPF kprobes attached to io_write()+0x6,
+# comparing jump-optimized (JMP) vs INT3 kprobe mechanisms.
+#
+# Each io_uring write SQE triggers exactly one io_write() call.
+# Writing 1 byte to /dev/null has near-zero I/O cost → kprobe overhead dominates.
+#
+# Three sweep modes:
+#   base   — no kprobes attached (baseline)
+#   xk     — jump-optimized kprobe at io_write+0x6 [OPTIMIZED] (~25 ns)
+#   xkint3 — INT3 kprobe at io_write+0x6 (optimization disabled) (~115 ns)
+#
+# Usage:
+#   sudo bash ae/Figure16/run.sh [--app-delay US] [--threads N]
+#
+# Prerequisites:
+#   bash ae/Figure16/install_bench.sh
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BENCH="$SCRIPT_DIR/bin/bench"
+
+# ── Parameters ───────────────────────────────────────────────────────
+APP_DELAY=10          # simulated application computation (us)
+THREADS=10            # number of io_uring threads
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --app-delay) APP_DELAY="$2"; shift 2 ;;
+        --threads)   THREADS="$2";   shift 2 ;;
+        *)           echo "Unknown option: $1"; exit 1 ;;
+    esac
+done
+
+# IOPS sweep: 100K–3M in 100K steps
+IOPS_TARGETS=()
+for (( r=100000; r<=3000000; r+=100000 )); do
+    IOPS_TARGETS+=($r)
+done
+
+DATA_DIR="$SCRIPT_DIR/data"
+KPROBE_TARGET="io_write+0x6"   # 5-byte MOV in prologue
+
+RED='\033[0;31m'; GREEN='\033[0;32m'; BOLD='\033[1m'; RST='\033[0m'
+log()         { echo -e "${BOLD}[$(date '+%H:%M:%S')]${RST} $*"; }
+log_ok()      { echo -e "${GREEN}[$(date '+%H:%M:%S')] ✓${RST} $*"; }
+log_section() { echo -e "\n${BOLD}════════════════════════════════════════${RST}"; log "$*"; echo -e "${BOLD}════════════════════════════════════════${RST}"; }
+die()         { echo -e "${RED}[$(date '+%H:%M:%S')] ✗${RST} $*" >&2; exit 1; }
+
+# ── Preflight ────────────────────────────────────────────────────────
+log_section "Preflight checks"
+
+if [[ ! -x "$BENCH" ]]; then
+    log "Building benchmark..."
+    make -C "$SCRIPT_DIR" -j"$(nproc)"
+fi
+[[ -x "$BENCH" ]] || die "bench not found. Run: bash install_bench.sh"
+
+grep -qw "io_write" /proc/kallsyms 2>/dev/null || \
+    die "io_write not found in /proc/kallsyms"
+command -v bpftrace >/dev/null 2>&1 || \
+    die "bpftrace not found. Install with: apt install bpftrace"
+
+mkdir -p "$DATA_DIR"
+
+log_ok "bench binary:  $BENCH"
+log_ok "kprobe target: $KPROBE_TARGET"
+log_ok "app delay:     ${APP_DELAY} us"
+log_ok "threads:       ${THREADS}"
+log_ok "IOPS targets:  ${#IOPS_TARGETS[@]} levels (${IOPS_TARGETS[0]}..${IOPS_TARGETS[-1]})"
+
+# ── Save metadata ────────────────────────────────────────────────────
+{
+    echo "date:       $(date)"
+    echo "kernel:     $(uname -r)"
+    echo "app_delay:  $APP_DELAY us"
+    echo "threads:    $THREADS"
+    echo "kprobe:     $KPROBE_TARGET"
+    echo "iops_range: ${IOPS_TARGETS[0]}..${IOPS_TARGETS[-1]}"
+} > "$DATA_DIR/log.txt"
+
+# ── Helper: run one IOPS sweep ──────────────────────────────────────
+run_sweep() {
+    local label="$1"   # "base", "xk", or "xkint3"
+    local prefix="${label}_${APP_DELAY}"
+
+    log_section "Sweep: $label (app_delay=${APP_DELAY}us, threads=${THREADS})"
+
+    for r in "${IOPS_TARGETS[@]}"; do
+        local n=$((r * 5))
+        local outfile="$DATA_DIR/${prefix}_${r}.txt"
+
+        log "  IOPS=$r  n=$n → $(basename "$outfile")"
+        "$BENCH" -d "$APP_DELAY" -j "$THREADS" -r "$r" -n "$n" > "$outfile" 2>&1
+    done
+
+    log_ok "$label sweep done (${#IOPS_TARGETS[@]} data points)"
+}
+
+# ── Helper: attach / detach bpftrace kprobe ─────────────────────────
+BPFTRACE_PID=""
+
+attach_kprobe() {
+    bpftrace -e "kprobe:${KPROBE_TARGET} { }" &
+    BPFTRACE_PID=$!
+    sleep 2
+    kill -0 "$BPFTRACE_PID" 2>/dev/null || die "Failed to attach kprobe"
+
+    local status
+    status=$(sudo cat /sys/kernel/debug/kprobes/list 2>/dev/null | grep io_write || true)
+    log_ok "kprobe attached (PID=$BPFTRACE_PID): $status"
+}
+
+detach_kprobe() {
+    if [[ -n "$BPFTRACE_PID" ]]; then
+        kill "$BPFTRACE_PID" 2>/dev/null || true
+        wait "$BPFTRACE_PID" 2>/dev/null || true
+        BPFTRACE_PID=""
+        log_ok "kprobe detached"
+    fi
+}
+
+# ── Phase 1: Baseline ───────────────────────────────────────────────
+run_sweep "base"
+
+# ── Phase 2: Jump-optimized kprobe (xk) ─────────────────────────────
+log_section "Attaching jump-optimized kprobe [OPTIMIZED]"
+echo 1 | sudo tee /proc/sys/debug/kprobes-optimization > /dev/null
+attach_kprobe
+run_sweep "xk"
+detach_kprobe
+
+# ── Phase 3: INT3 kprobe (xkint3) ───────────────────────────────────
+log_section "Attaching INT3 kprobe (optimization disabled)"
+echo 0 | sudo tee /proc/sys/debug/kprobes-optimization > /dev/null
+attach_kprobe
+run_sweep "xkint3"
+detach_kprobe
+echo 1 | sudo tee /proc/sys/debug/kprobes-optimization > /dev/null  # restore
+
+# ── Summary ──────────────────────────────────────────────────────────
+log_section "Experiment complete"
+log "Data directory: $DATA_DIR/"
+log "  base files:   $(ls "$DATA_DIR"/base_*.txt 2>/dev/null | wc -l)"
+log "  xk files:     $(ls "$DATA_DIR"/xk_${APP_DELAY}_*.txt 2>/dev/null | wc -l)"
+log "  xkint3 files: $(ls "$DATA_DIR"/xkint3_*.txt 2>/dev/null | wc -l)"
+log ""
+log "Plot: python ae/Figure16/plot/plot.py"
