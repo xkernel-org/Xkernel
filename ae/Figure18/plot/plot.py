@@ -1,99 +1,178 @@
 #!/usr/bin/env python3
-"""Plot Figure 18: Transition time comparison — KLP vs XKernel.
+"""Plot Figure 18: Per-task transition delay CDF — Linux KLP vs XKernel.
 
-Reads transition time measurements from results/ and produces a bar chart
-showing that KLP transition takes seconds/minutes while XKernel's per-thread
-mode completes in milliseconds.
+Reads per-task transition data and produces a CDF plot showing the
+distribution of per-task transition delays for 128 iperf3 threads.
+
+Input files (in results/):
+  per_task_data.txt    — KLP per-task data (legacy format)
+  per_task_data_xk.txt — XKernel per-task data (legacy format)
 
 Usage:
     python3 plot/plot.py                    # auto-detect results/
     python3 plot/plot.py path/to/results    # specific results dir
 """
+import re
 import matplotlib.pyplot as plt
 import numpy as np
-import sys
+from matplotlib.ticker import FuncFormatter
 import os
+import sys
+import seaborn as sns
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import plot_common
 
+palette = sns.color_palette("mako")
 
-def load_times(filepath):
-    """Load transition times (in nanoseconds) from a results file."""
-    times = []
-    with open(filepath, 'r') as f:
-        for line in f:
-            line = line.strip()
-            if not line or line.startswith('#'):
-                continue
-            try:
-                times.append(int(line))
-            except ValueError:
-                continue
-    return np.array(times)
+TEXT_SIZE_XYLABEL = 23
+TEXT_SIZE_XYAXIS = 23
+TEXT_SIZE_LEGEND = 23
+TEXT_SIZE_ANNOTATE = 20
+
+
+def parse_linux_klp_data(file_path):
+    """Parse Linux KLP data from file."""
+    with open(file_path, 'r') as f:
+        raw_data = f.read()
+    waited_ns = []
+    for line in raw_data.strip().split('\n'):
+        match = re.search(r'Waited: (\d+) ns', line)
+        if match:
+            waited_ns.append(int(match.group(1)))
+    return np.array([x / 1000.0 for x in waited_ns])  # to microseconds
+
+
+def parse_xkernel_data(file_path):
+    """Parse Xkernel data from file."""
+    with open(file_path, 'r') as f:
+        raw_data = f.read()
+    waited_us = []
+    for line in raw_data.strip().split('\n'):
+        match = re.search(r'\u5dee\u503c\uff1a(\d+) us', line)
+        if match:
+            waited_us.append(int(match.group(1)))
+    return np.array(waited_us)
+
+
+def calculate_cdf(data):
+    """Calculate CDF for given data."""
+    data_sorted = np.sort(data)
+    n = len(data_sorted)
+    cdf_percent = np.arange(1, n + 1) / n
+    return data_sorted, cdf_percent
 
 
 def plot_figure18(results_dir):
-    klp_file = os.path.join(results_dir, 'klp_times.txt')
-    xk_file = os.path.join(results_dir, 'xkernel_times.txt')
+    klp_file = os.path.join(results_dir, 'per_task_data.txt')
+    xk_file = os.path.join(results_dir, 'per_task_data_xk.txt')
 
     for f in [klp_file, xk_file]:
         if not os.path.exists(f):
             print(f"[skip] {f} not found")
             return
 
-    klp_ns = load_times(klp_file)
-    xk_ns = load_times(xk_file)
+    klp_data = parse_linux_klp_data(klp_file)
+    xk_data = parse_xkernel_data(xk_file)
 
-    # Convert to seconds
-    klp_s = klp_ns / 1e9
-    xk_s = xk_ns / 1e9
+    klp_sorted, klp_cdf = calculate_cdf(klp_data)
+    xk_sorted, xk_cdf = calculate_cdf(xk_data)
 
-    print(f"\n=== Transition Times ===")
-    print(f"KLP:     median={np.median(klp_s):.3f}s, "
-          f"mean={np.mean(klp_s):.3f}s, "
-          f"min={np.min(klp_s):.3f}s, max={np.max(klp_s):.3f}s")
-    print(f"XKernel: median={np.median(xk_s):.6f}s, "
-          f"mean={np.mean(xk_s):.6f}s, "
-          f"min={np.min(xk_s):.6f}s, max={np.max(xk_s):.6f}s")
-    print(f"Speedup: {np.median(klp_s) / np.median(xk_s):.0f}x (median)")
+    klp_p50 = np.median(klp_data)
+    xk_p50 = np.median(xk_data)
+    print(f"\n=== Per-Task Transition Delays ===")
+    print(f"Linux KLP: {len(klp_data)} tasks, "
+          f"P50={klp_p50:.1f} us, "
+          f"min={np.min(klp_data):.1f} us, max={np.max(klp_data):.1f} us")
+    print(f"XKernel:   {len(xk_data)} tasks, "
+          f"P50={xk_p50:.1f} us, "
+          f"min={np.min(xk_data):.1f} us, max={np.max(xk_data):.1f} us")
+    print(f"Speedup (P50): {klp_p50 / max(xk_p50, 0.001):.0f}x")
 
-    # ── Bar chart ─────────────────────────────────────────────────────
-    fig, ax = plt.subplots(1, 1, figsize=(5, 4))
+    # ── CDF plot ─────────────────────────────────────────────────────
+    fig, ax = plt.subplots(figsize=(9.5, 4))
 
-    methods = ['KLP', 'XKernel\n(per-thread)']
-    medians = [np.median(klp_s), np.median(xk_s)]
-    errors_lo = [np.median(klp_s) - np.min(klp_s),
-                 np.median(xk_s) - np.min(xk_s)]
-    errors_hi = [np.max(klp_s) - np.median(klp_s),
-                 np.max(xk_s) - np.median(xk_s)]
+    ax.plot(klp_sorted, klp_cdf, color=palette[1], linewidth=2,
+            label='Linux KLP',
+            marker=plot_common.markers[0], markersize=2, zorder=2)
+    ax.plot(xk_sorted, xk_cdf, color=palette[3], linewidth=2,
+            label='Xkernel',
+            marker=plot_common.markers[2], markersize=2, zorder=2)
 
-    bar_colors = ['#B0B0B0', '#2ca02c']
-    bars = ax.bar(methods, medians, color=bar_colors, edgecolor='black',
-                  linewidth=1.2, width=0.5, zorder=3)
+    ax.set_xscale('log')
+    ax.set_xlabel('Transition Delay (\u03bcs)', fontsize=TEXT_SIZE_XYLABEL)
+    ax.set_ylabel('CDF (%)', fontsize=TEXT_SIZE_XYLABEL)
+    ax.tick_params(axis='x', length=10, width=2, labelsize=TEXT_SIZE_XYAXIS)
+    ax.tick_params(axis='y', length=10, width=2, labelsize=TEXT_SIZE_XYAXIS)
+    ax.grid(True, alpha=0.3, zorder=0)
+    ax.set_ylim(0, 1)
+    ax.set_yticks([0, 0.25, 0.5, 0.75, 1.0])
 
-    ax.errorbar(methods, medians, yerr=[errors_lo, errors_hi],
-                fmt='none', ecolor='black', capsize=5, linewidth=1.5,
-                zorder=4)
+    def y_formatter(x, pos):
+        return f'{int(x * 100)}'
+    ax.yaxis.set_major_formatter(FuncFormatter(y_formatter))
+    ax.legend(loc='best', frameon=False, fontsize=TEXT_SIZE_LEGEND)
 
-    ax.set_yscale('log')
-    ax.set_ylabel('Transition Time (s)', fontsize=18)
-    ax.tick_params(axis='both', labelsize=16)
+    # Annotate load time (max delay = total transition span)
+    klp_max = np.max(klp_data)
+    xk_max = np.max(xk_data)
 
-    # Add value labels on bars
-    for bar, med in zip(bars, medians):
-        if med >= 1.0:
-            label = f'{med:.1f}s'
-        elif med >= 0.001:
-            label = f'{med*1000:.0f}ms'
-        else:
-            label = f'{med*1e6:.0f}µs'
-        ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() * 1.5,
-                label, ha='center', va='bottom', fontsize=14, fontweight='bold')
+    ax.axvline(x=klp_max, color=palette[1], linestyle='--',
+               linewidth=2, alpha=0.7, zorder=1)
+    ax.axvline(x=xk_max, color=palette[3], linestyle='--',
+               linewidth=2, alpha=0.7, zorder=1)
 
-    ax.grid(True, alpha=0.3, axis='y', linestyle='--', zorder=0)
+    # Format labels
+    if klp_max >= 1000:
+        klp_label = f'load time: {klp_max/1000:.1f}ms'
+    else:
+        klp_label = f'load time: {klp_max:.0f}\u03bcs'
+    if xk_max >= 1000:
+        xk_label = f'load time: {xk_max/1000:.1f}ms'
+    else:
+        xk_label = f'load time: {xk_max:.0f}\u03bcs'
+
+    ax.annotate(klp_label, xy=(klp_max, 0.9),
+                xytext=(klp_max * 1.5, 0.9),
+                arrowprops=dict(arrowstyle='->', color=palette[1], lw=1.5),
+                fontsize=TEXT_SIZE_ANNOTATE, color=palette[1],
+                ha='left', va='center')
+    ax.annotate(xk_label, xy=(xk_max, 0.9),
+                xytext=(xk_max * 1.5, 0.9),
+                arrowprops=dict(arrowstyle='->', color=palette[3], lw=1.5),
+                fontsize=TEXT_SIZE_ANNOTATE, color=palette[3],
+                ha='left', va='center')
+
+    # P50 annotations
+    ax.axvline(x=klp_p50, color=palette[1], linestyle=':',
+               linewidth=2, alpha=0.7, zorder=1)
+    ax.axvline(x=xk_p50, color=palette[3], linestyle=':',
+               linewidth=2, alpha=0.7, zorder=1)
+
+    if klp_p50 >= 1000:
+        klp_p50_text = f'P50: {klp_p50/1000:.1f}ms'
+    else:
+        klp_p50_text = f'P50: {klp_p50:.1f}\u03bcs'
+    ax.annotate(klp_p50_text, xy=(klp_p50, 0.5),
+                xytext=(klp_p50 * 1.5, 0.5),
+                arrowprops=dict(arrowstyle='->', color=palette[1], lw=1.5),
+                fontsize=TEXT_SIZE_ANNOTATE, color=palette[1],
+                ha='left', va='center')
+
+    if xk_p50 >= 1000:
+        xk_p50_text = f'P50: {xk_p50/1000:.1f}ms'
+    else:
+        xk_p50_text = f'P50: {xk_p50:.1f}\u03bcs'
+    ax.annotate(xk_p50_text, xy=(xk_p50, 0.5),
+                xytext=(xk_p50 * 1.5, 0.5),
+                arrowprops=dict(arrowstyle='->', color=palette[3], lw=1.5),
+                fontsize=TEXT_SIZE_ANNOTATE, color=palette[3],
+                ha='left', va='center')
+
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
+    ax.spines['left'].set_linewidth(1)
+    ax.spines['bottom'].set_linewidth(1)
 
     plt.tight_layout()
 

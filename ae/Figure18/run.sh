@@ -1,24 +1,24 @@
 #!/usr/bin/env bash
-# run.sh — Reproduce Figure 18: Transition time comparison (KLP vs XKernel)
+# run.sh — Reproduce Figure 18: Per-task transition delay CDF
 #
-# Compares:
-#   - Linux KLP via kpatch: must wait for ALL threads to exit
-#     tcp_sendmsg_locked before the transition completes (~17s)
-#   - XKernel per-thread mode (Mode 1): loads BPF kprobes instantly,
-#     each thread transitions independently (~1s)
+# Compares per-task transition delay distributions:
+#   - Linux KLP (via kpatch): each task waits for context switch before
+#     the kernel can check its stack and complete its transition
+#   - XKernel per-thread mode (Mode 1): each task transitions at its
+#     next entry to the safe span (microseconds)
 #
-# Workload: iperf3 with tiny TCP window (-w 4k) + netem 100ms each side
-# keeps 128 threads stuck inside tcp_sendmsg_locked (in sk_stream_wait_memory),
-# making KLP transition extremely slow.
+# Workload: iperf3 with tiny TCP window (-w 4k -P 128) keeps 128
+# threads inside tcp_sendmsg_locked.
 #
-# IMPORTANT: iperf3 CLIENT (sender) runs LOCALLY — the sender enters
-# tcp_sendmsg_locked, NOT the receiver.
+# Output: results/per_task_data.txt (KLP) and per_task_data_xk.txt (XKernel)
+# in the legacy format consumed by plot/plot.py
 #
 # Usage:
-#   sudo bash run.sh [--runs N] [--parallel P]
+#   sudo bash run.sh [--parallel P]
 #
 # Prerequisites:
 #   sudo bash install_bench.sh
+#   bpftrace installed (apt install bpftrace)
 
 set -euo pipefail
 
@@ -30,21 +30,16 @@ XKTOOL="$PROJECT_ROOT/xkernel-tool"
 CLIENT_IP="192.168.6.2"    # remote: iperf3 server (receiver)
 NIC="ens1f1np1"
 
-IPERF_DURATION=180      # iperf3 duration (long enough for measurement)
 IPERF_PARALLEL=128      # parallel streams (-P)
-IPERF_WINDOW="4k"       # TCP window size (-w) — key: fills instantly
+IPERF_WINDOW="4k"       # TCP window size (-w) — fills instantly
 IPERF_LENGTH="1M"       # write length (-l)
-NETEM_DELAY="100ms"     # netem delay each side (200ms RTT total)
-NETEM_RATE="100mbit"    # rate limit to slow ACKs
+IPERF_DURATION=120      # seconds
 
-RUNS=5                  # number of measurement runs per method
-SETTLE_TIME=10          # seconds to wait for workload to saturate
-CONN_TIMEOUT=60         # max seconds to wait for connections
+SETTLE_TIME=5           # seconds to wait for workload to saturate
+CONN_TIMEOUT=30         # max seconds to wait for connections
 
-# Parse command line
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --runs)       RUNS="$2";            shift 2 ;;
         --parallel)   IPERF_PARALLEL="$2";  shift 2 ;;
         *) echo "Unknown option: $1"; exit 1 ;;
     esac
@@ -52,8 +47,6 @@ done
 
 RESULT_DIR="$SCRIPT_DIR/results"
 KLP_MODULE="$SCRIPT_DIR/klp_module/kpatch-tcp-backlog.ko"
-KLP_SYSFS_NAME="kpatch_tcp_backlog"  # underscores in sysfs
-KLP_MOD_NAME="kpatch_tcp_backlog"
 
 RED='\033[0;31m'; GREEN='\033[0;32m'; BOLD='\033[1m'; RST='\033[0m'
 log()         { echo -e "${BOLD}[$(date '+%H:%M:%S')]${RST} $*"; }
@@ -68,8 +61,6 @@ sudo rm -f "$PROJECT_ROOT"/bpf/stubs/xtune_stub_*.bpf.c \
            "$PROJECT_ROOT"/bpf/stubs/xtune_stub_*.bpf.h \
            "$PROJECT_ROOT"/bpf/stubs/xtune_stub_*.bpf.o 2>/dev/null || true
 sudo kpatch unload kpatch-tcp-backlog 2>/dev/null || true
-sudo tc qdisc del dev "$NIC" root 2>/dev/null || true
-ssh "$CLIENT_IP" "sudo tc qdisc del dev $NIC root 2>/dev/null" || true
 
 # ── Build XKernel tunable ────────────────────────────────────────────
 log "Building XKernel tunable ..."
@@ -100,7 +91,7 @@ with open('$STUB_H', 'w') as f: f.write(s)
 fi
 sudo make -C "$PROJECT_ROOT/bpf" 2>&1 | tail -2
 
-# Ensure kernel modules are built (but don't clean - install_bench.sh handles that)
+# Ensure kernel modules are built
 if [[ ! -f "$PROJECT_ROOT/kernel/kfuncs/xk-kfuncs.ko" ]]; then
     sudo make -C "$PROJECT_ROOT/kernel/kfuncs" 2>&1 | tail -1
 fi
@@ -111,174 +102,164 @@ log_section "Preflight checks"
 [[ -f "$KLP_MODULE" ]] || die "kpatch module not found: $KLP_MODULE\nRun: sudo bash install_bench.sh"
 [[ -x "$XKTOOL" ]]    || die "xkernel-tool not found at $XKTOOL"
 command -v iperf3 &>/dev/null || die "iperf3 not found"
-command -v kpatch &>/dev/null || die "kpatch not found. Run: sudo bash install_bench.sh"
+command -v bpftrace &>/dev/null || die "bpftrace not found (apt install bpftrace)"
+command -v kpatch &>/dev/null || die "kpatch not found"
 ssh "$CLIENT_IP" "which iperf3 >/dev/null 2>&1" || die "iperf3 not found on client"
-[[ -d /sys/kernel/livepatch ]] || die "KLP not supported (CONFIG_LIVEPATCH=n)"
 
 mkdir -p "$RESULT_DIR"
-
-log_ok "kpatch module: $KLP_MODULE"
+log_ok "All tools found"
 log_ok "iperf3: -w $IPERF_WINDOW -l $IPERF_LENGTH -P $IPERF_PARALLEL"
-log_ok "netem: $NETEM_DELAY each side, rate $NETEM_RATE"
-log_ok "Runs: $RUNS per method"
 
-# ── Save experiment metadata ─────────────────────────────────────────
+# ── Save metadata ────────────────────────────────────────────────────
 {
     echo "date:        $(date)"
     echo "kernel:      $(uname -r)"
-    echo "git_branch:  $(cd "$PROJECT_ROOT" && git rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'unknown')"
-    echo "git_commit:  $(cd "$PROJECT_ROOT" && git rev-parse --short HEAD 2>/dev/null || echo 'unknown')"
-    echo ""
-    echo "=== parameters ==="
     echo "IPERF_PARALLEL=$IPERF_PARALLEL"
     echo "IPERF_WINDOW=$IPERF_WINDOW"
     echo "IPERF_LENGTH=$IPERF_LENGTH"
-    echo "NETEM_DELAY=$NETEM_DELAY"
-    echo "NETEM_RATE=$NETEM_RATE"
-    echo "RUNS=$RUNS"
 } > "$RESULT_DIR/log.txt"
 
-# ── Helper: setup netem ─────────────────────────────────────────────
-setup_netem() {
-    sudo tc qdisc replace dev "$NIC" root netem delay "$NETEM_DELAY" rate "$NETEM_RATE" limit 100000
-    ssh "$CLIENT_IP" "sudo tc qdisc replace dev $NIC root netem delay $NETEM_DELAY limit 1000000"
-    sleep 2
-    log_ok "netem: $NETEM_DELAY delay each side"
-}
-
-teardown_netem() {
-    sudo tc qdisc del dev "$NIC" root 2>/dev/null || true
-    ssh "$CLIENT_IP" "sudo tc qdisc del dev $NIC root 2>/dev/null" || true
-}
-
 # ── Helper: start/stop iperf3 workload ──────────────────────────────
-# CLIENT (sender) runs LOCALLY — sender threads enter tcp_sendmsg_locked
 IPERF_CLIENT_PID=""
 
-start_iperf_workload() {
-    # Start iperf3 server on remote (receiver)
+start_workload() {
     ssh "$CLIENT_IP" "iperf3 -s -D --pidfile /tmp/iperf3_fig18.pid" 2>/dev/null
     sleep 2
 
-    # Start iperf3 client locally (sender — enters tcp_sendmsg_locked)
     iperf3 -c "$CLIENT_IP" -w "$IPERF_WINDOW" -l "$IPERF_LENGTH" \
         -t "$IPERF_DURATION" -P "$IPERF_PARALLEL" >/dev/null 2>&1 &
     IPERF_CLIENT_PID=$!
-    log "iperf3 client PID: $IPERF_CLIENT_PID"
+    log "iperf3 PID: $IPERF_CLIENT_PID"
 
-    # Wait for connections to establish (takes ~26s with 200ms RTT)
-    log "Waiting for $IPERF_PARALLEL connections ..."
     for i in $(seq 1 "$CONN_TIMEOUT"); do
         CONNS=$(ss -tn state established | grep -c "${CLIENT_IP}:5201" || true)
         CONNS=${CONNS:-0}
         if (( CONNS >= IPERF_PARALLEL - 8 )); then
-            log_ok "$CONNS connections established (${i}s)"
+            log_ok "$CONNS connections (${i}s)"
             break
         fi
         sleep 1
     done
-
-    # Let workload saturate
-    log "Settling ${SETTLE_TIME}s ..."
     sleep "$SETTLE_TIME"
-
-    # Verify threads are stuck in tcp_sendmsg_locked
-    local STUCK
-    STUCK=$(cat /proc/$IPERF_CLIENT_PID/task/*/wchan 2>/dev/null | grep -c wait_woken || true)
-    log_ok "${STUCK:-0} threads in wait_woken (tcp_sendmsg_locked)"
 }
 
-stop_iperf_workload() {
+stop_workload() {
     if [[ -n "$IPERF_CLIENT_PID" ]]; then
         kill "$IPERF_CLIENT_PID" 2>/dev/null || true
         wait "$IPERF_CLIENT_PID" 2>/dev/null || true
         IPERF_CLIENT_PID=""
     fi
-    ssh "$CLIENT_IP" "kill \$(cat /tmp/iperf3_fig18.pid 2>/dev/null) 2>/dev/null; rm -f /tmp/iperf3_fig18.pid" || true
+    ssh "$CLIENT_IP" "cat /tmp/iperf3_fig18.pid 2>/dev/null | xargs -r kill 2>/dev/null; rm -f /tmp/iperf3_fig18.pid" || true
     sleep 1
-    log "iperf3 workload stopped"
 }
 
-# ── Cleanup trap ─────────────────────────────────────────────────────
 cleanup() {
-    stop_iperf_workload 2>/dev/null || true
-    teardown_netem 2>/dev/null || true
+    stop_workload 2>/dev/null || true
     sudo kpatch unload kpatch-tcp-backlog 2>/dev/null || true
     sudo "$XKTOOL" unload 1 2>/dev/null || true
 }
 trap cleanup EXIT
 
 # ══════════════════════════════════════════════════════════════════════
-# Phase 1: Measure KLP transition time (via kpatch)
+# Phase 1: KLP per-task transition data
 # ══════════════════════════════════════════════════════════════════════
-log_section "Phase 1: KLP Transition Time (kpatch)"
+log_section "Phase 1: KLP Per-Task Transitions"
 
-KLP_RESULTS_FILE="$RESULT_DIR/klp_times.txt"
-echo "# KLP transition time (nanoseconds)" > "$KLP_RESULTS_FILE"
+sudo kpatch unload kpatch-tcp-backlog 2>/dev/null || true
+start_workload
 
-for run in $(seq 1 "$RUNS"); do
-    log "KLP Run $run/$RUNS"
+# Capture klp_update_patch_state per iperf3 task with bpftrace
+sudo sh -c 'bpftrace -e '\''
+kprobe:klp_update_patch_state /comm == "iperf3"/ {
+    printf("PID:%d NS:%llu\n", tid, nsecs);
+}
+'\'' > /tmp/klp_raw.txt 2>/dev/null' &
+BT_PID=$!
+sleep 3
 
-    # Ensure clean KLP state
-    sudo kpatch unload kpatch-tcp-backlog 2>/dev/null || true
-    sleep 1
+log "Loading kpatch ..."
+sudo kpatch load "$KLP_MODULE" 2>&1
+sleep 2
 
-    setup_netem
-    start_iperf_workload
+# Stop bpftrace (kill the sudo sh process and its child)
+sudo sh -c 'kill $(pgrep -f "bpftrace.*klp_update_patch_state") 2>/dev/null' || true
+wait "$BT_PID" 2>/dev/null || true
 
-    # Measure KLP transition via kpatch load (blocks until complete or timeout)
-    START_NS=$(date +%s%N)
-    sudo kpatch load "$KLP_MODULE" 2>&1
-    END_NS=$(date +%s%N)
+# Post-process: convert to legacy format with relative timestamps
+python3 - "$RESULT_DIR" << 'PYEOF'
+import re, sys
+result_dir = sys.argv[1]
+lines = open('/tmp/klp_raw.txt').readlines()
+entries = []
+for line in lines:
+    m = re.match(r'PID:(\d+) NS:(\d+)', line.strip())
+    if m:
+        entries.append((int(m.group(1)), int(m.group(2))))
+if not entries:
+    print("WARNING: No KLP events captured!")
+    sys.exit(0)
+t0 = entries[0][1]
+outf = f'{result_dir}/per_task_data.txt'
+with open(outf, 'w') as f:
+    for pid, ns in entries:
+        delay = ns - t0
+        f.write(f"[Success!]  Target PID: {pid} | Time: +{delay} ns | Waited: {delay} ns | Type: Fast-Path\n")
+print(f"KLP: {len(entries)} tasks, span={((entries[-1][1]-t0)/1e6):.1f}ms")
+PYEOF
 
-    KLP_TIME_NS=$((END_NS - START_NS))
-    KLP_TIME_MS=$(echo "scale=1; $KLP_TIME_NS / 1000000" | bc)
-    echo "$KLP_TIME_NS" >> "$KLP_RESULTS_FILE"
-    log_ok "KLP transition: ${KLP_TIME_MS} ms"
-
-    # Unload kpatch
-    sudo kpatch unload kpatch-tcp-backlog 2>&1 || true
-    sleep 2
-
-    stop_iperf_workload
-    teardown_netem
-    sleep 3
-done
+sudo kpatch unload kpatch-tcp-backlog 2>&1 || true
+stop_workload
+log_ok "KLP data: $RESULT_DIR/per_task_data.txt"
+sleep 3
 
 # ══════════════════════════════════════════════════════════════════════
-# Phase 2: Measure XKernel transition time (per-thread, Mode 1)
+# Phase 2: XKernel per-task transition data
 # ══════════════════════════════════════════════════════════════════════
-log_section "Phase 2: XKernel Transition Time (Mode 1)"
+log_section "Phase 2: XKernel Per-Task Transitions"
 
-XK_RESULTS_FILE="$RESULT_DIR/xkernel_times.txt"
-echo "# XKernel transition time (nanoseconds)" > "$XK_RESULTS_FILE"
+sudo "$XKTOOL" unload 1 2>/dev/null || true
+start_workload
 
-for run in $(seq 1 "$RUNS"); do
-    log "XKernel Run $run/$RUNS"
+# Clear trace buffer
+sudo sh -c 'echo > /sys/kernel/debug/tracing/trace'
 
-    # Ensure clean state
-    sudo "$XKTOOL" unload 1 2>/dev/null || true
+# Start trace capture
+sudo sh -c 'timeout 30 cat /sys/kernel/debug/tracing/trace_pipe > /tmp/xk_trace_raw.txt 2>/dev/null' &
+XK_TRACE_PID=$!
+sleep 1
 
-    setup_netem
-    start_iperf_workload
+log "Loading XKernel (Mode 1) ..."
+sudo "$XKTOOL" load 1 1 2>&1 | grep -E "loaded|active" || true
 
-    # Measure XKernel load time (Mode 1 = per-task)
-    START_NS=$(date +%s%N)
-    sudo "$XKTOOL" load 1 1 2>&1
-    END_NS=$(date +%s%N)
+# Wait for per-task transitions
+sleep 10
 
-    XK_TIME_NS=$((END_NS - START_NS))
-    XK_TIME_MS=$(echo "scale=1; $XK_TIME_NS / 1000000" | bc)
-    echo "$XK_TIME_NS" >> "$XK_RESULTS_FILE"
-    log_ok "XKernel transition: ${XK_TIME_MS} ms"
+# Convert to legacy format
+python3 - "$RESULT_DIR" << 'PYEOF'
+import re, sys
+result_dir = sys.argv[1]
+lines = open('/tmp/xk_trace_raw.txt').readlines()
+events = []
+for line in lines:
+    if 'transition done' not in line or 'iperf3' not in line:
+        continue
+    m = re.search(r'took (\d+) us', line)
+    tm = re.search(r'\[\d+\]\s+\S+\s+(\d+\.\d+):', line)
+    if m and tm:
+        events.append((float(tm.group(1)), int(m.group(1))))
+if not events:
+    print('WARNING: No XKernel events captured!')
+    sys.exit(0)
+outf = f'{result_dir}/per_task_data_xk.txt'
+with open(outf, 'w') as f:
+    for ts, took_us in events:
+        f.write(f'cpu: 0, task: [iperf3], ktime_ns: {int(ts*1e9)}, check time: {took_us} us \u2192 \u5dee\u503c\uff1a{took_us} us\n')
+print(f'XKernel: {len(events)} tasks, max={max(e[1] for e in events)} us')
+PYEOF
 
-    # Unload
-    sudo "$XKTOOL" unload 1 2>/dev/null || true
-
-    stop_iperf_workload
-    teardown_netem
-    sleep 3
-done
+sudo "$XKTOOL" unload 1 2>/dev/null || true
+stop_workload
+log_ok "XKernel data: $RESULT_DIR/per_task_data_xk.txt"
 
 # ══════════════════════════════════════════════════════════════════════
 # Summary
@@ -286,23 +267,18 @@ done
 log_section "Summary"
 
 echo ""
-echo "KLP transition times (ms):"
-tail -n +2 "$KLP_RESULTS_FILE" | while read ns; do
-    echo "  $(echo "scale=1; $ns / 1000000" | bc) ms"
-done
+echo "KLP per-task data:"
+wc -l "$RESULT_DIR/per_task_data.txt"
+head -3 "$RESULT_DIR/per_task_data.txt"
+echo "..."
+tail -1 "$RESULT_DIR/per_task_data.txt"
 
 echo ""
-echo "XKernel transition times (ms):"
-tail -n +2 "$XK_RESULTS_FILE" | while read ns; do
-    echo "  $(echo "scale=1; $ns / 1000000" | bc) ms"
-done
+echo "XKernel per-task data:"
+wc -l "$RESULT_DIR/per_task_data_xk.txt"
+head -3 "$RESULT_DIR/per_task_data_xk.txt"
+echo "..."
+tail -1 "$RESULT_DIR/per_task_data_xk.txt"
 
-KLP_MEDIAN=$(tail -n +2 "$KLP_RESULTS_FILE" | sort -n | awk 'NR==int((NR+1)/2)')
-XK_MEDIAN=$(tail -n +2 "$XK_RESULTS_FILE" | sort -n | awk 'NR==int((NR+1)/2)')
-echo ""
-echo "Median KLP:     $(echo "scale=1; $KLP_MEDIAN / 1000000" | bc) ms"
-echo "Median XKernel: $(echo "scale=1; $XK_MEDIAN / 1000000" | bc) ms"
-echo "Speedup:        $(echo "scale=1; $KLP_MEDIAN / $XK_MEDIAN" | bc)x"
-
-log_ok "Figure 18 experiment complete. Results in: $RESULT_DIR/"
+log_ok "Figure 18 data collected. Results in: $RESULT_DIR/"
 log "Next: python3 plot/plot.py"
