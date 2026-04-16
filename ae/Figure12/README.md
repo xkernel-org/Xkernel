@@ -28,7 +28,8 @@ This experiment requires **two machines** connected via a direct link:
 | Server | 192.168.6.1   | ens1f1np1    | NGINX, KernelX        |
 | Client | 192.168.6.2   | ens1f1np1    | wrk2                  |
 
-RTT and bandwidth are simulated using `tc netem` (delay + rate) on the server NIC.
+RTT and bandwidth are simulated using `tc netem` on both sides: half-RTT delay
+on server + client, and a 2Gbps rate limit on the server for bandwidth bottleneck.
 
 ## Prerequisites
 
@@ -93,7 +94,7 @@ sudo bash tune_tcp_cubic.sh unload
 
 `run.sh` automates the full experiment from the server:
 
-1. **Vanilla**: Runs wrk2 with 20ms and 80ms netem delay + 3Gbps rate limit
+1. **Vanilla**: Runs wrk2 with 20ms and 80ms netem delay (symmetric) + 2Gbps rate limit
 2. **Builds** HyStart tunables via KernelX (one-time)
 3. **KernelX**: Loads both tunables, runs wrk2 with 20ms and 80ms delay
 4. **Cleanup**: Unloads tunables, clears netem
@@ -118,22 +119,23 @@ Produces `plot/figure12.pdf` — tail latency CDF comparing:
 
 ## Experiment Parameters
 
-| Parameter      | Value  | Description                          |
-|----------------|--------|--------------------------------------|
-| `--duration`   | 60s    | wrk2 test duration per run           |
-| `--rate`       | 2000   | Target requests/sec                  |
-| `--threads`    | 4      | wrk2 client threads                  |
-| `--connections` | 200   | Concurrent connections               |
-| RTTs           | 20, 80 | Simulated round-trip times (ms)      |
-| Rate limit     | 3Gbps  | netem rate (bottleneck bandwidth)    |
-| Files          | 100    | HD Photo distribution (10KB–100MB)   |
-| Access pattern | Zipf   | α=1.2, deterministic per-thread seed |
+| Parameter      | Value  | Description                                |
+|----------------|--------|--------------------------------------------|
+| `--duration`   | 60s    | wrk2 test duration per run                 |
+| `--rate`       | 800    | Target requests/sec                        |
+| `--threads`    | 4      | wrk2 client threads                        |
+| `--connections` | 200   | Concurrent connections                     |
+| RTTs           | 20, 80 | Simulated round-trip times (ms)            |
+| Rate limit     | 2Gbps  | netem rate on server (bottleneck bandwidth)|
+| Delay          | sym.   | Half-RTT netem delay on each side          |
+| Files          | 100    | HD Photo distribution (10KB–100MB)         |
+| Access pattern | Zipf   | α=1.2, deterministic per-thread seed       |
 
 ## Key Results
 
 KernelX with SF=1 + DELAY_MAX=32ms reduces tail latency compared to vanilla:
-- **20ms RTT**: ~9% P99.9 FCT reduction
-- **80ms RTT**: ~4% P99, ~9% P99.9, ~30% P99.99 FCT reduction
+- **20ms RTT**: ~12% P99.9 FCT reduction
+- **80ms RTT**: ~13% P99.9, ~15% P99.99 FCT reduction
 
 The improvement is most pronounced at the extreme tail (P99.9+) where large
 file transfers dominate. These flows benefit from staying in slow-start longer,

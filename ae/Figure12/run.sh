@@ -37,17 +37,17 @@ NIC="ens1f1np1"
 
 # wrk2 parameters
 DURATION=60             # seconds per run
-RATE=2000               # target requests/sec
+RATE=800                # target requests/sec
 THREADS=4               # wrk2 threads
 CONNECTIONS=200         # wrk2 connections
 TIMEOUT=120             # request timeout in seconds
 
 # Network shaping: netem delay + rate limit
-RATE_LIMIT="3gbit"      # bottleneck bandwidth (netem rate)
-NETEM_LIMIT=100000      # netem queue limit in packets
+RATE_LIMIT="2gbit"      # bottleneck bandwidth (netem rate on server)
+NETEM_LIMIT=100000      # netem queue limit (server)
+CLIENT_NETEM_LIMIT=1000000  # netem queue limit (client)
 
-# RTT values to test (netem delay applied on server NIC, one-way;
-# TCP effectively sees this as the RTT since return path is ~0ms)
+# RTT values to test (symmetric: half RTT delay on each side)
 RTTS=(20 80)
 
 # Parse command line
@@ -112,30 +112,36 @@ sudo sysctl -w net.ipv4.tcp_no_metrics_save=1 -q
     echo "CONNECTIONS=$CONNECTIONS"
     echo "RATE_LIMIT=$RATE_LIMIT"
     echo "NETEM_LIMIT=$NETEM_LIMIT"
+    echo "CLIENT_NETEM_LIMIT=$CLIENT_NETEM_LIMIT"
     echo "TIMEOUT=$TIMEOUT"
 } > "$RESULT_DIR/log.txt"
 
-# ── Helper: configure netem delay ────────────────────────────────────
+# ── Helper: configure netem delay (symmetric: both server and client) ─
 set_delay() {
     local rtt_ms="$1"
+    local half_rtt=$(( rtt_ms / 2 ))
 
-    # Clear existing qdisc
+    # Clear existing qdiscs on both sides
     sudo tc qdisc del dev "$NIC" root 2>/dev/null || true
+    ssh "$CLIENT_IP" "sudo tc qdisc del dev $NIC root 2>/dev/null" || true
 
     if [[ "$rtt_ms" -gt 0 ]]; then
-        # netem on server egress: full RTT delay + rate limit.
-        # On a back-to-back link the return path is ~0ms, so netem delay ≈ RTT.
+        # Server: netem delay (half RTT) + rate limit (bandwidth bottleneck)
         sudo tc qdisc add dev "$NIC" root netem \
-            delay "${rtt_ms}ms" rate "$RATE_LIMIT" limit "$NETEM_LIMIT"
-        log "netem: ${rtt_ms}ms delay, rate $RATE_LIMIT on $NIC"
+            delay "${half_rtt}ms" rate "$RATE_LIMIT" limit "$NETEM_LIMIT"
+        # Client: netem delay only (half RTT, no rate limit)
+        ssh "$CLIENT_IP" "sudo tc qdisc add dev $NIC root netem \
+            delay ${half_rtt}ms limit $CLIENT_NETEM_LIMIT"
+        log "netem: ${half_rtt}ms delay each side (RTT=${rtt_ms}ms), server rate $RATE_LIMIT"
     else
-        log "netem: cleared on $NIC"
+        log "netem: cleared on both sides"
     fi
 }
 
 clear_delay() {
     sudo tc qdisc del dev "$NIC" root 2>/dev/null || true
-    log "netem: cleared on $NIC"
+    ssh "$CLIENT_IP" "sudo tc qdisc del dev $NIC root 2>/dev/null" || true
+    log "netem: cleared on both sides"
 }
 
 # ── Helper: copy Lua script to client and run wrk2 ──────────────────
