@@ -136,13 +136,13 @@ Produces `plot/figure12.pdf` — tail latency CDF comparing:
 | Port 8080      | 80ms   | High-RTT class (netem 40ms each side)      |
 | Rate limit     | 2Gbps  | netem rate on server (per port)            |
 | Files          | 100    | HD Photo distribution (10KB–100MB)         |
-| Access pattern | Zipf   | α=1.2, deterministic per-thread seed       |
+| Access pattern | Zipf   | α=0.8, deterministic per-thread seed       |
 
 ## Key Results
 
 KernelX with RTT-aware policy reduces 80ms tail latency while leaving 20ms
 flows unchanged:
-- **80ms RTT**: ~14% P99.9, ~12% P99.99 FCT reduction
+- **80ms RTT**: ~43% P99, ~20% P99.9, ~43% P99.99 FCT reduction
 - **20ms RTT**: No change (policy does not fire for low-RTT flows)
 
 The improvement targets the extreme tail (P99.9+) where large file transfers

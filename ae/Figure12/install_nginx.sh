@@ -72,7 +72,10 @@ generate_workload() {
     sudo mkdir -p "$target_dir"
     sudo rm -rf "${target_dir:?}"/*
 
-    log "Generating 100 files with HD Photo distribution (heavy-tailed) ..."
+    log "Generating 100 files with HD Photo distribution (heavy-tailed, seed=42) ..."
+
+    # Fixed seed for reproducibility
+    RANDOM=42
 
     for i in $(seq 1 100); do
         rand=$((RANDOM % 100 + 1))
@@ -149,10 +152,10 @@ install_client() {
     # Create Lua script for Zipf access pattern
     mkdir -p "$SCRIPT_DIR/lua"
     cat > "$SCRIPT_DIR/lua/zipf.lua" <<'LUA_SCRIPT'
--- zipf.lua — Deterministic Zipf(1.2) access pattern for wrk2
+-- zipf.lua — Deterministic Zipf(0.8) access pattern for wrk2
 
 local total_files = 100
-local zipf_alpha = 1.2
+local zipf_alpha = 0.8
 local base_seed = 42
 
 local counter = 1

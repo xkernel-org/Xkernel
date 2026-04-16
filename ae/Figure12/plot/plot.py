@@ -133,7 +133,7 @@ def plot_figure12(results_dir):
 
     def apply_mask(values_ms, inv_p, max_inv_p):
         mask = np.isfinite(inv_p) & (inv_p <= max_inv_p)
-        return inv_p[mask], values_ms[mask]  # values already in ms
+        return inv_p[mask], values_ms[mask] / 1000.0  # convert ms → seconds
 
     x_v20, y_v20 = apply_mask(vals_v20, inv_v20, p9999_inv_p_max)
     x_v80, y_v80 = apply_mask(vals_v80, inv_v80, p9999_inv_p_max)
@@ -147,10 +147,10 @@ def plot_figure12(results_dir):
     ax.set_yscale('linear')
     ax.set_xlim([1.0, 11000.0])
 
-    # Auto-scale y-axis based on data
+    # Auto-scale y-axis (in seconds)
     all_y = np.concatenate([y for y in [y_v20, y_v80, y_x20, y_x80] if len(y) > 0])
-    y_max_val = np.max(all_y) if len(all_y) > 0 else 70
-    y_max = max(70, int(np.ceil(y_max_val / 20) * 20 + 20))  # round up to next 20
+    y_max_val = np.max(all_y) if len(all_y) > 0 else 1.0
+    y_max = max(1.0, np.ceil(y_max_val))
     ax.set_ylim([0, y_max])
 
     key_inv_p = [1.0, 10.0, 100.0, 1000.0, 10000.0]
@@ -158,8 +158,6 @@ def plot_figure12(results_dir):
     ax.set_xticks(key_inv_p)
     ax.set_xticklabels(key_labels, fontsize=TEXT_SIZE_XYAXIS)
 
-    y_ticks = list(range(0, y_max, max(20, y_max // 5)))
-    ax.set_yticks(y_ticks)
     ax.tick_params(axis='both', labelsize=TEXT_SIZE_XYAXIS)
 
     # Plot data
@@ -199,7 +197,7 @@ def plot_figure12(results_dir):
         line_objects['Adaptive SF (80ms)'] = line
 
     ax.set_xlabel('Percentile', fontsize=TEXT_SIZE_XLABEL)
-    ax.set_ylabel('FCT (ms)', fontsize=TEXT_SIZE_YLABEL)
+    ax.set_ylabel('FCT (s)', fontsize=TEXT_SIZE_YLABEL)
     ax.grid(True, alpha=0.3, axis='y', linestyle='--', zorder=0)
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)

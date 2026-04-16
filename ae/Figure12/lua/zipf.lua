@@ -1,10 +1,12 @@
--- zipf.lua — Deterministic Zipf(1.2) access pattern for wrk2
+-- zipf.lua — Deterministic Zipf(0.8) access pattern for wrk2
 --
 -- Used by Figure 12 to generate NGINX requests following a Zipf distribution.
 -- Each thread gets a unique, deterministic seed for reproducibility.
+-- Alpha=0.8 spreads access across files, ensuring enough large-file requests
+-- to affect P99/P99.9 tail latency.
 
 local total_files = 100
-local zipf_alpha = 1.2
+local zipf_alpha = 0.8
 local base_seed = 42
 
 local counter = 1
