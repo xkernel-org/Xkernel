@@ -38,6 +38,8 @@ install_server() {
 server {
     listen 80 default_server;
     listen [::]:80 default_server;
+    listen 8080;
+    listen [::]:8080;
 
     root /var/www/html;
     index index.html;
