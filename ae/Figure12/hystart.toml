@@ -1,0 +1,20 @@
+kernel_dir = "~/linux-6.8.0"
+
+## Figure 12: HyStart delay detection tunables only
+## Usage: xkernel-tool build ae/Figure12/hystart.toml
+
+[[tunables]]
+name = "tcp_cubic"
+description = "delay_min shift amount"
+file = "net/ipv4/tcp_cubic.c"
+original = "ca->delay_min >> 3"
+modified = ["ca->delay_min >> 2", "ca->delay_min >> 1"]
+values = [3, 2, 1]
+
+[[tunables]]
+name = "hystart_delay_max"
+description = "HyStart delay detection upper threshold (usec)"
+file = "net/ipv4/tcp_cubic.c"
+original = "#define HYSTART_DELAY_MAX\t(16000U)"
+modified = ["#define HYSTART_DELAY_MAX\t(32000U)", "#define HYSTART_DELAY_MAX\t(24000U)"]
+values = [16000, 32000, 24000]
