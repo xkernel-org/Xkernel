@@ -1,0 +1,11 @@
+--- a/net/ipv4/tcp.c
++++ b/net/ipv4/tcp.c
+@@ -1145,7 +1145,7 @@ restart:
+ 
+ copy = min_t(int, copy, pfrag->size - pfrag->offset);
+ 
+-if (process_backlog >= 16)
++if (process_backlog >= 32)
+ process_backlog = 0;
+ 
+ if (!sk_wmem_schedule(sk, copy))

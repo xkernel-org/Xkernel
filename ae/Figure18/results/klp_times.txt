@@ -1,0 +1,4 @@
+# KLP transition time (nanoseconds)
+17151537432
+16141842986
+17156945030

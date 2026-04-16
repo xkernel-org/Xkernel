@@ -1,0 +1,4 @@
+# XKernel transition time (nanoseconds)
+1102178037
+1141308097
+1112552278
