@@ -33,8 +33,8 @@ NIC="ens1f1np1"
 
 IPERF_PARALLEL=128      # parallel streams (-P)
 IPERF_WINDOW="4k"       # TCP window size (-w) — fills instantly
-IPERF_LENGTH="1M"       # write length (-l)
-IPERF_DURATION=120      # seconds
+IPERF_LENGTH="256k"     # write length (-l); 256k/4k×200ms≈12.8s per call
+IPERF_DURATION=180      # seconds
 
 NETEM_DELAY="100ms"     # one-way delay (both sides → 200ms RTT)
 NETEM_LIMIT=100000      # netem queue limit
@@ -171,8 +171,11 @@ log_section "Phase 1: KLP Per-Task Transitions"
 sudo kpatch unload kpatch-tcp-backlog 2>/dev/null || true
 start_workload
 
-# Capture klp_update_patch_state per iperf3 task with bpftrace
+# Capture klp_start_transition (reference) + klp_update_patch_state per iperf3 task
 sudo sh -c 'bpftrace -e '\''
+kprobe:klp_start_transition {
+    printf("TSTART:%llu\n", nsecs);
+}
 kprobe:klp_update_patch_state /comm == "iperf3"/ {
     printf("PID:%d NS:%llu\n", tid, nsecs);
 }
@@ -182,32 +185,46 @@ sleep 3
 
 log "Loading kpatch ..."
 sudo kpatch load "$KLP_MODULE" 2>&1
-sleep 2
+sleep 5
 
 # Stop bpftrace (kill the sudo sh process and its child)
 sudo sh -c 'kill $(pgrep -f "bpftrace.*klp_update_patch_state") 2>/dev/null' || true
 wait "$BT_PID" 2>/dev/null || true
 
-# Post-process: convert to legacy format with relative timestamps
+# Post-process: deduplicate by PID (last event = actual transition),
+# compute delay relative to transition start
 python3 - "$RESULT_DIR" << 'PYEOF'
 import re, sys
 result_dir = sys.argv[1]
 lines = open('/tmp/klp_raw.txt').readlines()
-entries = []
+
+t_start = None
+pid_last_ns = {}
 for line in lines:
+    m = re.match(r'TSTART:(\d+)', line.strip())
+    if m:
+        t_start = int(m.group(1))
+        continue
     m = re.match(r'PID:(\d+) NS:(\d+)', line.strip())
     if m:
-        entries.append((int(m.group(1)), int(m.group(2))))
-if not entries:
+        pid, ns = int(m.group(1)), int(m.group(2))
+        pid_last_ns[pid] = ns  # keep last per PID
+
+if not pid_last_ns:
     print("WARNING: No KLP events captured!")
     sys.exit(0)
-t0 = entries[0][1]
+if t_start is None:
+    print("WARNING: klp_start_transition not captured, using first event as t0")
+    t_start = min(pid_last_ns.values())
+
+entries = sorted(pid_last_ns.items(), key=lambda x: x[1])
 outf = f'{result_dir}/per_task_data.txt'
 with open(outf, 'w') as f:
     for pid, ns in entries:
-        delay = ns - t0
+        delay = ns - t_start
         f.write(f"[Success!]  Target PID: {pid} | Time: +{delay} ns | Waited: {delay} ns | Type: Fast-Path\n")
-print(f"KLP: {len(entries)} tasks, span={((entries[-1][1]-t0)/1e6):.1f}ms")
+span_s = (entries[-1][1] - t_start) / 1e9
+print(f"KLP: {len(entries)} unique tasks, span={span_s:.1f}s (from transition start)")
 PYEOF
 
 sudo kpatch unload kpatch-tcp-backlog 2>&1 || true
@@ -234,8 +251,8 @@ sleep 1
 log "Loading XKernel (Mode 1) ..."
 sudo "$XKTOOL" load 1 1 2>&1 | grep -E "loaded|active" || true
 
-# Wait for per-task transitions
-sleep 10
+# Wait for per-task transitions (threads must exit & re-enter tcp_sendmsg_locked)
+sleep 30
 
 # Convert to legacy format
 python3 - "$RESULT_DIR" << 'PYEOF'
