@@ -2567,9 +2567,12 @@ def analyze_linear_relationship(prefix: str, v1_file: str, v2_file: str, v3_file
             synthesis_type = 'cmp_immediate'
 
             # Parse the cmp instruction at step_idx to extract the
-            # comparison register and operand size.
+            # comparison register/memory operand and operand size.
             cmp_reg = None
             cmp_size = 32  # default
+            cmp_is_mem = False
+            cmp_mem_base = None
+            cmp_mem_disp = 0
             seed_mnemonic_raw = ''
             if step_idx < len(all_insts_v1):
                 seed_line = re.sub(r'^\s*\[\*\]\s*', '', all_insts_v1[step_idx].strip())
@@ -2580,9 +2583,30 @@ def analyze_linear_relationship(prefix: str, v1_file: str, v2_file: str, v3_file
                     ops_part = asm_part[len(asm_part.split()[0]):].strip()
                     operands_list = [o.strip() for o in ops_part.split(',')]
                     if len(operands_list) == 2:
-                        cmp_reg = operands_list[1].lstrip('%')
-                    # Infer operand size from register name
-                    if cmp_reg:
+                        raw_operand = operands_list[1].strip()
+                        # Check for memory reference: disp(%reg) or (%reg)
+                        mem_m = re.match(
+                            r'^(-?(?:0x[0-9a-fA-F]+|\d+))?\(%(\w+)\)$',
+                            raw_operand,
+                        )
+                        if mem_m:
+                            cmp_is_mem = True
+                            disp_str = mem_m.group(1) or '0'
+                            cmp_mem_disp = int(disp_str, 0)
+                            cmp_mem_base = mem_m.group(2)
+                            cmp_reg = cmp_mem_base  # for the "not cmp_reg" guard
+                            # Infer size from instruction suffix
+                            if seed_mnemonic_raw.endswith('q'):
+                                cmp_size = 64
+                            elif seed_mnemonic_raw.endswith('w'):
+                                cmp_size = 16
+                            elif seed_mnemonic_raw.endswith('b'):
+                                cmp_size = 8
+                            # 'l' or default → 32
+                        else:
+                            cmp_reg = raw_operand.lstrip('%')
+                    # Infer operand size from register name (register operands only)
+                    if cmp_reg and not cmp_is_mem:
                         if cmp_reg in ('rax','rbx','rcx','rdx','rsi','rdi','rbp','rsp',
                                        'r8','r9','r10','r11','r12','r13','r14','r15'):
                             cmp_size = 64
@@ -2593,11 +2617,14 @@ def analyze_linear_relationship(prefix: str, v1_file: str, v2_file: str, v3_file
                         # 16-bit/8-bit registers stay at default 32 for safety
 
             if not cmp_reg:
-                print(f"  Warning: Could not determine comparison register for cmp_immediate")
+                print(f"  Warning: Could not determine comparison operand for cmp_immediate")
                 continue
 
             print(f"  Synthesis type: cmp_immediate (mnemonic: {seed_mnemonic_raw})")
-            print(f"  Comparison register: %{cmp_reg} ({cmp_size}-bit)")
+            if cmp_is_mem:
+                print(f"  Comparison operand: {cmp_mem_disp:#x}(%{cmp_mem_base}) [memory, {cmp_size}-bit]")
+            else:
+                print(f"  Comparison register: %{cmp_reg} ({cmp_size}-bit)")
 
             # kprobe at the instruction immediately after cmp
             kprobe_offset = None
@@ -2645,6 +2672,9 @@ def analyze_linear_relationship(prefix: str, v1_file: str, v2_file: str, v3_file
                 'seed_mnemonic': '',
                 'cmp_reg': cmp_reg,
                 'cmp_size': cmp_size,
+                'cmp_is_mem': cmp_is_mem,
+                'cmp_mem_base': cmp_mem_base,
+                'cmp_mem_disp': cmp_mem_disp,
             })
             continue
 
@@ -3201,15 +3231,37 @@ def generate_multi_kprobe_bpf_file(prefix: str, kprobes: List[Dict], v1_src: int
         elif synthesis_type == 'cmp_immediate':
             cmp_reg = kp.get('cmp_reg', 'eax')
             cmp_size = kp.get('cmp_size', 32)
-            field = reg_to_ptregs_field.get(cmp_reg, cmp_reg)
+            cmp_is_mem = kp.get('cmp_is_mem', False)
 
-            hdr.append(f'// SIE helper {i}: cmp_immediate -> FLAGS (cmp new_IV, %{cmp_reg})')
-            hdr.append(f'static __always_inline void {helper_name}(struct pt_regs *regs, u64 val) {{')
-            hdr.append(f'    u{cmp_size} reg_val = (u{cmp_size})(regs->{field});')
-            hdr.append(f'    u{cmp_size} new_imm = (u{cmp_size}){expr};')
-            hdr.append(f'    xk_cmp_set_flags{cmp_size}(regs, reg_val, new_imm);')
-            hdr.append('}')
-            hdr.append('')
+            if cmp_is_mem:
+                cmp_mem_base = kp.get('cmp_mem_base', 'rbp')
+                cmp_mem_disp = kp.get('cmp_mem_disp', 0)
+                base_field = reg_to_ptregs_field.get(cmp_mem_base, cmp_mem_base)
+                if cmp_mem_disp >= 0:
+                    addr_expr = f'regs->{base_field} + 0x{cmp_mem_disp:x}'
+                else:
+                    addr_expr = f'regs->{base_field} - 0x{-cmp_mem_disp:x}'
+                comment_operand = f'[{cmp_mem_base}{cmp_mem_disp:+#x}]'
+
+                hdr.append(f'// SIE helper {i}: cmp_immediate -> FLAGS (cmp new_IV, {comment_operand})')
+                hdr.append(f'static __always_inline void {helper_name}(struct pt_regs *regs, u64 val) {{')
+                hdr.append(f'    u{cmp_size} reg_val = 0;')
+                hdr.append(f'    u64 mem_addr = {addr_expr};')
+                hdr.append(f'    bpf_probe_read_kernel(&reg_val, sizeof(reg_val), (void *)mem_addr);')
+                hdr.append(f'    u{cmp_size} new_imm = (u{cmp_size}){expr};')
+                hdr.append(f'    xk_cmp_set_flags{cmp_size}(regs, reg_val, new_imm);')
+                hdr.append('}')
+                hdr.append('')
+            else:
+                field = reg_to_ptregs_field.get(cmp_reg, cmp_reg)
+
+                hdr.append(f'// SIE helper {i}: cmp_immediate -> FLAGS (cmp new_IV, %{cmp_reg})')
+                hdr.append(f'static __always_inline void {helper_name}(struct pt_regs *regs, u64 val) {{')
+                hdr.append(f'    u{cmp_size} reg_val = (u{cmp_size})(regs->{field});')
+                hdr.append(f'    u{cmp_size} new_imm = (u{cmp_size}){expr};')
+                hdr.append(f'    xk_cmp_set_flags{cmp_size}(regs, reg_val, new_imm);')
+                hdr.append('}')
+                hdr.append('')
 
         else:  # simple
             field = reg_to_ptregs_field.get(target_reg, target_reg)

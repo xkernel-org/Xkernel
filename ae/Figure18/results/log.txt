@@ -1,0 +1,5 @@
+date:        Thu Apr 16 10:37:20 AM MDT 2026
+kernel:      6.8.12
+IPERF_PARALLEL=128
+IPERF_WINDOW=4k
+IPERF_LENGTH=1M
