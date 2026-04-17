@@ -14,9 +14,9 @@ DURATION=6000
 
 echo "[*] Starting iperf3 UDP clients → $SERVER (duration=${DURATION}s)"
 
-iperf3 -u -c "$SERVER" -P 32 -l 128 -b 0 -p 5200 -t "$DURATION" &
-iperf3 -u -c "$SERVER" -P 32 -l 128 -b 0 -p 5201 -t "$DURATION" &
-iperf3 -u -c "$SERVER" -P 32 -l 128 -b 0 -p 5202 -t "$DURATION" &
+iperf3 -u -c "$SERVER" -P 16 -l 128 -b 5M -p 5200 -t "$DURATION" &
+iperf3 -u -c "$SERVER" -P 16 -l 128 -b 5M -p 5201 -t "$DURATION" &
+iperf3 -u -c "$SERVER" -P 16 -l 128 -b 5M -p 5202 -t "$DURATION" &
 
 echo "[✓] 3 iperf3 UDP instances running in background (ports 5200-5202)"
 echo "    Kill with: kill %1 %2 %3"

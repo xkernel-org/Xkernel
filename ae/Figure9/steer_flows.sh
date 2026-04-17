@@ -33,9 +33,9 @@ sudo systemctl stop irqbalance 2>/dev/null || true
 sudo ethtool -K "$IFACE" gro off 2>/dev/null && \
     echo "[*] GRO disabled on $IFACE" || true
 
-# Reduce interrupt coalescing for more frequent softirq processing
-sudo ethtool -C "$IFACE" adaptive-rx off rx-usecs 4 rx-frames 16 2>/dev/null && \
-    echo "[*] Interrupt coalescing reduced" || true
+# Tune interrupt coalescing for batch-and-idle softirq pattern
+sudo ethtool -C "$IFACE" adaptive-rx off rx-usecs 64 rx-frames 64 2>/dev/null && \
+    echo "[*] Interrupt coalescing tuned (rx-usecs=64, rx-frames=64)" || true
 
 # Enable ntuple filtering
 sudo ethtool -K "$IFACE" ntuple on 2>/dev/null || true
