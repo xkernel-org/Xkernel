@@ -17,10 +17,15 @@ XKTOOL="$PROJECT_ROOT/xkernel-tool"
 CPU=${1:-3}
 REPS=${2:-3}                       # repetitions per value
 VALUES=(1 5 10 15 20)
-CYCLICTEST_LOOPS=20000             # ~20s per run
+CYCLICTEST_LOOPS=50000             # ~50s per run
 OUTFILE="results/figure9.csv"
 
 mkdir -p results
+
+# ── flow steering setup ─────────────────────────────────────────────
+echo "========== Setting up flow steering (CPU $CPU) =========="
+sudo bash "$SCRIPT_DIR/steer_flows.sh" "$CPU"
+echo ""
 
 # ── helpers ──────────────────────────────────────────────────────────
 
@@ -46,6 +51,20 @@ parse_sar() {
 # ── CSV header ───────────────────────────────────────────────────────
 
 echo "MAX_SOFTIRQ_RESTART,WorstLatUs,AvgLatUs,CpuUtilPct" | tee "$OUTFILE"
+
+# ── Pre-check: verify traffic is flowing to target CPU ───────────────
+echo ""
+echo "========== Verifying softirq load on CPU $CPU =========="
+SOFTIRQ_BEFORE=$(awk '/NET_RX/ {print $'$((CPU+2))'}' /proc/softirqs)
+sleep 2
+SOFTIRQ_AFTER=$(awk '/NET_RX/ {print $'$((CPU+2))'}' /proc/softirqs)
+SOFTIRQ_RATE=$(( (SOFTIRQ_AFTER - SOFTIRQ_BEFORE) / 2 ))
+echo "NET_RX softirqs/sec on CPU $CPU: $SOFTIRQ_RATE"
+if [[ "$SOFTIRQ_RATE" -lt 1000 ]]; then
+    echo "[!] WARNING: Low softirq rate ($SOFTIRQ_RATE/s). Ensure client traffic is running:"
+    echo "    Client: bash client.sh 192.168.6.1"
+    echo "    Server: iperf3 -s -p 5200 & iperf3 -s -p 5201 & iperf3 -s -p 5202 &"
+fi
 
 # ── One-time build (kernel diff + codegen + BPF compile) ─────────────
 echo ""
