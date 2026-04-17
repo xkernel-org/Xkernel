@@ -66,29 +66,8 @@ sudo kpatch unload kpatch-tcp-backlog 2>/dev/null || true
 log "Building XKernel tunable ..."
 cd "$PROJECT_ROOT"
 # Build will fail at compile step due to stack-relative operand, that's OK
-./xkernel-tool build "$SCRIPT_DIR/process_backlog.toml" 2>&1 || true
+sudo ./xkernel-tool build "$SCRIPT_DIR/process_backlog.toml" 2>&1 || true
 
-# Fix the known stack-relative operand in BPF stub
-STUB_H="$PROJECT_ROOT/bpf/stubs/xtune_stub_1.bpf.h"
-if grep -q 'regs->-0x68(%rbp)' "$STUB_H" 2>/dev/null; then
-    log "Fixing stack-relative operand in BPF stub ..."
-    sudo chmod 666 "$STUB_H"
-    python3 -c "
-import re
-with open('$STUB_H') as f: s = f.read()
-old = '''    u32 reg_val = (u32)(regs->-0x68(%rbp));
-    u32 new_imm = (u32)(val + -1);
-    xk_cmp_set_flags32(regs, reg_val, new_imm);'''
-new = '''    u32 reg_val = 0;
-    u64 stack_addr = regs->bp - 0x68;
-    bpf_probe_read_kernel(&reg_val, sizeof(reg_val), (void *)stack_addr);
-    u32 new_imm = (u32)(val + -1);
-    xk_cmp_set_flags32(regs, reg_val, new_imm);'''
-s = s.replace(old, new)
-s = s.replace('cmp new_IV, %-0x68(%rbp)', 'cmp new_IV, [rbp-0x68]')
-with open('$STUB_H', 'w') as f: f.write(s)
-"
-fi
 sudo make -C "$PROJECT_ROOT/bpf" 2>&1 | tail -2
 
 # Ensure kernel modules are built
