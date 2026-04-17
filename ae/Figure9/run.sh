@@ -15,9 +15,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$(dirname "$SCRIPT_DIR")")"
 XKTOOL="$PROJECT_ROOT/xkernel-tool"
 CPU=${1:-3}
-REPS=${2:-3}                       # repetitions per value
+REPS=${2:-5}                       # repetitions per value
 VALUES=(1 5 10 15 20)
-CYCLICTEST_LOOPS=50000             # ~50s per run
+CYCLICTEST_LOOPS=100000            # ~100s per run
 OUTFILE="results/figure9.csv"
 
 mkdir -p results
