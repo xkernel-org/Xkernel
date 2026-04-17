@@ -51,10 +51,14 @@ for port in 5200 5201 5202; do
 done
 
 # Pin the target queue's IRQ to the same CPU for best locality
-IRQ=$(grep -E "${IFACE}.*-${QUEUE}$|TxRx-${QUEUE}$|${IFACE}-${QUEUE}$" /proc/interrupts | awk -F: '{gsub(/ /,"",$1); print $1}' | head -1)
-if [[ -z "$IRQ" ]]; then
-    # Try broader match for mlx5 NICs (e.g., "mlx5_comp3@pci:...")
-    IRQ=$(grep "${IFACE}" /proc/interrupts | awk -F: '{gsub(/ /,"",$1); print $1}' | sed -n "$((QUEUE+1))p")
+# Detect PCI device for this interface, then find the matching comp IRQ
+PCI_DEV=$(ethtool -i "$IFACE" 2>/dev/null | awk '/bus-info:/{print $2}')
+if [[ -n "$PCI_DEV" ]]; then
+    IRQ=$(grep "mlx5_comp${QUEUE}@pci:${PCI_DEV}" /proc/interrupts | awk -F: '{gsub(/ /,"",$1); print $1}' | head -1)
+fi
+if [[ -z "${IRQ:-}" ]]; then
+    # Fallback: match interface name patterns
+    IRQ=$(grep -E "${IFACE}.*-${QUEUE}$|TxRx-${QUEUE}$" /proc/interrupts | awk -F: '{gsub(/ /,"",$1); print $1}' | head -1)
 fi
 if [[ -n "$IRQ" ]]; then
     echo "$QUEUE" > "/proc/irq/$IRQ/smp_affinity_list" 2>/dev/null && \

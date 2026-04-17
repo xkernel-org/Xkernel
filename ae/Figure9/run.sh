@@ -24,7 +24,7 @@ mkdir -p results
 
 # ── flow steering setup ─────────────────────────────────────────────
 echo "========== Setting up flow steering (CPU $CPU) =========="
-sudo bash "$SCRIPT_DIR/steer_flows.sh" "$CPU"
+sudo bash "$SCRIPT_DIR/steer_flows.sh" "$CPU" || true
 echo ""
 
 # ── helpers ──────────────────────────────────────────────────────────
