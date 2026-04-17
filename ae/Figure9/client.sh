@@ -1,9 +1,9 @@
 #!/bin/bash
 # client.sh — Start iperf3 Net-APP traffic (run on client machines)
 #
-# Generates heavy softirq CPU usage on the server by sending
-# 96 parallel UDP flows with small packets across 3 iperf3 instances.
-# UDP + small packets (-l 128) maximizes packet rate → more softirq work.
+# Generates 6 TCP connections (2 per port) with 1KB writes.
+# With GRO ON and flow steering, this produces ~80% softirq CPU
+# on the target core — enough for MAX_SOFTIRQ_RESTART to matter.
 #
 # Usage:
 #   bash client.sh                     # default server: 192.168.6.1
@@ -12,12 +12,12 @@
 SERVER=${1:-192.168.6.1}
 DURATION=6000
 
-echo "[*] Starting iperf3 UDP clients → $SERVER (duration=${DURATION}s)"
+echo "[*] Starting iperf3 TCP clients → $SERVER (duration=${DURATION}s)"
 
-iperf3 -u -c "$SERVER" -P 16 -l 128 -b 8M -p 5200 -t "$DURATION" &
-iperf3 -u -c "$SERVER" -P 16 -l 128 -b 8M -p 5201 -t "$DURATION" &
-iperf3 -u -c "$SERVER" -P 16 -l 128 -b 8M -p 5202 -t "$DURATION" &
+iperf3 -c "$SERVER" -P 2 -l 1k -p 5200 -t "$DURATION" &
+iperf3 -c "$SERVER" -P 2 -l 1k -p 5201 -t "$DURATION" &
+iperf3 -c "$SERVER" -P 2 -l 1k -p 5202 -t "$DURATION" &
 
-echo "[✓] 3 iperf3 UDP instances running in background (ports 5200-5202)"
+echo "[✓] 3 iperf3 TCP instances (6 connections) running (ports 5200-5202)"
 echo "    Kill with: kill %1 %2 %3"
 wait

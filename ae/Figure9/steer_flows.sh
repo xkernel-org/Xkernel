@@ -30,8 +30,8 @@ echo "[*] Steering dst-port 5200-5202 → RX queue $QUEUE on $IFACE"
 sudo systemctl stop irqbalance 2>/dev/null || true
 
 # Disable GRO so each packet is processed individually in softirq
-sudo ethtool -K "$IFACE" gro off 2>/dev/null && \
-    echo "[*] GRO disabled on $IFACE" || true
+# sudo ethtool -K "$IFACE" gro off 2>/dev/null && \
+#     echo "[*] GRO disabled on $IFACE" || true
 
 # Tune interrupt coalescing for batch-and-idle softirq pattern
 sudo ethtool -C "$IFACE" adaptive-rx off rx-usecs 64 rx-frames 64 2>/dev/null && \

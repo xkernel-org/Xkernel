@@ -42,7 +42,7 @@ parse_cyclictest() {
     } END{print max+0, avg+0}' "$file"
 }
 
-# Parse sar output for average CPU utilization (100 - %idle)
+# Parse sar output for CPU utilization (100 - %idle)
 parse_sar() {
     local file="$1"
     awk '/^Average:/ && $2 != "CPU" {printf "%.0f", 100 - $NF}' "$file"
