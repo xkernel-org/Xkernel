@@ -7,8 +7,9 @@
 #   - XKernel per-thread mode (Mode 1): each task transitions at its
 #     next entry to the safe span (microseconds)
 #
-# Workload: iperf3 with tiny TCP window (-w 4k -P 128) keeps 128
-# threads inside tcp_sendmsg_locked.
+# Workload: iperf3 with tiny TCP window (-w 4k -P 128) over a
+# 200ms RTT link (netem 100ms each side) keeps 128 threads
+# blocked inside tcp_sendmsg_locked waiting for window space.
 #
 # Output: results/per_task_data.txt (KLP) and per_task_data_xk.txt (XKernel)
 # in the legacy format consumed by plot/plot.py
@@ -35,8 +36,11 @@ IPERF_WINDOW="4k"       # TCP window size (-w) — fills instantly
 IPERF_LENGTH="1M"       # write length (-l)
 IPERF_DURATION=120      # seconds
 
+NETEM_DELAY="100ms"     # one-way delay (both sides → 200ms RTT)
+NETEM_LIMIT=100000      # netem queue limit
+
 SETTLE_TIME=5           # seconds to wait for workload to saturate
-CONN_TIMEOUT=30         # max seconds to wait for connections
+CONN_TIMEOUT=90         # max seconds to wait for connections (netem makes it slower)
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -96,7 +100,23 @@ log_ok "iperf3: -w $IPERF_WINDOW -l $IPERF_LENGTH -P $IPERF_PARALLEL"
     echo "IPERF_PARALLEL=$IPERF_PARALLEL"
     echo "IPERF_WINDOW=$IPERF_WINDOW"
     echo "IPERF_LENGTH=$IPERF_LENGTH"
+    echo "NETEM_DELAY=$NETEM_DELAY (each side, RTT=$(echo ${NETEM_DELAY%ms}*2 | bc)ms)"
 } > "$RESULT_DIR/log.txt"
+
+# ── netem helpers ────────────────────────────────────────────────────
+setup_netem() {
+    log "Setting up netem: ${NETEM_DELAY} each side → $((${NETEM_DELAY%ms}*2))ms RTT ..."
+    sudo tc qdisc del dev "$NIC" root 2>/dev/null || true
+    sudo tc qdisc add dev "$NIC" root netem delay "$NETEM_DELAY" limit "$NETEM_LIMIT"
+    ssh "$CLIENT_IP" "sudo tc qdisc del dev $NIC root 2>/dev/null || true; \
+        sudo tc qdisc add dev $NIC root netem delay $NETEM_DELAY limit $NETEM_LIMIT"
+    log_ok "netem active"
+}
+
+clear_netem() {
+    sudo tc qdisc del dev "$NIC" root 2>/dev/null || true
+    ssh "$CLIENT_IP" "sudo tc qdisc del dev $NIC root 2>/dev/null" || true
+}
 
 # ── Helper: start/stop iperf3 workload ──────────────────────────────
 IPERF_CLIENT_PID=""
@@ -136,8 +156,12 @@ cleanup() {
     stop_workload 2>/dev/null || true
     sudo kpatch unload kpatch-tcp-backlog 2>/dev/null || true
     sudo "$XKTOOL" unload 1 2>/dev/null || true
+    clear_netem 2>/dev/null || true
 }
 trap cleanup EXIT
+
+# ── Set up netem on both sides ───────────────────────────────────────
+setup_netem
 
 # ══════════════════════════════════════════════════════════════════════
 # Phase 1: KLP per-task transition data
