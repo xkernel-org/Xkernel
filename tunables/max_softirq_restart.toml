@@ -1,4 +1,4 @@
-kernel_dir = "~/linux-6.14.0-xkernel"
+kernel_dir = "~/linux-6.8.0"
 
 name = "MAX_SOFTIRQ_RESTART"
 description = "kernel/softirq.c MAX_SOFTIRQ_RESTART"

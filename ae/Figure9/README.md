@@ -10,10 +10,7 @@ processing (from iperf3 network traffic), sweeping `MAX_SOFTIRQ_RESTART` = {1, 5
 ```bash
 bash install_cyclictest.sh
 
-# 1. Steer all NIC flows to CPU 3
-sudo bash steer_flows.sh 3
-
-# 2. Start iperf3 servers (3 instances)
+# 1. Start iperf3 servers (3 UDP instances)
 iperf3 -s -p 5200 & iperf3 -s -p 5201 & iperf3 -s -p 5202 &
 ```
 
@@ -26,9 +23,12 @@ bash client.sh 192.168.6.1
 ## Run Experiment (server)
 
 ```bash
-bash run.sh 3              # results → results/figure9.csv
-python plot/plot_9.py       # → plot/figure9.pdf
+bash run.sh 3              # auto-steers flows, results → results/figure9.csv
+python3 plot/plot.py        # → plot/figure9.pdf
 ```
+
+Note: `run.sh` automatically calls `steer_flows.sh` to configure flow
+steering, disable GRO, and pin IRQs to CPU 3.
 
 ## Scripts
 

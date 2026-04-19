@@ -15,12 +15,17 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$(dirname "$SCRIPT_DIR")")"
 XKTOOL="$PROJECT_ROOT/xkernel-tool"
 CPU=${1:-3}
-REPS=${2:-3}                       # repetitions per value
+REPS=${2:-5}                       # repetitions per value
 VALUES=(1 5 10 15 20)
-CYCLICTEST_LOOPS=20000             # ~20s per run
+CYCLICTEST_LOOPS=100000            # ~100s per run
 OUTFILE="results/figure9.csv"
 
 mkdir -p results
+
+# ── flow steering setup ─────────────────────────────────────────────
+echo "========== Setting up flow steering (CPU $CPU) =========="
+sudo bash "$SCRIPT_DIR/steer_flows.sh" "$CPU" || true
+echo ""
 
 # ── helpers ──────────────────────────────────────────────────────────
 
@@ -37,7 +42,7 @@ parse_cyclictest() {
     } END{print max+0, avg+0}' "$file"
 }
 
-# Parse sar output for average CPU utilization (100 - %idle)
+# Parse sar output for CPU utilization (100 - %idle)
 parse_sar() {
     local file="$1"
     awk '/^Average:/ && $2 != "CPU" {printf "%.0f", 100 - $NF}' "$file"
@@ -46,6 +51,20 @@ parse_sar() {
 # ── CSV header ───────────────────────────────────────────────────────
 
 echo "MAX_SOFTIRQ_RESTART,WorstLatUs,AvgLatUs,CpuUtilPct" | tee "$OUTFILE"
+
+# ── Pre-check: verify traffic is flowing to target CPU ───────────────
+echo ""
+echo "========== Verifying softirq load on CPU $CPU =========="
+SOFTIRQ_BEFORE=$(awk '/NET_RX/ {print $'$((CPU+2))'}' /proc/softirqs)
+sleep 2
+SOFTIRQ_AFTER=$(awk '/NET_RX/ {print $'$((CPU+2))'}' /proc/softirqs)
+SOFTIRQ_RATE=$(( (SOFTIRQ_AFTER - SOFTIRQ_BEFORE) / 2 ))
+echo "NET_RX softirqs/sec on CPU $CPU: $SOFTIRQ_RATE"
+if [[ "$SOFTIRQ_RATE" -lt 1000 ]]; then
+    echo "[!] WARNING: Low softirq rate ($SOFTIRQ_RATE/s). Ensure client traffic is running:"
+    echo "    Client: bash client.sh 192.168.6.1"
+    echo "    Server: iperf3 -s -p 5200 & iperf3 -s -p 5201 & iperf3 -s -p 5202 &"
+fi
 
 # ── One-time build (kernel diff + codegen + BPF compile) ─────────────
 echo ""
