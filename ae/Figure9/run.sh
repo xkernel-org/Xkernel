@@ -4,11 +4,10 @@
 # Measures cyclictest tail/avg latency and CPU utilization under heavy
 # softirq load for each value of MAX_SOFTIRQ_RESTART.
 #
-# Prerequisites:
-#   - 3 iperf3 clients already sending traffic (see client.sh)
-#   - Flows steered to CPU $CPU (see steer_flows.sh)
+# This script is self-contained: it starts iperf3 servers locally and
+# launches iperf3 clients on the remote machine (192.168.6.2) via ssh.
 #
-# Usage: bash run.sh [CPU] [REPS]
+# Usage: sudo bash run.sh [CPU] [REPS]
 
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -19,13 +18,53 @@ REPS=${2:-5}                       # repetitions per value
 VALUES=(1 5 10 15 20)
 CYCLICTEST_LOOPS=100000            # ~100s per run
 OUTFILE="results/figure9.csv"
+CLIENT_IP="192.168.6.2"
+IPERF_DURATION=6000
 
 mkdir -p results
+
+# ── idempotent cleanup: clear stale xkernel state ────────────────────
+"$XKTOOL" table delete --all -y 2>/dev/null || true
+rm -rf "$PROJECT_ROOT/bpf/stubs/"* 2>/dev/null || true
+
+# ── workload management ─────────────────────────────────────────────
+start_workload() {
+    echo "[*] Starting iperf3 servers locally and clients on $CLIENT_IP ..."
+
+    # Kill any stale iperf3 on both sides
+    pkill -9 iperf3 2>/dev/null || true
+    ssh "$CLIENT_IP" "pkill -9 iperf3" 2>/dev/null || true
+    sleep 1
+
+    # Start iperf3 servers on local machine (receiver)
+    for port in 5200 5201 5202; do
+        iperf3 -s -p "$port" -D 2>/dev/null
+    done
+    sleep 1
+
+    # Start iperf3 clients on remote machine (sender)
+    ssh "$CLIENT_IP" "nohup iperf3 -c 192.168.6.1 -P 2 -l 1k -p 5200 -t $IPERF_DURATION >/dev/null 2>&1 &
+                      nohup iperf3 -c 192.168.6.1 -P 2 -l 1k -p 5201 -t $IPERF_DURATION >/dev/null 2>&1 &
+                      nohup iperf3 -c 192.168.6.1 -P 2 -l 1k -p 5202 -t $IPERF_DURATION >/dev/null 2>&1 &"
+    sleep 3
+    echo "[✓] iperf3 workload running"
+}
+
+stop_workload() {
+    echo "[*] Stopping iperf3 ..."
+    ssh "$CLIENT_IP" "pkill -9 iperf3" 2>/dev/null || true
+    pkill -9 iperf3 2>/dev/null || true
+}
+
+trap stop_workload EXIT
 
 # ── flow steering setup ─────────────────────────────────────────────
 echo "========== Setting up flow steering (CPU $CPU) =========="
 sudo bash "$SCRIPT_DIR/steer_flows.sh" "$CPU" || true
 echo ""
+
+# ── start traffic ────────────────────────────────────────────────────
+start_workload
 
 # ── helpers ──────────────────────────────────────────────────────────
 
@@ -61,9 +100,7 @@ SOFTIRQ_AFTER=$(awk '/NET_RX/ {print $'$((CPU+2))'}' /proc/softirqs)
 SOFTIRQ_RATE=$(( (SOFTIRQ_AFTER - SOFTIRQ_BEFORE) / 2 ))
 echo "NET_RX softirqs/sec on CPU $CPU: $SOFTIRQ_RATE"
 if [[ "$SOFTIRQ_RATE" -lt 1000 ]]; then
-    echo "[!] WARNING: Low softirq rate ($SOFTIRQ_RATE/s). Ensure client traffic is running:"
-    echo "    Client: bash client.sh 192.168.6.1"
-    echo "    Server: iperf3 -s -p 5200 & iperf3 -s -p 5201 & iperf3 -s -p 5202 &"
+    echo "[!] WARNING: Low softirq rate ($SOFTIRQ_RATE/s) — traffic may not be steered to CPU $CPU"
 fi
 
 # ── One-time build (kernel diff + codegen + BPF compile) ─────────────
