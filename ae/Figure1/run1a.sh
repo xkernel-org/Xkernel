@@ -23,4 +23,4 @@ sudo bash fio_bench.sh READ.fio > results/hdd_128_read.txt
 echo "Unloading tunable..."
 sudo ./tune_blk_max_req.sh unload
 sudo ~/Xkernel/xkernel-tool table delete --all -y
-rm -rf ~/Xkernel/bpf/stubs/*
+sudo rm -rf ~/Xkernel/bpf/stubs/*
