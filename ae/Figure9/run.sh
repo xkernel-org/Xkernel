@@ -81,15 +81,15 @@ parse_cyclictest() {
     } END{print max+0, avg+0}' "$file"
 }
 
-# Parse sar output for CPU utilization (100 - %idle)
+# Parse sar -u ALL output for %soft (softirq CPU usage)
 parse_sar() {
     local file="$1"
-    awk '/^Average:/ && $2 != "CPU" {printf "%.0f", 100 - $NF}' "$file"
+    awk '/^Average:/ && $2 != "CPU" {printf "%.1f", $9}' "$file"
 }
 
 # ── CSV header ───────────────────────────────────────────────────────
 
-echo "MAX_SOFTIRQ_RESTART,WorstLatUs,AvgLatUs,CpuUtilPct" | tee "$OUTFILE"
+echo "MAX_SOFTIRQ_RESTART,WorstLatUs,AvgLatUs,SoftirqPct" | tee "$OUTFILE"
 
 # ── Pre-check: verify traffic is flowing to target CPU ───────────────
 echo ""
@@ -129,7 +129,7 @@ for val in "${VALUES[@]}"; do
         lat_file="results/lat_${tag}.txt"
         cpu_file="results/cpu_${tag}.txt"
 
-        sar -u -P "$CPU" 1 > "$cpu_file" &
+        sar -u ALL -P "$CPU" 1 > "$cpu_file" &
         SAR_PID=$!
 
         sudo cyclictest -t 1 -a "$CPU" -p 99 -d 1000 -l "$CYCLICTEST_LOOPS" \

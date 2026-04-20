@@ -40,7 +40,7 @@ def plot_figure9(softirq_csv, out_pdf):
             val = int(row['MAX_SOFTIRQ_RESTART'])
             buckets[val]['worst'].append(float(row['WorstLatUs']))
             buckets[val]['avg'].append(float(row['AvgLatUs']))
-            buckets[val]['cpu'].append(float(row['CpuUtilPct']))
+            buckets[val]['cpu'].append(float(row['SoftirqPct']))
 
     if not buckets:
         print("[skip] No data in CSV")
@@ -68,13 +68,13 @@ def plot_figure9(softirq_csv, out_pdf):
     ax.text(9.4, ax.get_ylim()[1] * 0.95, 'Default Value',
             ha='center', va='top', color='black', fontsize=TEXT_SIZE_XYAXIS)
 
-    # Right axis: CPU Usage
+    # Right axis: Softirq CPU
     ax_twin = ax.twinx()
     color2 = palette[2]
-    ax_twin.set_ylabel('CPU Usage (%)', color='black', fontsize=TEXT_SIZE_XYLABEL)
+    ax_twin.set_ylabel('Softirq CPU (%)', color='black', fontsize=TEXT_SIZE_XYLABEL)
     ax_twin.plot(max_restart, cpu_util,
                  marker=plot_common.markers[2], color=color2, linewidth=2,
-                 markersize=10, label='CPU Usage')
+                 markersize=10, label='Softirq CPU')
     ax_twin.tick_params(axis='y', labelcolor='black', labelsize=TEXT_SIZE_XYAXIS)
     ax_twin.set_yticks([0, 25, 50, 75, 100])
     ax_twin.set_ylim(0, 100)
