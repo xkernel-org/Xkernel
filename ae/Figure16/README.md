@@ -39,6 +39,8 @@ sudo bash run.sh
 python plot/plot.py                 # → plot/figure16.pdf
 ```
 
+**Estimated time:** ~5 minutes.
+
 ## Step-by-step
 
 ### 1. Install
