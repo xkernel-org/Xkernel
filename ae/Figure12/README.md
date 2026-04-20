@@ -63,6 +63,8 @@ sudo bash run.sh
 python3 plot/plot.py              # → plot/figure12.pdf
 ```
 
+**Estimated time:** ~3 minutes.
+
 ## Step-by-step
 
 ### 1. Install (Server)
