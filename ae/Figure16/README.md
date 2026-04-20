@@ -1,6 +1,6 @@
 # Figure 16
 
-> **Note:** Run `bash plot_env.sh` (in the repo root) before plotting to set up the Python environment.
+> **Note:** Run `bash plot_env.sh` (in the repo root) and `source ~/xk-py/bin/activate` before plotting.
 
 ```bash
 bash install_bench.sh
