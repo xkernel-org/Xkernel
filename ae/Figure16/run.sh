@@ -12,7 +12,7 @@
 #   xk     — jump-optimized kprobe at io_write+0x6 [OPTIMIZED] (~25 ns)
 #
 # Usage:
-#   sudo bash ae/Figure16/run.sh [--delays 0,1,5,10] [--threads N]
+#   bash ae/Figure16/run.sh [--delays 0,5,15,20] [--threads N]
 #
 # Prerequisites:
 #   bash ae/Figure16/install_bench.sh
@@ -23,7 +23,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BENCH="$SCRIPT_DIR/bin/bench"
 
 # ── Parameters ───────────────────────────────────────────────────────
-DELAYS=(0 1 5 10)            # app-delay values to sweep (us)
+DELAYS=(0 5 15 20)            # app-delay values to sweep (us)
 THREADS=10                   # number of io_uring threads
 
 while [[ $# -gt 0 ]]; do
@@ -111,27 +111,27 @@ KPROBE_NAME="xk_probe"
 
 cleanup() {
     if [[ -d "$TRACE_DIR/events/kprobes/${KPROBE_NAME}" ]]; then
-        echo 0 > "$TRACE_DIR/events/kprobes/${KPROBE_NAME}/enable" 2>/dev/null || true
-        echo "-:${KPROBE_NAME}" >> "$TRACE_DIR/kprobe_events" 2>/dev/null || true
+        echo 0 | sudo tee "$TRACE_DIR/events/kprobes/${KPROBE_NAME}/enable" > /dev/null 2>&1 || true
+        echo "-:${KPROBE_NAME}" | sudo tee -a "$TRACE_DIR/kprobe_events" > /dev/null 2>&1 || true
     fi
-    echo 1 | tee /proc/sys/debug/kprobes-optimization > /dev/null 2>&1 || true
+    echo 1 | sudo tee /proc/sys/debug/kprobes-optimization > /dev/null 2>&1 || true
 }
 trap cleanup EXIT
 
 attach_kprobe() {
     # Register kprobe at offset via tracefs
-    echo "p:${KPROBE_NAME} ${KPROBE_TARGET}" > "$TRACE_DIR/kprobe_events"
-    echo 1 > "$TRACE_DIR/events/kprobes/${KPROBE_NAME}/enable"
+    echo "p:${KPROBE_NAME} ${KPROBE_TARGET}" | sudo tee "$TRACE_DIR/kprobe_events" > /dev/null
+    echo 1 | sudo tee "$TRACE_DIR/events/kprobes/${KPROBE_NAME}/enable" > /dev/null
     sleep 2   # allow optimization to complete
 
     local status
-    status=$(cat /sys/kernel/debug/kprobes/list 2>/dev/null | grep io_write || true)
+    status=$(sudo cat /sys/kernel/debug/kprobes/list 2>/dev/null | grep io_write || true)
     log_ok "kprobe attached: $status"
 }
 
 detach_kprobe() {
-    echo 0 > "$TRACE_DIR/events/kprobes/${KPROBE_NAME}/enable" 2>/dev/null || true
-    echo "-:${KPROBE_NAME}" >> "$TRACE_DIR/kprobe_events" 2>/dev/null || true
+    echo 0 | sudo tee "$TRACE_DIR/events/kprobes/${KPROBE_NAME}/enable" > /dev/null 2>&1 || true
+    echo "-:${KPROBE_NAME}" | sudo tee -a "$TRACE_DIR/kprobe_events" > /dev/null 2>&1 || true
     log_ok "kprobe detached"
 }
 
@@ -144,7 +144,7 @@ for d in "${DELAYS[@]}"; do
 
     # Phase 2: Jump-optimized kprobe (xk)
     log_section "Attaching jump-optimized kprobe [OPTIMIZED]"
-    echo 1 | tee /proc/sys/debug/kprobes-optimization > /dev/null
+    echo 1 | sudo tee /proc/sys/debug/kprobes-optimization > /dev/null
     attach_kprobe
     run_sweep "xk" "$d"
     detach_kprobe
