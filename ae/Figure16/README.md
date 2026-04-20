@@ -4,6 +4,6 @@
 
 ```bash
 bash install_bench.sh
-sudo bash run.sh
+bash run.sh
 python3 plot/plot.py          # → plot/figure16.pdf
 ```
