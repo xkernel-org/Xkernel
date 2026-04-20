@@ -10,7 +10,6 @@
 # Three sweep modes:
 #   base   — no kprobes attached (baseline)
 #   xk     — jump-optimized kprobe at io_write+0x6 [OPTIMIZED] (~25 ns)
-#   xkint3 — INT3 kprobe at io_write+0x6 (optimization disabled) (~115 ns)
 #
 # Usage:
 #   sudo bash ae/Figure16/run.sh [--delays 0,1,5,10] [--threads N]
@@ -136,7 +135,7 @@ detach_kprobe() {
     log_ok "kprobe detached"
 }
 
-# ── Main experiment: for each delay, run base → xk → xkint3 ─────────
+# ── Main experiment: for each delay, run base → xk ──────────────────
 for d in "${DELAYS[@]}"; do
     log_section "===== APP_DELAY = ${d} us ====="
 
@@ -149,14 +148,6 @@ for d in "${DELAYS[@]}"; do
     attach_kprobe
     run_sweep "xk" "$d"
     detach_kprobe
-
-    # Phase 3: INT3 kprobe (xkint3)
-    log_section "Attaching INT3 kprobe (optimization disabled)"
-    echo 0 | tee /proc/sys/debug/kprobes-optimization > /dev/null
-    attach_kprobe
-    run_sweep "xkint3" "$d"
-    detach_kprobe
-    echo 1 | tee /proc/sys/debug/kprobes-optimization > /dev/null  # restore
 done
 
 # ── Summary ──────────────────────────────────────────────────────────
@@ -165,7 +156,6 @@ log "Data directory: $DATA_DIR/"
 log "  delays:       ${DELAYS[*]} us"
 log "  base files:   $(ls "$DATA_DIR"/base_*.txt 2>/dev/null | wc -l)"
 log "  xk files:     $(ls "$DATA_DIR"/xk_*.txt 2>/dev/null | wc -l)"
-log "  xkint3 files: $(ls "$DATA_DIR"/xkint3_*.txt 2>/dev/null | wc -l)"
 log ""
 log "Next steps:"
 log "  python3 plot/plot.py       # → plot/figure16.pdf"

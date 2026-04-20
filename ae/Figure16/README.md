@@ -39,7 +39,7 @@ sudo bash run.sh
 python plot/plot.py                 # → plot/figure16.pdf
 ```
 
-**Estimated time:** ~8 minutes.
+**Estimated time:** ~5 minutes.
 
 ## Step-by-step
 
