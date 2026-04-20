@@ -10,8 +10,8 @@ Paper: *Principled Performance Tunability in Operating System Kernels* ([arXiv 2
 # 0. Install dependencies (first time only)
 ./xkernel-tool setup
 
-# 1. Set kernel source path
-export KERNEL_DIR=~/linux-6.14.0-xkernel
+# 1. Set kernel source path (downloaded from previous step), e.g., for ubuntu 24.04 LTS:
+export KERNEL_DIR=~/linux-6.8.0
 
 # 2. Build + load in one step
 ./xkernel-tool run tunables/shrink_batch.toml
