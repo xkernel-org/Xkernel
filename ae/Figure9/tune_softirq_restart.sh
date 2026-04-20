@@ -33,7 +33,8 @@ ok()   { echo "[✓] $*"; }
 find_const_id() {
     [[ -f "$CS_RAW" ]] || die "CS raw table not found — run 'build' first"
     local id
-    id=$(awk -F'\t' -v fn="$TARGET_FUNC" '$2 == fn {print $1; exit}' "$CS_RAW")
+    # Use last match (most recently built) in case stale entries exist
+    id=$(awk -F'\t' -v fn="$TARGET_FUNC" '$2 == fn {id=$1} END{print id}' "$CS_RAW")
     [[ -n "$id" ]] || die "Could not find ConstID for $TARGET_FUNC in $CS_RAW"
     echo "$id"
 }

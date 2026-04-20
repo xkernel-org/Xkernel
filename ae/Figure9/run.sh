@@ -25,9 +25,9 @@ mkdir -p results
 
 # ── idempotent cleanup: clear stale xkernel state and previous results ─
 sudo "$XKTOOL" unload --all 2>/dev/null || true
-"$XKTOOL" table delete --all -y 2>/dev/null || true
+sudo "$XKTOOL" table delete --all -y 2>/dev/null || true
 sudo rmmod xk_kfuncs 2>/dev/null || true
-rm -rf "$PROJECT_ROOT/bpf/stubs/"* 2>/dev/null || true
+sudo rm -rf "$PROJECT_ROOT/bpf/stubs/"* 2>/dev/null || true
 rm -f results/figure9.csv results/lat_*.txt results/cpu_*.txt
 
 # ── workload management ─────────────────────────────────────────────
