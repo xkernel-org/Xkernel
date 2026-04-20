@@ -40,7 +40,7 @@ def plot_figure9(softirq_csv, out_pdf):
             val = int(row['MAX_SOFTIRQ_RESTART'])
             buckets[val]['worst'].append(float(row['WorstLatUs']))
             buckets[val]['avg'].append(float(row['AvgLatUs']))
-            buckets[val]['cpu'].append(float(row['CpuUtilPct']))
+            buckets[val]['cpu'].append(float(row['SoftirqPct']))
 
     if not buckets:
         print("[skip] No data in CSV")
@@ -51,7 +51,7 @@ def plot_figure9(softirq_csv, out_pdf):
     worst_lat = [sum(buckets[v]['worst']) / len(buckets[v]['worst']) for v in sorted_vals]
     cpu_util = [sum(buckets[v]['cpu']) / len(buckets[v]['cpu']) for v in sorted_vals]
 
-    # Left axis: Worst Latency
+    # Left axis: Worst Latency (adaptive range, integer ticks)
     color1 = palette[0]
     ax.set_ylabel('Worst Latency (us)', color='black', fontsize=TEXT_SIZE_XYLABEL)
     ax.plot(max_restart, worst_lat,
@@ -60,24 +60,38 @@ def plot_figure9(softirq_csv, out_pdf):
     ax.tick_params(axis='y', labelcolor='black', labelsize=TEXT_SIZE_XYAXIS)
     ax.tick_params(axis='x', labelcolor='black', labelsize=TEXT_SIZE_XYAXIS,
                    length=TICK_LENGTH_X, width=TICK_WIDTH_X)
-    ax.set_ylim(bottom=0)
-    ax.set_yticks([0, 250, 500, 700])
+    import math
+    ymax_left = max(worst_lat) * 1.1
+    # Round tick step to a nice integer (e.g. 100, 200, 250, 500)
+    raw_step = ymax_left / 4
+    nice = [50, 100, 200, 250, 500, 1000, 2000, 2500, 5000]
+    step = min(nice, key=lambda s: abs(s - raw_step))
+    ytop = math.ceil(ymax_left / step) * step
+    ax.set_ylim(bottom=0, top=ytop)
+    ax.set_yticks(range(0, ytop + 1, step))
     ax.set_xticks([1, 5, 10, 15, 20])
     ax.set_xlabel('Value of Perf-Const', fontsize=TEXT_SIZE_XYLABEL)
     ax.axvline(x=10, color='black', linestyle='--', linewidth=2, alpha=0.7)
-    ax.text(9.4, ax.get_ylim()[1] * 0.95, 'Default Value',
+    ax.text(9.4, ytop * 0.95, 'Default Value',
             ha='center', va='top', color='black', fontsize=TEXT_SIZE_XYAXIS)
 
-    # Right axis: CPU Usage
+    # Right axis: Softirq CPU (adaptive range)
     ax_twin = ax.twinx()
     color2 = palette[2]
-    ax_twin.set_ylabel('CPU Usage (%)', color='black', fontsize=TEXT_SIZE_XYLABEL)
+    ax_twin.set_ylabel('Softirq CPU (%)', color='black', fontsize=TEXT_SIZE_XYLABEL)
     ax_twin.plot(max_restart, cpu_util,
                  marker=plot_common.markers[2], color=color2, linewidth=2,
-                 markersize=10, label='CPU Usage')
+                 markersize=10, label='Softirq CPU')
     ax_twin.tick_params(axis='y', labelcolor='black', labelsize=TEXT_SIZE_XYAXIS)
-    ax_twin.set_yticks([0, 25, 50, 75, 100])
-    ax_twin.set_ylim(0, 100)
+    cpu_lo = min(cpu_util) * 0.9
+    cpu_hi = max(cpu_util) * 1.1
+    raw_step_r = (cpu_hi - cpu_lo) / 4
+    nice_r = [1, 2, 5, 10, 15, 20, 25]
+    step_r = min(nice_r, key=lambda s: abs(s - raw_step_r))
+    cpu_lo = math.floor(cpu_lo / step_r) * step_r
+    cpu_hi = math.ceil(cpu_hi / step_r) * step_r
+    ax_twin.set_ylim(cpu_lo, cpu_hi)
+    ax_twin.set_yticks(range(int(cpu_lo), int(cpu_hi) + 1, step_r))
 
     # Spines
     ax.spines['top'].set_visible(False)
