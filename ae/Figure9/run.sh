@@ -23,9 +23,12 @@ IPERF_DURATION=6000
 
 mkdir -p results
 
-# ── idempotent cleanup: clear stale xkernel state ────────────────────
-"$XKTOOL" table delete --all -y 2>/dev/null || true
-rm -rf "$PROJECT_ROOT/bpf/stubs/"* 2>/dev/null || true
+# ── idempotent cleanup: clear stale xkernel state and previous results ─
+sudo "$XKTOOL" unload --all 2>/dev/null || true
+sudo "$XKTOOL" table delete --all -y 2>/dev/null || true
+sudo rmmod xk_kfuncs 2>/dev/null || true
+sudo rm -rf "$PROJECT_ROOT/bpf/stubs/"* 2>/dev/null || true
+rm -f results/figure9.csv results/lat_*.txt results/cpu_*.txt
 
 # ── workload management ─────────────────────────────────────────────
 start_workload() {
@@ -158,3 +161,6 @@ rm -rf "$PROJECT_ROOT/bpf/stubs/"* 2>/dev/null || true
 
 echo ""
 echo "[✓] Done. Results: $OUTFILE"
+echo ""
+echo "Next steps:"
+echo "  python3 plot/plot.py       # → plot/figure9.pdf"
