@@ -53,6 +53,9 @@ die()         { echo -e "${RED}[$(date '+%H:%M:%S')] ✗${RST} $*" >&2; exit 1; 
 # ── Preflight ────────────────────────────────────────────────────────
 log_section "Preflight checks"
 
+# Clean previous results for idempotency
+rm -f "$DATA_DIR"/*.txt 2>/dev/null || true
+
 if [[ ! -x "$BENCH" ]]; then
     log "Building benchmark..."
     make -C "$SCRIPT_DIR" -j"$(nproc)"
@@ -61,8 +64,11 @@ fi
 
 grep -qw "io_write" /proc/kallsyms 2>/dev/null || \
     die "io_write not found in /proc/kallsyms"
-command -v bpftrace >/dev/null 2>&1 || \
-    die "bpftrace not found. Install with: apt install bpftrace"
+
+TRACE_DIR=""
+[[ -d /sys/kernel/tracing ]] && TRACE_DIR=/sys/kernel/tracing
+[[ -d /sys/kernel/debug/tracing ]] && TRACE_DIR=/sys/kernel/debug/tracing
+[[ -n "$TRACE_DIR" ]] || die "tracefs not found"
 
 mkdir -p "$DATA_DIR"
 
@@ -100,27 +106,33 @@ run_sweep() {
     log_ok "$label sweep done (${#IOPS_TARGETS[@]} data points)"
 }
 
-# ── Helper: attach / detach bpftrace kprobe ─────────────────────────
-BPFTRACE_PID=""
+# ── Helper: attach / detach kprobe via debugfs ──────────────────────
+KPROBE_NAME="xk_probe"
+
+cleanup() {
+    if [[ -d "$TRACE_DIR/events/kprobes/${KPROBE_NAME}" ]]; then
+        echo 0 > "$TRACE_DIR/events/kprobes/${KPROBE_NAME}/enable" 2>/dev/null || true
+        echo "-:${KPROBE_NAME}" >> "$TRACE_DIR/kprobe_events" 2>/dev/null || true
+    fi
+    echo 1 > /proc/sys/debug/kprobes-optimization 2>/dev/null || true
+}
+trap cleanup EXIT
 
 attach_kprobe() {
-    bpftrace -e "kprobe:${KPROBE_TARGET} { }" &
-    BPFTRACE_PID=$!
-    sleep 2
-    kill -0 "$BPFTRACE_PID" 2>/dev/null || die "Failed to attach kprobe"
+    # Register kprobe at offset via tracefs
+    echo "p:${KPROBE_NAME} ${KPROBE_TARGET}" > "$TRACE_DIR/kprobe_events"
+    echo 1 > "$TRACE_DIR/events/kprobes/${KPROBE_NAME}/enable"
+    sleep 2   # allow optimization to complete
 
     local status
-    status=$(sudo cat /sys/kernel/debug/kprobes/list 2>/dev/null | grep io_write || true)
-    log_ok "kprobe attached (PID=$BPFTRACE_PID): $status"
+    status=$(cat /sys/kernel/debug/kprobes/list 2>/dev/null | grep io_write || true)
+    log_ok "kprobe attached: $status"
 }
 
 detach_kprobe() {
-    if [[ -n "$BPFTRACE_PID" ]]; then
-        kill "$BPFTRACE_PID" 2>/dev/null || true
-        wait "$BPFTRACE_PID" 2>/dev/null || true
-        BPFTRACE_PID=""
-        log_ok "kprobe detached"
-    fi
+    echo 0 > "$TRACE_DIR/events/kprobes/${KPROBE_NAME}/enable" 2>/dev/null || true
+    echo "-:${KPROBE_NAME}" >> "$TRACE_DIR/kprobe_events" 2>/dev/null || true
+    log_ok "kprobe detached"
 }
 
 # ── Phase 1: Baseline ───────────────────────────────────────────────
@@ -128,18 +140,18 @@ run_sweep "base"
 
 # ── Phase 2: Jump-optimized kprobe (xk) ─────────────────────────────
 log_section "Attaching jump-optimized kprobe [OPTIMIZED]"
-echo 1 | sudo tee /proc/sys/debug/kprobes-optimization > /dev/null
+echo 1 > /proc/sys/debug/kprobes-optimization
 attach_kprobe
 run_sweep "xk"
 detach_kprobe
 
 # ── Phase 3: INT3 kprobe (xkint3) ───────────────────────────────────
 log_section "Attaching INT3 kprobe (optimization disabled)"
-echo 0 | sudo tee /proc/sys/debug/kprobes-optimization > /dev/null
+echo 0 > /proc/sys/debug/kprobes-optimization
 attach_kprobe
 run_sweep "xkint3"
 detach_kprobe
-echo 1 | sudo tee /proc/sys/debug/kprobes-optimization > /dev/null  # restore
+echo 1 > /proc/sys/debug/kprobes-optimization  # restore
 
 # ── Summary ──────────────────────────────────────────────────────────
 log_section "Experiment complete"
@@ -148,4 +160,5 @@ log "  base files:   $(ls "$DATA_DIR"/base_*.txt 2>/dev/null | wc -l)"
 log "  xk files:     $(ls "$DATA_DIR"/xk_${APP_DELAY}_*.txt 2>/dev/null | wc -l)"
 log "  xkint3 files: $(ls "$DATA_DIR"/xkint3_*.txt 2>/dev/null | wc -l)"
 log ""
-log "Plot: python ae/Figure16/plot/plot.py"
+log "Next steps:"
+log "  python3 plot/plot.py       # → plot/figure16.pdf"

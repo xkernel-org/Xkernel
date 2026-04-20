@@ -4,7 +4,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 echo "[*] Installing dependencies ..."
 sudo apt-get update -qq
-sudo apt-get install -y -qq build-essential liburing-dev bpftrace
+sudo apt-get install -y -qq build-essential liburing-dev
 
 echo "[*] Building benchmark ..."
 make -C "$SCRIPT_DIR" clean
