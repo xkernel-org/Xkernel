@@ -114,7 +114,7 @@ cleanup() {
         echo 0 > "$TRACE_DIR/events/kprobes/${KPROBE_NAME}/enable" 2>/dev/null || true
         echo "-:${KPROBE_NAME}" >> "$TRACE_DIR/kprobe_events" 2>/dev/null || true
     fi
-    echo 1 > /proc/sys/debug/kprobes-optimization 2>/dev/null || true
+    echo 1 | tee /proc/sys/debug/kprobes-optimization > /dev/null 2>&1 || true
 }
 trap cleanup EXIT
 
@@ -140,18 +140,18 @@ run_sweep "base"
 
 # ── Phase 2: Jump-optimized kprobe (xk) ─────────────────────────────
 log_section "Attaching jump-optimized kprobe [OPTIMIZED]"
-echo 1 > /proc/sys/debug/kprobes-optimization
+echo 1 | tee /proc/sys/debug/kprobes-optimization > /dev/null
 attach_kprobe
 run_sweep "xk"
 detach_kprobe
 
 # ── Phase 3: INT3 kprobe (xkint3) ───────────────────────────────────
 log_section "Attaching INT3 kprobe (optimization disabled)"
-echo 0 > /proc/sys/debug/kprobes-optimization
+echo 0 | tee /proc/sys/debug/kprobes-optimization > /dev/null
 attach_kprobe
 run_sweep "xkint3"
 detach_kprobe
-echo 1 > /proc/sys/debug/kprobes-optimization  # restore
+echo 1 | tee /proc/sys/debug/kprobes-optimization > /dev/null  # restore
 
 # ── Summary ──────────────────────────────────────────────────────────
 log_section "Experiment complete"
