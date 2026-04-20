@@ -23,9 +23,11 @@ bash client.sh 192.168.6.1
 ## Run Experiment (server)
 
 ```bash
-bash run.sh 3              # auto-steers flows, results → results/figure9.csv
+sudo bash run.sh 3         # auto-steers flows, results → results/figure9.csv
 python3 plot/plot.py        # → plot/figure9.pdf
 ```
+
+**Estimated time:** 15–20 minutes (2 reps × 5 values × ~100s each, plus build overhead).
 
 Note: `run.sh` automatically calls `steer_flows.sh` to configure flow
 steering, disable GRO, and pin IRQs to CPU 3.
