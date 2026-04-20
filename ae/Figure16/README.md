@@ -1,6 +1,10 @@
 # Figure 16
 
-**Testbed:** 1 CloudLab c6620 machine.
+# Testbed
+
+1 CloudLab c6620 machine.
+
+# Steps
 
 > **Note:** Run `bash plot_env.sh` (in the repo root) and `source ~/xk-py/bin/activate` before plotting.
 
