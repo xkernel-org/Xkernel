@@ -119,9 +119,9 @@ generate_workload() {
 
     log_ok "Workload generated: $(du -sh "$target_dir" | cut -f1) total"
     log "Smallest 3 files (most requested):"
-    ls -lhS -r "${target_dir}"/file_*.bin | head -3
+    ls -lhS -r "${target_dir}"/file_*.bin | head -3 || true
     log "Largest 3 files:"
-    ls -lhS "${target_dir}"/file_*.bin | head -3
+    ls -lhS "${target_dir}"/file_*.bin | head -3 || true
 }
 
 # ── Client: Install wrk2 (remote via SSH) ───────────────────────────
