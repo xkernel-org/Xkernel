@@ -114,8 +114,8 @@ generate_workload() {
         sudo mv "$f" "${tmpdir}/file_${idx}.bin"
         idx=$((idx + 1))
     done
-    sudo mv "${tmpdir}"/file_*.bin "${target_dir}/"
-    sudo rmdir "$tmpdir"
+    sudo bash -c "mv '${tmpdir}'/file_*.bin '${target_dir}/'
+    rmdir '${tmpdir}'"
 
     log_ok "Workload generated: $(du -sh "$target_dir" | cut -f1) total"
     log "Smallest 3 files (most requested):"
