@@ -1,44 +1,18 @@
-# Figure 9: Softirq Impact on Real-Time Latency
+# Figure 9
 
-Measures `cyclictest` scheduling latency on a CPU core saturated with softirq
-processing (from iperf3 network traffic), sweeping `MAX_SOFTIRQ_RESTART` = {1, 5, 10, 15, 20}.
+# Testbed
 
-## Setup (two machines)
+2 CloudLab xl170 machines. Configure IPs as 192.168.6.1 (server) and 192.168.6.2 (client).
 
-**Server** (192.168.6.1):
+# Steps
 
-```bash
-bash install_cyclictest.sh
+> **Note:** Run `bash plot_env.sh` (in the repo root) and `source ~/xk-py/bin/activate` before plotting.
 
-# 1. Start iperf3 servers (3 UDP instances)
-iperf3 -s -p 5200 & iperf3 -s -p 5201 & iperf3 -s -p 5202 &
-```
-
-**Client(s)**:
+All commands are run on the **server** (192.168.6.1):
 
 ```bash
-bash client.sh 192.168.6.1
+bash ../setup_ssh.sh                # one-time SSH key setup
+bash install_cyclictest.sh          # installs server + client deps
+sudo bash run.sh 3                  # results → results/figure9.csv
+python3 plot/plot.py                # → plot/figure9.pdf
 ```
-
-## Run Experiment (server)
-
-```bash
-sudo bash run.sh 3         # auto-steers flows, results → results/figure9.csv
-python3 plot/plot.py        # → plot/figure9.pdf
-```
-
-**Estimated time:** 15–20 minutes (2 reps × 5 values × ~100s each, plus build overhead).
-
-Note: `run.sh` automatically calls `steer_flows.sh` to configure flow
-steering, disable GRO, and pin IRQs to CPU 3.
-
-## Scripts
-
-| Script | Where | Description |
-|--------|-------|-------------|
-| `install_cyclictest.sh` | Server | Install `cyclictest` (rt-tests) |
-| `steer_flows.sh` | Server | Pin all NIC RX flows to one CPU |
-| `client.sh` | Client | Launch 3×32 iperf3 flows (Net-APP) |
-| `run.sh` | Server | Sweep MAX_SOFTIRQ_RESTART, collect latency + CPU |
-| `tune_softirq_restart.sh` | Server | Build & load MAX_SOFTIRQ_RESTART tunable |
-| `metric.sh` | Server | Dump per-CPU softirq counts |
