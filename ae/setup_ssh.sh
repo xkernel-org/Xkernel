@@ -1,8 +1,8 @@
 #!/bin/bash
-# setup_ssh.sh — Set up passwordless SSH between server and client
+# setup_ssh.sh — Verify and configure SSH connectivity to the client machine
 #
-# Run this on the server (192.168.6.1) once before running any experiment
-# that requires two machines (Figure 9, Figure 12, etc.).
+# On CloudLab, nodes in the same experiment already share SSH keys.
+# This script verifies connectivity and adds the client to known_hosts.
 #
 # Usage:
 #   bash setup_ssh.sh [CLIENT_IP]
@@ -12,20 +12,17 @@ set -euo pipefail
 
 CLIENT_IP="${1:-192.168.6.2}"
 
-echo "[*] Setting up passwordless SSH to $CLIENT_IP ..."
+echo "[*] Configuring SSH for $CLIENT_IP ..."
 
-# Generate SSH key if not present
-if [[ ! -f "$HOME/.ssh/id_rsa" ]]; then
-    echo "[*] Generating SSH key ..."
-    ssh-keygen -t rsa -b 4096 -N "" -f "$HOME/.ssh/id_rsa"
-fi
+# Add client to known_hosts (skip host key prompt)
+ssh-keyscan -H "$CLIENT_IP" >> "$HOME/.ssh/known_hosts" 2>/dev/null
+echo "[✓] Added $CLIENT_IP to known_hosts"
 
-# Copy public key to client (will prompt for password once)
-echo "[*] Copying SSH key to $CLIENT_IP (you may be prompted for a password) ..."
-ssh-copy-id -o StrictHostKeyChecking=no "$CLIENT_IP"
-
-# Verify
+# Verify connectivity
 echo "[*] Verifying SSH connection ..."
-ssh -o BatchMode=yes "$CLIENT_IP" "echo '[✓] SSH to $CLIENT_IP works ($(whoami)@$(hostname))'"
-
-echo "[✓] Passwordless SSH configured. You can now run the experiment scripts."
+if ssh -o BatchMode=yes -o ConnectTimeout=5 "$CLIENT_IP" "hostname"; then
+    echo "[✓] SSH to $CLIENT_IP works."
+else
+    echo "[✗] Cannot SSH to $CLIENT_IP. Check that both machines are in the same CloudLab experiment."
+    exit 1
+fi
