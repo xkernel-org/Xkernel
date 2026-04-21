@@ -28,6 +28,25 @@ KPATCH_KO="$SCRIPT_DIR/klp_module/${KPATCH_MOD_NAME}.ko"
 # ── Check dependencies ───────────────────────────────────────────────
 log "Checking dependencies ..."
 
+# Packages needed on this machine for kpatch-build and XKernel
+for pkg in build-essential dpkg-dev libelf-dev libssl-dev elfutils dwarves \
+           ccache bc flex bison binutils iproute2; do
+    dpkg -s "$pkg" >/dev/null 2>&1 || {
+        log "Installing missing package: $pkg ..."
+        sudo apt-get update -qq && sudo apt-get install -y -qq "$pkg"
+    }
+done
+log_ok "Build dependencies installed"
+
+# Kernel headers (needed for Module.symvers)
+RUNNING_KVER="$(uname -r)"
+HEADERS_PKG="linux-headers-${RUNNING_KVER}"
+dpkg -s "$HEADERS_PKG" >/dev/null 2>&1 || {
+    log "Installing kernel headers: $HEADERS_PKG ..."
+    sudo apt-get update -qq && sudo apt-get install -y -qq "$HEADERS_PKG"
+}
+log_ok "Kernel headers available"
+
 command -v iperf3 >/dev/null 2>&1 || {
     log "Installing iperf3 on server ..."
     sudo apt-get update -qq && sudo apt-get install -y -qq iperf3
@@ -38,6 +57,13 @@ ssh "$CLIENT_IP" "command -v iperf3 >/dev/null 2>&1" || {
 }
 log_ok "iperf3 available on both machines"
 
+# tc (iproute2) needed on client for netem
+ssh "$CLIENT_IP" "command -v tc >/dev/null 2>&1" || {
+    log "Installing iproute2 on client ..."
+    ssh "$CLIENT_IP" "sudo apt-get update -qq && sudo apt-get install -y -qq iproute2"
+}
+log_ok "iproute2 (tc) available on both machines"
+
 command -v bpftrace >/dev/null 2>&1 || {
     log "Installing bpftrace ..."
     sudo apt-get update -qq && sudo apt-get install -y -qq bpftrace
@@ -46,10 +72,6 @@ log_ok "bpftrace available"
 
 # ── Install kpatch if needed ─────────────────────────────────────────
 if ! command -v kpatch &>/dev/null || ! command -v kpatch-build &>/dev/null; then
-    log "Installing kpatch build dependencies ..."
-    sudo apt-get update -qq
-    sudo apt-get install -y -qq dpkg-dev libelf-dev libssl-dev dwarves ccache 2>/dev/null || true
-
     log "Installing kpatch from source ..."
     cd /tmp
     [[ -d kpatch ]] || git clone https://github.com/dynup/kpatch.git
@@ -60,6 +82,12 @@ if ! command -v kpatch &>/dev/null || ! command -v kpatch-build &>/dev/null; the
 else
     log_ok "kpatch already installed: $(which kpatch), $(which kpatch-build)"
 fi
+
+# ── Early validation ─────────────────────────────────────────────────
+[[ -d "$KERNEL_SRC" ]] || die "Kernel source not found: $KERNEL_SRC\n  Set KERNEL_DIR or create ~/linux-6.8.0"
+[[ -f "$VMLINUX" ]]    || die "vmlinux not found: $VMLINUX\n  Build the kernel first: make -C $KERNEL_SRC vmlinux"
+[[ -d /sys/kernel/livepatch ]] || die "CONFIG_LIVEPATCH not enabled in running kernel"
+log_ok "Kernel source and KLP support verified"
 
 # ── Build XKernel tunable FIRST ──────────────────────────────────────
 # XKernel build invokes diff.py which recompiles kernel .o files and may
@@ -198,11 +226,7 @@ if ! bpftool version &>/dev/null; then
     fi
 fi
 
-# ── Verify ────────────────────────────────────────────────────────────
-log "Checking KLP support ..."
-[[ -d /sys/kernel/livepatch ]] || die "CONFIG_LIVEPATCH not enabled in kernel"
-log_ok "KLP support verified"
-
+# ── Final verification ────────────────────────────────────────────────
 # Quick load/unload test
 log "Testing kpatch load/unload ..."
 sudo kpatch load "$KPATCH_KO" 2>&1 || die "kpatch module failed to load"
