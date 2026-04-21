@@ -35,18 +35,18 @@ Representative results on CloudLab (kernel 6.8.0-101-generic):
 
 | SHRINK_BATCH | P50 (µs) | P90 (µs) | P99 (µs) | CPU Usage (%) |
 |--------------|----------|----------|----------|---------------|
-| 8            | ~480     | ~2,200   | ~7,800   | ~32%          |
-| 16           | ~780     | ~3,800   | ~14,000  | ~38%          |
-| 24           | ~1,050   | ~5,200   | ~19,000  | ~42%          |
-| 28           | ~1,180   | ~5,900   | ~21,500  | ~44%          |
-| 32           | ~1,320   | ~6,500   | ~24,000  | ~46%          |
-| 64           | ~2,400   | ~12,000  | ~44,000  | ~55%          |
-| **128** (default) | ~4,500 | ~22,000 | ~80,000 | ~65%       |
+| 8            | 130,904  | 140,793  | 843,987  | 51%           |
+| 16           | 130,742  | 140,956  | 864,219  | 51%           |
+| 24           | 108,848  | 143,901  | 915,125  | 51%           |
+| 28           | 91,922   | 139,672  | 1,026,346| 52%           |
+| 32           | 91,660   | 133,475  | 1,134,766| 53%           |
+| 64           | 89,010   | 113,628  | 1,170,472| 54%           |
+| **128** (default) | 91,359 | 117,626 | 1,226,953 | 56%      |
 
-**Key takeaway:** Smaller `SHRINK_BATCH` values reduce tail latency (P99)
-significantly — e.g., `SHRINK_BATCH=8` cuts P99 by ~10× compared to the
-default 128 — at the cost of higher per-batch overhead (more frequent but
-smaller batches). The CPU usage also decreases with smaller batch sizes.
+**Key takeaway:** Smaller `SHRINK_BATCH` values reduce P99 tail latency —
+e.g., `SHRINK_BATCH=8` achieves ~31% lower P99 compared to the default 128.
+Meanwhile P50 latency stays comparable across values 28–128, meaning the median
+case is largely unaffected. CPU usage decreases slightly with smaller batch sizes.
 
 > **Note:** Exact numbers may vary across runs and machines due to differences
 > in hardware, memory pressure, and swap device performance. The key observation
