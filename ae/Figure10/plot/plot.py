@@ -119,9 +119,20 @@ def plot_figure10(results_dir):
         plt.close(fig)
         return
 
-    print(f"[*] Found {len(labels)} SHRINK_BATCH values: {', '.join(labels)}")
-    for label, (p50, p90, p99) in zip(labels, all_dt_us):
-        print(f"    SHRINK_BATCH={label:>4s}  P50={p50:>10.0f}  P90={p90:>10.0f}  P99={p99:>10.0f} µs")
+    # ── Summary table (matches README Expected Results) ─────────────
+    print()
+    print("=" * 72)
+    print("  Figure 10 — Zswap Shrinker Latency (SHRINK_BATCH)")
+    print("=" * 72)
+    print(f"  {'SHRINK_BATCH':>12} {'P50 (µs)':>12} {'P90 (µs)':>12} {'P99 (µs)':>12} {'CPU (%)':>10}")
+    print(f"  {'-'*12} {'-'*12} {'-'*12} {'-'*12} {'-'*10}")
+    for label, (p50, p90, p99), cpu in zip(labels, all_dt_us, all_cpu_usage):
+        default_marker = " *" if label == DEFAULT_VALUE else ""
+        cpu_str = f"{cpu:.0f}%" if cpu else "N/A"
+        print(f"  {label:>12s} {p50:>12.0f} {p90:>12.0f} {p99:>12.0f} {cpu_str:>10}{default_marker}")
+    print("=" * 72)
+    print("  (* = kernel default)")
+    print()
 
     p50 = [max(x[0], 1) for x in all_dt_us]
     p90 = [max(x[1], 1) for x in all_dt_us]
