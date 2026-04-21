@@ -2,8 +2,8 @@
 // RTT-aware X_TUNE policy for tcp_cubic SF (ConstID 1)
 // Only sets SF=1 when the socket's curr_rtt >= 80ms
 //
-// hystart_update is inlined into cubictcp_acked in the running kernel.
-// The kprobe offset is the vmlinux offset within cubictcp_acked.
+// tune_tcp_cubic.sh patches the function name and offset below to match
+// the running kernel (hystart_update standalone vs inlined into cubictcp_acked).
 
 #include "xtune_stub_1.bpf.h"
 
@@ -11,9 +11,9 @@
 #define BICTCP_CURR_RTT_OFF 56   /* bictcp.curr_rtt offset within ca_priv */
 #define RTT_THRESHOLD     80000  /* 80ms in usec */
 
-// Kprobe at cubictcp_acked+0x214 (inlined hystart_update)
+// Kprobe at hystart_update+0x164 (or cubictcp_acked+0x214 if inlined)
 // At this point, RBX holds sk (used for struct accesses throughout the BB)
-X_TUNE_0(cubictcp_acked, "+0x214") {
+X_TUNE_0(hystart_update, "+0x164") {
     if (!x_transition_done(x_ctx)) return 0;
 
     u64 sk = ctx->bx;

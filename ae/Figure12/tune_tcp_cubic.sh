@@ -55,27 +55,52 @@ if [[ "$ACTION" == "build" ]]; then
     find_const_ids
     ok "Build complete — SF ConstID=$CONST_ID_SF, DELAY_MAX ConstID=$CONST_ID_DELAY"
 
-    # ── Fix inlined function offsets ─────────────────────────────────
-    # hystart_update is static and inlined into cubictcp_acked.
-    # The codegen uses .o offsets for hystart_update, but the running
-    # kernel only has cubictcp_acked.  Patch the generated BPF files
-    # to use the correct parent function + vmlinux offsets.
-    #
-    # Mapping (.o → vmlinux):
-    #   hystart_update+0x161 (SAVE)  → cubictcp_acked+0x211
-    #   hystart_update+0x164 (APPLY) → cubictcp_acked+0x214
-    #   hystart_update+0x16e (APPLY) → cubictcp_acked+0x21e
     stub_hdr_sf="${STUBS_DIR}/xtune_stub_${CONST_ID_SF}.bpf.h"
     stub_hdr_delay="${STUBS_DIR}/xtune_stub_${CONST_ID_DELAY}.bpf.h"
     stub_sf="${STUBS_DIR}/xtune_stub_${CONST_ID_SF}.bpf.c"
     stub_delay="${STUBS_DIR}/xtune_stub_${CONST_ID_DELAY}.bpf.c"
 
-    log "Fixing inlined-function kprobe offsets (hystart_update → cubictcp_acked) ..."
-    # Fix ConstID 1 header (SAVE kprobe + X_TUNE_0 macro)
-    sed -i 's|hystart_update+0x161|cubictcp_acked+0x211|g' "$stub_hdr_sf"
-    sed -i 's|hystart_update|cubictcp_acked|g' "$stub_hdr_sf"
-    # Fix ConstID 2 header
-    sed -i 's|hystart_update|cubictcp_acked|g' "$stub_hdr_delay"
+    # ── Detect whether hystart_update is inlined or standalone ───────
+    # On some kernels (e.g. 6.8.12), hystart_update is inlined into
+    # cubictcp_acked and the symbol doesn't exist.  On others (e.g.
+    # 6.8.0-101-generic), it is a standalone function.
+    if grep -qw 'hystart_update$' /proc/kallsyms 2>/dev/null; then
+        HYSTART_INLINED=0
+        log "hystart_update is a STANDALONE function — using original offsets"
+    else
+        HYSTART_INLINED=1
+        log "hystart_update is INLINED into cubictcp_acked — patching offsets"
+    fi
+
+    if [[ "$HYSTART_INLINED" -eq 1 ]]; then
+        # ── Fix inlined function offsets ─────────────────────────────
+        # Mapping (.o → vmlinux):
+        #   hystart_update+0x161 (SAVE)  → cubictcp_acked+0x211
+        #   hystart_update+0x164 (APPLY) → cubictcp_acked+0x214
+        #   hystart_update+0x16e (APPLY) → cubictcp_acked+0x21e
+        log "Fixing kprobe offsets (hystart_update → cubictcp_acked) ..."
+        sed -i 's|hystart_update+0x161|cubictcp_acked+0x211|g' "$stub_hdr_sf"
+        sed -i 's|hystart_update|cubictcp_acked|g' "$stub_hdr_sf"
+        sed -i 's|hystart_update|cubictcp_acked|g' "$stub_hdr_delay"
+        TARGET_FUNC="cubictcp_acked"
+        SF_OFFSET="+0x214"
+        DELAY_OFFSET="+0x21e"
+    else
+        # Standalone: the codegen generates .o offsets with cubictcp_acked
+        # (because hystart_update is inlined in the .o file).  We must
+        # rewrite them to hystart_update with the matching vmlinux offsets.
+        # Mapping (.o cubictcp_acked → vmlinux hystart_update):
+        #   cubictcp_acked+0x211 (SAVE)  → hystart_update+0x161
+        #   cubictcp_acked+0x214 (APPLY) → hystart_update+0x164
+        #   cubictcp_acked+0x21e (APPLY) → hystart_update+0x16e
+        log "Fixing codegen offsets (cubictcp_acked → hystart_update) ..."
+        sed -i 's|cubictcp_acked+0x211|hystart_update+0x161|g' "$stub_hdr_sf"
+        sed -i 's|cubictcp_acked|hystart_update|g' "$stub_hdr_sf"
+        sed -i 's|cubictcp_acked|hystart_update|g' "$stub_hdr_delay"
+        TARGET_FUNC="hystart_update"
+        SF_OFFSET="+0x164"
+        DELAY_OFFSET="+0x16e"
+    fi
 
     # Copy RTT-aware X-tune policy for SF (reads curr_rtt, only fires for RTT>=80ms)
     if [[ -f "$SCRIPT_DIR/xtune_policy_sf.bpf.c" ]]; then
@@ -90,9 +115,11 @@ if [[ "$ACTION" == "build" ]]; then
         log "Patched $stub_delay: val=32000 (DELAY_MAX=32ms)"
     fi
 
-    # Fix function names + offsets in .bpf.c files
-    sed -i 's|hystart_update, "+0x164"|cubictcp_acked, "+0x214"|g' "$stub_sf"
-    sed -i 's|hystart_update, "+0x16e"|cubictcp_acked, "+0x21e"|g' "$stub_delay"
+    # Fix function names + offsets in .bpf.c files to match running kernel
+    sed -i "s|cubictcp_acked, \"+0x214\"|${TARGET_FUNC}, \"${SF_OFFSET}\"|g" "$stub_sf"
+    sed -i "s|hystart_update, \"+0x164\"|${TARGET_FUNC}, \"${SF_OFFSET}\"|g" "$stub_sf"
+    sed -i "s|cubictcp_acked, \"+0x21e\"|${TARGET_FUNC}, \"${DELAY_OFFSET}\"|g" "$stub_delay"
+    sed -i "s|hystart_update, \"+0x16e\"|${TARGET_FUNC}, \"${DELAY_OFFSET}\"|g" "$stub_delay"
 
     # Recompile BPF stubs
     log "Recompiling BPF stubs ..."
