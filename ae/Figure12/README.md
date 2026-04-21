@@ -13,6 +13,6 @@ All commands are run on the **server** (192.168.6.1):
 ```bash
 bash ../setup_ssh.sh                # one-time SSH key setup
 bash install_nginx.sh               # installs server + client deps
-sudo bash run.sh                    # ~3 minutes
+bash run.sh                         # ~3 minutes
 python3 plot/plot.py                # → plot/figure12.pdf
 ```
