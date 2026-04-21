@@ -49,14 +49,31 @@ be consistent.
 
 ### Testbed
 
-1 CloudLab c6620 machine.
+1 CloudLab c6620 machine (NVMe SSD at `/dev/nvme1n1`).
 
 ### Steps
 
 > **Note:** Run `bash plot_env.sh` (in the repo root) and `source ~/xk-py/bin/activate` before plotting.
 
 ```bash
-bash install_1b.sh
-bash run1b.sh
-python3 plot/plot_1b.py      # → plot/figure1b.pdf
+export KERNEL_DIR=~/linux-6.8.0     # kernel source for codegen
+bash install_1b.sh                  # build RocksDB (~5 min first time)
+sudo -E bash run1b.sh               # ~2 minutes
+python3 plot/plot_1b.py             # → plot/figure1b.pdf
 ```
+
+**Machine time:** ~2 minutes &nbsp;|&nbsp; **Human time:** ~1 minute
+
+### Expected Results
+
+Xkernel tunes `BLK_MAX_REQUEST_COUNT` from 32 to 1 on NVMe SSD. With fewer
+batched requests the block layer dispatches I/O sooner, reducing iowait:
+
+| Metric           | V=32 (default) | V=1 (tuned) | Improvement   |
+|------------------|----------------|-------------|---------------|
+| P50 latency (µs) | ~3450          | ~2540       | **1.36× reduction** |
+| P75 latency (µs) | ~3930          | ~2860       | **1.38× reduction** |
+| %iowait          | ~69%           | ~59%        | **−10 pp**    |
+
+Expected (paper): P50 1.37×, P75 1.41×, iowait −12%.
+Exact numbers vary by ±5% depending on SSD state.
