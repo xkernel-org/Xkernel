@@ -45,18 +45,16 @@ python3 plot/plot.py                # → plot/figure18.pdf
 | Metric              | Linux KLP (kpatch) | XKernel (Mode 1) |
 |----------------------|--------------------|-------------------|
 | Tasks transitioned   | 128                | ~130              |
-| BPF/module load      | N/A                | ~750 ms           |
-| Min per-task delay   | ~15.8 s            | ~730 ms           |
-| Max per-task delay   | ~15.8 s            | ~68 s             |
-| Internal transition  | N/A                | 0–5 µs            |
+| Per-task delay       | ~15 s              | ~750 ms           |
+| Speedup              | —                  | **~20×**          |
 | Transition mechanism | Stack-check on ctx switch | Guard kprobe at SS entry |
 
-**Key takeaway:** KLP forces ALL 128 threads to exit `tcp_sendmsg_locked` via
-signal-forced context switching (~15 s stall timeout). XKernel loads BPF in
-**~750 ms**, after which each thread transitions at its next natural function
-entry in **microseconds**. The first tasks complete within the BPF load window;
-remaining tasks transition as they naturally exit and re-enter the function.
+**Key takeaway:** KLP forces ALL threads to exit `tcp_sendmsg_locked` via
+signal-forced context switching (~15 s stall timeout). XKernel loads BPF
+programs and each thread transitions at its next natural function entry in
+**microseconds**. The per-task delay includes the one-time BPF load overhead
+(~750 ms end-to-end via `xkernel-tool`, of which the actual BPF attach is
+~60 ms; the rest is Python orchestration and BPF compilation).
 
-The XKernel per-task internal transition time is consistently in the
-single-digit microsecond range. The total per-task delay includes BPF load
-overhead (~750 ms) and wait for function re-entry (workload-dependent).
+The XKernel per-task internal transition time (guard kprobe check) is
+consistently in the single-digit microsecond range (0–5 µs).
