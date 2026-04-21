@@ -48,7 +48,7 @@ CONNECTIONS=200         # wrk2 connections per port
 TIMEOUT=120             # request timeout in seconds
 
 # Network shaping
-RATE_LIMIT="2gbit"      # bottleneck bandwidth per port (netem rate on server)
+RATE_LIMIT="1gbit"      # bottleneck bandwidth per port (netem rate on server)
 NETEM_LIMIT=100000      # netem queue limit (server)
 CLIENT_NETEM_LIMIT=1000000  # netem queue limit (client)
 
@@ -172,13 +172,15 @@ run_dual_wrk2() {
     scp -q "$LUA_SCRIPT" "${CLIENT_IP}:/tmp/zipf.lua"
 
     # Launch two wrk2 instances in parallel
+    # -H "Connection: close" forces a new TCP connection per request,
+    # ensuring every request goes through slow start where HyStart fires.
     ssh "$CLIENT_IP" "/usr/local/bin/wrk2 -t$THREADS -c$CONNECTIONS -d${DURATION}s -R$RATE \
-        --timeout ${TIMEOUT}s --latency -s /tmp/zipf.lua \
+        --timeout ${TIMEOUT}s --latency -H 'Connection: close' -s /tmp/zipf.lua \
         http://${SERVER_IP}:${PORT_20MS}/" > "$outfile_20" 2>&1 &
     local pid_20=$!
 
     ssh "$CLIENT_IP" "/usr/local/bin/wrk2 -t$THREADS -c$CONNECTIONS -d${DURATION}s -R$RATE \
-        --timeout ${TIMEOUT}s --latency -s /tmp/zipf.lua \
+        --timeout ${TIMEOUT}s --latency -H 'Connection: close' -s /tmp/zipf.lua \
         http://${SERVER_IP}:${PORT_80MS}/" > "$outfile_80" 2>&1 &
     local pid_80=$!
 
