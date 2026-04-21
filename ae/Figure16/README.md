@@ -16,13 +16,7 @@ sudo bash run.sh              # ~10 minutes
 python3 plot/plot.py          # → plot/figure16.pdf
 ```
 
-### Estimated time
-
-| Step              | Time      |
-|-------------------|-----------|
-| `install_bench.sh`| ~5 sec    |
-| `run.sh`          | ~10 min   |
-| Total             | ~10 min   |
+**Machine time:** ~10 minutes &nbsp;|&nbsp; **Human time:** ~1 minute
 
 ## Expected results
 
