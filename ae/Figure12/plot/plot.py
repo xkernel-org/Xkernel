@@ -128,6 +128,45 @@ def plot_figure12(results_dir):
             latency_sec = get_latency_at_percentile(vals, pcts, p)
             print(f"  {label}: {latency_sec:.6f} s")
 
+    # ── Print summary table (matches README expected results) ─────────
+    all_targets = {'P50': 0.5, 'P90': 0.9, 'P99': 0.99, 'P99.9': 0.999}
+
+    def fmt_lat(vals, pcts, p):
+        v = get_latency_at_percentile(vals, pcts, p)
+        if v >= 1.0:
+            return f"{v:.2f}s"
+        return f"{v*1000:.0f}ms"
+
+    print("\n" + "=" * 70)
+    print("  Expected Results — Figure 12 (Xkernel HyStart Tuning)")
+    print("=" * 70)
+
+    print("\n  80ms RTT (tuned by Xkernel):")
+    print(f"  {'Percentile':<12} {'Vanilla':>10} {'Xkernel':>10} {'Improvement':>14}")
+    print(f"  {'-'*12:<12} {'-'*10:>10} {'-'*10:>10} {'-'*14:>14}")
+    for label, p in all_targets.items():
+        v_lat = get_latency_at_percentile(vals_v80, pcts_v80, p)
+        x_lat = get_latency_at_percentile(vals_x80, pcts_x80, p)
+        v_str = fmt_lat(vals_v80, pcts_v80, p)
+        x_str = fmt_lat(vals_x80, pcts_x80, p)
+        if v_lat > 0:
+            pct = (1.0 - x_lat / v_lat) * 100
+            imp = f"{'↓' if pct > 0 else '↑'} {abs(pct):.0f}%"
+        else:
+            imp = "—"
+        print(f"  {label:<12} {v_str:>10} {x_str:>10} {imp:>14}")
+
+    print(f"\n  20ms RTT (control — unaffected):")
+    print(f"  {'Percentile':<12} {'Vanilla':>10} {'Xkernel':>10}")
+    print(f"  {'-'*12:<12} {'-'*10:>10} {'-'*10:>10}")
+    for label in ['P50', 'P99']:
+        p = all_targets[label]
+        v_str = fmt_lat(vals_v20, pcts_v20, p)
+        x_str = fmt_lat(vals_x20, pcts_x20, p)
+        print(f"  {label:<12} {v_str:>10} {x_str:>10}")
+
+    print("\n" + "=" * 70)
+
     # Apply masks for visualization
     p9999_inv_p_max = 11000.0
 

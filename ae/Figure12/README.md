@@ -13,9 +13,12 @@ All commands are run on the **server** (192.168.6.1):
 ```bash
 bash ../setup_ssh.sh                # one-time SSH key setup
 bash install_nginx.sh               # installs server + client deps
-bash run.sh                         # ~3 minutes
+export KERNEL_DIR=~/linux-6.8.0     # kernel source for codegen
+bash run.sh                         # ~8 minutes (machine time)
 python3 plot/plot.py                # → plot/figure12.pdf
 ```
+
+**Machine time:** ~8 minutes &nbsp;|&nbsp; **Human time:** ~1 minute
 
 ## Expected Results
 
@@ -25,7 +28,7 @@ python3 plot/plot.py                # → plot/figure12.pdf
 > paper is no longer available. Results may show some variance across runs
 > due to differences in file content, system load, and network conditions.
 
-KernelX tunes two HyStart perf-consts in `tcp_cubic` at runtime:
+Xkernel tunes two HyStart perf-consts in `tcp_cubic` at runtime:
 - **SF** (scaling factor): 3 → 1 for flows with RTT ≥ 40ms — makes HyStart
   less aggressive, allowing slow start to reach higher cwnd before exiting.
 - **HYSTART_DELAY_MAX**: 16ms → 32ms — raises the delay detection ceiling.
@@ -35,9 +38,9 @@ a control and should remain unaffected.
 
 Representative results from 3 runs on CloudLab xl170 (kernel 6.8.0-101-generic):
 
-### 80ms RTT (tuned by KernelX)
+### 80ms RTT (tuned by Xkernel)
 
-| Percentile | Vanilla | KernelX | Improvement |
+| Percentile | Vanilla | Xkernel | Improvement |
 |------------|---------|---------|-------------|
 | P90        | 326ms   | 321ms   | ↓ 2%        |
 | P99        | 1.38s   | 0.90s   | **↓ 35%**   |
@@ -46,12 +49,12 @@ Representative results from 3 runs on CloudLab xl170 (kernel 6.8.0-101-generic):
 
 ### 20ms RTT (control — unaffected)
 
-| Percentile | Vanilla | KernelX |
+| Percentile | Vanilla | Xkernel |
 |------------|---------|---------|
 | P50        | 24ms    | 24ms    |
 | P99        | 145ms   | 144ms   |
 
 The main improvement is in **tail latency** (P99 and above) for the high-RTT
 path. Median latency is largely unchanged because most requests serve small
-files that complete within the initial congestion window.  Performance may
+files that complete within the initial congestion window. Performance may
 fluctuate by ±10–15% between runs depending on system conditions.
