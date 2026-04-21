@@ -1,11 +1,11 @@
---- a/net/ipv4/tcp.c
-+++ b/net/ipv4/tcp.c
-@@ -1145,7 +1145,7 @@ restart:
+--- a/net/ipv4/tcp.c	2026-04-21 00:56:39.710065177 -0600
++++ b/net/ipv4/tcp.c	2026-04-21 00:56:39.713065159 -0600
+@@ -1145,7 +1145,7 @@
+ 			if (!sk_stream_memory_free(sk))
+ 				goto wait_for_space;
  
- copy = min_t(int, copy, pfrag->size - pfrag->offset);
- 
--if (process_backlog >= 16)
-+if (process_backlog >= 32)
- process_backlog = 0;
- 
- if (!sk_wmem_schedule(sk, copy))
+-			if (unlikely(process_backlog >= 16)) {
++			if (unlikely(process_backlog >= 32)) {
+ 				process_backlog = 0;
+ 				if (sk_flush_backlog(sk))
+ 					goto restart;

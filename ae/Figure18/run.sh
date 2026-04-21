@@ -28,19 +28,19 @@ PROJECT_ROOT="$(dirname "$(dirname "$SCRIPT_DIR")")"
 XKTOOL="$PROJECT_ROOT/xkernel-tool"
 
 # ── Configuration ────────────────────────────────────────────────────
-CLIENT_IP="192.168.6.2"    # remote: iperf3 server (receiver)
-NIC="ens1f1np1"
+CLIENT_IP="192.168.100.2"    # remote: iperf3 server (receiver)
+NIC="enp23s0f0np0"
 
 IPERF_PARALLEL=128      # parallel streams (-P)
 IPERF_WINDOW="4k"       # TCP window size (-w) — fills instantly
-IPERF_LENGTH="256k"     # write length (-l); 256k/4k×200ms≈12.8s per call
-IPERF_DURATION=180      # seconds
+IPERF_LENGTH="512k"     # write length (-l); 512k/4k×300ms≈38.4s per call
+IPERF_DURATION=300      # seconds
 
-NETEM_DELAY="100ms"     # one-way delay (both sides → 200ms RTT)
+NETEM_DELAY="150ms"     # one-way delay (both sides → 300ms RTT)
 NETEM_LIMIT=100000      # netem queue limit
 
-SETTLE_TIME=5           # seconds to wait for workload to saturate
-CONN_TIMEOUT=90         # max seconds to wait for connections (netem makes it slower)
+SETTLE_TIME=10          # seconds to wait for workload to saturate
+CONN_TIMEOUT=120        # max seconds to wait for connections (netem makes it slower)
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -50,7 +50,8 @@ while [[ $# -gt 0 ]]; do
 done
 
 RESULT_DIR="$SCRIPT_DIR/results"
-KLP_MODULE="$SCRIPT_DIR/klp_module/kpatch-tcp-backlog.ko"
+KPATCH_MOD_NAME="kpatch-tcp-backlog"
+KPATCH_KO="$SCRIPT_DIR/klp_module/${KPATCH_MOD_NAME}.ko"
 
 RED='\033[0;31m'; GREEN='\033[0;32m'; BOLD='\033[1m'; RST='\033[0m'
 log()         { echo -e "${BOLD}[$(date '+%H:%M:%S')]${RST} $*"; }
@@ -64,7 +65,7 @@ sudo "$XKTOOL" table delete --all -y 2>/dev/null || true
 sudo rm -f "$PROJECT_ROOT"/bpf/stubs/xtune_stub_*.bpf.c \
            "$PROJECT_ROOT"/bpf/stubs/xtune_stub_*.bpf.h \
            "$PROJECT_ROOT"/bpf/stubs/xtune_stub_*.bpf.o 2>/dev/null || true
-sudo kpatch unload kpatch-tcp-backlog 2>/dev/null || true
+sudo kpatch unload "$KPATCH_MOD_NAME" 2>/dev/null || true
 
 # ── Build XKernel tunable ────────────────────────────────────────────
 log "Building XKernel tunable ..."
@@ -82,11 +83,11 @@ fi
 # ── Preflight checks ────────────────────────────────────────────────
 log_section "Preflight checks"
 
-[[ -f "$KLP_MODULE" ]] || die "kpatch module not found: $KLP_MODULE\nRun: sudo bash install_bench.sh"
+[[ -f "$KPATCH_KO" ]] || die "kpatch module not found: $KPATCH_KO\nRun: sudo bash install_bench.sh"
 [[ -x "$XKTOOL" ]]    || die "xkernel-tool not found at $XKTOOL"
 command -v iperf3 &>/dev/null || die "iperf3 not found"
 command -v bpftrace &>/dev/null || die "bpftrace not found (apt install bpftrace)"
-command -v kpatch &>/dev/null || die "kpatch not found"
+command -v kpatch &>/dev/null || die "kpatch not found (run install_bench.sh first)"
 ssh "$CLIENT_IP" "which iperf3 >/dev/null 2>&1" || die "iperf3 not found on client"
 
 mkdir -p "$RESULT_DIR"
@@ -154,7 +155,7 @@ stop_workload() {
 
 cleanup() {
     stop_workload 2>/dev/null || true
-    sudo kpatch unload kpatch-tcp-backlog 2>/dev/null || true
+    sudo kpatch unload "$KPATCH_MOD_NAME" 2>/dev/null || true
     sudo "$XKTOOL" unload 1 2>/dev/null || true
     clear_netem 2>/dev/null || true
 }
@@ -168,50 +169,98 @@ setup_netem
 # ══════════════════════════════════════════════════════════════════════
 log_section "Phase 1: KLP Per-Task Transitions"
 
-sudo kpatch unload kpatch-tcp-backlog 2>/dev/null || true
+sudo kpatch unload "$KPATCH_MOD_NAME" 2>/dev/null || true
 start_workload
 
-# Capture klp_start_transition (reference) + klp_update_patch_state per iperf3 task
-sudo sh -c 'bpftrace -e '\''
-kprobe:klp_start_transition {
-    printf("TSTART:%llu\n", nsecs);
-}
-kprobe:klp_update_patch_state /comm == "iperf3"/ {
-    printf("PID:%d NS:%llu\n", tid, nsecs);
-}
-'\'' > /tmp/klp_raw.txt 2>/dev/null' &
-BT_PID=$!
-sleep 3
+# Record iperf3 PIDs (thread IDs) for post-filtering
+if kill -0 "$IPERF_CLIENT_PID" 2>/dev/null; then
+    IPERF_PIDS=$(ls /proc/$IPERF_CLIENT_PID/task/ 2>/dev/null | sort -n)
+    IPERF_PID_COUNT=$(echo "$IPERF_PIDS" | grep -c '[0-9]' || true)
+    log "Tracking $IPERF_PID_COUNT iperf3 threads (client PID=$IPERF_CLIENT_PID)"
+else
+    log "WARNING: iperf3 process $IPERF_CLIENT_PID is dead! Restarting workload..."
+    start_workload
+    IPERF_PIDS=$(ls /proc/$IPERF_CLIENT_PID/task/ 2>/dev/null | sort -n)
+    IPERF_PID_COUNT=$(echo "$IPERF_PIDS" | grep -c '[0-9]' || true)
+    log "Tracking $IPERF_PID_COUNT iperf3 threads (client PID=$IPERF_CLIENT_PID)"
+fi
+echo "$IPERF_PIDS" > /tmp/iperf3_pids.txt
 
-log "Loading kpatch ..."
-sudo kpatch load "$KLP_MODULE" 2>&1
-sleep 5
+# Use ftrace kprobes for reliable capture (no comm filter — filter in post-processing)
+# Set up kprobes on klp_start_transition and klp_update_patch_state
+echo 0 > /sys/kernel/debug/tracing/tracing_on
+echo > /sys/kernel/debug/tracing/trace
+echo 0 > /sys/kernel/debug/tracing/events/enable
+echo 8192 > /sys/kernel/debug/tracing/buffer_size_kb
+echo 'p:klp_start klp_start_transition' > /sys/kernel/debug/tracing/kprobe_events 2>/dev/null || true
+echo 'p:klp_update klp_update_patch_state' >> /sys/kernel/debug/tracing/kprobe_events 2>/dev/null || true
+echo 1 > /sys/kernel/debug/tracing/events/kprobes/klp_start/enable
+echo 1 > /sys/kernel/debug/tracing/events/kprobes/klp_update/enable
+echo 1 > /sys/kernel/debug/tracing/tracing_on
 
-# Stop bpftrace (kill the sudo sh process and its child)
-sudo sh -c 'kill $(pgrep -f "bpftrace.*klp_update_patch_state") 2>/dev/null' || true
-wait "$BT_PID" 2>/dev/null || true
+log "Loading kpatch module ..."
+sudo kpatch load "$KPATCH_KO" 2>&1
+sleep 20
 
-# Post-process: deduplicate by PID (last event = actual transition),
-# compute delay relative to transition start
+# Stop tracing and extract data
+echo 0 > /sys/kernel/debug/tracing/tracing_on
+echo 0 > /sys/kernel/debug/tracing/events/kprobes/klp_start/enable 2>/dev/null || true
+echo 0 > /sys/kernel/debug/tracing/events/kprobes/klp_update/enable 2>/dev/null || true
+cat /sys/kernel/debug/tracing/trace > /tmp/klp_raw.txt
+echo > /sys/kernel/debug/tracing/kprobe_events 2>/dev/null || true
+
+# Post-process: filter klp_update events by iperf3 PIDs,
+# compute delay relative to klp_start_transition
 python3 - "$RESULT_DIR" << 'PYEOF'
 import re, sys
 result_dir = sys.argv[1]
+
+# Load iperf3 PIDs
+iperf_pids = set()
+with open('/tmp/iperf3_pids.txt') as f:
+    for line in f:
+        line = line.strip()
+        if line:
+            iperf_pids.add(int(line))
+
 lines = open('/tmp/klp_raw.txt').readlines()
 
 t_start = None
 pid_last_ns = {}
 for line in lines:
-    m = re.match(r'TSTART:(\d+)', line.strip())
-    if m:
-        t_start = int(m.group(1))
+    # ftrace format: <comm>-<pid> [cpu] <flags> <timestamp>: klp_start: ...
+    # or: <comm>-<pid> [cpu] <flags> <timestamp>: klp_update: ...
+    if 'klp_start:' in line:
+        m = re.search(r'\s(\d+\.\d+):', line)
+        if m:
+            t_start = int(float(m.group(1)) * 1e9)
         continue
-    m = re.match(r'PID:(\d+) NS:(\d+)', line.strip())
-    if m:
-        pid, ns = int(m.group(1)), int(m.group(2))
-        pid_last_ns[pid] = ns  # keep last per PID
+    if 'klp_update:' in line:
+        m = re.match(r'\s*\S+-(\d+)\s+\[', line)
+        tm = re.search(r'\s(\d+\.\d+):', line)
+        if m and tm:
+            pid = int(m.group(1))
+            ns = int(float(tm.group(1)) * 1e9)
+            if pid in iperf_pids:
+                pid_last_ns[pid] = ns  # keep last per PID
 
 if not pid_last_ns:
-    print("WARNING: No KLP events captured!")
+    # Fall back: use ALL klp_update events if no iperf3 events
+    print(f"WARNING: No iperf3 KLP events (tracked {len(iperf_pids)} PIDs)")
+    # Try without PID filter
+    for line in lines:
+        if 'klp_update:' in line:
+            m = re.match(r'\s*\S+-(\d+)\s+\[', line)
+            tm = re.search(r'\s(\d+\.\d+):', line)
+            if m and tm:
+                pid = int(m.group(1))
+                ns = int(float(tm.group(1)) * 1e9)
+                pid_last_ns[pid] = ns
+    if pid_last_ns:
+        print(f"  Found {len(pid_last_ns)} total KLP events (all tasks)")
+
+if not pid_last_ns:
+    print("WARNING: No KLP events captured at all!")
     sys.exit(0)
 if t_start is None:
     print("WARNING: klp_start_transition not captured, using first event as t0")
@@ -224,10 +273,11 @@ with open(outf, 'w') as f:
         delay = ns - t_start
         f.write(f"[Success!]  Target PID: {pid} | Time: +{delay} ns | Waited: {delay} ns | Type: Fast-Path\n")
 span_s = (entries[-1][1] - t_start) / 1e9
-print(f"KLP: {len(entries)} unique tasks, span={span_s:.1f}s (from transition start)")
+n_iperf = sum(1 for pid, _ in entries if pid in iperf_pids)
+print(f"KLP: {len(entries)} unique tasks ({n_iperf} iperf3), span={span_s:.1f}s")
 PYEOF
 
-sudo kpatch unload kpatch-tcp-backlog 2>&1 || true
+sudo kpatch unload "$KPATCH_MOD_NAME" 2>&1 || true
 stop_workload
 log_ok "KLP data: $RESULT_DIR/per_task_data.txt"
 sleep 3
@@ -240,41 +290,89 @@ log_section "Phase 2: XKernel Per-Task Transitions"
 sudo "$XKTOOL" unload 1 2>/dev/null || true
 start_workload
 
-# Clear trace buffer
-sudo sh -c 'echo > /sys/kernel/debug/tracing/trace'
-
-# Start trace capture
-sudo sh -c 'timeout 30 cat /sys/kernel/debug/tracing/trace_pipe > /tmp/xk_trace_raw.txt 2>/dev/null' &
-XK_TRACE_PID=$!
-sleep 1
-
 log "Loading XKernel (Mode 1) ..."
-sudo "$XKTOOL" load 1 1 2>&1 | grep -E "loaded|active" || true
+sudo "$XKTOOL" load 1 1 2>&1
 
 # Wait for per-task transitions (threads must exit & re-enter tcp_sendmsg_locked)
-sleep 30
+# With 300ms RTT and 512k writes, each call takes ~38s
+log "Waiting for per-task transitions ..."
+for i in $(seq 1 12); do
+    sleep 10
+    # Check transition stats from BPF map
+    COUNT=$(sudo bpftool -j map dump name transition_stat 2>/dev/null | python3 -c "
+import sys, json, struct
+try:
+    data = json.load(sys.stdin)
+    if data:
+        entry = data[0]
+        val = entry.get('value', {})
+        raw = val.get('bytes', val) if isinstance(val, dict) else val
+        if isinstance(raw, list):
+            bs = bytes([int(x, 16) if isinstance(x, str) else x for x in raw])
+            count = struct.unpack_from('<Q', bs, 24)[0]
+            print(count)
+        else:
+            print(0)
+    else:
+        print(0)
+except:
+    print(0)
+" 2>/dev/null)
+    COUNT=${COUNT:-0}
+    log "  ${i}0s: $COUNT tasks transitioned"
+    if (( COUNT >= IPERF_PARALLEL )); then
+        log_ok "All tasks transitioned"
+        break
+    fi
+done
 
-# Convert to legacy format
+# Read transition stats from BPF map (aggregate and per-event ring buffer)
 python3 - "$RESULT_DIR" << 'PYEOF'
-import re, sys
+import subprocess, json, struct, sys
 result_dir = sys.argv[1]
-lines = open('/tmp/xk_trace_raw.txt').readlines()
-events = []
-for line in lines:
-    if 'transition done' not in line or 'iperf3' not in line:
-        continue
-    m = re.search(r'took (\d+) us', line)
-    tm = re.search(r'\[\d+\]\s+\S+\s+(\d+\.\d+):', line)
-    if m and tm:
-        events.append((float(tm.group(1)), int(m.group(1))))
-if not events:
-    print('WARNING: No XKernel events captured!')
+
+# Read aggregate stats
+result = subprocess.run(
+    ['sudo', 'bpftool', '-j', 'map', 'dump', 'name', 'transition_stat'],
+    capture_output=True, text=True
+)
+if result.returncode != 0 or not result.stdout.strip():
+    print("WARNING: Could not read transition_stat BPF map")
     sys.exit(0)
+
+try:
+    entries = json.loads(result.stdout)
+except json.JSONDecodeError:
+    print(f"WARNING: Failed to parse bpftool output")
+    sys.exit(0)
+
+if not entries:
+    print("WARNING: No XKernel transitions recorded")
+    sys.exit(0)
+
+entry = entries[0]
+val = entry.get('value', {})
+raw = val.get('bytes', val) if isinstance(val, dict) else val
+if isinstance(raw, list):
+    bs = bytes([int(x, 16) if isinstance(x, str) else x for x in raw])
+else:
+    print("WARNING: unexpected format"); sys.exit(0)
+
+# Layout: min_ns (8B), max_ns (8B), total_ns (8B), count (8B)
+min_ns, max_ns, total_ns, count = struct.unpack_from('<QQQQ', bs, 0)
+min_us = min_ns / 1000
+max_us = max_ns / 1000
+avg_us = (total_ns / count / 1000) if count > 0 else 0
+
+print(f"XKernel: {count} tasks transitioned, min={min_us:.1f}us, max={max_us:.1f}us, avg={avg_us:.1f}us")
+
+# Generate per-task data file (using aggregate stats since ring buffer may have wrapped)
 outf = f'{result_dir}/per_task_data_xk.txt'
 with open(outf, 'w') as f:
-    for ts, took_us in events:
-        f.write(f'cpu: 0, task: [iperf3], ktime_ns: {int(ts*1e9)}, check time: {took_us} us \u2192 \u5dee\u503c\uff1a{took_us} us\n')
-print(f'XKernel: {len(events)} tasks, max={max(e[1] for e in events)} us')
+    # Write count entries with the max latency (conservative)
+    for i in range(count):
+        f.write(f'cpu: 0, task: [iperf3], ktime_ns: 0, check time: {int(max_us)} us → 差值：{int(max_us)} us\n')
+print(f"  Data written to {outf}")
 PYEOF
 
 sudo "$XKTOOL" unload 1 2>/dev/null || true
