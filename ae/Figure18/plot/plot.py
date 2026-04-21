@@ -44,11 +44,18 @@ def parse_linux_klp_data(file_path):
 
 
 def parse_xkernel_data(file_path):
-    """Parse Xkernel data from file."""
+    """Parse Xkernel data from file.
+    Supports both legacy format (差值：X us) and new format (Waited: X ns)."""
     with open(file_path, 'r') as f:
         raw_data = f.read()
     waited_us = []
     for line in raw_data.strip().split('\n'):
+        # New format: "Waited: X ns" (includes BPF load time)
+        match = re.search(r'Waited: (\d+) ns', line)
+        if match:
+            waited_us.append(int(match.group(1)) / 1000.0)
+            continue
+        # Legacy format: "差值：X us"
         match = re.search(r'\u5dee\u503c\uff1a(\d+) us', line)
         if match:
             waited_us.append(int(match.group(1)))
@@ -90,14 +97,15 @@ def plot_figure18(results_dir):
         else:
             return f"{us:.1f} µs"
 
+    klp_p99 = np.percentile(klp_data, 99)
+    xk_p99 = np.percentile(xk_data, 99)
+
     print()
     print("=" * 62)
     print(f"  {'Metric':<24} {'Linux KLP':>16}  {'XKernel':>16}")
     print("-" * 62)
-    print(f"  {'Tasks':<24} {len(klp_data):>16}  {len(xk_data):>16}")
     print(f"  {'P50 delay':<24} {fmt_delay(klp_p50):>16}  {fmt_delay(xk_p50):>16}")
-    print(f"  {'Min delay':<24} {fmt_delay(np.min(klp_data)):>16}  {fmt_delay(np.min(xk_data)):>16}")
-    print(f"  {'Max delay':<24} {fmt_delay(np.max(klp_data)):>16}  {fmt_delay(np.max(xk_data)):>16}")
+    print(f"  {'P99 delay':<24} {fmt_delay(klp_p99):>16}  {fmt_delay(xk_p99):>16}")
     speedup = klp_p50 / max(xk_p50, 0.001)
     print(f"  {'Speedup (P50)':<24} {f'{speedup:.0f}x':>16}")
     print("=" * 62)

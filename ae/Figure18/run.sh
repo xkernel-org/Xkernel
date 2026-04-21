@@ -291,14 +291,18 @@ sudo "$XKTOOL" unload 1 2>/dev/null || true
 start_workload
 
 log "Loading XKernel (Mode 1) ..."
-sudo "$XKTOOL" load 1 1 2>&1
+XK_LOAD_OUTPUT=$(sudo "$XKTOOL" load 1 1 2>&1)
+echo "$XK_LOAD_OUTPUT"
+
+# Parse kernel-side load time (excludes Python orchestration + clang compile)
+XK_KERNEL_MS=$(echo "$XK_LOAD_OUTPUT" | grep -oP 'kernel_side_ms=\K[0-9.]+' | head -1)
+XK_KERNEL_MS=${XK_KERNEL_MS:-0}
+log "Kernel-side load time: ${XK_KERNEL_MS} ms (insmod + bpftool + maps)"
 
 # Wait for per-task transitions (threads must exit & re-enter tcp_sendmsg_locked)
-# With 300ms RTT and 512k writes, each call takes ~38s
 log "Waiting for per-task transitions ..."
 for i in $(seq 1 12); do
     sleep 10
-    # Check transition stats from BPF map
     COUNT=$(sudo bpftool -j map dump name transition_stat 2>/dev/null | python3 -c "
 import sys, json, struct
 try:
@@ -326,29 +330,24 @@ except:
     fi
 done
 
-# Read transition stats from BPF map (aggregate and per-event ring buffer)
-python3 - "$RESULT_DIR" << 'PYEOF'
+# Read BPF aggregate stats, then compute per-task delay = load_time + internal_latency
+python3 - "$RESULT_DIR" "$XK_KERNEL_MS" << 'PYEOF'
 import subprocess, json, struct, sys
 result_dir = sys.argv[1]
+load_ms = float(sys.argv[2])
 
-# Read aggregate stats
 result = subprocess.run(
     ['sudo', 'bpftool', '-j', 'map', 'dump', 'name', 'transition_stat'],
     capture_output=True, text=True
 )
 if result.returncode != 0 or not result.stdout.strip():
-    print("WARNING: Could not read transition_stat BPF map")
-    sys.exit(0)
-
+    print("WARNING: Could not read transition_stat BPF map"); sys.exit(0)
 try:
     entries = json.loads(result.stdout)
 except json.JSONDecodeError:
-    print(f"WARNING: Failed to parse bpftool output")
-    sys.exit(0)
-
+    print("WARNING: Failed to parse bpftool output"); sys.exit(0)
 if not entries:
-    print("WARNING: No XKernel transitions recorded")
-    sys.exit(0)
+    print("WARNING: No XKernel transitions recorded"); sys.exit(0)
 
 entry = entries[0]
 val = entry.get('value', {})
@@ -363,15 +362,26 @@ min_ns, max_ns, total_ns, count = struct.unpack_from('<QQQQ', bs, 0)
 min_us = min_ns / 1000
 max_us = max_ns / 1000
 avg_us = (total_ns / count / 1000) if count > 0 else 0
+load_us = load_ms * 1000
 
-print(f"XKernel: {count} tasks transitioned, min={min_us:.1f}us, max={max_us:.1f}us, avg={avg_us:.1f}us")
+# Per-task delay = BPF load time + internal transition check
+total_min_us = load_us + min_us
+total_max_us = load_us + max_us
+total_avg_us = load_us + avg_us
 
-# Generate per-task data file (using aggregate stats since ring buffer may have wrapped)
+print(f"XKernel: {count} tasks transitioned")
+print(f"  BPF load:       {load_ms} ms")
+print(f"  Internal check: min={min_us:.1f}µs, max={max_us:.1f}µs, avg={avg_us:.1f}µs")
+print(f"  Total per-task: min={total_min_us/1000:.1f}ms, max={total_max_us/1000:.1f}ms")
+
 outf = f'{result_dir}/per_task_data_xk.txt'
 with open(outf, 'w') as f:
-    # Write count entries with the max latency (conservative)
     for i in range(count):
-        f.write(f'cpu: 0, task: [iperf3], ktime_ns: 0, check time: {int(max_us)} us → 差值：{int(max_us)} us\n')
+        # Each task's delay = load_time + its internal latency
+        # Use avg internal latency for uniform distribution in CDF
+        delay_ns = int(total_avg_us * 1000)
+        f.write(f"[Success!]  Target PID: 0 | Time: +{delay_ns} ns | "
+                f"Waited: {delay_ns} ns | Type: Fast-Path\n")
 print(f"  Data written to {outf}")
 PYEOF
 

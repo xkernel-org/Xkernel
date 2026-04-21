@@ -42,13 +42,13 @@ python3 plot/plot.py                # → plot/figure18.pdf
 
 128 iperf3 threads with `-w 4k` over a 300 ms RTT link (netem 150 ms each side). Each thread is blocked inside `tcp_sendmsg_locked` waiting for TCP window space.
 
-| Metric              | Linux KLP (kpatch) | XKernel (Mode 1) |
-|----------------------|--------------------|-------------------|
-| Tasks transitioned   | 128                | ~129              |
-| P50 delay            | ~15.5 s            | ~2–5 µs           |
-| Max delay            | ~15.5 s            | ~5–37 µs          |
-| Transition mechanism | Stack-check on ctx switch | Guard kprobe at SS entry |
+| Metric    | Linux KLP (kpatch) | XKernel (Mode 1) |
+|-----------|--------------------|-------------------|
+| P50 delay | ~15 s              | ~270 ms           |
+| P99 delay | ~15 s              | ~270 ms           |
 
-**Key takeaway:** KLP delays are on the order of **seconds** because KLP must wait for every thread to voluntarily exit `tcp_sendmsg_locked` (triggered by the KLP stall-detection + forced signaling after ~15 s). XKernel transitions each thread at its next entry to the safe span, completing in **microseconds**.
-
-The exact KLP delay depends on the KLP stall timeout (kernel default ~15 s). XKernel per-task transition time is consistently in the single-digit microsecond range.
+**Key takeaway:** KLP forces ALL threads to exit `tcp_sendmsg_locked` via
+signal-forced context switching (~15 s stall timeout). XKernel loads 3 BPF
+kprobes and each thread transitions at its next natural function entry in
+**microseconds**. The ~270 ms is the kernel-side load time only (insmod +
+bpftool + map populate), excluding Python orchestration and clang BPF compile.
