@@ -72,16 +72,26 @@ log_ok()      { echo -e "${GREEN}[$(date '+%H:%M:%S')] ✓${RST} $*"; }
 log_section() { echo -e "\n${BOLD}════════════════════════════════════════${RST}"; log "$*"; echo -e "${BOLD}════════════════════════════════════════${RST}"; }
 die()         { echo -e "${RED}[$(date '+%H:%M:%S')] ✗${RST} $*" >&2; exit 1; }
 
+# ── Helper: run command as the original (non-root) user ──────────────
+# When run under sudo, scp/ssh need the original user's SSH keys
+run_as_user() {
+    if [[ -n "${SUDO_USER:-}" && "$EUID" -eq 0 ]]; then
+        sudo -u "$SUDO_USER" "$@"
+    else
+        "$@"
+    fi
+}
+
 # ── Preflight checks ────────────────────────────────────────────────
 log_section "Preflight checks"
 
 [[ -x "$XKTOOL" ]]    || die "xkernel-tool not found at $XKTOOL"
 command -v tc &>/dev/null || die "tc (iproute2) not found"
-systemctl is-active nginx &>/dev/null || die "NGINX not running. Run: bash install_nginx.sh server"
+systemctl is-active nginx &>/dev/null || die "NGINX not running. Run: bash install_nginx.sh"
 
 # Check wrk2 on client
-ssh "$CLIENT_IP" "which wrk2 >/dev/null 2>&1" || \
-    die "wrk2 not found on client $CLIENT_IP. Run: bash install_nginx.sh client"
+run_as_user ssh "$CLIENT_IP" "which wrk2 >/dev/null 2>&1" || \
+    die "wrk2 not found on client $CLIENT_IP. Run: bash install_nginx.sh"
 
 # Check Lua script on client
 LUA_SCRIPT="$SCRIPT_DIR/lua/zipf.lua"
@@ -159,16 +169,6 @@ clear_delay() {
     sudo tc qdisc del dev "$NIC" root 2>/dev/null || true
     run_as_user ssh "$CLIENT_IP" "sudo tc qdisc del dev $NIC root 2>/dev/null" || true
     log "netem: cleared on both sides"
-}
-
-# ── Helper: run command as the original (non-root) user ──────────────
-# When run under sudo, scp/ssh need the original user's SSH keys
-run_as_user() {
-    if [[ -n "${SUDO_USER:-}" && "$EUID" -eq 0 ]]; then
-        sudo -u "$SUDO_USER" "$@"
-    else
-        "$@"
-    fi
 }
 
 # ── Helper: copy Lua script to client and run wrk2 on both ports ─────
