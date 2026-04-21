@@ -171,6 +171,28 @@ if not plot_data_map:
     print("No matching base/xk data pairs found.")
     sys.exit(1)
 
+# ── Summary table ────────────────────────────────────────────────────
+print()
+print("=" * 62)
+print(f"  {'Delay (µs)':<12} {'IOPS Points':>12}  {'P50 Slowdown':>14}  {'P99 Slowdown':>14}")
+print("-" * 62)
+for delay in sorted_delays:
+    if delay not in plot_data_map:
+        continue
+    d = plot_data_map[delay]
+    n = len(d['iops'])
+    avg_p50 = np.mean(d['slowdown_p50']) * 100
+    max_p50 = max(d['slowdown_p50']) * 100
+    avg_p99 = np.mean(d['slowdown_p99']) * 100
+    max_p99 = max(d['slowdown_p99']) * 100
+    print(f"  {delay:<12} {n:>12}  {f'avg {avg_p50:.1f}%':>14}  {f'avg {avg_p99:.1f}%':>14}")
+print("-" * 62)
+all_p50 = []
+for d in plot_data_map.values():
+    all_p50.extend(d['slowdown_p50'])
+print(f"  {'Overall':<12} {'':>12}  {f'avg {np.mean(all_p50)*100:.1f}%':>14}")
+print("=" * 62)
+
 # ── Plot ─────────────────────────────────────────────────────────────
 colors = [palette[4], palette[3], palette[2], palette[0]]
 fig, ax = plt.subplots(figsize=(8, 3.5))
