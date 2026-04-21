@@ -124,5 +124,48 @@ def plot_figure9(softirq_csv, out_pdf):
     print(f"[ok] Saved: {out_pdf}")
 
 
+def print_summary_table(softirq_csv):
+    """Print a summary table matching the README Expected Results format."""
+    if not os.path.exists(softirq_csv):
+        return
+
+    from collections import defaultdict
+    buckets = defaultdict(lambda: {'worst': [], 'avg': [], 'cpu': []})
+    with open(softirq_csv, 'r') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            val = int(row['MAX_SOFTIRQ_RESTART'])
+            buckets[val]['worst'].append(float(row['WorstLatUs']))
+            buckets[val]['avg'].append(float(row['AvgLatUs']))
+            buckets[val]['cpu'].append(float(row['SoftirqPct']))
+
+    if not buckets:
+        return
+
+    sorted_vals = sorted(buckets.keys())
+    hdr = f"{'MAX_SOFTIRQ_RESTART':>21s}  {'Worst Lat (us)':>14s}  {'Avg Lat (us)':>14s}  {'Softirq CPU%':>14s}"
+    sep = "-" * len(hdr)
+    print()
+    print(sep)
+    print(hdr)
+    print(sep)
+    for v in sorted_vals:
+        ws = buckets[v]['worst']
+        avgs = buckets[v]['avg']
+        cpus = buckets[v]['cpu']
+        w_lo, w_hi = int(min(ws)), int(max(ws))
+        a_lo, a_hi = int(min(avgs)), int(max(avgs))
+        c_lo, c_hi = min(cpus), max(cpus)
+        tag = " (default)" if v == 10 else ""
+        w_str = f"{w_lo}" if w_lo == w_hi else f"{w_lo} – {w_hi}"
+        a_str = f"{a_lo}" if a_lo == a_hi else f"{a_lo} – {a_hi}"
+        c_str = f"{c_lo:.1f}%" if abs(c_lo - c_hi) < 1.0 else f"{c_lo:.0f} – {c_hi:.0f}%"
+        label = f"{v}{tag}"
+        print(f"{label:>21s}  {w_str:>14s}  {a_str:>14s}  {c_str:>14s}")
+    print(sep)
+    print()
+
+
 if __name__ == '__main__':
     plot_figure9(csv_path, out_pdf)
+    print_summary_table(csv_path)
