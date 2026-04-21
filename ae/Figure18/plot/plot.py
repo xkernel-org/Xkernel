@@ -44,11 +44,18 @@ def parse_linux_klp_data(file_path):
 
 
 def parse_xkernel_data(file_path):
-    """Parse Xkernel data from file."""
+    """Parse Xkernel data from file.
+    Supports both legacy format (差值：X us) and new format (Waited: X ns)."""
     with open(file_path, 'r') as f:
         raw_data = f.read()
     waited_us = []
     for line in raw_data.strip().split('\n'):
+        # New format: "Waited: X ns" (includes BPF load time)
+        match = re.search(r'Waited: (\d+) ns', line)
+        if match:
+            waited_us.append(int(match.group(1)) / 1000.0)
+            continue
+        # Legacy format: "差值：X us"
         match = re.search(r'\u5dee\u503c\uff1a(\d+) us', line)
         if match:
             waited_us.append(int(match.group(1)))

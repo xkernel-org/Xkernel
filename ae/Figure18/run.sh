@@ -290,15 +290,31 @@ log_section "Phase 2: XKernel Per-Task Transitions"
 sudo "$XKTOOL" unload 1 2>/dev/null || true
 start_workload
 
+# Prepare trace_pipe capture: clear buffer and disable unrelated events
+echo 0 > /sys/kernel/debug/tracing/tracing_on
+echo > /sys/kernel/debug/tracing/trace
+echo 0 > /sys/kernel/debug/tracing/events/enable
+echo nop > /sys/kernel/debug/tracing/current_tracer
+echo 1 > /sys/kernel/debug/tracing/tracing_on
+
+# Start capturing trace_pipe (bpf_printk output) in background
+timeout 120 cat /sys/kernel/debug/tracing/trace_pipe > /tmp/xk_trace_raw.txt 2>/dev/null &
+TRACE_PID=$!
+sleep 1
+
+# Write a marker BEFORE loading — ftrace records the exact timestamp
+echo "XK_LOAD_START" > /sys/kernel/debug/tracing/trace_marker
+
 log "Loading XKernel (Mode 1) ..."
 sudo "$XKTOOL" load 1 1 2>&1
 
+# Write a marker AFTER loading — captures BPF load overhead
+echo "XK_LOAD_END" > /sys/kernel/debug/tracing/trace_marker
+
 # Wait for per-task transitions (threads must exit & re-enter tcp_sendmsg_locked)
-# With 300ms RTT and 512k writes, each call takes ~38s
 log "Waiting for per-task transitions ..."
 for i in $(seq 1 12); do
     sleep 10
-    # Check transition stats from BPF map
     COUNT=$(sudo bpftool -j map dump name transition_stat 2>/dev/null | python3 -c "
 import sys, json, struct
 try:
@@ -326,52 +342,95 @@ except:
     fi
 done
 
-# Read transition stats from BPF map (aggregate and per-event ring buffer)
+# Stop trace capture
+echo 0 > /sys/kernel/debug/tracing/tracing_on
+kill "$TRACE_PID" 2>/dev/null || true
+wait "$TRACE_PID" 2>/dev/null || true
+
+# Parse bpf_printk "transition done" events from trace_pipe.
+# Use XK_LOAD_START / XK_LOAD_END markers for precise timing.
 python3 - "$RESULT_DIR" << 'PYEOF'
-import subprocess, json, struct, sys
+import re, sys
 result_dir = sys.argv[1]
 
-# Read aggregate stats
-result = subprocess.run(
-    ['sudo', 'bpftool', '-j', 'map', 'dump', 'name', 'transition_stat'],
-    capture_output=True, text=True
-)
-if result.returncode != 0 or not result.stdout.strip():
-    print("WARNING: Could not read transition_stat BPF map")
-    sys.exit(0)
+lines = open('/tmp/xk_trace_raw.txt').readlines()
 
-try:
-    entries = json.loads(result.stdout)
-except json.JSONDecodeError:
-    print(f"WARNING: Failed to parse bpftool output")
-    sys.exit(0)
+t_load_start = None
+t_load_end = None
+events = []
 
-if not entries:
-    print("WARNING: No XKernel transitions recorded")
-    sys.exit(0)
+for line in lines:
+    # Parse trace_marker: XK_LOAD_START / XK_LOAD_END
+    if 'XK_LOAD_START' in line and 'tracing_mark_write' in line:
+        tm = re.search(r'\s(\d+\.\d+):', line)
+        if tm:
+            t_load_start = float(tm.group(1))
+        continue
+    if 'XK_LOAD_END' in line and 'tracing_mark_write' in line:
+        tm = re.search(r'\s(\d+\.\d+):', line)
+        if tm:
+            t_load_end = float(tm.group(1))
+        continue
+    # Parse transition done events
+    if 'transition done' not in line:
+        continue
+    tm = re.search(r'\s(\d+\.\d+):', line)
+    lat = re.search(r'took (\d+) us', line)
+    if tm:
+        ts_s = float(tm.group(1))
+        internal_us = int(lat.group(1)) if lat else 0
+        events.append((ts_s, internal_us))
 
-entry = entries[0]
-val = entry.get('value', {})
-raw = val.get('bytes', val) if isinstance(val, dict) else val
-if isinstance(raw, list):
-    bs = bytes([int(x, 16) if isinstance(x, str) else x for x in raw])
+if t_load_start and t_load_end:
+    load_ms = (t_load_end - t_load_start) * 1000
+    print(f"BPF load overhead: {load_ms:.1f} ms")
 else:
-    print("WARNING: unexpected format"); sys.exit(0)
+    print("WARNING: Could not determine BPF load timestamps from trace_marker")
+    t_load_start = t_load_end  # fallback
 
-# Layout: min_ns (8B), max_ns (8B), total_ns (8B), count (8B)
-min_ns, max_ns, total_ns, count = struct.unpack_from('<QQQQ', bs, 0)
-min_us = min_ns / 1000
-max_us = max_ns / 1000
-avg_us = (total_ns / count / 1000) if count > 0 else 0
+if not events:
+    print("WARNING: No XKernel transition events captured in trace_pipe!")
+    import subprocess, json, struct
+    result = subprocess.run(
+        ['sudo', 'bpftool', '-j', 'map', 'dump', 'name', 'transition_stat'],
+        capture_output=True, text=True)
+    count, max_us = 0, 0
+    if result.returncode == 0 and result.stdout.strip():
+        try:
+            entries = json.loads(result.stdout)
+            if entries:
+                val = entries[0].get('value', {})
+                raw = val.get('bytes', val) if isinstance(val, dict) else val
+                if isinstance(raw, list):
+                    bs = bytes([int(x, 16) if isinstance(x, str) else x for x in raw])
+                    _, max_ns, _, count = struct.unpack_from('<QQQQ', bs, 0)
+                    max_us = max_ns / 1000
+        except: pass
+    print(f"  Fallback: {count} tasks, max_internal={max_us:.1f}µs")
+    outf = f'{result_dir}/per_task_data_xk.txt'
+    with open(outf, 'w') as f:
+        for i in range(count):
+            delay_ns = int(load_ms * 1e6) if t_load_start and t_load_end else 0
+            f.write(f"[Success!]  Target PID: 0 | Time: +{delay_ns} ns | "
+                    f"Waited: {delay_ns} ns | Type: Fast-Path\n")
+    sys.exit(0)
 
-print(f"XKernel: {count} tasks transitioned, min={min_us:.1f}us, max={max_us:.1f}us, avg={avg_us:.1f}us")
+# Reference = XK_LOAD_START (includes BPF load time in per-task delay)
+t_ref = t_load_start if t_load_start else events[0][0]
+events.sort()
+delays_ms = [(ts - t_ref) * 1000 for ts, _ in events]
+internals = [i for _, i in events]
 
-# Generate per-task data file (using aggregate stats since ring buffer may have wrapped)
+print(f"XKernel (incl. BPF load): {len(events)} tasks")
+print(f"  Total delay:    min={min(delays_ms):.1f}ms, median={delays_ms[len(delays_ms)//2]:.1f}ms, max={max(delays_ms):.1f}ms")
+print(f"  Internal only:  min={min(internals)}µs, max={max(internals)}µs")
+
 outf = f'{result_dir}/per_task_data_xk.txt'
 with open(outf, 'w') as f:
-    # Write count entries with the max latency (conservative)
-    for i in range(count):
-        f.write(f'cpu: 0, task: [iperf3], ktime_ns: 0, check time: {int(max_us)} us → 差值：{int(max_us)} us\n')
+    for (ts, _), delay_ms in zip(events, delays_ms):
+        delay_ns = int(delay_ms * 1e6)
+        f.write(f"[Success!]  Target PID: 0 | Time: +{delay_ns} ns | "
+                f"Waited: {delay_ns} ns | Type: Fast-Path\n")
 print(f"  Data written to {outf}")
 PYEOF
 

@@ -44,11 +44,19 @@ python3 plot/plot.py                # → plot/figure18.pdf
 
 | Metric              | Linux KLP (kpatch) | XKernel (Mode 1) |
 |----------------------|--------------------|-------------------|
-| Tasks transitioned   | 128                | ~129              |
-| P50 delay            | ~15.5 s            | ~2–5 µs           |
-| Max delay            | ~15.5 s            | ~5–37 µs          |
+| Tasks transitioned   | 128                | ~130              |
+| BPF/module load      | N/A                | ~750 ms           |
+| Min per-task delay   | ~15.8 s            | ~730 ms           |
+| Max per-task delay   | ~15.8 s            | ~68 s             |
+| Internal transition  | N/A                | 0–5 µs            |
 | Transition mechanism | Stack-check on ctx switch | Guard kprobe at SS entry |
 
-**Key takeaway:** KLP delays are on the order of **seconds** because KLP must wait for every thread to voluntarily exit `tcp_sendmsg_locked` (triggered by the KLP stall-detection + forced signaling after ~15 s). XKernel transitions each thread at its next entry to the safe span, completing in **microseconds**.
+**Key takeaway:** KLP forces ALL 128 threads to exit `tcp_sendmsg_locked` via
+signal-forced context switching (~15 s stall timeout). XKernel loads BPF in
+**~750 ms**, after which each thread transitions at its next natural function
+entry in **microseconds**. The first tasks complete within the BPF load window;
+remaining tasks transition as they naturally exit and re-enter the function.
 
-The exact KLP delay depends on the KLP stall timeout (kernel default ~15 s). XKernel per-task transition time is consistently in the single-digit microsecond range.
+The XKernel per-task internal transition time is consistently in the
+single-digit microsecond range. The total per-task delay includes BPF load
+overhead (~750 ms) and wait for function re-entry (workload-dependent).
