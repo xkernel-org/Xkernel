@@ -80,14 +80,27 @@ def plot_figure18(results_dir):
 
     klp_p50 = np.median(klp_data)
     xk_p50 = np.median(xk_data)
-    print(f"\n=== Per-Task Transition Delays ===")
-    print(f"Linux KLP: {len(klp_data)} tasks, "
-          f"P50={klp_p50:.1f} us, "
-          f"min={np.min(klp_data):.1f} us, max={np.max(klp_data):.1f} us")
-    print(f"XKernel:   {len(xk_data)} tasks, "
-          f"P50={xk_p50:.1f} us, "
-          f"min={np.min(xk_data):.1f} us, max={np.max(xk_data):.1f} us")
-    print(f"Speedup (P50): {klp_p50 / max(xk_p50, 0.001):.0f}x")
+
+    # ── Print summary table ──────────────────────────────────────────
+    def fmt_delay(us):
+        if us >= 1_000_000:
+            return f"{us/1_000_000:.1f} s"
+        elif us >= 1000:
+            return f"{us/1000:.1f} ms"
+        else:
+            return f"{us:.1f} µs"
+
+    print()
+    print("=" * 62)
+    print(f"  {'Metric':<24} {'Linux KLP':>16}  {'XKernel':>16}")
+    print("-" * 62)
+    print(f"  {'Tasks':<24} {len(klp_data):>16}  {len(xk_data):>16}")
+    print(f"  {'P50 delay':<24} {fmt_delay(klp_p50):>16}  {fmt_delay(xk_p50):>16}")
+    print(f"  {'Min delay':<24} {fmt_delay(np.min(klp_data)):>16}  {fmt_delay(np.min(xk_data)):>16}")
+    print(f"  {'Max delay':<24} {fmt_delay(np.max(klp_data)):>16}  {fmt_delay(np.max(xk_data)):>16}")
+    speedup = klp_p50 / max(xk_p50, 0.001)
+    print(f"  {'Speedup (P50)':<24} {f'{speedup:.0f}x':>16}")
+    print("=" * 62)
 
     # ── CDF plot ─────────────────────────────────────────────────────
     fig, ax = plt.subplots(figsize=(9.5, 4))
