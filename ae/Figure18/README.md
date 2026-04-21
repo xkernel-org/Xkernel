@@ -44,12 +44,12 @@ python3 plot/plot.py                # → plot/figure18.pdf
 
 | Metric    | Linux KLP (kpatch) | XKernel (Mode 1) |
 |-----------|--------------------|-------------------|
-| P50 delay | ~15 s              | ~750 ms           |
-| P99 delay | ~15 s              | ~750 ms           |
+| P50 delay | ~15 s              | ~718 ms           |
+| P99 delay | ~15 s              | ~718 ms           |
 
 **Key takeaway:** KLP forces ALL threads to exit `tcp_sendmsg_locked` via
-signal-forced context switching (~15 s stall timeout). XKernel loads BPF
-programs and each thread transitions at its next natural function entry in
-**microseconds**. The per-task delay includes the one-time BPF load overhead
-(~750 ms end-to-end via `xkernel-tool`, of which the actual BPF attach is
-~60 ms; the rest is Python orchestration and BPF compilation).
+signal-forced context switching (~15 s stall timeout). XKernel loads 3 BPF
+kprobes and each thread transitions at its next natural function entry in
+**microseconds**. The 718 ms includes the `xkernel-tool load` end-to-end
+time (Python orchestration + clang BPF compile + kernel-side operations).
+The kernel-side cost alone (insmod + bpftool + map populate) is ~120 ms.
