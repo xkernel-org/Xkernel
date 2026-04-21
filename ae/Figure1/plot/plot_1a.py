@@ -84,3 +84,17 @@ ax.legend(loc='upper left', ncol=2, frameon=False, fontsize=TEXT_SIZE_LEGEND)
 plt.tight_layout()
 plot_common.save_fig(script_dir, 'figure1a')
 plt.close(fig)
+
+# ── Print summary table (matches README Expected Results) ────────────
+read_improv = (t_128_read / t_32_read - 1) * 100 if t_32_read else 0
+write_improv = (t_128_write / t_32_write - 1) * 100 if t_32_write else 0
+
+print()
+print("=" * 62)
+print("  Figure 1(a) — FIO Throughput on HDD (BLK_MAX_REQUEST_COUNT)")
+print("=" * 62)
+print(f"  {'Workload':<12} {'V=32':>12} {'V=128':>12} {'Improvement':>14}")
+print(f"  {'-'*12} {'-'*12} {'-'*12} {'-'*14}")
+print(f"  {'Read':<12} {t_32_read:>9.2f} MB/s {t_128_read:>9.2f} MB/s {read_improv:>+11.0f}%")
+print(f"  {'Write':<12} {t_32_write:>9.2f} MB/s {t_128_write:>9.2f} MB/s {write_improv:>+11.0f}%")
+print("=" * 62)
