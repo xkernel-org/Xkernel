@@ -1,25 +1,19 @@
 #!/bin/bash
 # install_nginx.sh — Install NGINX, wrk2, and generate workload files for Figure 12
 #
-# This script sets up both the NGINX server (local) and the wrk2 client (remote).
+# Run on the server (192.168.6.1). Installs:
+#   Server (local):  NGINX + heavy-tailed workload files
+#   Client (remote): wrk2 + Lua script (via SSH)
 #
 # Usage:
-#   bash install_nginx.sh [server|client|all]
-#
-# Default: all (installs both server and client components)
-#
-# Server (192.168.6.1):
-#   - Installs NGINX, generates heavy-tailed workload files
-# Client (192.168.6.2):
-#   - Installs wrk2, copies Lua script
+#   bash install_nginx.sh [CLIENT_IP]
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-COMPONENT="${1:-all}"
 
 SERVER_IP="192.168.6.1"
-CLIENT_IP="192.168.6.2"
+CLIENT_IP="${1:-192.168.6.2}"
 
 RED='\033[0;31m'; GREEN='\033[0;32m'; BOLD='\033[1m'; RST='\033[0m'
 log()    { echo -e "${BOLD}[$(date '+%H:%M:%S')]${RST} $*"; }
@@ -130,26 +124,29 @@ generate_workload() {
     ls -lhS "${target_dir}"/file_*.bin | head -3
 }
 
-# ── Client: Install wrk2 ────────────────────────────────────────────
+# ── Client: Install wrk2 (remote via SSH) ───────────────────────────
 install_client() {
-    log "Installing wrk2 dependencies ..."
-    sudo apt-get update -qq
-    sudo apt-get install -y -qq build-essential libssl-dev git bc iproute2
+    log "Installing wrk2 on client $CLIENT_IP ..."
+    ssh "$CLIENT_IP" bash -s <<'REMOTE_SCRIPT'
+set -euo pipefail
+sudo apt-get update -qq
+sudo apt-get install -y -qq build-essential libssl-dev git bc iproute2
 
-    local wrk2_dir="/tmp/wrk2"
-    if [[ ! -x "/usr/local/bin/wrk2" ]]; then
-        log "Building wrk2 from source ..."
-        rm -rf "$wrk2_dir"
-        git clone https://github.com/giltene/wrk2.git "$wrk2_dir"
-        make -C "$wrk2_dir" -j"$(nproc)"
-        sudo cp "$wrk2_dir/wrk" /usr/local/bin/wrk2
-        rm -rf "$wrk2_dir"
-        log_ok "wrk2 installed at /usr/local/bin/wrk2"
-    else
-        log_ok "wrk2 already installed"
-    fi
+if [[ ! -x "/usr/local/bin/wrk2" ]]; then
+    echo "[*] Building wrk2 from source ..."
+    rm -rf /tmp/wrk2
+    git clone https://github.com/giltene/wrk2.git /tmp/wrk2
+    make -C /tmp/wrk2 -j"$(nproc)"
+    sudo cp /tmp/wrk2/wrk /usr/local/bin/wrk2
+    rm -rf /tmp/wrk2
+    echo "[✓] wrk2 installed"
+else
+    echo "[✓] wrk2 already installed"
+fi
+REMOTE_SCRIPT
+    log_ok "wrk2 installed on $CLIENT_IP"
 
-    # Create Lua script for Zipf access pattern
+    # Create Lua script locally (scp'd to client at run time by run.sh)
     mkdir -p "$SCRIPT_DIR/lua"
     cat > "$SCRIPT_DIR/lua/zipf.lua" <<'LUA_SCRIPT'
 -- zipf.lua — Deterministic Zipf(0.8) access pattern for wrk2
@@ -189,25 +186,10 @@ LUA_SCRIPT
 }
 
 # ── Main ─────────────────────────────────────────────────────────────
-case "$COMPONENT" in
-    server)
-        install_server
-        ;;
-    client)
-        install_client
-        ;;
-    all)
-        install_server
-        install_client
-        ;;
-    *)
-        die "Unknown component: $COMPONENT (use: server, client, or all)"
-        ;;
-esac
+install_server
+install_client
 
-log_ok "Installation complete ($COMPONENT)"
+log_ok "Installation complete (server + client)"
 echo ""
 echo "Next steps:"
-echo "  On server ($SERVER_IP):  bash install_nginx.sh server"
-echo "  On client ($CLIENT_IP):  bash install_nginx.sh client"
-echo "  Then:                    sudo bash run.sh"
+echo "  sudo bash run.sh"

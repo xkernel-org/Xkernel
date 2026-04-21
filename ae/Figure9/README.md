@@ -8,22 +8,11 @@
 
 > **Note:** Run `bash plot_env.sh` (in the repo root) and `source ~/xk-py/bin/activate` before plotting.
 
-**Server** (192.168.6.1):
+All commands are run on the **server** (192.168.6.1):
 
 ```bash
-bash install_cyclictest.sh
-iperf3 -s -p 5200 & iperf3 -s -p 5201 & iperf3 -s -p 5202 &
-```
-
-**Client** (192.168.6.2):
-
-```bash
-bash client.sh 192.168.6.1
-```
-
-**Run experiment** (server):
-
-```bash
-sudo bash run.sh 3         # results → results/figure9.csv
-python3 plot/plot.py        # → plot/figure9.pdf
+bash ../setup_ssh.sh                # one-time SSH key setup
+bash install_cyclictest.sh          # installs server + client deps
+sudo bash run.sh 3                  # results → results/figure9.csv
+python3 plot/plot.py                # → plot/figure9.pdf
 ```

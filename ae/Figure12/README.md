@@ -8,21 +8,11 @@
 
 > **Note:** Run `bash plot_env.sh` (in the repo root) and `source ~/xk-py/bin/activate` before plotting.
 
-**Server** (192.168.6.1):
+All commands are run on the **server** (192.168.6.1):
 
 ```bash
-bash install_nginx.sh server
-```
-
-**Client** (192.168.6.2):
-
-```bash
-bash install_nginx.sh client
-```
-
-**Run experiment** (server):
-
-```bash
-sudo bash run.sh
-python3 plot/plot.py              # → plot/figure12.pdf
+bash ../setup_ssh.sh                # one-time SSH key setup
+bash install_nginx.sh               # installs server + client deps
+sudo bash run.sh                    # ~3 minutes
+python3 plot/plot.py                # → plot/figure12.pdf
 ```
