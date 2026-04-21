@@ -786,9 +786,11 @@ def cmd_load(args):
         print(f"Error: Failed to compile {os.path.basename(bpf_c)}")
         sys.exit(1)
     print(f"  Compiled: {os.path.basename(bpf_c)}")
+    sys.stdout.flush()
 
     # Step 3: Ensure kfuncs module is loaded (idempotent)
     # Must be before jump-opt probing since BPF programs use kfuncs
+    _kernel_side_t0 = time.monotonic_ns()
     if not ensure_kfuncs_loaded(project_root):
         print("Failed to load kfuncs module")
         sys.exit(1)
@@ -826,6 +828,9 @@ def cmd_load(args):
     if mode == 1:
         activate_constid(const_id, map_info)
         print(f"ConstID {const_id}: xk_active=1 (per-task mode ready)")
+
+    _kernel_side_ms = (time.monotonic_ns() - _kernel_side_t0) / 1_000_000
+    print(f"[XK-TIMING] kernel_side_ms={_kernel_side_ms:.1f}")
 
     # Step 7: Mode 2 (Global) — load consistency module, wait, activate
     if mode == 2:

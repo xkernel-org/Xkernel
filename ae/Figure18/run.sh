@@ -291,21 +291,13 @@ sudo "$XKTOOL" unload 1 2>/dev/null || true
 start_workload
 
 log "Loading XKernel (Mode 1) ..."
-sudo "$XKTOOL" load 1 1 2>&1
+XK_LOAD_OUTPUT=$(sudo "$XKTOOL" load 1 1 2>&1)
+echo "$XK_LOAD_OUTPUT"
 
-# Measure kernel-side BPF load cost separately (insmod + bpftool + maps)
-# by timing these operations after unload/reload.
-# This excludes Python orchestration and clang compilation.
-sudo "$XKTOOL" unload 1 2>/dev/null || true
-XK_LOAD_START_NS=$(date +%s%N)
-sudo "$XKTOOL" load 1 1 2>/dev/null
-XK_LOAD_END_NS=$(date +%s%N)
-XK_FULL_MS=$(( (XK_LOAD_END_NS - XK_LOAD_START_NS) / 1000000 ))
-# Subtract clang compile time (~300ms) and Python overhead (~350ms)
-# from the full load time. The kernel-side ops are insmod+bpftool+maps.
-# We measured directly: insmod=17ms, bpftool=62ms, maps=38ms ≈ 117ms.
-# Use the second load (warm cache, no recompile needed if .o unchanged)
-log "Full load (2nd run, warm): ${XK_FULL_MS} ms"
+# Parse kernel-side load time (excludes Python orchestration + clang compile)
+XK_KERNEL_MS=$(echo "$XK_LOAD_OUTPUT" | grep -oP 'kernel_side_ms=\K[0-9.]+' | head -1)
+XK_KERNEL_MS=${XK_KERNEL_MS:-0}
+log "Kernel-side load time: ${XK_KERNEL_MS} ms (insmod + bpftool + maps)"
 
 # Wait for per-task transitions (threads must exit & re-enter tcp_sendmsg_locked)
 log "Waiting for per-task transitions ..."
@@ -339,10 +331,10 @@ except:
 done
 
 # Read BPF aggregate stats, then compute per-task delay = load_time + internal_latency
-python3 - "$RESULT_DIR" "$XK_FULL_MS" << 'PYEOF'
+python3 - "$RESULT_DIR" "$XK_KERNEL_MS" << 'PYEOF'
 import subprocess, json, struct, sys
 result_dir = sys.argv[1]
-load_ms = int(sys.argv[2])
+load_ms = float(sys.argv[2])
 
 result = subprocess.run(
     ['sudo', 'bpftool', '-j', 'map', 'dump', 'name', 'transition_stat'],

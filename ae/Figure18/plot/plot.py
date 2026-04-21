@@ -97,14 +97,15 @@ def plot_figure18(results_dir):
         else:
             return f"{us:.1f} µs"
 
+    klp_p99 = np.percentile(klp_data, 99)
+    xk_p99 = np.percentile(xk_data, 99)
+
     print()
     print("=" * 62)
     print(f"  {'Metric':<24} {'Linux KLP':>16}  {'XKernel':>16}")
     print("-" * 62)
-    print(f"  {'Tasks':<24} {len(klp_data):>16}  {len(xk_data):>16}")
     print(f"  {'P50 delay':<24} {fmt_delay(klp_p50):>16}  {fmt_delay(xk_p50):>16}")
-    print(f"  {'Min delay':<24} {fmt_delay(np.min(klp_data)):>16}  {fmt_delay(np.min(xk_data)):>16}")
-    print(f"  {'Max delay':<24} {fmt_delay(np.max(klp_data)):>16}  {fmt_delay(np.max(xk_data)):>16}")
+    print(f"  {'P99 delay':<24} {fmt_delay(klp_p99):>16}  {fmt_delay(xk_p99):>16}")
     speedup = klp_p50 / max(xk_p50, 0.001)
     print(f"  {'Speedup (P50)':<24} {f'{speedup:.0f}x':>16}")
     print("=" * 62)
