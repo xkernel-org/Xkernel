@@ -79,7 +79,7 @@ command -v tc &>/dev/null || die "tc (iproute2) not found"
 systemctl is-active nginx &>/dev/null || die "NGINX not running. Run: bash install_nginx.sh"
 
 # Check wrk2 on client
-ssh "$CLIENT_IP" "which wrk2 >/dev/null 2>&1" || \
+ssh "$CLIENT_IP" "test -x /usr/local/bin/wrk2" || \
     die "wrk2 not found on client $CLIENT_IP. Run: bash install_nginx.sh"
 
 # Check Lua script on client
@@ -172,12 +172,12 @@ run_dual_wrk2() {
     scp -q "$LUA_SCRIPT" "${CLIENT_IP}:/tmp/zipf.lua"
 
     # Launch two wrk2 instances in parallel
-    ssh "$CLIENT_IP" "wrk2 -t$THREADS -c$CONNECTIONS -d${DURATION}s -R$RATE \
+    ssh "$CLIENT_IP" "/usr/local/bin/wrk2 -t$THREADS -c$CONNECTIONS -d${DURATION}s -R$RATE \
         --timeout ${TIMEOUT}s --latency -s /tmp/zipf.lua \
         http://${SERVER_IP}:${PORT_20MS}/" > "$outfile_20" 2>&1 &
     local pid_20=$!
 
-    ssh "$CLIENT_IP" "wrk2 -t$THREADS -c$CONNECTIONS -d${DURATION}s -R$RATE \
+    ssh "$CLIENT_IP" "/usr/local/bin/wrk2 -t$THREADS -c$CONNECTIONS -d${DURATION}s -R$RATE \
         --timeout ${TIMEOUT}s --latency -s /tmp/zipf.lua \
         http://${SERVER_IP}:${PORT_80MS}/" > "$outfile_80" 2>&1 &
     local pid_80=$!
