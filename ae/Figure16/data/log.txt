@@ -1,0 +1,6 @@
+date:       Tue Apr 21 04:36:42 MDT 2026
+kernel:     6.8.0-101-generic
+delays:     0 5 15 20 us
+threads:    10
+kprobe:     io_write+0x6
+iops_range: 100000..2900000
