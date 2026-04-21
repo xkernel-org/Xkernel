@@ -11,10 +11,11 @@ In this paper, we make the following primary claims:
 - Xkernel enables **collective tuning of interdependent consts**. (i.e., `HYSTART_DELAY_[MAX,MIN,factor]` in Figure 12)
 - Xkernel introduces **negligible overhead** at runtime. (i.e., Figure 16)
 
-### 1.2 Experiment Structure
+This artifact evaluation package reproduces Figure1/9/10/11/12/16 from the paper. Each figure corresponds to a self-contained experiment with detailed instructions in its `README.md` (under `ae/Figure*/`).
+
+### 1.2 Artifact Structure
 
 The artifact evaluation requires **5 CloudLab machines** provisioned via **3 CloudLab profiles** (under `ae/cloudlab-profiles/`).
-Each experiment's `README.md` (under `ae/Figure*/`) contains self-contained instructions.
 
 | Profile | Nodes | Hardware | Cluster | Used By |
 |---------|-------|----------|---------|---------|
@@ -33,9 +34,9 @@ Refer to the `README.md` inside each `Figure*/` directory for detailed instructi
 > **Note:** `run.sh`is designed to be **idempotent** (safe to re-run), though rare corner cases (e.g., unexpected interruption) may require manual cleanup before retrying.
 
 
-### 1.3 Estimated Time Commitment
+### 1.3 Artifact Time
 
-- Install Xkernel in parallel on three machines (Section 2.3) — ⏱ **20-30 min**
+- Install Xkernel in parallel on three machines ([Section 2.3](#23-install-xkernel)) — ⏱ **20-30 min**
 
 - Run experiments in parallel
 
@@ -56,8 +57,6 @@ If you do not already have a CloudLab account, please apply for one [here](https
 ### 2.1. Reserve Nodes
 
 Machines may not always be available. To guarantee availability, click **Experiments → Reserve Nodes** from the CloudLab dashboard. Select the appropriate cluster and hardware type (see table above), specify the number of nodes and your desired time window, then submit the request. See [Resource Reservation](http://docs.cloudlab.us/reservations.html) for details.
-
-> **Note:** A reservation does not automatically start an experiment.
 
 ### 2.2. Create Experiments Using Profiles
 
