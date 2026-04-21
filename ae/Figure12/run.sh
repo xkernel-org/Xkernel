@@ -18,12 +18,11 @@
 #   - Port 8080 → 80ms RTT (netem delay 40ms each side)
 #
 # Usage:
-#   sudo bash run.sh [--duration SECS] [--rate RPS] [--threads N] [--connections N]
+#   bash run.sh [--duration SECS] [--rate RPS] [--threads N] [--connections N]
 #
 # Prerequisites:
-#   - Server: bash install_nginx.sh server  (NGINX + workload files)
-#   - Client: bash install_nginx.sh client  (wrk2 + Lua script)
-#   - Server: sudo bash build.sh            (build KernelX)
+#   - Server: bash install_nginx.sh  (NGINX + workload files + wrk2 on client)
+#   - Server: sudo bash build.sh     (build KernelX)
 
 set -euo pipefail
 
@@ -77,11 +76,11 @@ log_section "Preflight checks"
 
 [[ -x "$XKTOOL" ]]    || die "xkernel-tool not found at $XKTOOL"
 command -v tc &>/dev/null || die "tc (iproute2) not found"
-systemctl is-active nginx &>/dev/null || die "NGINX not running. Run: bash install_nginx.sh server"
+systemctl is-active nginx &>/dev/null || die "NGINX not running. Run: bash install_nginx.sh"
 
 # Check wrk2 on client
-ssh "$CLIENT_IP" "which wrk2 >/dev/null 2>&1" || \
-    die "wrk2 not found on client $CLIENT_IP. Run: bash install_nginx.sh client"
+ssh "$CLIENT_IP" "test -x /usr/local/bin/wrk2" || \
+    die "wrk2 not found on client $CLIENT_IP. Run: bash install_nginx.sh"
 
 # Check Lua script on client
 LUA_SCRIPT="$SCRIPT_DIR/lua/zipf.lua"
@@ -139,7 +138,7 @@ set_dual_delay() {
         u32 match ip sport "$PORT_80MS" 0xffff flowid 1:2
 
     # Client: classify by dest port (client sends TO port 80/8080)
-    run_as_user ssh "$CLIENT_IP" "
+    ssh "$CLIENT_IP" "
     sudo tc qdisc del dev $NIC root 2>/dev/null
     sudo tc qdisc add dev $NIC root handle 1: prio bands 3 \
         priomap 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2
@@ -157,18 +156,8 @@ set_dual_delay() {
 
 clear_delay() {
     sudo tc qdisc del dev "$NIC" root 2>/dev/null || true
-    run_as_user ssh "$CLIENT_IP" "sudo tc qdisc del dev $NIC root 2>/dev/null" || true
+    ssh "$CLIENT_IP" "sudo tc qdisc del dev $NIC root 2>/dev/null" || true
     log "netem: cleared on both sides"
-}
-
-# ── Helper: run command as the original (non-root) user ──────────────
-# When run under sudo, scp/ssh need the original user's SSH keys
-run_as_user() {
-    if [[ -n "${SUDO_USER:-}" && "$EUID" -eq 0 ]]; then
-        sudo -u "$SUDO_USER" "$@"
-    else
-        "$@"
-    fi
 }
 
 # ── Helper: copy Lua script to client and run wrk2 on both ports ─────
@@ -179,16 +168,16 @@ run_dual_wrk2() {
 
     log "Running wrk2 on both ports simultaneously (label=${label})"
 
-    # Copy Lua script to client (as original user for SSH key access)
-    run_as_user scp -q "$LUA_SCRIPT" "${CLIENT_IP}:/tmp/zipf.lua"
+    # Copy Lua script to client
+    scp -q "$LUA_SCRIPT" "${CLIENT_IP}:/tmp/zipf.lua"
 
     # Launch two wrk2 instances in parallel
-    run_as_user ssh "$CLIENT_IP" "wrk2 -t$THREADS -c$CONNECTIONS -d${DURATION}s -R$RATE \
+    ssh "$CLIENT_IP" "/usr/local/bin/wrk2 -t$THREADS -c$CONNECTIONS -d${DURATION}s -R$RATE \
         --timeout ${TIMEOUT}s --latency -s /tmp/zipf.lua \
         http://${SERVER_IP}:${PORT_20MS}/" > "$outfile_20" 2>&1 &
     local pid_20=$!
 
-    run_as_user ssh "$CLIENT_IP" "wrk2 -t$THREADS -c$CONNECTIONS -d${DURATION}s -R$RATE \
+    ssh "$CLIENT_IP" "/usr/local/bin/wrk2 -t$THREADS -c$CONNECTIONS -d${DURATION}s -R$RATE \
         --timeout ${TIMEOUT}s --latency -s /tmp/zipf.lua \
         http://${SERVER_IP}:${PORT_80MS}/" > "$outfile_80" 2>&1 &
     local pid_80=$!

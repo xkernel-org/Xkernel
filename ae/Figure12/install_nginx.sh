@@ -192,4 +192,4 @@ install_client
 log_ok "Installation complete (server + client)"
 echo ""
 echo "Next steps:"
-echo "  sudo bash run.sh"
+echo "  bash run.sh"
