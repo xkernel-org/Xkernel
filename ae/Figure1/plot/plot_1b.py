@@ -67,6 +67,21 @@ except FileNotFoundError:
     user_1, sys_1, iowait_1 = 10, 20, 5
     user_32, sys_32, iowait_32 = 15, 25, 10
 
+# ── Summary table ────────────────────────────────────────────────────
+print()
+print("=" * 58)
+print(f"  {'Metric':<22} {'V=32 (default)':>14}  {'V=1 (tuned)':>14}")
+print("-" * 58)
+print(f"  {'P50 latency (µs)':<22} {p50_32:>14.1f}  {p50_1:>14.1f}")
+print(f"  {'P75 latency (µs)':<22} {p75_32:>14.1f}  {p75_1:>14.1f}")
+print(f"  {'P50 reduction':<22} {f'{p50_32/max(p50_1,0.1):.2f}×':>14}")
+print(f"  {'P75 reduction':<22} {f'{p75_32/max(p75_1,0.1):.2f}×':>14}")
+print(f"  {'%user':<22} {user_32:>14.1f}  {user_1:>14.1f}")
+print(f"  {'%kernel':<22} {sys_32:>14.1f}  {sys_1:>14.1f}")
+print(f"  {'%iowait':<22} {iowait_32:>14.1f}  {iowait_1:>14.1f}")
+print(f"  {'iowait Δ':<22} {f'{iowait_32-iowait_1:+.1f}%':>14}")
+print("=" * 58)
+
 # ── Plot ─────────────────────────────────────────────────────────────
 fig, (ax_lat, ax_cpu) = plt.subplots(1, 2, figsize=(7, 3.5),
                                       gridspec_kw={'width_ratios': [1, 1], 'wspace': 0.55})
