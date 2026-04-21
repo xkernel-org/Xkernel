@@ -1,4 +1,4 @@
-# Artifact Evaluation for "Principled Performance Tunability in Operating System Kernels" (OSDI '26)
+# Artifact Evaluation for "Xkernel: Rethinking Performance Tunability of Operating System Kernels" (OSDI '26)
 
 ## 1. Overview
 
