@@ -13,6 +13,7 @@ All commands are run on the **server** (192.168.6.1):
 ```bash
 bash ../setup_ssh.sh                # one-time SSH key setup
 bash install_cyclictest.sh          # installs server + client deps
+export KERNEL_DIR=~/linux-6.8.0     # kernel source for codegen
 bash run.sh 3                       # ~20 minutes (machine time)
 python3 plot/plot.py                # → plot/figure9.pdf
 ```
