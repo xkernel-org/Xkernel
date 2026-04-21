@@ -9,7 +9,7 @@ this document covers only the CloudLab setup.
 | Profile | Nodes | Hardware | Cluster | Used By |
 |---------|-------|----------|---------|---------|
 | `c220g5.xml` | 1 | c220g5 | Wisconsin | Figure 1(a), 10, 11 |
-| `c6620.xml` | 2 | c6620  | Clemson | Figures 1(b), 16, 18 |
+| `c6620.xml` | 2 | c6620  | Clemson | Figures 1(b), 16 |
 | `xl170.xml` | 2 | xl170 | Utah | Figures 9, 12|
 
 If you have any questions, feel free to contact us via email or HotCRP.

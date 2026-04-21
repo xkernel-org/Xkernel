@@ -1,8 +1,0 @@
-# Large kpatch module (1.4MB, built by kpatch-build)
-klp_module/kpatch-tcp-backlog.ko
-# Build artifacts
-klp_module/*.o
-klp_module/.*.cmd
-klp_module/modules.order
-klp_module/Module.symvers
-# Results are committed for reproducibility

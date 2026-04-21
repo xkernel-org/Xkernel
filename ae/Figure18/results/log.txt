@@ -1,6 +1,0 @@
-date:        Tue Apr 21 08:09:21 MDT 2026
-kernel:      6.8.0-101-generic
-IPERF_PARALLEL=128
-IPERF_WINDOW=4k
-IPERF_LENGTH=512k
-NETEM_DELAY=150ms (each side, RTT=300ms)
