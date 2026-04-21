@@ -130,7 +130,7 @@ install_client() {
     ssh "$CLIENT_IP" bash -s <<'REMOTE_SCRIPT'
 set -euo pipefail
 sudo apt-get update -qq
-sudo apt-get install -y -qq build-essential libssl-dev git bc iproute2
+sudo apt-get install -y -qq build-essential libssl-dev zlib1g-dev git bc iproute2
 
 if [[ ! -x "/usr/local/bin/wrk2" ]]; then
     echo "[*] Building wrk2 from source ..."
