@@ -20,7 +20,7 @@ The artifact evaluation requires **5 CloudLab machines** provisioned via **3 Clo
 | Profile | Nodes | Hardware | Cluster | Used By |
 |---------|-------|----------|---------|---------|
 | `c220g5.xml` | 1 | c220g5 | Wisconsin | Figure 1(a), 10, 11 |
-| `c6620.xml` | 2 | c6620  | Clemson | Figures 1(b), 16 |
+| `c6620.xml` | 2 | c6620  | Clemson | Figures 1(b), 16, 18 |
 | `xl170.xml` | 2 | xl170 | Utah | Figures 9, 12|
 
 Each experiment directory (`ae/Figure*/`) follows a common three-script structure:
