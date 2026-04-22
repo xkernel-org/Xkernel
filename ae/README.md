@@ -3,7 +3,7 @@
 ## 1. Overview
 
 ### 1.1 Artifact Goals
-In this paper, we make the following primary claims:
+In this paper, we make the following claims:
 - Xkernel enables tuning consts for **adapting to hardware devices and workload patterns**. (i.e., `BLK_MAX_REQUEST_COUNT` in Figure 1)
 - Xkernel enables tuning consts for **balancing cost-benefit tradeoffs**. (i.e., `MAX_SOFT_IRQ_RESTART` in Figure 9)
 - Xkernel enables tuning consts for **controlling kernel internal behavior**. (i.e., `SHRINK_BATCH` in Figure 10)
@@ -12,7 +12,9 @@ In this paper, we make the following primary claims:
 - Xkernel introduces **negligible overhead** at runtime. (i.e., Figure 16)
 - Xkernel has **lower transition latency than Linux KLP**. (i.e., Figure 18)
 
-This artifact evaluation package reproduces Figure1/9/10/11/12/16 from the paper. Each figure corresponds to a self-contained experiment with detailed instructions in its `README.md` (under `ae/Figure*/`).
+We also provide a dataset characterization of perf-consts in the Linux kernel (Figures 13-14) and ad-hoc design drill-down measurements for understanding the Xkernel deployment pipeline (Figure 17) and global convergence overhead (Figures 19-20).
+
+This artifact evaluation package reproduces all figures from the paper. Each figure corresponds to a self-contained experiment with detailed instructions in its `README.md` (under `ae/Figure*/`). Figure1/9/10/11/12/16 needs to be reproduced by running the corresponding experiment, while Figure13-14/17/19-20 (which are dataset-related or ad-hoc design drill-down) are plot-only and can be generated from the provided raw data.
 
 ### 1.2 Artifact Structure
 
@@ -46,6 +48,7 @@ Refer to the `README.md` inside each `Figure*/` directory for detailed instructi
     | `c220g5` | 1(a) → 10 → 11 | ⏱ **5 min + TODO + TODO** |
     | `c6620` | 1(b) → 16 → 18 | ⏱ **5 min + 10 min + 40min** |
     | `xl170` | 9 → 12 | ⏱ **20 min + 10 min** |
+    | `Your laptop` | 13-14, 17, 19-20 | ⏱ **5 min** |
 
 If you have any questions, feel free to contact us via email or HotCRP.
 
