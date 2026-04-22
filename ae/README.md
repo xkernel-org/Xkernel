@@ -10,6 +10,7 @@ In this paper, we make the following primary claims:
 - Xkernel enables tuning consts with **kernel and hardware observability**. (i.e., `NR_MAX_BATCHED_MIGRATION` in Figure 11)
 - Xkernel enables **collective tuning of interdependent consts**. (i.e., `HYSTART_DELAY_[MAX,MIN,factor]` in Figure 12)
 - Xkernel introduces **negligible overhead** at runtime. (i.e., Figure 16)
+- Xkernel has **lower transition latency than Linux KLP**. (i.e., Figure 18)
 
 This artifact evaluation package reproduces Figure1/9/10/11/12/16 from the paper. Each figure corresponds to a self-contained experiment with detailed instructions in its `README.md` (under `ae/Figure*/`).
 
@@ -43,7 +44,7 @@ Refer to the `README.md` inside each `Figure*/` directory for detailed instructi
     | Machine | Figures | Est. Time |
     |---------|---------|-----------|
     | `c220g5` | 1(a) → 10 → 11 | ⏱ **5 min + TODO + TODO** |
-    | `c6620` | 1(b) → 16 | ⏱ **5 min + 10 min** |
+    | `c6620` | 1(b) → 16 → 18 | ⏱ **5 min + 10 min + 40min** |
     | `xl170` | 9 → 12 | ⏱ **20 min + 10 min** |
 
 If you have any questions, feel free to contact us via email or HotCRP.
