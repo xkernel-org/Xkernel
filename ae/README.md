@@ -14,7 +14,7 @@ In this paper, we make the following claims:
 
 We also provide a dataset characterization of perf-consts in the Linux kernel (Figures 13-14) and ad-hoc design drill-down measurements for understanding the Xkernel deployment pipeline (Figure 17) and global convergence overhead (Figures 19-20).
 
-This artifact evaluation package reproduces all figures from the paper. Each figure corresponds to a self-contained experiment with detailed instructions in its `README.md` (under `ae/Figure*/`). Figure1/9/10/11/12/16 needs to be reproduced by running the corresponding experiment, while Figure13-14/17/19-20 (which are dataset-related or ad-hoc design drill-down) are plot-only and can be generated from the provided raw data.
+This artifact evaluation package reproduces all figures from the paper. Each figure corresponds to a self-contained experiment with detailed instructions in its `README.md` (under `ae/Figure*/`). Figure1/9/10/11/12/16/18 needs to be reproduced by running the corresponding experiment, while Figure13-14/17/19-20 (which are dataset-related or ad-hoc design drill-down) are plot-only and can be generated from the provided raw data.
 
 ### 1.2 Artifact Structure
 
