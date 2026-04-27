@@ -5,6 +5,9 @@
 This figure compares the code size (in number of instructions) of whole
 functions against CSes and SSes. It is **plot-only** — no experiment needs to be run.
 
+Optionally refer to [linux-analysis](https://github.com/xkernel-org/linux-analysis)
+repo on how to get SS statistics, namely `ss_instr_size.txt`.
+
 ## Prerequisites
 
 ```bash

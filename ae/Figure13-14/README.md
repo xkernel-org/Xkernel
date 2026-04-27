@@ -7,6 +7,9 @@
 These figures characterize the dataset of perf-consts identified in the Linux
 kernel. They are **plot-only** — no experiment needs to be run.
 
+Optionally refer to [linux-analysis](https://github.com/xkernel-org/linux-analysis)
+repo on how to get SS statistics, namely `disjoint_sses_xyz.txt` and `ss_number_dist.txt`.
+
 ## Prerequisites
 
 ```bash
