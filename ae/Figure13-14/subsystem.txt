@@ -1,0 +1,6 @@
+net	34
+block	28
+io	9
+cpu	17
+fs	35
+mm	17
