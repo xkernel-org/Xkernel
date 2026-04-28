@@ -2,6 +2,8 @@ proxychains.conf
 paper.pdf
 *.o
 *.txt
+!ae/Figure17/*.txt
+!ae/Figure19-20/**/*.txt
 *.ko
 *.mod
 *.mod.c

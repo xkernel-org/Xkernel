@@ -1,0 +1,14 @@
+68/s
+cubictcp_acked,0xffffffffad3226a0,0x0,0x20a
+   kprobe_loader-2561173 [030] b..11 159462.596280: bpf_trace_printk: 159457593550889
+   kprobe_loader-2561173 [030] b..11 159462.601621: bpf_trace_printk: 159457598892294
+            sshd-2421314 [021] ..s41 159462.604524: bpf_trace_printk: cpu: 21, task: [sshd], ktime_ns: 159457601790268, check time: 5 us
+          <idle>-0       [021] ..s41 159462.634191: bpf_trace_printk: cpu: 21, task: [swapper/21], ktime_ns: 159457631456408, check time: 5 us
+            node-3305    [034] ..s41 159462.661345: bpf_trace_printk: cpu: 34, task: [node], ktime_ns: 159457658611116, check time: 5 us
+            node-12284   [018] ..s41 159462.697924: bpf_trace_printk: cpu: 18, task: [node], ktime_ns: 159457695194697, check time: 1 us
+          <idle>-0       [001] ..s41 159462.846844: bpf_trace_printk: cpu: 1, task: [swapper/1], ktime_ns: 159457844109774, check time: 5 us
+          <idle>-0       [022] ..s41 159462.854870: bpf_trace_printk: cpu: 22, task: [swapper/22], ktime_ns: 159457852135746, check time: 5 us
+          <idle>-0       [037] ..s41 159462.962830: bpf_trace_printk: cpu: 37, task: [swapper/37], ktime_ns: 159457960095996, check time: 5 us
+          <idle>-0       [031] ..s41 159463.351833: bpf_trace_printk: cpu: 31, task: [swapper/31], ktime_ns: 159458349099586, check time: 5 us
+          <idle>-0       [018] ..s41 159463.952790: bpf_trace_printk: cpu: 18, task: [swapper/18], ktime_ns: 159458950056528, check time: 5 us
+          <idle>-0       [023] ..s41 159464.112848: bpf_trace_printk: cpu: 23, task: [swapper/23], ktime_ns: 159459110113874, check time: 5 us

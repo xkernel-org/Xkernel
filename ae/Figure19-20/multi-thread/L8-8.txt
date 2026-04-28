@@ -1,0 +1,4 @@
+
+[ 9256.076724] Initial refcount: 7
+[ 9256.076745] [Transition] Waiting for transition to be done or failed
+[ 9256.125704] [Transition] Transition done, time: 48245 us, max refcount: 9, op count: 3302

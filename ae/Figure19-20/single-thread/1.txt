@@ -1,0 +1,29 @@
+
+3/s
+task_scan_start,0xffffffffac3e0860,0x1f,0xc8d9
+task_numa_fault,0xffffffffac3ec8f0,0x7df,0x849
+task_scan_max,0xffffffffac3e0c10,0x21,0xc529
+
+   kprobe_loader-2465888 [006] b..11 147034.306363: bpf_trace_printk: 147029305779950
+   kprobe_loader-2465888 [006] b..11 147034.309737: bpf_trace_printk: 147029309154672
+              sh-2465913 [000] ...21 147037.042734: bpf_trace_printk: cpu: 0, task: [sh], ktime_ns: 147032042146635, check time: 3 us
+              sh-2465915 [029] ...21 147037.046344: bpf_trace_printk: cpu: 29, task: [sh], ktime_ns: 147032045756130, check time: 3 us
+              sh-2465917 [005] ...21 147037.067056: bpf_trace_printk: cpu: 5, task: [sh], ktime_ns: 147032066465242, check time: 6 us
+              sh-2465926 [000] ...21 147037.086303: bpf_trace_printk: cpu: 0, task: [sh], ktime_ns: 147032085715527, check time: 3 us
+              sh-2465928 [029] ...21 147037.089620: bpf_trace_printk: cpu: 29, task: [sh], ktime_ns: 147032089034078, check time: 2 us
+              sh-2465930 [000] ...21 147037.107858: bpf_trace_printk: cpu: 0, task: [sh], ktime_ns: 147032107267066, check time: 6 us
+              sh-2465960 [000] ...21 147038.928355: bpf_trace_printk: cpu: 0, task: [sh], ktime_ns: 147033927764696, check time: 3 us
+              sh-2465962 [001] ...21 147038.932333: bpf_trace_printk: cpu: 1, task: [sh], ktime_ns: 147033931744442, check time: 1 us
+              sh-2465964 [002] ...21 147038.949718: bpf_trace_printk: cpu: 2, task: [sh], ktime_ns: 147033949130355, check time: 1 us
+              sh-2465992 [028] ...21 147040.723275: bpf_trace_printk: cpu: 28, task: [sh], ktime_ns: 147035722679664, check time: 6 us
+              sh-2465994 [031] ...21 147040.726931: bpf_trace_printk: cpu: 31, task: [sh], ktime_ns: 147035726339729, check time: 3 us
+              sh-2465995 [001] ...21 147040.727675: bpf_trace_printk: cpu: 1, task: [sh], ktime_ns: 147035727084828, check time: 1 us
+              sh-2465998 [028] ...21 147040.730448: bpf_trace_printk: cpu: 28, task: [sh], ktime_ns: 147035729855684, check time: 3 us
+              sh-2466000 [031] ...21 147040.744215: bpf_trace_printk: cpu: 31, task: [sh], ktime_ns: 147035743620743, check time: 5 us
+              sh-2466004 [043] ...21 147040.750380: bpf_trace_printk: cpu: 43, task: [sh], ktime_ns: 147035749784558, check time: 6 us
+              sh-2466023 [015] ...21 147042.087610: bpf_trace_printk: cpu: 15, task: [sh], ktime_ns: 147037087013064, check time: 18 us
+              sh-2466025 [018] ...21 147042.092903: bpf_trace_printk: cpu: 18, task: [sh], ktime_ns: 147037092306445, check time: 6 us
+              sh-2466027 [043] ...21 147042.112295: bpf_trace_printk: cpu: 43, task: [sh], ktime_ns: 147037111698704, check time: 6 us
+              sh-2466042 [043] ...21 147043.928667: bpf_trace_printk: cpu: 43, task: [sh], ktime_ns: 147038928071901, check time: 3 us
+              sh-2466044 [018] ...21 147043.933821: bpf_trace_printk: cpu: 18, task: [sh], ktime_ns: 147038933222535, check time: 6 us
+              sh-2466046 [043] ...21 147043.952991: bpf_trace_printk: cpu: 43, task: [sh], ktime_ns: 147038952394693, check time: 3 us

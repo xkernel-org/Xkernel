@@ -1,0 +1,23 @@
+6791/s
+dequeue_task_fair,0xffffffffac3eac80,0x6d,0x70
+dequeue_task_fair,0xffffffffac3eac80,0x1d9,0x1e0
+kprobe_loader-2558701 [034] b..11 159259.681315: bpf_trace_printk: 159254678580489
+  kworker/u224:1-2551147 [013] d.Z31 159259.699233: bpf_trace_printk: cpu: 13, task: [kworker/u224:1], ktime_ns: 159254696492563, check time: 6 us
+            sudo-2558699 [032] d.Z31 159259.699382: bpf_trace_printk: cpu: 32, task: [sudo], ktime_ns: 159254696642119, check time: 5 us
+            node-3422    [022] d.Z31 159259.699728: bpf_trace_printk: cpu: 22, task: [node], ktime_ns: 159254696987871, check time: 5 us
+            main-2558593 [023] d.Z31 159259.699823: bpf_trace_printk: cpu: 23, task: [main], ktime_ns: 159254697083267, check time: 7 us
+     rcu_preempt-18      [039] d.Z31 159259.699873: bpf_trace_printk: cpu: 39, task: [rcu_preempt], ktime_ns: 159254697132915, check time: 5 us
+   kprobe_loader-2558701 [034] b..11 159259.701937: bpf_trace_printk: 159254699200557
+   kprobe_loader-2558701 [034] dNZ31 159259.702542: bpf_trace_printk: cpu: 34, task: [kprobe_loader], ktime_ns: 159254699803330, check time: 5 us
+  kworker/u224:2-2542528 [040] d.Z31 159259.702709: bpf_trace_printk: cpu: 40, task: [kworker/u224:2], ktime_ns: 159254699968823, check time: 5 us
+            sudo-2558700 [005] dNZ31 159259.703243: bpf_trace_printk: cpu: 5, task: [sudo], ktime_ns: 159254700502479, check time: 6 us
+ systemd-journal-14459   [027] d.Z31 159259.703509: bpf_trace_printk: cpu: 27, task: [systemd-journal], ktime_ns: 159254700769137, check time: 5 us
+  systemd-logind-1524    [026] d.Z31 159259.703521: bpf_trace_printk: cpu: 26, task: [systemd-logind], ktime_ns: 159254700781277, check time: 5 us
+     in:imuxsock-14465   [037] d.Z31 159259.703558: bpf_trace_printk: cpu: 37, task: [in:imuxsock], ktime_ns: 159254700818451, check time: 5 us
+   rs:main Q:Reg-14467   [016] d.Z31 159259.703714: bpf_trace_printk: cpu: 16, task: [rs:main Q:Reg], ktime_ns: 159254700973990, check time: 5 us
+    kworker/32:2-2467675 [032] d.Z31 159259.704652: bpf_trace_printk: cpu: 32, task: [kworker/32:2], ktime_ns: 159254701911346, check time: 5 us
+         systemd-1       [041] d.Z31 159259.705062: bpf_trace_printk: cpu: 41, task: [systemd], ktime_ns: 159254702323019, check time: 5 us
+            node-3305    [021] d.Z31 159259.705284: bpf_trace_printk: cpu: 21, task: [node], ktime_ns: 159254702543586, check time: 5 us
+    xkernel-tool-2558694 [025] dNZ31 159259.705366: bpf_trace_printk: cpu: 25, task: [xkernel-tool], ktime_ns: 159254702625351, check time: 5 us
+            node-3312    [002] d.Z31 159259.706506: bpf_trace_printk: cpu: 2, task: [node], ktime_ns: 159254703765691, check time: 5 us
+    kworker/34:4-2548884 [034] d.Z31 159259.706757: bpf_trace_printk: cpu: 34, task: [kworker/34:4], ktime_ns: 159254704021814, check time: 1 us

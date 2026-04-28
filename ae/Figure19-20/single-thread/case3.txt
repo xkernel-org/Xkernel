@@ -1,0 +1,9 @@
+tcp_rcv_state_process,0xffffffffad2b9ac0,0x3ea,0x3ff
+tcp_data_queue,0xffffffffad2b7bf0,0x7ad,0x7c2
+tcp_event_data_recv,0xffffffffad2b02b0,0x243,0x252
+tcp_send_dupack,0xffffffffad2b02b0,0x7d,0x92
+
+6320157/6328166/6332243, 315001/s, 1
+6198505/6199333/6201078, 1095208/s, 4
+6441066/6450277/6462807, 1905123/s, 8
+6506686/6510027/6516094, 3496769/s, 16

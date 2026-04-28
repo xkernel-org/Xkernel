@@ -1,0 +1,5 @@
+
+[ 8369.791414] Initial refcount: 15
+[ 8369.791433] [Transition] Waiting for transition to be done or failed
+[ 8369.845255] [Transition] Transition done, time: 52264 us, max refcount: 18, op count: 5043
+[ 8374.337511] Xkernel global consistency module unloaded
