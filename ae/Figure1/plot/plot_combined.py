@@ -5,10 +5,10 @@ import sys
 import os
 import matplotlib.pyplot as plt
 import numpy as np
-import matplotlib.gridspec as gridspec  # 引入 GridSpec 用于精细控制布局
+import matplotlib.gridspec as gridspec  # Import GridSpec for fine-grained layout control
 import seaborn as sns
 
-# 假设 plot_common 在你的环境中可用
+# Assume plot_common is available in this environment
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import plot_common
 
@@ -33,7 +33,7 @@ COLOR_32 = palette[3]
 COLOR_1 = palette[5]
 
 # ==========================================
-# 1. 数据准备
+# 1. Data preparation
 # ==========================================
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -50,7 +50,7 @@ def parse_hdd_log(path):
     return 0
 
 
-# --- Part A: Throughput 数据 (from HDD results) ---
+# --- Part A: Throughput data (from HDD results) ---
 try:
     t_32_read  = parse_hdd_log(os.path.join(results_dir, 'hdd_32_read.txt'))
     t_128_read = parse_hdd_log(os.path.join(results_dir, 'hdd_128_read.txt'))
@@ -65,7 +65,7 @@ tp_values_32 = [t_32_read, t_32_write]
 tp_values_128 = [t_128_read, t_128_write]
 tp_labels = ['Read', 'Write']
 
-# --- Part B: Latency & CPU 数据 (from NVMe results) ---
+# --- Part B: Latency and CPU data (from NVMe results) ---
 try:
     with open(os.path.join(results_dir, 'nvme_1.txt'), 'r') as f: content_1 = f.read()
     with open(os.path.join(results_dir, 'nvme_32.txt'), 'r') as f: content_32 = f.read()
@@ -107,33 +107,33 @@ except FileNotFoundError:
     user_32, sys_32, iowait_32 = 15, 25, 10
 
 # ==========================================
-# 2. 绘图设置
+# 2. Plot setup
 # ==========================================
 
 fig = plt.figure(figsize=(11.5, 3))
 
-# --- 修改布局逻辑 ---
-# 使用嵌套 GridSpec 来实现右侧两图靠近的需求
-# 外层：将画布分为 [左侧, (中间+右侧)] 两部分
-# width_ratios=[1, 2.2]: 右侧区域稍微宽一点，因为它包含两个子图
-# wspace=0.5: 增加左侧图与右侧整体区域的间距
+# --- Layout adjustment ---
+# Use nested GridSpec to keep the two right-side plots close together.
+# Outer grid: split the canvas into [left, (middle + right)].
+# width_ratios=[1, 2.2]: make the right region wider because it contains two subplots.
+# wspace=0.5: increase spacing between the left plot and the right-side region.
 gs_outer = fig.add_gridspec(1, 2, width_ratios=[1, 2.2], wspace=0.4)
 
-# 内层：在右侧区域内，分为 [中间, 右侧]
-# wspace=0.5: 增加间距，让中间图和右侧图之间有更多空间
+# Inner grid: split the right-side region into [middle, right].
+# wspace=0.5: increase spacing between the middle and right plots.
 gs_inner = gs_outer[1].subgridspec(1, 2, width_ratios=[1, 1], wspace=0.65)
 
-# 创建 Axes
-ax1 = fig.add_subplot(gs_outer[0]) # 左图 (Throughput)
-ax2 = fig.add_subplot(gs_inner[0]) # 中图 (Latency)
-ax3 = fig.add_subplot(gs_inner[1]) # 右图 (CPU) - 高度将在后面手动调整
+# Create axes
+ax1 = fig.add_subplot(gs_outer[0]) # Left plot (Throughput)
+ax2 = fig.add_subplot(gs_inner[0]) # Middle plot (Latency)
+ax3 = fig.add_subplot(gs_inner[1]) # Right plot (CPU); height is adjusted later
 
-# 通用样式变量
+# Common style variables
 common_width = 0.18       
 group_spacing = 0.45      
 
 # ----------------------------------------------------------------
-# --- 图 1: Throughput ---
+# --- Figure 1: Throughput ---
 # ----------------------------------------------------------------
 x_tp = np.array([0, group_spacing]) 
 width_tp = common_width
@@ -150,7 +150,7 @@ ax1.tick_params(axis='y', labelsize=TEXT_SIZE_XYAXIS)
 ax1.set_ylim(0, 250)
 ax1.set_xlim(-0.3, group_spacing + 0.3)
 
-# 修改：去除X轴向下突出的刻度线 (保留文字)
+# Remove downward x-axis tick marks while keeping labels
 ax1.tick_params(axis='x', length=TICK_LENGTH_X, width=TICK_WIDTH_X)
 
 # Remove top and right spines
@@ -163,7 +163,7 @@ for rect in rects1 + rects2:
              f'{height}', ha='center', va='bottom', fontsize=TEXT_SIZE, rotation=90)
 
 # ----------------------------------------------------------------
-# --- 图 2: Latency ---
+# --- Figure 2: Latency ---
 # ----------------------------------------------------------------
 percentile_labels = ['P50', 'P75']
 x_lat = np.array([0, group_spacing]) 
@@ -190,7 +190,7 @@ ax2.set_xlim(-0.3, group_spacing + 0.3)
 ax2.spines['top'].set_visible(False)
 ax2.spines['right'].set_visible(False)
 
-# 修改：去除X轴向下突出的刻度线
+# Remove downward x-axis tick marks
 ax2.tick_params(axis='x', length=TICK_LENGTH_X, width=TICK_WIDTH_X)
 
 for bars, values in [(bars2_1, lat_1), (bars2_32, lat_32)]:
@@ -200,7 +200,7 @@ for bars, values in [(bars2_1, lat_1), (bars2_32, lat_32)]:
                  f'{value:.0f}', ha='center', va='bottom', fontsize=TEXT_SIZE, rotation=90)
 
 # ----------------------------------------------------------------
-# --- 图 3: CPU Usage ---
+# --- Figure 3: CPU Usage ---
 # ----------------------------------------------------------------
 cpu_categories = ['V=1', 'V=32']
 x_cpu = np.array([0, group_spacing]) 
@@ -240,10 +240,10 @@ ax3.set_xlim(-0.3, group_spacing + 0.3)
 ax3.spines['top'].set_visible(False)
 ax3.spines['right'].set_visible(False)
 
-# 修改：去除X轴向下突出的刻度线
+# Remove downward x-axis tick marks
 ax3.tick_params(axis='x', length=TICK_LENGTH_X, width=TICK_WIDTH_X)
 
-# 数值标签 - using black text since background is white
+# Value labels - using black text since background is white
 # for i, (user_val, sys_val, iowait_val) in enumerate(zip(user_data, sys_data, iowait_data)):
 #     pos = x_cpu[i]
 #     if user_val > 8:
@@ -254,19 +254,19 @@ ax3.tick_params(axis='x', length=TICK_LENGTH_X, width=TICK_WIDTH_X)
 #         ax3.text(pos, user_val + sys_val + iowait_val/2, f'{iowait_val:.0f}%', ha='center', va='center', color='black', fontweight='bold', fontsize=TEXT_SIZE)
 
 # ----------------------------------------------------------------
-# --- 统一 Legend (放置在顶部) ---
+# --- Unified legend (placed at the top) ---
 # ----------------------------------------------------------------
-# 获取所有 axes 的 handle 和 label
+# Get handles and labels from all axes
 h1, l1 = ax1.get_legend_handles_labels()
 h2, l2 = ax2.get_legend_handles_labels()
 h3, l3 = ax3.get_legend_handles_labels()
 
-# 合并图例元素，包含 1, 32, 128 和 CPU 图例项
-# 需要确保顺序：1, 32, 128, user, kernel, iowait
+# Merge legend entries, including 1, 32, 128, and CPU legend entries
+# Ensure order: 1, 32, 128, user, kernel, iowait
 all_handles = []
 all_labels = []
 
-# 从 Latency 图获取 '1' 和 '32'
+# Get '1' and '32' from the latency plot
 for handle, label in zip(h2, l2):
     if label == '1':
         all_handles.append(handle)
@@ -275,19 +275,19 @@ for handle, label in zip(h2, l2):
         all_handles.append(handle)
         all_labels.append('32')
 
-# 从 Throughput 图获取 '32' 和 '128'，但 '32' 已存在，只添加 '128'
+# Get '32' and '128' from the throughput plot, but add only the missing '128'
 for handle, label in zip(h1, l1):
     if label == '128':
         all_handles.append(handle)
         all_labels.append('128')
 
-# 创建统一的图例，显示 1, 32, 128（不包含 user, kernel, iowait）
-# 32 变成 32 (default)
+# Create a shared legend showing 1, 32, and 128 (excluding user, kernel, and iowait)
+# Mark 32 as the default
 all_labels[all_labels.index('32')] = '32 (default)'
 fig.legend(all_handles, all_labels, loc='upper center', bbox_to_anchor=(0.5, 1.1),
            ncol=3, frameon=False, fontsize=TEXT_SIZE_LEGEND)
 
-# 为 ax3 单独创建图例，放在它的上方
+# Create a separate legend for ax3 above the subplot
 cpu_handles = []
 cpu_labels = []
 seen_cpu_labels = set()
@@ -299,30 +299,30 @@ for handle, label in zip(h3, l3):
 ax3.legend(cpu_handles, cpu_labels, loc='upper center', bbox_to_anchor=(0.49, 1.8),
            ncol=1, frameon=False, fontsize=TEXT_SIZE_LEGEND)
 
-# 调整布局，rect 参数为图例留出顶部空间 [left, bottom, right, top]
-# 增加顶部空间从0.92到0.88，确保图例可见
+# Adjust layout; rect reserves top space for the legend [left, bottom, right, top]
+# Increase top margin from 0.92 to 0.88 so the legend remains visible
 import warnings
 warnings.filterwarnings("ignore", message=".*tight_layout.*")
 plt.tight_layout(rect=[0, 0, 1, 0.88])
 
-# 调整ax3的高度，让它比ax2更矮，但底部与ax1和ax2对齐
+# Adjust ax3 height so it is shorter than ax2 while bottom-aligned with ax1 and ax2
 ax1_bbox = ax1.get_position()
 ax2_bbox = ax2.get_position()
 ax3_bbox = ax3.get_position()
-# 让ax3的高度为ax2的70%，底部与ax1和ax2对齐
+# Set ax3 height to 70% of ax2 while keeping the bottoms aligned
 height_ratio = 0.7
 new_height = ax2_bbox.height * height_ratio
-# 底部对齐：ax3的y0应该等于ax2的y0
+# Bottom alignment: ax3's y0 should match ax2's y0
 new_bottom = ax2_bbox.y0
 ax3.set_position([ax3_bbox.x0, new_bottom, ax3_bbox.width, new_height])
 
-# 在最左图和中间图之间画一条灰色实线
-# 获取两个 axes 的位置（在 tight_layout 之后）
+# Draw a gray solid separator between the leftmost and middle plots
+# Get the positions of both axes after tight_layout
 ax1_bbox = ax1.get_position()
 ax2_bbox = ax2.get_position()
-# 计算分隔线的 x 位置（两个图之间的中点）
+# Compute the separator x position at the midpoint between the two plots
 x_line = (ax1_bbox.x1 + ax2_bbox.x0) / 2 - 0.047
-# 使用 figure 坐标系统画线
+# Draw the line in figure coordinates
 fig.add_artist(plt.Line2D([x_line, x_line], [ax1_bbox.y0-0.09, ax1_bbox.y1+0.04], 
                           color='gray', linewidth=3, transform=fig.transFigure))
 

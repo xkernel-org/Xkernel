@@ -1,0 +1,9 @@
+2/s
+   kprobe_loader-2507670 [040] b..11 151237.865322: bpf_trace_printk: 151232860007014
+   kprobe_loader-2507670 [040] b..11 151237.868360: bpf_trace_printk: 151232863045796
+         bpftool-2507675 [042] d.Z21 151237.886326: bpf_trace_printk: cpu: 42, task: [bpftool], ktime_ns: 151232881010336, check time: 2 us
+         bpftool-2507712 [044] d.h31 151238.552326: bpf_trace_printk: cpu: 44, task: [bpftool], ktime_ns: 151233547010622, check time: 2 us
+         bpftool-2507740 [045] d.h31 151239.208326: bpf_trace_printk: cpu: 45, task: [bpftool], ktime_ns: 151234203010778, check time: 3 us
+         bpftool-2507780 [023] d.h31 151239.864327: bpf_trace_printk: cpu: 23, task: [bpftool], ktime_ns: 151234859010857, check time: 3 us
+           <...>-2507813 [022] d.h31 151240.516326: bpf_trace_printk: cpu: 22, task: [bpftool], ktime_ns: 151235511010518, check time: 2 us
+           <...>-2507863 [023] d.h31 151241.182325: bpf_trace_printk: cpu: 23, task: [bpftool], ktime_ns: 151236177010128, check time: 2 us

@@ -1,0 +1,6 @@
+Tracing BPF -> Kprobe -> Optimize (with Batch Size)...
+PID      EVENT            TARGET/NAME               INFO/CALLER          LATENCY
+3081939  BPF_CHECK        io_issue_sqe_0x           insns:61             533 us
+3081939  OPT_PREPARE                                ret:0                844 us
+3081939  REG_KPROBE       io_issue_sqe              SUCCESS              1378 us
+3065704  OPT_APPLY_BATCH  ALL_QUEUED                Batch:1              63 us

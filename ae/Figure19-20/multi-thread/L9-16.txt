@@ -1,0 +1,4 @@
+
+[ 8108.368386] Initial refcount: 6
+[ 8108.368408] [Transition] Waiting for transition to be done or failed
+[ 8108.507642] [Transition] Transition done, time: 139206 us, max refcount: 9, op count: 9341

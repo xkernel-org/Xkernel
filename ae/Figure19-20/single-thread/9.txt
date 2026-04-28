@@ -1,0 +1,8 @@
+49/s
+tcp_sendmsg_locked,0xffffffffad2a5fa0,0x409,0x40d
+   kprobe_loader-2562766 [031] b..11 159600.711048: bpf_trace_printk: 159595708413119
+   kprobe_loader-2562766 [031] b..11 159600.713212: bpf_trace_printk: 159595710579246
+            node-3305    [034] d.Z11 159600.719044: bpf_trace_printk: cpu: 34, task: [node], ktime_ns: 159595716403863, check time: 6 us
+            sshd-2421314 [026] d.Z11 159600.719336: bpf_trace_printk: cpu: 26, task: [sshd], ktime_ns: 159595716696552, check time: 5 us
+            node-12284   [022] d.Z11 159600.814234: bpf_trace_printk: cpu: 22, task: [node], ktime_ns: 159595811598916, check time: 2 us
+            sshd-2562770 [009] d.Z11 159600.956468: bpf_trace_printk: cpu: 9, task: [sshd], ktime_ns: 159595953828239, check time: 5 us

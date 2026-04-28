@@ -1,0 +1,21 @@
+452665/s
+blk_add_rq_to_plug,0xffffffffaca8f7b0,0xd7,0xef
+kprobe_loader-2479138 [000] b..11 148443.796471: bpf_trace_printk: 148438793157003
+   kprobe_loader-2479138 [000] b..11 148443.797865: bpf_trace_printk: 148438794552154
+  kworker/u224:1-2462441 [001] ...21 148444.499537: bpf_trace_printk: cpu: 1, task: [kworker/u224:1], ktime_ns: 148439496218122, check time: 6 us
+             fio-2479295 [004] ...21 148448.058489: bpf_trace_printk: cpu: 4, task: [fio], ktime_ns: 148443055173777, check time: 3 us
+             fio-2479290 [027] ...21 148448.058503: bpf_trace_printk: cpu: 27, task: [fio], ktime_ns: 148443055188604, check time: 2 us
+             fio-2479285 [020] ...21 148448.058508: bpf_trace_printk: cpu: 20, task: [fio], ktime_ns: 148443055193718, check time: 1 us
+             fio-2479291 [000] ...21 148448.058524: bpf_trace_printk: cpu: 0, task: [fio], ktime_ns: 148443055209018, check time: 1 us
+             fio-2479288 [024] ...21 148448.058527: bpf_trace_printk: cpu: 24, task: [fio], ktime_ns: 148443055212515, check time: 1 us
+             fio-2479283 [018] ...21 148448.058529: bpf_trace_printk: cpu: 18, task: [fio], ktime_ns: 148443055214550, check time: 1 us
+             fio-2479294 [031] ...21 148448.058537: bpf_trace_printk: cpu: 31, task: [fio], ktime_ns: 148443055222580, check time: 1 us
+             fio-2479281 [043] ...21 148448.058731: bpf_trace_printk: cpu: 43, task: [fio], ktime_ns: 148443055416650, check time: 1 us
+             fio-2479296 [005] ...21 148448.059027: bpf_trace_printk: cpu: 5, task: [fio], ktime_ns: 148443055712496, check time: 1 us
+             fio-2479289 [054] ...21 148448.059029: bpf_trace_printk: cpu: 54, task: [fio], ktime_ns: 148443055714908, check time: 1 us
+             fio-2479287 [051] ...21 148448.059059: bpf_trace_printk: cpu: 51, task: [fio], ktime_ns: 148443055744621, check time: 1 us
+             fio-2479293 [002] ...21 148448.059351: bpf_trace_printk: cpu: 2, task: [fio], ktime_ns: 148443056037254, check time: 1 us
+             fio-2479282 [016] ...21 148448.059377: bpf_trace_printk: cpu: 16, task: [fio], ktime_ns: 148443056062935, check time: 1 us
+             fio-2479286 [049] ...21 148448.059682: bpf_trace_printk: cpu: 49, task: [fio], ktime_ns: 148443056368253, check time: 1 us
+             fio-2479292 [029] ...21 148448.059853: bpf_trace_printk: cpu: 29, task: [fio], ktime_ns: 148443056538543, check time: 1 us
+             fio-2479284 [019] ...21 148448.061288: bpf_trace_printk: cpu: 19, task: [fio], ktime_ns: 148443057973575, check time: 1 us

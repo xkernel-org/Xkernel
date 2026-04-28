@@ -24,29 +24,29 @@ TICK_LENGTH_X = 5
 TICK_WIDTH_X = 1 
 
 def apply_academic_style(ax):
-    """应用学术图表风格 + Log设置"""
+    """Apply academic plot styling with log-scale settings."""
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     ax.spines['left'].set_linewidth(1)
     ax.spines['bottom'].set_linewidth(1)
     
-    # 设置 Y 轴为对数坐标
+    # Set the y-axis to log scale
     ax.set_yscale('log')
     
-    # [修改点1] 仅显示主刻度(major)的网格线，解决"虚线过多"的问题
-    # 之前是 'both'，现在改为 'major'
+    # [Change 1] Show only major grid lines to avoid too many dashed lines.
+    # This used to be 'both'; it is now 'major'.
     
     ax.tick_params(width=2.5, length=6, which='major', labelsize=TEXT_SIZE_XYAXIS)
     ax.tick_params(width=1.5, length=4, which='minor')
 
 def parse_and_plot_styled():
-    # --- 2. 数据解析 ---
+    # --- 2. Data parsing ---
     files = glob.glob('L*-*.txt')
     data_map = {}
     all_l_values = set()
     all_threads = set()
 
-    print(f"找到 {len(files)} 个文件。正在处理...")
+    print(f"Found {len(files)} files. Processing...")
 
     for filepath in files:
         try:
@@ -55,7 +55,7 @@ def parse_and_plot_styled():
             if len(nums) < 2: continue
             
             l_val = int(nums[0])
-            l_val -= 7 # 保留你代码中的逻辑
+            l_val -= 7 # Preserve the existing offset logic
             thread_num = int(nums[1])
             
             with open(filepath, 'r', encoding='utf-8') as f:
@@ -75,10 +75,10 @@ def parse_and_plot_styled():
             continue
 
     if not data_map:
-        print("无有效数据")
+        print("No valid data")
         return
 
-    # --- 3. 绘图逻辑 ---
+    # --- 3. Plotting logic ---
     sorted_threads = sorted(list(all_threads))
     sorted_l_keys = sorted(list(all_l_values))
     
@@ -101,7 +101,7 @@ def parse_and_plot_styled():
             y_times.append(data['time'] / 1000.0)  # Convert from us to ms
             y_ops.append(data['ops'])
         
-        # [修改点2] 绘制柱状图并保存返回值(rects)，用于标记数字
+        # [Change 2] Draw bar charts and keep returned rects for value labels
         rects1 = ax1.bar(x_indexes + offset, y_times, width=bar_width, 
                          label=f'$L$={l_val}', 
                          color=current_color, zorder=2)
@@ -109,14 +109,14 @@ def parse_and_plot_styled():
         rects2 = ax2.bar(x_indexes + offset, y_ops, width=bar_width, 
                          color=current_color, zorder=2)
 
-        # 添加数字标签 (fontsize设为16防止过大遮挡，fmt='%d'保留整数)
-        # padding=3 让文字稍微高出柱子一点
+        # Add numeric labels (fontsize=16 avoids oversized labels; fmt='%d' keeps integers)
+        # padding=3 places text slightly above the bars
         # ax1.bar_label(rects1, fmt='%d', label_type='edge', fontsize=16, padding=3)
         # ax2.bar_label(rects2, fmt='%d', label_type='edge', fontsize=16, padding=3)
 
-    # --- 4. 样式与布局调整 ---
+    # --- 4. Style and layout adjustments ---
     
-# 设置 Axis 1
+    # Configure Axis 1
     ax1.set_ylabel('Delay (ms)', fontsize=TEXT_SIZE_XYLABEL)
     apply_academic_style(ax1)
     ax1.set_xticks(x_indexes)
@@ -125,11 +125,11 @@ def parse_and_plot_styled():
     ax1.tick_params(axis='x', length=TICK_LENGTH_X, width=TICK_WIDTH_X, labelsize=TEXT_SIZE_XYAXIS)
     ax1.tick_params(axis='y', labelsize=TEXT_SIZE_XYAXIS)
     
-    # [修改点] 增加 numticks=100，强制显示小刻度
+    # Increase numticks to 100 to force minor ticks to display
     ax1.yaxis.set_minor_locator(LogLocator(base=10, subs=[2, 5], numticks=100))
     
     ax1.tick_params(axis='y', which='minor', length=4, width=1.5, left=True)
-    # 设置 Axis 2
+    # Configure Axis 2
     ax2.set_ylabel('# of RefCnt Access', fontsize=TEXT_SIZE_XYLABEL)
     ax2.set_xlabel('# of Threads', fontsize=TEXT_SIZE_XYLABEL)
     ax2.set_xticks(x_indexes)
@@ -141,7 +141,7 @@ def parse_and_plot_styled():
     ax2.yaxis.set_minor_locator(LogLocator(base=10, subs=[2, 5], numticks=100))
     ax2.tick_params(axis='y', which='minor', length=4, width=1.5, left=True)
 
-    # 图例设置 - 放在第一个图的左上方
+    # Legend settings: place it in the upper-left corner of the first plot
     handles, labels = ax1.get_legend_handles_labels()
     ax1.legend(handles, labels, 
                loc='upper left', 

@@ -23,7 +23,7 @@ file_path_1_best = './data-1-best.txt'
 file_path_15 = './data-15.txt'
 
 def parse_latency_data(file_path):
-    # (保持原有的解析函数不变)
+    # Keep the original parser behavior unchanged.
     event_map = {
         'BPF_CHECK': 'BPF verify',
         'OPT_PREPARE': 'JMP-Prepare',
@@ -101,7 +101,7 @@ category_data['Kprobe Register'][2] = round(category_data['Kprobe Register'][2])
 category_data['Sum'][2] = round(category_data['Sum'][2])
 
 # 3. Plotting
-# [修改1] 进一步压缩整体宽度
+# [Change 1] Further compress the overall figure width
 fig, axes = plt.subplots(1, 4, figsize=(10.3, 2.5))
 
 palette = sns.color_palette("mako")
@@ -127,7 +127,7 @@ for idx, cat in enumerate(all_categories):
     ax.set_title(cat, fontsize=TEXT_SIZE_TITLE, pad=10)  # Negative pad moves title upward
     ax.set_xticks(x)
     
-    # [修改2] 旋转X轴标签 90度
+    # [Change 2] Adjust x-axis label placement
     ax.set_xticklabels(x_labels, fontsize=TEXT_SIZE_XYAXIS, ha='center', va='top')
     
     ax.tick_params(axis='x', length=3, width=1, labelsize=TEXT_SIZE_XYAXIS)
@@ -153,7 +153,7 @@ for idx, cat in enumerate(all_categories):
                 val_str = f'{int(val)}'
             else:
                 val_str = f'{val:.1f}'
-            # [修改3] 旋转数值标签 90度
+            # [Change 3] Rotate value labels by 90 degrees
             # For the last bar, place label inside with light gray color
             is_last_bar = (i == len(bars) - 1)
             if is_last_bar:
@@ -189,7 +189,7 @@ for idx, cat in enumerate(all_categories):
     elif idx == 1:
         ax.set_yticks([0, 5, 10])
 
-# [修改4] 调整布局参数，进一步压缩宽度
+# [Change 4] Adjust layout parameters to further compress width
 plt.tight_layout(pad=0.2, w_pad=0.1, h_pad=0.5)
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
