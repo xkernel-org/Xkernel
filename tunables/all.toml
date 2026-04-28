@@ -1,9 +1,12 @@
-kernel_dir = "~/linux-6.14.0-xkernel"
+kernel_dir = "~/linux-6.8.0"
 
-## All kernel tunables for Xkernel
+## Linux 6.8 aggregate tunables for Xkernel
 ## Usage: xkernel-tool build tunables/all.toml
 ## NOTE: safe_spans removed — auto-SS derives them from /proc/kcore
-##       for the running kernel. Manual spans were for 6.14.0-xkernel only.
+##       for the running kernel.
+##
+## Figure 10 and Figure 11 use Linux 6.14.8-specific tunables. Build them from
+## tunables/shrink_batch.toml and tunables/nr_max_batched_migration.toml instead.
 
 [[tunables]]
 name = "tcp_cubic"
@@ -61,22 +64,6 @@ file = "block/blk-mq.c"
 original = "BLK_MQ_CPU_WORK_BATCH"
 modified = ["16", "32"]
 values = [8, 16, 32]
-
-[[tunables]]
-name = "SHRINK_BATCH"
-description = "mm/shrinker.c SHRINK_BATCH"
-file = "mm/shrinker.c"
-original = "#define SHRINK_BATCH 128"
-modified = ["#define SHRINK_BATCH 32", "#define SHRINK_BATCH 64"]
-values = [128, 32, 64]
-
-[[tunables]]
-name = "NR_MAX_BATCHED_MIGRATION"
-description = "mm/migrate.c NR_MAX_BATCHED_MIGRATION"
-file = "mm/migrate.c"
-original = "#define NR_MAX_BATCHED_MIGRATION\tHPAGE_PMD_NR"
-modified = ["#define NR_MAX_BATCHED_MIGRATION\t256", "#define NR_MAX_BATCHED_MIGRATION\t1024"]
-values = [512, 256, 1024]
 
 [[tunables]]
 name = "BLK_MAX_REQUEST_COUNT"

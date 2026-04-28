@@ -17,9 +17,10 @@
 #   bash ae/Figure11/run.sh
 #
 # Prerequisites:
-#   - Custom kernel (6.14.0-xkernel) running
+#   - Linux 6.14.8-061408-generic running
+#   - KERNEL_DIR=~/linux-6.14.8-061408-generic
+#   - gcc-14 and g++-14 installed for Linux 6.14.8 kernel module builds
 #   - bash ae/Figure11/install_benchmark.sh  (build benchmark)
-#   - sudo bash build.sh                     (build KernelX)
 #   - 2+ NUMA nodes required
 
 set -euo pipefail
@@ -29,6 +30,7 @@ PROJECT_ROOT="$(dirname "$(dirname "$SCRIPT_DIR")")"
 XKTOOL="$PROJECT_ROOT/xkernel-tool"
 TUNE_SCRIPT="$SCRIPT_DIR/tune_nr_max_batched_migration.sh"
 BENCHMARK="$SCRIPT_DIR/bin/benchmark"
+BUILD_MARKER="$PROJECT_ROOT/bpf/stubs/figure11_nr_max_batched_migration.built"
 
 # Benchmark parameters (matching yltang's high-pressure config)
 PAGES=2097152          # 8 GiB
@@ -47,7 +49,7 @@ QPS_SAMPLE_MS=10
 PROBE_OPS=2000
 PROBE_PERIOD_MS=50
 DURATION=30
-REPEATS=1
+REPEATS=5
 
 # NR_MAX_BATCHED_MIGRATION values to test (512 is baseline/kernel default)
 BASELINE_VALUE=512
@@ -64,6 +66,14 @@ die()         { echo -e "${RED}[$(date '+%H:%M:%S')] ✗${RST} $*" >&2; exit 1; 
 # ── Preflight checks ────────────────────────────────────────────────
 [[ -x "$BENCHMARK" ]] || die "benchmark not found. Run: bash install_benchmark.sh"
 [[ -x "$XKTOOL" ]]    || die "xkernel-tool not found at $XKTOOL"
+command -v gcc-14 >/dev/null 2>&1 || die "gcc-14 not found. Install it with: sudo apt-get install -y gcc-14 g++-14"
+command -v g++-14 >/dev/null 2>&1 || die "g++-14 not found. Install it with: sudo apt-get install -y gcc-14 g++-14"
+
+# Linux 6.14.8-061408-generic headers were built with GCC 14. Use the same
+# compiler for Xkernel's kernel modules; otherwise module builds can fail on
+# GCC-14-only flags such as -fmin-function-alignment=16.
+export CC="${CC:-gcc-14}"
+export CXX="${CXX:-g++-14}"
 
 # Check NUMA availability
 if ! command -v numactl &>/dev/null; then
@@ -73,6 +83,77 @@ NUMA_NODES=$(numactl --hardware 2>/dev/null | grep "available:" | awk '{print $2
 [[ "$NUMA_NODES" -ge 2 ]] || die "Need at least 2 NUMA nodes (found: $NUMA_NODES)"
 
 mkdir -p "$RESULT_DIR"
+
+# ── Resume/idempotency helpers ───────────────────────────────────────
+result_file() {
+    local batch_value="$1"
+    echo "$RESULT_DIR/${batch_value}.txt"
+}
+
+raw_result_complete() {
+    local outfile="$1"
+    [[ -f "$outfile" ]] || return 1
+
+    local blocks
+    blocks=$(grep -c '^=== Results ===' "$outfile" || true)
+    [[ "$blocks" -ge "$REPEATS" ]]
+}
+
+result_summarized() {
+    local outfile="$1"
+    [[ -f "$outfile" ]] || return 1
+    grep -Eq '^Probe La(n)?tency N=' "$outfile"
+}
+
+result_complete() {
+    local outfile="$1"
+    raw_result_complete "$outfile" && result_summarized "$outfile"
+}
+
+all_results_complete() {
+    local val
+    result_complete "$(result_file "$BASELINE_VALUE")" || return 1
+    for val in "${TUNED_VALUES[@]}"; do
+        result_complete "$(result_file "$val")" || return 1
+    done
+    return 0
+}
+
+prepare_output_file() {
+    local outfile="$1"
+    [[ -f "$outfile" ]] || return 0
+
+    if raw_result_complete "$outfile"; then
+        return 0
+    fi
+
+    local backup="${outfile}.partial.$(date '+%Y%m%d-%H%M%S')"
+    log "Preserving incomplete result: $outfile → $backup"
+    sudo mv "$outfile" "$backup"
+}
+
+cleanup_stale_xkernel_state() {
+    log_section "Clearing stale Xkernel runtime state"
+    sudo "$XKTOOL" unload --all 2>/dev/null || true
+    sudo rmmod xk_kfuncs 2>/dev/null || true
+    log_ok "stale Xkernel runtime state cleared"
+}
+
+clear_previous_results() {
+    log_section "Clearing previous Figure 11 results"
+    mkdir -p "$RESULT_DIR"
+    sudo find "$RESULT_DIR" -mindepth 1 -maxdepth 1 -exec rm -rf -- {} +
+    log_ok "previous results cleared"
+}
+
+xkernel_build_ready() {
+    [[ -s /dev/shm/xkernel/scope_table ]] || return 1
+    [[ -f "$BUILD_MARKER" ]] || return 1
+    awk -F'\t' 'NR>1 && $6 ~ /xtune_stub_.*\.bpf\.o/ {found=1} END {exit !found}' /dev/shm/xkernel/scope_table || return 1
+    compgen -G "$PROJECT_ROOT/bpf/stubs/xtune_stub_*.bpf.c" > /dev/null || return 1
+    compgen -G "$PROJECT_ROOT/bpf/stubs/xtune_stub_*.bpf.h" > /dev/null || return 1
+    compgen -G "$PROJECT_ROOT/bpf/stubs/xtune_stub_*.bpf.o" > /dev/null || return 1
+}
 
 # ── Setup environment ────────────────────────────────────────────────
 setup_env() {
@@ -88,7 +169,15 @@ setup_env() {
 # ── Run benchmark for a given NR_MAX_BATCHED_MIGRATION value ─────────
 run_benchmark() {
     local batch_value="$1"
-    local outfile="$RESULT_DIR/${batch_value}.txt"
+    local outfile
+    outfile=$(result_file "$batch_value")
+
+    if raw_result_complete "$outfile"; then
+        log_ok "  Reusing existing benchmark output → $outfile"
+        return 0
+    fi
+
+    prepare_output_file "$outfile"
 
     log "Running benchmark (NR_MAX_BATCHED_MIGRATION=$batch_value, $REPEATS repeats) → $outfile"
 
@@ -120,21 +209,33 @@ run_benchmark() {
             >> "$outfile" 2>&1
     done
 
-    if [[ -f "$outfile" ]]; then
+    if raw_result_complete "$outfile"; then
         log_ok "  Results saved → $outfile"
+    elif [[ -f "$outfile" ]]; then
+        local blocks
+        blocks=$(grep -c '^=== Results ===' "$outfile" || true)
+        die "Incomplete output: collected $blocks result blocks, expected $REPEATS → $outfile"
     else
-        log "  WARNING: Output file not created"
+        die "Output file not created: $outfile"
     fi
 }
 
 # ── Summarize results ────────────────────────────────────────────────
 summarize_results() {
     local batch_value="$1"
-    local outfile="$RESULT_DIR/${batch_value}.txt"
+    local outfile
+    outfile=$(result_file "$batch_value")
 
-    if [[ -f "$outfile" ]]; then
+    if result_summarized "$outfile"; then
+        log_ok "  Reusing existing summary → $outfile"
+        return 0
+    fi
+
+    if raw_result_complete "$outfile"; then
         log "Summarizing $outfile ..."
         python3 "$SCRIPT_DIR/plot/summarize.py" "$outfile"
+    else
+        die "Cannot summarize incomplete output: $outfile"
     fi
 }
 
@@ -158,17 +259,28 @@ save_log() {
         echo "REPEATS=$REPEATS"
         echo "BASELINE_VALUE=$BASELINE_VALUE"
         echo "TUNED_VALUES=${TUNED_VALUES[*]}"
-    } > "$RESULT_DIR/log.txt"
+    } >> "$RESULT_DIR/log.txt"
 }
 
 # ── Main ─────────────────────────────────────────────────────────────
+
+cleanup_stale_xkernel_state
+clear_previous_results
 
 save_log
 setup_env
 
 # ── One-time build (kernel diff + codegen + BPF compile) ─────────────
-log_section "Building NR_MAX_BATCHED_MIGRATION tunable (one-time)"
-sudo bash "$TUNE_SCRIPT" build
+if xkernel_build_ready; then
+    log_section "Reusing existing NR_MAX_BATCHED_MIGRATION tunable build"
+    log_ok "Existing BPF stubs and scope table found"
+else
+    log_section "Building NR_MAX_BATCHED_MIGRATION tunable (one-time)"
+    sudo "$XKTOOL" table delete --all -y 2>/dev/null || true
+    sudo rm -rf "$PROJECT_ROOT/bpf/stubs/"* 2>/dev/null || true
+    sudo bash "$TUNE_SCRIPT" build
+    sudo touch "$BUILD_MARKER"
+fi
 
 # ── Baseline: NR_MAX_BATCHED_MIGRATION = 512 (kernel default) ────────
 log_section "Baseline: NR_MAX_BATCHED_MIGRATION = $BASELINE_VALUE (kernel default)"
@@ -177,6 +289,13 @@ summarize_results "$BASELINE_VALUE"
 
 # ── Tuned runs (patch BPF stub only — no kernel rebuild) ─────────────
 for val in "${TUNED_VALUES[@]}"; do
+    if result_complete "$(result_file "$val")"; then
+        log_section "Skipping NR_MAX_BATCHED_MIGRATION = $val (complete result exists)"
+        run_benchmark "$val"
+        summarize_results "$val"
+        continue
+    fi
+
     log_section "Tuning NR_MAX_BATCHED_MIGRATION = $val"
 
     # Unload previous if loaded
@@ -195,8 +314,9 @@ done
 
 # ── Cleanup ──────────────────────────────────────────────────────────
 log_section "Cleanup"
+sudo bash "$TUNE_SCRIPT" unload 2>/dev/null || true
 sudo "$XKTOOL" table delete --all -y 2>/dev/null || true
-rm -rf "$PROJECT_ROOT/bpf/stubs/"* 2>/dev/null || true
+sudo rm -rf "$PROJECT_ROOT/bpf/stubs/"* 2>/dev/null || true
 
 # Re-enable numa_balancing
 echo 1 | sudo tee /proc/sys/kernel/numa_balancing > /dev/null 2>&1 || true

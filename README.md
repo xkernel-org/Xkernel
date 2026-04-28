@@ -10,11 +10,11 @@ Paper: *Principled Performance Tunability in Operating System Kernels* ([arXiv 2
 # 0. Install dependencies (first time only)
 ./xkernel-tool setup
 
-# 1. Set kernel source path (downloaded from previous step), e.g., for ubuntu 24.04 LTS:
+# 1. Set kernel source path:
 export KERNEL_DIR=~/linux-6.8.0
 
 # 2. Build + load in one step
-./xkernel-tool run tunables/shrink_batch.toml
+./xkernel-tool run tunables/blk_max_request_count.toml
 
 # 3. Check status
 sudo ./xkernel-tool status
@@ -49,11 +49,16 @@ tunables/*.toml ──→ gen.py (binary diff) ──→ codegen.py (symbolic ex
 
 ## Environment Setup
 
-### Install the custom kernel
+### Optional: install the Figure 10/11 kernel from source
 
 ```shell
-sudo bash install.sh
+bash install.sh
 ```
+
+Most users should start with `xkernel-tool setup` below. The helper above is
+only for preparing a local Linux 6.14.8-061408-generic build; the artifact
+instructions for Figure 10 and Figure 11 provide the preferred mainline-kernel
+package installation path.
 
 ### Install dependencies
 
@@ -91,11 +96,17 @@ git clone https://github.com/libbpf/libbpf.git && \
 The build pipeline needs the kernel source tree. Set `KERNEL_DIR` to point to it:
 
 ```shell
-export KERNEL_DIR=~/linux-6.14.0-xkernel
+export KERNEL_DIR=~/linux-6.8.0
 ```
 
-Alternatively, add `kernel_dir = "~/linux-6.14.0-xkernel"` in your TOML config.
+Alternatively, add `kernel_dir = "~/linux-6.8.0"` in your TOML config.
 The env var takes precedence over the TOML field.
+
+> **Artifact evaluation note:** Most AE figures use Linux 6.8 and
+> `KERNEL_DIR=~/linux-6.8.0`, while Figure 10 and Figure 11 use Linux
+> 6.14.8-061408-generic and
+> `KERNEL_DIR=~/linux-6.14.8-061408-generic`. See `ae/README.md` and the
+> figure-specific README files for the exact reproduction steps.
 
 ### Build kernel modules (optional)
 
@@ -110,7 +121,8 @@ cd kernel && ./build.sh
 
 ### 1. Define tunables
 
-Create a TOML config file in `tunables/` (or use the provided `tunables/all.toml`):
+Create a TOML config file in `tunables/` (or use one of the provided single
+tunable configs such as `tunables/blk_max_request_count.toml`):
 
 ```toml
 [[tunables]]
@@ -135,16 +147,16 @@ The optional `safe_spans` field specifies Safe Span (SS) ranges as `(function, s
 
 ```shell
 # Set kernel source path (if not in TOML)
-export KERNEL_DIR=~/linux-6.14.0-xkernel
+export KERNEL_DIR=~/linux-6.8.0
 
 # Build and load in one step (default: immediate mode)
-./xkernel-tool run tunables/shrink_batch.toml
+./xkernel-tool run tunables/blk_max_request_count.toml
 
 # With per-task consistency
-./xkernel-tool run tunables/shrink_batch.toml --mode 1
+./xkernel-tool run tunables/blk_max_request_count.toml --mode 1
 
 # Build only (no load)
-./xkernel-tool build tunables/shrink_batch.toml
+./xkernel-tool build tunables/blk_max_request_count.toml
 ```
 
 The build pipeline runs three stages:
@@ -155,7 +167,7 @@ The build pipeline runs three stages:
 Use `--skip-gen` to skip the (slow) diff/BB stage when only codegen or compilation is needed:
 
 ```shell
-./xkernel-tool run tunables/all.toml --skip-gen
+./xkernel-tool run tunables/blk_max_request_count.toml --skip-gen
 ```
 
 ### 3. Load a constant
@@ -283,8 +295,8 @@ Xkernel/
 │   ├── consistency/                # xk-consistency.ko: global transition coordinator
 │   └── build.sh
 ├── tunables/                       # TOML config files
-│   ├── all.toml                    # All 9 tunables
-│   └── shrink_batch.toml           # Single tunable example
+│   ├── all.toml                    # Linux 6.8 aggregate tunables
+│   └── blk_max_request_count.toml  # Single tunable example
 ├── tests/                          # Unit tests (pytest)
 ├── scripts/                        # Helper scripts
 │   ├── check_deps.sh              # Prerequisite checker (xkernel-tool doctor)
@@ -300,7 +312,7 @@ Xkernel/
 ├── xkernel-tool                    # CLI entry point
 ├── pyproject.toml                  # Python packaging config
 ├── build.sh                        # Full build script (deps + modules + BPF)
-└── install.sh                      # Kernel installation
+└── install.sh                      # Optional Linux 6.14.8 helper for Figure 10/11
 ```
 
 ## Data Flow
@@ -359,7 +371,7 @@ when and how to change a perf-const value:
 
 ```bash
 # 1. Build a tunable (or use 'run' to build + load)
-./xkernel-tool build tunables/shrink_batch.toml
+./xkernel-tool build tunables/blk_max_request_count.toml
 
 # 2. Generate a fresh policy stub (or edit the auto-generated one)
 ./xkernel-tool gen 1 -o my_policy.bpf.c
@@ -399,7 +411,7 @@ See [ae/README.md](ae/README.md) for details on each experiment.
 
 | Problem | Solution |
 |---------|----------|
-| `Kernel source directory not specified` | `export KERNEL_DIR=~/linux-6.14.0-xkernel` or add `kernel_dir` to your TOML |
+| `Kernel source directory not specified` | `export KERNEL_DIR=~/linux-6.8.0` or add `kernel_dir` to your TOML |
 | `Kernel source directory not found` | Verify `KERNEL_DIR` points to a valid kernel source tree |
 | `bpftool: command not found` | `./xkernel-tool setup` or build from kernel source |
 | `vmlinux.h not found` | `./xkernel-tool setup --vmlinux` or `bpftool btf dump file /sys/kernel/btf/vmlinux format c > bpf/vmlinux.h` |

@@ -12,6 +12,8 @@ Handles:
 import json
 import os
 import re
+import glob
+import shutil
 import struct
 import subprocess
 import sys
@@ -21,6 +23,23 @@ import time
 CS_PATH = "/dev/shm/xkernel/cs"
 RUNTIME_STATE_PATH = "/dev/shm/xkernel/runtime_state"
 BPF_PIN_BASE = "/sys/fs/bpf/xkernel"
+
+
+def find_bpftool():
+    """Return a usable bpftool path, preferring real linux-tools binaries."""
+    env_bpftool = os.environ.get('BPFTOOL')
+    if env_bpftool and os.path.exists(env_bpftool):
+        return env_bpftool
+
+    candidates = sorted(glob.glob('/usr/lib/linux-tools/*/bpftool'))
+    if candidates:
+        return candidates[-1]
+
+    return shutil.which('bpftool') or 'bpftool'
+
+
+def sudo_bpftool_cmd(*args):
+    return ['sudo', find_bpftool()] + list(args)
 
 
 def generate_cs_artifact_header(spans_path, output_path):
@@ -169,7 +188,7 @@ def load_and_attach(bpf_files, pin=True):
             return 1
 
         print(f"Loading {bpf_file}...", file=sys.stderr)
-        cmd = ['sudo', 'bpftool', 'prog', 'loadall', bpf_file, pin_dir, 'autoattach']
+        cmd = sudo_bpftool_cmd('prog', 'loadall', bpf_file, pin_dir, 'autoattach')
         result = subprocess.run(cmd, capture_output=True, text=True)
         if result.returncode != 0:
             print(f"Failed to load {bpf_file}: {result.stderr}", file=sys.stderr)
@@ -222,8 +241,8 @@ def load_critical_spans(cs_path):
     val_hex = ' '.join(f'{b:02x}' for b in val_bytes)
 
     result = subprocess.run(
-        ['sudo', 'bpftool', 'map', 'update', 'name', '.bss.cs_len',
-         'key', 'hex'] + key_hex.split() +
+        sudo_bpftool_cmd('map', 'update', 'name', '.bss.cs_len',
+                         'key', 'hex') + key_hex.split() +
         ['value', 'hex'] + val_hex.split(),
         capture_output=True, text=True
     )
@@ -239,8 +258,8 @@ def load_critical_spans(cs_path):
         val_hex = ' '.join(f'{b:02x}' for b in val_bytes)
 
         result = subprocess.run(
-            ['sudo', 'bpftool', 'map', 'update', 'name', 'cs_map',
-             'key', 'hex'] + key_hex.split() +
+            sudo_bpftool_cmd('map', 'update', 'name', 'cs_map',
+                             'key', 'hex') + key_hex.split() +
             ['value', 'hex'] + val_hex.split(),
             capture_output=True, text=True
         )
@@ -457,7 +476,7 @@ def try_jump_optimization(bpf_c_path, bpf_dir):
             subprocess.run(['sudo', 'mkdir', '-p', pin_dir], check=False,
                            capture_output=True)
             result = subprocess.run(
-                ['sudo', 'bpftool', 'prog', 'loadall', obj, pin_dir, 'autoattach'],
+                sudo_bpftool_cmd('prog', 'loadall', obj, pin_dir, 'autoattach'),
                 capture_output=True, text=True
             )
             if result.returncode != 0:
@@ -623,7 +642,7 @@ def snapshot_map_ids():
         set of integer map IDs
     """
     result = subprocess.run(
-        ['sudo', 'bpftool', '-j', 'map', 'list'],
+        sudo_bpftool_cmd('-j', 'map', 'list'),
         capture_output=True, text=True
     )
     if result.returncode != 0:
@@ -650,7 +669,7 @@ def resolve_map_names(map_ids):
         return {}
 
     result = subprocess.run(
-        ['sudo', 'bpftool', '-j', 'map', 'list'],
+        sudo_bpftool_cmd('-j', 'map', 'list'),
         capture_output=True, text=True
     )
     if result.returncode != 0:
@@ -685,8 +704,8 @@ def update_map_by_id(map_id, key_hex_str, val_hex_str):
         True on success, False on failure
     """
     result = subprocess.run(
-        ['sudo', 'bpftool', 'map', 'update', 'id', str(map_id),
-         'key', 'hex'] + key_hex_str.split() +
+        sudo_bpftool_cmd('map', 'update', 'id', str(map_id),
+                         'key', 'hex') + key_hex_str.split() +
         ['value', 'hex'] + val_hex_str.split(),
         capture_output=True, text=True
     )
@@ -762,8 +781,8 @@ def load_and_attach_per_constid(bpf_files, const_id, mode):
             return 1, {}
 
         print(f"Loading {bpf_file} for ConstID {const_id}...", file=sys.stderr)
-        cmd = ['sudo', 'bpftool', 'prog', 'loadall', bpf_file,
-               progs_dir, 'autoattach', 'pinmaps', maps_dir]
+        cmd = sudo_bpftool_cmd('prog', 'loadall', bpf_file,
+                       progs_dir, 'autoattach', 'pinmaps', maps_dir)
         result = subprocess.run(cmd, capture_output=True, text=True)
         if result.returncode != 0:
             print(f"Failed to load {bpf_file}: {result.stderr}", file=sys.stderr)
@@ -828,7 +847,7 @@ def get_map_info_for_constid(const_id):
         for name in os.listdir(maps_dir):
             pin_path = os.path.join(maps_dir, name)
             result = subprocess.run(
-                ['sudo', 'bpftool', '-j', 'map', 'show', 'pinned', pin_path],
+                sudo_bpftool_cmd('-j', 'map', 'show', 'pinned', pin_path),
                 capture_output=True, text=True
             )
             if result.returncode == 0 and result.stdout.strip():
@@ -867,7 +886,7 @@ def bump_epoch(const_id, map_info):
 
     # Read current epoch value
     result = subprocess.run(
-        ['sudo', 'bpftool', '-j', 'map', 'dump', 'id', str(epoch_id)],
+        sudo_bpftool_cmd('-j', 'map', 'dump', 'id', str(epoch_id)),
         capture_output=True, text=True
     )
     current_epoch = 0

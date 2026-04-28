@@ -107,7 +107,7 @@ def calculate_and_append_averages(file_path):
     output += f"P99, {averages.get('QPS p99', 0):,.0f} ops/s\n"
     output += f"max, {averages.get('QPS max', 0):,.0f} ops/s\n\n"
     output += "************************************\n\n"
-    output += "Probe Lantency N=2000 ops\n"
+    output += "Probe Latency N=2000 ops\n"
     output += f"min, {averages.get('Probe min', 0):.2f} μs\n"
     output += f"P50, {averages.get('Probe p50', 0):.2f} μs\n"
     output += f"P90, {averages.get('Probe p90', 0):.2f} μs\n"

@@ -45,7 +45,7 @@ Refer to the `README.md` inside each `Figure*/` directory for detailed instructi
 
     | Machine | Figures | Est. Time |
     |---------|---------|-----------|
-    | `c220g5` | 1(a) → 10 → 11 | ⏱ **5 min + TODO + TODO** |
+    | `c220g5` | 1(a) → 10 → 11 | ⏱ **5 min + 20 min + 20 min** |
     | `c6620` | 1(b) → 16 → 18 | ⏱ **5 min + 10 min + 40min** |
     | `xl170` | 9 → 12 | ⏱ **20 min + 10 min** |
     | `Your laptop` | 13-14, 17, 19-20 | ⏱ **5 min** |
@@ -86,3 +86,28 @@ cd Xkernel
 ./xkernel-tool setup # about 20-30minutes, depending on the machine.
 export KERNEL_DIR=~/linux-6.8.0
 ```
+
+### 2.4. Kernel Version Policy
+
+Most experiments in this artifact use the default Linux 6.8 environment:
+
+```bash
+export KERNEL_DIR=~/linux-6.8.0
+```
+
+Figure 10 and Figure 11 are the only exceptions. They should be reproduced on
+Linux 6.14.8-061408-generic, with Xkernel's code generation pointed at the
+matching Linux 6.14.8 source tree:
+
+```bash
+export KERNEL_DIR=~/linux-6.14.8-061408-generic
+```
+
+This version switch is local to Figure 10 and Figure 11. We recommend running
+the Linux 6.8 figures first, then rebooting the c220g5 machine into Linux
+6.14.8-061408-generic and running Figure 10 and Figure 11. If you return to the
+other experiments afterward, boot back into the Linux 6.8 environment and reset
+`KERNEL_DIR=~/linux-6.8.0`.
+
+The Figure 10 and Figure 11 README files include the exact commands for
+installing Linux 6.14.8-061408-generic and preparing the matching source tree.

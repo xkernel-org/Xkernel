@@ -11,9 +11,10 @@
 #   bash ae/Figure10/run.sh
 #
 # Prerequisites:
-#   - Custom kernel (6.14.0-xkernel) running
+#   - Linux 6.14.8-061408-generic running
+#   - KERNEL_DIR=~/linux-6.14.8-061408-generic
+#   - gcc-14 and g++-14 installed for Linux 6.14.8 kernel module builds
 #   - bash ae/Figure10/install_zswap_min.sh  (build benchmark)
-#   - sudo bash build.sh                    (build KernelX)
 #   - A swapfile must exist (swapon --show)
 
 set -euo pipefail
@@ -28,9 +29,10 @@ ZSWAP_MIN="$SCRIPT_DIR/bin/zswap_min"
 TOTAL_MB=4096
 BLOCK_PAGES=128
 REUSE_DIST=16
-WARMUP_PASSES=3
+WARMUP_PASSES=2
 BURST=12
-LOOPS=2000
+LOOPS=500
+EXPECTED_RESULT_LINES=$((LOOPS + 2))
 
 # SHRINK_BATCH values to test (128 is baseline)
 BASELINE_VALUE=128
@@ -48,8 +50,68 @@ die()         { echo -e "${RED}[$(date '+%H:%M:%S')] ✗${RST} $*" >&2; exit 1; 
 # ── Preflight checks ────────────────────────────────────────────────
 [[ -x "$ZSWAP_MIN" ]] || die "zswap_min not found. Run: bash install_zswap_min.sh"
 [[ -x "$XKTOOL" ]]    || die "xkernel-tool not found at $XKTOOL"
+command -v gcc-14 >/dev/null 2>&1 || die "gcc-14 not found. Install it with: sudo apt-get install -y gcc-14 g++-14"
+command -v g++-14 >/dev/null 2>&1 || die "g++-14 not found. Install it with: sudo apt-get install -y gcc-14 g++-14"
+
+# Linux 6.14.8-061408-generic headers were built with GCC 14. Use the same
+# compiler for Xkernel's kernel modules; otherwise module builds can fail on
+# GCC-14-only flags such as -fmin-function-alignment=16.
+export CC="${CC:-gcc-14}"
+export CXX="${CXX:-g++-14}"
 
 mkdir -p "$RESULT_DIR"
+
+# ── Resume/idempotency helpers ───────────────────────────────────────
+result_file() {
+    local batch_value="$1"
+    echo "$RESULT_DIR/${batch_value}.txt"
+}
+
+result_complete() {
+    local outfile="$1"
+    [[ -f "$outfile" ]] || return 1
+
+    local lines
+    lines=$(wc -l < "$outfile")
+    [[ "$lines" -ge "$EXPECTED_RESULT_LINES" ]]
+}
+
+all_results_complete() {
+    local val
+    result_complete "$(result_file "$BASELINE_VALUE")" || return 1
+    for val in "${TUNED_VALUES[@]}"; do
+        result_complete "$(result_file "$val")" || return 1
+    done
+    return 0
+}
+
+prepare_output_file() {
+    local outfile="$1"
+    [[ -f "$outfile" ]] || return 0
+
+    if result_complete "$outfile"; then
+        return 0
+    fi
+
+    local backup="${outfile}.partial.$(date '+%Y%m%d-%H%M%S')"
+    log "Preserving incomplete result: $outfile → $backup"
+    sudo mv "$outfile" "$backup"
+}
+
+cleanup_stale_xkernel_state() {
+    log_section "Clearing stale Xkernel runtime state"
+    sudo "$XKTOOL" unload --all 2>/dev/null || true
+    sudo rmmod xk_kfuncs 2>/dev/null || true
+    log_ok "stale Xkernel runtime state cleared"
+}
+
+xkernel_build_ready() {
+    [[ -s /dev/shm/xkernel/scope_table ]] || return 1
+    awk -F'\t' 'NR>1 && $6 ~ /xtune_stub_.*\.bpf\.o/ {found=1} END {exit !found}' /dev/shm/xkernel/scope_table || return 1
+    compgen -G "$PROJECT_ROOT/bpf/stubs/xtune_stub_*.bpf.c" > /dev/null || return 1
+    compgen -G "$PROJECT_ROOT/bpf/stubs/xtune_stub_*.bpf.h" > /dev/null || return 1
+    compgen -G "$PROJECT_ROOT/bpf/stubs/xtune_stub_*.bpf.o" > /dev/null || return 1
+}
 
 # ── Setup zswap environment ─────────────────────────────────────────
 setup_zswap() {
@@ -89,7 +151,17 @@ setup_zswap() {
 # ── Run benchmark for a given SHRINK_BATCH value ─────────────────────
 run_benchmark() {
     local batch_value="$1"
-    local outfile="$RESULT_DIR/${batch_value}.txt"
+    local outfile
+    outfile=$(result_file "$batch_value")
+
+    if result_complete "$outfile"; then
+        local lines
+        lines=$(wc -l < "$outfile")
+        log_ok "  Reusing existing $lines-iteration result → $outfile"
+        return 0
+    fi
+
+    prepare_output_file "$outfile"
 
     log "Running zswap_min (SHRINK_BATCH=$batch_value) → $outfile"
 
@@ -115,12 +187,16 @@ run_benchmark() {
             --file "$outfile" \
         2>&1 | tee -a "$RESULT_DIR/log.txt"
 
-    if [[ -f "$outfile" ]]; then
+    if result_complete "$outfile"; then
         local lines
         lines=$(wc -l < "$outfile")
         log_ok "  Collected $lines iterations → $outfile"
+    elif [[ -f "$outfile" ]]; then
+        local lines
+        lines=$(wc -l < "$outfile")
+        die "Incomplete output: collected $lines lines, expected at least $EXPECTED_RESULT_LINES → $outfile"
     else
-        log "  WARNING: Output file not created"
+        die "Output file not created: $outfile"
     fi
 }
 
@@ -145,12 +221,28 @@ save_log() {
 
 # ── Main ─────────────────────────────────────────────────────────────
 
+if all_results_complete; then
+    log_section "All Figure 10 results already complete"
+    log_ok "Skipping build and benchmark sweep. Results in: $RESULT_DIR/"
+    ls -la "$RESULT_DIR/"
+    exit 0
+fi
+
 save_log
+cleanup_stale_xkernel_state
 setup_zswap
 
 # ── One-time build (kernel diff + codegen + BPF compile) ─────────────
-log_section "Building SHRINK_BATCH tunable (one-time)"
-sudo bash "$TUNE_SCRIPT" build
+
+if xkernel_build_ready; then
+    log_section "Reusing existing SHRINK_BATCH tunable build"
+    log_ok "Existing BPF stubs and scope table found"
+else
+    log_section "Building SHRINK_BATCH tunable (one-time)"
+    sudo "$XKTOOL" table delete --all -y 2>/dev/null || true
+    sudo rm -rf "$PROJECT_ROOT/bpf/stubs/"* 2>/dev/null || true
+    sudo bash "$TUNE_SCRIPT" build
+fi
 
 # ── Baseline: SHRINK_BATCH = 128 (kernel default, no tuning) ─────────
 log_section "Baseline: SHRINK_BATCH = $BASELINE_VALUE (kernel default)"
@@ -158,6 +250,12 @@ run_benchmark "$BASELINE_VALUE"
 
 # ── Tuned runs (patch BPF stub only — no kernel rebuild) ─────────────
 for val in "${TUNED_VALUES[@]}"; do
+    if result_complete "$(result_file "$val")"; then
+        log_section "Skipping SHRINK_BATCH = $val (complete result exists)"
+        run_benchmark "$val"
+        continue
+    fi
+
     log_section "Tuning SHRINK_BATCH = $val"
 
     # Unload previous if loaded
@@ -175,8 +273,9 @@ done
 
 # ── Cleanup ──────────────────────────────────────────────────────────
 log_section "Cleanup"
+sudo bash "$TUNE_SCRIPT" unload 2>/dev/null || true
 sudo "$XKTOOL" table delete --all -y 2>/dev/null || true
-rm -rf "$PROJECT_ROOT/bpf/stubs/"* 2>/dev/null || true
+sudo rm -rf "$PROJECT_ROOT/bpf/stubs/"* 2>/dev/null || true
 
 log_ok "Figure 10 experiment complete."
 log "Results in: $RESULT_DIR/"

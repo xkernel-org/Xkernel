@@ -1,4 +1,4 @@
-kernel_dir = "~/linux-6.14.0-xkernel"
+kernel_dir = "~/linux-6.14.8-061408-generic"
 
 name = "NR_MAX_BATCHED_MIGRATION"
 description = "mm/migrate.c NR_MAX_BATCHED_MIGRATION"

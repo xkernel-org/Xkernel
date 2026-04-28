@@ -131,8 +131,8 @@ def load_configs(path: str) -> Tuple[str, List[TunableConfig]]:
         raise ValueError(
             f"Kernel source directory not specified.\n"
             f"Set the KERNEL_DIR environment variable:\n"
-            f"  export KERNEL_DIR=~/linux-6.14.0-xkernel\n"
-            f"Or add 'kernel_dir = \"~/linux-6.14.0-xkernel\"' to {path}"
+            f"  export KERNEL_DIR=~/linux-6.8.0\n"
+            f"Or add 'kernel_dir = \"~/linux-6.8.0\"' to {path}"
         )
 
     # Multi-tunable format: [[tunables]] array

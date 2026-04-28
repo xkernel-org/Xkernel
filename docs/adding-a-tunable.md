@@ -43,7 +43,7 @@ power of 2, to get varied compiler optimizations).
 Create `tunables/my_const.toml`:
 
 ```toml
-kernel_dir = "~/linux-6.14.0-xkernel"
+kernel_dir = "~/linux-6.8.0"
 
 name = "MY_CONST"
 description = "Brief description of what this controls"
@@ -60,7 +60,8 @@ values = [128, 32, 64]                 # [V1, V2, V3]
 
 ### Adding to all.toml
 
-Or add to `tunables/all.toml` as part of the multi-tunable array:
+For Linux 6.8-compatible tunables, you can also add to `tunables/all.toml` as
+part of the multi-tunable array:
 
 ```toml
 [[tunables]]

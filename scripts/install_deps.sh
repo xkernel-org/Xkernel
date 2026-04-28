@@ -4,6 +4,7 @@
 # Usage:
 #   sudo bash scripts/install_deps.sh          # Install everything
 #   sudo bash scripts/install_deps.sh --apt    # Only apt packages
+#   sudo bash scripts/install_deps.sh --pahole # Force install newer pahole
 #   sudo bash scripts/install_deps.sh --libbpf # Only libbpf
 #   sudo bash scripts/install_deps.sh --vmlinux # Only generate vmlinux.h
 #
@@ -17,13 +18,23 @@ RST='\033[0m'
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+if [[ -n "${SUDO_USER:-}" ]]; then
+    TARGET_HOME="$(getent passwd "$SUDO_USER" | cut -d: -f6)"
+else
+    TARGET_HOME="$HOME"
+fi
 
 info()  { echo -e "${GREEN}==>${RST} ${BOLD}$1${RST}"; }
 warn()  { echo -e "${YELLOW}==>${RST} $1"; }
 die()   { echo -e "${RED}ERROR:${RST} $1" >&2; exit 1; }
 
+is_ae_linux_614() {
+    [[ "$(uname -r)" == "6.14.8-061408-generic" ]]
+}
+
 # ── Parse arguments ──────────────────────────────────────────────────
 DO_APT=false
+DO_PAHOLE=false
 DO_LIBBPF=false
 DO_VMLINUX=false
 DO_PYTEST=false
@@ -33,15 +44,17 @@ DO_ALL=true
 for arg in "$@"; do
     case "$arg" in
         --apt)        DO_APT=true;        DO_ALL=false ;;
+        --pahole)     DO_PAHOLE=true;     DO_ALL=false ;;
         --libbpf)     DO_LIBBPF=true;     DO_ALL=false ;;
         --vmlinux)    DO_VMLINUX=true;     DO_ALL=false ;;
         --pytest)     DO_PYTEST=true;      DO_ALL=false ;;
         --kernel-src) DO_KERNEL_SRC=true;  DO_ALL=false ;;
         -h|--help)
-            echo "Usage: sudo bash $0 [--apt] [--libbpf] [--vmlinux] [--pytest] [--kernel-src]"
+            echo "Usage: sudo bash $0 [--apt] [--pahole] [--libbpf] [--vmlinux] [--pytest] [--kernel-src]"
             echo ""
-            echo "  (no flags)     Install everything"
-            echo "  --apt          Only install apt packages (clang, llvm, pahole, ...)"
+            echo "  (no flags)     Install standard dependencies; auto-add Linux 6.14 tools when uname -r needs them"
+            echo "  --apt          Only install apt packages; auto-add gcc-14/g++-14 on Linux 6.14"
+            echo "  --pahole       Force build and install newer pahole from dwarves source"
             echo "  --libbpf       Only build & install libbpf from source"
             echo "  --vmlinux      Only generate bpf/vmlinux.h from running kernel BTF"
             echo "  --pytest       Only install pytest for running tests"
@@ -60,10 +73,13 @@ if $DO_ALL; then
     DO_VMLINUX=true
     DO_PYTEST=true
     DO_KERNEL_SRC=true
+    if is_ae_linux_614; then
+        DO_PAHOLE=true
+    fi
 fi
 
 # ── Check root for apt / libbpf ─────────────────────────────────────
-if ($DO_APT || $DO_LIBBPF || $DO_KERNEL_SRC) && [[ $EUID -ne 0 ]]; then
+if ($DO_APT || $DO_PAHOLE || $DO_LIBBPF || $DO_KERNEL_SRC) && [[ $EUID -ne 0 ]]; then
     die "This script needs root privileges. Run with: sudo bash $0 $*"
 fi
 
@@ -73,12 +89,65 @@ install_apt() {
     apt-get update -qq
     apt-get install -y \
         clang llvm \
-        pahole pkg-config libelf-dev \
+        pahole pkg-config elfutils libdw-dev libelf-dev \
         build-essential \
         linux-tools-common \
         flex bison libssl-dev bc libncurses-dev xz-utils rsync dwarves \
         2>&1 | tail -1
     echo -e "  ${GREEN}✓${RST} clang llvm pahole pkg-config libelf-dev build-essential flex bison libssl-dev"
+
+    if is_ae_linux_614; then
+        info "Detected Linux 6.14.8 AE kernel; installing GCC 14 toolchain..."
+        apt-get install -y gcc-14 g++-14 2>&1 | tail -1
+        echo -e "  ${GREEN}✓${RST} gcc-14 g++-14"
+    else
+        warn "Running kernel $(uname -r) does not need Figure10/11 Linux 6.14 toolchain; skipping gcc-14/g++-14"
+    fi
+}
+
+version_ge() {
+    local have="$1"
+    local need="$2"
+    [[ "$(printf '%s\n%s\n' "$need" "$have" | sort -V | head -1)" == "$need" ]]
+}
+
+pahole_version() {
+    if command -v pahole &>/dev/null; then
+        pahole --version 2>/dev/null | grep -oE '[0-9]+(\.[0-9]+)+' | head -1
+    fi
+}
+
+install_pahole_source() {
+    local min_ver="1.26"
+    local have
+    have=$(pahole_version || true)
+
+    if [[ -n "$have" ]] && version_ge "$have" "$min_ver"; then
+        warn "pahole $have already installed; skipping source build"
+        return
+    fi
+
+    info "Installing pahole >= $min_ver from dwarves source..."
+    apt-get install -y cmake git build-essential pkg-config libelf-dev libdw-dev zlib1g-dev 2>&1 | tail -1
+
+    local dwarves_dir="${PROJECT_ROOT}/../dwarves"
+    if [[ ! -d "$dwarves_dir" ]]; then
+        git clone --depth 1 https://github.com/acmel/dwarves.git "$dwarves_dir"
+    else
+        warn "dwarves directory already exists at $dwarves_dir, reusing"
+    fi
+
+    cmake -S "$dwarves_dir" -B "$dwarves_dir/build" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local 2>&1 | tail -5
+    cmake --build "$dwarves_dir/build" -j"$(nproc)" 2>&1 | tail -5
+    cmake --install "$dwarves_dir/build" 2>&1 | tail -5
+    ldconfig
+
+    have=$(pahole_version || true)
+    if [[ -z "$have" ]] || ! version_ge "$have" "$min_ver"; then
+        die "pahole source install did not provide version >= $min_ver (found: ${have:-none})"
+    fi
+
+    echo -e "  ${GREEN}✓${RST} pahole $have installed"
 }
 
 # ── 2. libbpf from source ───────────────────────────────────────────
@@ -109,13 +178,21 @@ generate_vmlinux() {
         warn "bpf/vmlinux.h already exists ($(wc -l < "$vmlinux_h") lines), skipping"
         return
     fi
-    if ! command -v bpftool &>/dev/null; then
+    local bpftool_bin
+    bpftool_bin="${BPFTOOL:-}"
+    if [[ -z "$bpftool_bin" ]]; then
+        bpftool_bin=$(ls /usr/lib/linux-tools/*/bpftool 2>/dev/null | tail -n 1 || true)
+    fi
+    if [[ -z "$bpftool_bin" ]]; then
+        bpftool_bin=$(command -v bpftool 2>/dev/null || true)
+    fi
+    if [[ -z "$bpftool_bin" ]]; then
         die "bpftool not found — install it first, then rerun with --vmlinux"
     fi
     if [[ ! -f /sys/kernel/btf/vmlinux ]]; then
         die "No BTF data at /sys/kernel/btf/vmlinux — kernel must have CONFIG_DEBUG_INFO_BTF=y"
     fi
-    bpftool btf dump file /sys/kernel/btf/vmlinux format c > "$vmlinux_h"
+    "$bpftool_bin" btf dump file /sys/kernel/btf/vmlinux format c > "$vmlinux_h"
     echo -e "  ${GREEN}✓${RST} bpf/vmlinux.h generated ($(wc -l < "$vmlinux_h") lines)"
 }
 
@@ -143,11 +220,60 @@ install_kernel_source() {
     info "Downloading Ubuntu kernel source for running kernel ($kver)..."
 
     local base_ver="${kver%%-*}"
-    local kernel_dir="${HOME}/linux-${base_ver}"
+    local kernel_dir="${TARGET_HOME}/linux-${base_ver}"
+
+    if [[ "$kver" == "6.14.8-061408-generic" ]]; then
+        kernel_dir="${TARGET_HOME}/linux-6.14.8-061408-generic"
+    fi
 
     if [[ -d "$kernel_dir" && -f "$kernel_dir/Makefile" ]]; then
         warn "Kernel source already exists at $kernel_dir, skipping"
         echo -e "  Set ${BOLD}export KERNEL_DIR=$kernel_dir${RST} to use it"
+        return
+    fi
+
+    # Ubuntu mainline kernels are installed from standalone .deb files and do
+    # not reliably expose a matching source package through apt. Figure 10/11
+    # use this kernel, so fetch the matching upstream source tarball directly.
+    if [[ "$kver" == "6.14.8-061408-generic" ]]; then
+        info "Detected AE Linux 6.14.8 kernel; downloading upstream source tarball..."
+        apt-get install -y build-essential gcc-14 g++-14 bc bison dwarves elfutils flex libdw-dev libelf-dev libssl-dev \
+            ncurses-dev rsync xz-utils wget 2>&1 | tail -1
+        install_pahole_source
+
+        local tmpdir
+        tmpdir=$(mktemp -d)
+        chmod 777 "$tmpdir"
+        pushd "$tmpdir" > /dev/null
+
+        if [[ -n "${SUDO_USER:-}" ]]; then
+            su "$SUDO_USER" -c "cd '$tmpdir' && wget https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.14.8.tar.xz" 2>&1 | tail -3
+        else
+            wget https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.14.8.tar.xz 2>&1 | tail -3
+        fi
+        tar -xf linux-6.14.8.tar.xz
+        mv linux-6.14.8 "$kernel_dir"
+        popd > /dev/null
+        rm -rf "$tmpdir"
+
+        pushd "$kernel_dir" > /dev/null
+        cp "/boot/config-${kver}" .config
+        scripts/config -d CONFIG_SYSTEM_TRUSTED_KEYS || true
+        scripts/config -d CONFIG_SYSTEM_REVOCATION_KEYS || true
+        scripts/config --set-str CONFIG_LOCALVERSION "-061408-generic" || true
+        make olddefconfig 2>&1 | tail -1
+
+        info "Preparing kernel source tree for Xkernel code generation..."
+        make prepare scripts 2>&1 | tail -5
+        make -j"$(nproc)" mm/shrinker.o mm/migrate.o 2>&1 | tail -5
+        popd > /dev/null
+
+        if [[ -n "${SUDO_USER:-}" ]]; then
+            chown -R "$SUDO_USER:$SUDO_USER" "$kernel_dir"
+        fi
+
+        echo -e "  ${GREEN}✓${RST} Kernel source installed at ${BOLD}$kernel_dir${RST}"
+        echo -e "  Use: ${BOLD}export KERNEL_DIR=$kernel_dir${RST}"
         return
     fi
 
@@ -234,6 +360,10 @@ install_kernel_source() {
     make install 2>&1 | tail -3
     popd > /dev/null
 
+    if [[ -n "${SUDO_USER:-}" ]]; then
+        chown -R "$SUDO_USER:$SUDO_USER" "$kernel_dir"
+    fi
+
     echo -e "  ${GREEN}✓${RST} Kernel source installed at ${BOLD}$kernel_dir${RST}"
     echo -e "  Use: ${BOLD}export KERNEL_DIR=$kernel_dir${RST}"
 }
@@ -244,6 +374,7 @@ echo "=============================="
 echo
 
 $DO_APT        && install_apt          && echo
+$DO_PAHOLE     && install_pahole_source && echo
 $DO_LIBBPF     && install_libbpf       && echo
 $DO_VMLINUX    && generate_vmlinux     && echo
 $DO_PYTEST     && install_pytest       && echo

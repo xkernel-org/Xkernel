@@ -54,8 +54,15 @@ for cmd in clang llc; do
     fi
 done
 
-if command -v bpftool &>/dev/null; then
-    ok "bpftool ($(bpftool version 2>&1 | head -1))"
+bpftool_bin="${BPFTOOL:-}"
+if [[ -z "$bpftool_bin" ]]; then
+    bpftool_bin=$(ls /usr/lib/linux-tools/*/bpftool 2>/dev/null | tail -n 1 || true)
+fi
+if [[ -z "$bpftool_bin" ]]; then
+    bpftool_bin=$(command -v bpftool 2>/dev/null || true)
+fi
+if [[ -n "$bpftool_bin" ]]; then
+    ok "bpftool ($($bpftool_bin version 2>&1 | head -1))"
 else
     err "bpftool not found (build from kernel source or apt install linux-tools-common)"
 fi
@@ -79,6 +86,17 @@ for cmd in make gcc pahole pkg-config; do
         err "$cmd not found"
     fi
 done
+
+if command -v pahole &>/dev/null; then
+    pahole_ver=$(pahole --version 2>/dev/null | grep -oE '[0-9]+(\.[0-9]+)+' | head -1 || true)
+    if [[ "$(uname -r)" == "6.14.8-061408-generic" ]]; then
+        if [[ -n "$pahole_ver" && "$(printf '%s\n%s\n' "1.26" "$pahole_ver" | sort -V | head -1)" == "1.26" ]]; then
+            ok "pahole $pahole_ver supports Linux 6.14 module BTF"
+        else
+            err "pahole ${pahole_ver:-unknown} too old for Linux 6.14 module BTF (need >= 1.26; run ./xkernel-tool setup --pahole)"
+        fi
+    fi
+fi
 
 if dpkg -s libelf-dev &>/dev/null 2>&1; then
     ok "libelf-dev"
