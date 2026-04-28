@@ -44,7 +44,7 @@ def parse_xkernel_data(file_path):
     waited_us = []
     lines = raw_data.strip().split('\n')
     for line in lines:
-        match = re.search(r'差值：(\d+) us', line)
+        match = re.search(r'\u5dee\u503c\uff1a(\d+) us', line)
         if match:
             waited_us.append(int(match.group(1)))
     

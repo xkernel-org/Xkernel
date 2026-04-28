@@ -241,7 +241,7 @@ int main(int argc, char **argv) {
       touch_write(buf + b * block_bytes, block_bytes, stride);
 
       uint64_t t = now_us();
-      if (t - last >= 500000) { // ~0.5s 打印一次进度
+      if (t - last >= 500000) { // Print progress every ~0.5s
         double pct = 100.0 * (double)(b + 1) / (double)blocks;
         fprintf(stderr, "[warmup %d/%d] %.2f%%\n", p + 1, warmup_passes, pct);
         fflush(stderr);

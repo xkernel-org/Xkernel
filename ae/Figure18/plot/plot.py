@@ -45,7 +45,7 @@ def parse_linux_klp_data(file_path):
 
 def parse_xkernel_data(file_path):
     """Parse Xkernel data from file.
-    Supports both legacy format (差值：X us) and new format (Waited: X ns)."""
+    Supports both legacy delta format and new format (Waited: X ns)."""
     with open(file_path, 'r') as f:
         raw_data = f.read()
     waited_us = []
@@ -55,7 +55,7 @@ def parse_xkernel_data(file_path):
         if match:
             waited_us.append(int(match.group(1)) / 1000.0)
             continue
-        # Legacy format: "差值：X us"
+        # Legacy delta format
         match = re.search(r'\u5dee\u503c\uff1a(\d+) us', line)
         if match:
             waited_us.append(int(match.group(1)))
