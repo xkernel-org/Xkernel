@@ -6,15 +6,14 @@
 #   sudo ./build.sh --skip-deps  # Skip dependency installation
 #
 # Prerequisites:
-#   - Custom kernel 6.14.0-xkernel installed and booted (see install.sh)
-#   - Kernel source at $KERNELDIR (default: ~/linux-6.14.0-xkernel)
+#   - Kernel source at $KERNELDIR or $KERNEL_DIR (default: ~/linux-6.8.0)
 #
 # For selective dep installation, use: ./xkernel-tool setup
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-KERNELDIR="${KERNELDIR:-$(python3 -c "import tomllib,os; print(os.path.expanduser(tomllib.load(open('${SCRIPT_DIR}/tunables/all.toml','rb')).get('kernel_dir','~/linux-6.14.0-xkernel')))" 2>/dev/null || echo "$HOME/linux-6.14.0-xkernel")}"
+KERNELDIR="${KERNELDIR:-${KERNEL_DIR:-$HOME/linux-6.8.0}}"
 SKIP_DEPS=false
 
 for arg in "$@"; do
@@ -39,10 +38,10 @@ fi
 # ── 2. Kernel modules ────────────────────────────────────────────────
 echo "==> Building kernel modules..."
 pushd "$SCRIPT_DIR/kernel/kfuncs" > /dev/null
-make -j"$(nproc)"
+make -j"$(nproc)" CC="${CC:-gcc}"
 popd > /dev/null
 pushd "$SCRIPT_DIR/kernel/consistency" > /dev/null
-make -j"$(nproc)"
+make -j"$(nproc)" CC="${CC:-gcc}"
 popd > /dev/null
 echo "    xk-kfuncs.ko      OK"
 echo "    xk-consistency.ko  OK"
@@ -58,5 +57,5 @@ echo "  Build complete"
 echo "============================================"
 echo ""
 echo "Next steps:"
-echo "  ./xkernel-tool run tunables/shrink_batch.toml  # Build + load in one step"
+echo "  ./xkernel-tool run tunables/blk_max_request_count.toml  # Build + load in one step"
 echo "  ./xkernel-tool load 0 <ConstID>   # Load BPF program (Immediate mode)"

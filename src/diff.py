@@ -11,7 +11,7 @@ import sys
 from pathlib import Path
 
 # --- Configuration ---
-DEFAULT_LINUX_PATH = "~/linux-6.14.0-xkernel"
+DEFAULT_LINUX_PATH = "~/linux-6.8.0"
 REQUIRED_TOOLS = ["gcc", "make", "objdump", "sed", "diff", "grep"]
 BUILD_DIR_NAME = "BUILDO"
 

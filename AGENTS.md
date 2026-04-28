@@ -11,9 +11,9 @@ without recompiling or rebooting the kernel.
 
 ```bash
 # Build single tunable
-./xkernel-tool build tunables/shrink_batch.toml
+./xkernel-tool build tunables/blk_max_request_count.toml
 
-# Build all 9 tunables (clears tables first)
+# Build Linux 6.8 aggregate tunables
 ./xkernel-tool build --all
 
 # Load ConstID 1 in immediate mode
@@ -85,5 +85,6 @@ examples/        — Example X-tune policies from the paper
 - Python 3.11+ (uses `tomllib` from stdlib)
 - BPF compilation requires: clang, llvm, libbpf, bpftool, vmlinux.h
 - Kernel modules require kernel headers for the running kernel
-- Custom kernel (6.14.0-xkernel) needed for full functionality
+- Kernel source must match the running kernel. Most AE figures use Linux 6.8;
+  Figure 10/11 use Linux 6.14.8-061408-generic.
 - x86-64 only (symbolic executor handles AT&T syntax x86 instructions)

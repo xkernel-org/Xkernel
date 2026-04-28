@@ -24,6 +24,9 @@ STUBS_DIR="$PROJECT_ROOT/bpf/stubs"
 NEW_VALUE="${1:-32}"
 MODE=0  # Immediate mode
 
+export CC="${CC:-gcc-14}"
+export CXX="${CXX:-g++-14}"
+
 # ── helpers ──────────────────────────────────────────────────────────
 die()  { echo "[✗] $*" >&2; exit 1; }
 log()  { echo "[*] $*"; }
@@ -32,7 +35,7 @@ ok()   { echo "[✓] $*"; }
 find_const_id() {
     [[ -f "$SCOPE_TABLE" ]] || die "Scope table not found — run 'build' first"
     local id
-    id=$(awk -F'\t' 'NR>1 && $6 ~ /xtune_stub_.*\.bpf\.o/ {print $1; exit}' "$SCOPE_TABLE")
+    id=$(awk -F'\t' 'NR>1 && $6 ~ /xtune_stub_.*\.bpf\.o/ {id=$1} END {print id}' "$SCOPE_TABLE")
     [[ -n "$id" ]] || die "Could not find ConstID in scope table"
     echo "$id"
 }
@@ -47,12 +50,17 @@ find_stub_src() {
 # ── build: one-time kernel diff + codegen + compile ──────────────────
 if [[ "$NEW_VALUE" == "build" ]]; then
     log "Building tunable from $TOML (one-time) ..."
-    BUILD_OUT=$("$XKTOOL" build "$TOML" 2>&1)
-    echo "$BUILD_OUT"
-    if echo "$BUILD_OUT" | grep -q "No BPF stubs to compile"; then
+    BUILD_LOG=$(mktemp)
+    if ! "$XKTOOL" build "$TOML" 2>&1 | tee "$BUILD_LOG"; then
+        rm -f "$BUILD_LOG"
+        die "Build failed"
+    fi
+    if grep -q "No BPF stubs to compile" "$BUILD_LOG"; then
+        rm -f "$BUILD_LOG"
         die "Codegen failed — no BPF stubs generated"
     fi
-    CONST_ID=$(echo "$BUILD_OUT" | grep -oP 'ConstID \K[0-9]+' | tail -1)
+    CONST_ID=$(grep -oP 'ConstID \K[0-9]+' "$BUILD_LOG" | tail -1)
+    rm -f "$BUILD_LOG"
     ok "Build complete — ConstID=$CONST_ID"
     exit 0
 fi
@@ -85,7 +93,8 @@ log "Loading ConstID=$CONST_ID (mode=$MODE) ..."
 "$XKTOOL" load "$MODE" "$CONST_ID"
 
 # 4. Verify
-BPF_PROGS=$(bpftool prog show 2>/dev/null | grep -c "__xk_${CONST_ID}_") || true
+BPFTOOL_BIN=${BPFTOOL:-$(ls /usr/lib/linux-tools/*/bpftool 2>/dev/null | tail -n 1 || command -v bpftool 2>/dev/null || echo bpftool)}
+BPF_PROGS=$("$BPFTOOL_BIN" prog show 2>/dev/null | grep -c "__xk_${CONST_ID}_") || true
 if [[ "$BPF_PROGS" -gt 0 ]]; then
     ok "$BPF_PROGS BPF program(s) loaded — NR_MAX_BATCHED_MIGRATION = $NEW_VALUE"
 else

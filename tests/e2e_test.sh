@@ -19,7 +19,9 @@
 #   --workload-sec : workload duration override
 #
 # Prerequisites:
-#   - BPF stubs compiled (KERNEL_DIR=~/linux-6.8.0 ./xkernel-tool build ...)
+#   - BPF stubs compiled with the matching kernel source:
+#       * Linux 6.8 tunables: KERNEL_DIR=~/linux-6.8.0
+#       * Figure 10/11 tunables: KERNEL_DIR=~/linux-6.14.8-061408-generic
 #   - Run as root (sudo)
 
 set -euo pipefail

@@ -235,9 +235,9 @@ class TestRealConfigs:
         if not os.path.exists(path):
             pytest.skip("all.toml not found")
         kernel_dir, configs = load_configs(path)
-        assert len(configs) >= 9
+        assert len(configs) >= 7
         names = {c.name for c in configs}
-        assert "SHRINK_BATCH" in names
+        assert "BLK_MAX_REQUEST_COUNT" in names
         assert "tcp_cubic" in names
 
     def test_frozen_dataclass(self, project_root):

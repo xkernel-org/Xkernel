@@ -9,6 +9,7 @@ $(error You must compile kfuncs first)
 endif
 
 KERNELDIR ?= /lib/modules/$(shell uname -r)/build
+CC ?= gcc
 
 # Enable DEBUG for verbose stack traces during transition.
 # Comment out or use `make DEBUG=0` to disable.
@@ -17,7 +18,7 @@ ccflags-y += -DDEBUG
 endif
 
 all:
-	make -C $(KERNELDIR) M=$(PWD) modules
+	make -C $(KERNELDIR) M=$(PWD) modules CC=$(CC)
 
 clean:
 	make -C $(KERNELDIR) M=$(PWD) clean

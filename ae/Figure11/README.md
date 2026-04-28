@@ -1,95 +1,85 @@
 # Figure 11
 
-**Figure 11** — NUMA page migration probe latency under different
-`NR_MAX_BATCHED_MIGRATION` values.
+## Testbed
 
-The `NR_MAX_BATCHED_MIGRATION` constant in `mm/migrate.c` controls the maximum
-number of pages migrated in a single batch. The default is 512 (= HPAGE_PMD_NR).
-This experiment measures how changing that value affects query latency in a
-NUMA-migration-heavy workload, demonstrating KernelX's ability to tune this
-perf-const at runtime.
+1 CloudLab c220g5 machine running Linux 6.14.8-061408-generic with 2+ NUMA
+nodes.
 
-## Prerequisites
+## Steps
 
-```bash
-# Install plotting environment (one-time)
-bash Xkernel/plot_env.sh
-source ~/xk-py/bin/activate
+> **Note:** Run `bash plot_env.sh` (in the repo root) and
+> `source ~/xk-py/bin/activate` before plotting.
 
-# Build KernelX (one-time)
-sudo bash build.sh
+Figure 11 uses the same Linux 6.14.8-061408-generic setup as Figure 10, instead
+of the Linux 6.8 kernel used by most other AE experiments. This keeps the
+runtime kernel and Xkernel's code-generation source tree aligned for
+`NR_MAX_BATCHED_MIGRATION`.
 
-# Requires 2+ NUMA nodes
-numactl --hardware
-```
+> **Important:** This is a Figure 10/11-specific setup. Do not replace the
+> default Linux 6.8 setup for the rest of the artifact. A recommended workflow is
+> to reproduce the Linux 6.8 figures first, then reboot into Linux
+> 6.14.8-061408-generic for Figure 10 and Figure 11 only. If you already prepared
+> this environment for Figure 10, reuse it here.
 
-## Quick Start
-
-```bash
-# 1. Install dependencies and build benchmark
-bash install_benchmark.sh
-
-# 2. Run the full experiment (baseline + tuned values, 10 repeats each)
-sudo bash run.sh
-
-# 3. Plot results
-python plot/plot.py              # → plot/figure11.pdf
-```
-
-## Step-by-step
-
-### 1. Install
+Prepare the shared Figure 10/11 Linux 6.14.8 environment by following the setup
+steps in `../Figure10/README.md` through the Xkernel configuration step. In
+particular, reuse the same booted kernel, configured source tree, and toolchain:
 
 ```bash
-bash install_benchmark.sh
+uname -r                         # should show 6.14.8-061408-generic
+cd ~/Xkernel
+export KERNEL_DIR=~/linux-6.14.8-061408-generic
+export CC=gcc-14
+export CXX=g++-14
+
+cd ae/Figure11
 ```
 
-Installs `build-essential`, `numactl`, `libnuma-dev` and compiles `src/benchmark.c`.
-
-### 2. Tune (manual, optional)
+Check NUMA availability, then run the experiment:
 
 ```bash
-# Set NR_MAX_BATCHED_MIGRATION = 32
-sudo bash tune_nr_max_batched_migration.sh 32
-
-# Unload
-sudo bash tune_nr_max_batched_migration.sh unload
+numactl --hardware                # should show at least 2 NUMA nodes
+bash install_benchmark.sh         # build NUMA migration benchmark
+sudo -E bash run.sh               # runs baseline + tuned values
+python3 plot/plot.py              # -> plot/figure11.pdf
 ```
 
-### 3. Run
+By default, `run.sh` clears old files in `results/`, then runs 5 repeats for
+each value. The summary appended to each `results/<value>.txt` file reports
+averages across those repeats, including each final Probe Latency entry.
 
-`run.sh` automates the full experiment:
-- Disables `numa_balancing` to prevent interference
-- Uses high migration pressure config: 24 workers, 2 migration threads,
-  rolling hot set, 8 GiB total, NUMA node 1 → 0
-- Runs 10 repeats for each value (baseline 512, tuned: 32, 64, 128, 256, 1024)
-- Summarizes results via `plot/summarize.py`
-- Results saved to `results/<timestamp>/`
+**Machine time:** ~20 minutes &nbsp;|&nbsp; **Human time:** ~1 minute
 
-```bash
-sudo bash run.sh
-```
+## Expected Results
 
-### 4. Plot
+Xkernel tunes `NR_MAX_BATCHED_MIGRATION` in `mm/migrate.c` at runtime.
+`NR_MAX_BATCHED_MIGRATION` controls the maximum number of pages migrated in a
+single batch; the Linux default is 512. This experiment measures probe latency
+under a NUMA-migration-heavy workload while sweeping values `{32, 64, 128, 256,
+1024}` and comparing them against the default value 512.
 
-```bash
-python plot/plot.py                          # auto-detect latest results
-python plot/plot.py results/20251126-034820  # specific results dir
-```
+The benchmark disables automatic NUMA balancing, creates high migration
+pressure with 24 query workers and 2 migration threads, and migrates an 8 GiB
+anonymous memory region from NUMA node 1 to NUMA node 0. The generated figure
+reports P50/P90/P95/P99 probe latency for each value.
 
-Produces `plot/figure11.pdf` — grouped bar chart of P50/P90/P95/P99 probe
-latency (µs) for each NR_MAX_BATCHED_MIGRATION value.
+Representative results from 1 run on CloudLab c220g5 (kernel
+6.14.8-061408-generic, 5 repeats per value, averaged Probe Latency summary):
 
-## Benchmark Parameters
+| NR_MAX_BATCHED_MIGRATION | P50 Latency (µs) | P90 Latency (µs) | P95 Latency (µs) | P99 Latency (µs) |
+|--------------------------|------------------|------------------|------------------|------------------|
+| 32                       | 471.61           | 503.00           | 514.45           | 1244.16          |
+| 64                       | 471.77           | 504.23           | 514.54           | 2459.79          |
+| 128                      | 472.40           | 507.28           | 533.08           | 5130.91          |
+| 256                      | 470.34           | 506.64           | 715.38           | 5979.24          |
+| 512 (default)            | 478.09           | 518.80           | 945.06           | 6875.97          |
+| 1024                     | 484.14           | 529.31           | 1505.78          | 6468.73          |
 
-| Parameter | Value | Description |
-|-----------|-------|-------------|
-| `--pages` | 2097152 | 8 GiB total anonymous memory |
-| `--workers` | 24 | Query threads |
-| `--migrates` | 2 | Migration threads |
-| `--src/--dst` | 1/0 | Migrate from NUMA node 1 to node 0 |
-| `--batch` | 8192 | User-space collection cap per attempt |
-| `--hot-frac` | 0.20 | 20% hot window |
-| `--hot-prob` | 0.80 | 80% access probability for hot pages |
-| `--hot-rotate` | 1 | Rotate hot window every 1 second |
-| `--duration` | 30 | 30 seconds per run |
+**Trend:** Changing `NR_MAX_BATCHED_MIGRATION` changes how much migration work
+the kernel performs per batch, exposing a latency/throughput tradeoff in the
+migration path. This demonstrates that Xkernel can tune NUMA migration behavior
+at runtime without rebuilding or rebooting the kernel.
+
+> **Note:** Exact numbers may vary across runs depending on NUMA topology,
+> background load, and memory state. The key observation is the latency tradeoff
+> as `NR_MAX_BATCHED_MIGRATION` changes.

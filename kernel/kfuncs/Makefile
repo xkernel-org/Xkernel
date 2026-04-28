@@ -3,7 +3,7 @@ obj-m += xk-kfuncs.o
 xk-kfuncs-objs := kfuncs.o
 
 KERNELDIR ?= /lib/modules/$(shell uname -r)/build
-CC = gcc
+CC ?= gcc
 BTF_VMLINUX = /sys/kernel/btf/vmlinux
 
 # Enable BTF support

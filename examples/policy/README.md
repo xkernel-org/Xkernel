@@ -14,14 +14,15 @@ Each file is a self-contained X-tune policy that can be loaded with `xkernel-too
 
 ## How to Use
 
-1. Build the corresponding tunable:
+1. Build the corresponding tunable. For example, the merge-failure policy uses
+   the Linux 6.8 `BLK_MAX_REQUEST_COUNT` setup:
    ```bash
-   ./xkernel-tool build tunables/shrink_batch.toml
+   ./xkernel-tool build tunables/blk_max_request_count.toml
    ```
 
 2. Copy an example and adapt the `#include` to match your ConstID's stub header:
    ```bash
-   cp examples/policy/zswap_shrinker.bpf.c bpf/stubs/xtune_stub_1.bpf.c
+   cp examples/policy/merge_failure_adaptive.bpf.c bpf/stubs/xtune_stub_1.bpf.c
    # Edit the #include line to match: #include "xtune_stub_1.bpf.h"
    ```
 
