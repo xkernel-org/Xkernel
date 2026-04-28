@@ -41,12 +41,16 @@ Check NUMA availability, then run the experiment:
 numactl --hardware                # should show at least 2 NUMA nodes
 bash install_benchmark.sh         # build NUMA migration benchmark
 sudo -E bash run.sh               # runs baseline + tuned values
-python3 plot/plot.py              # -> plot/figure11.pdf
+python3 plot/plot.py              # -> plot/figure11.pdf and plot/figure11_tlb_shootdown_count.pdf
 ```
 
 By default, `run.sh` clears old files in `results/`, then runs 5 repeats for
 each value. The summary appended to each `results/<value>.txt` file reports
-averages across those repeats, including each final Probe Latency entry.
+averages across those repeats, including each final Probe Latency entry. During
+each value's benchmark run, `run.sh` also records `tlb_shootdown.bt`
+output to `results/tlb_shootdown_count/<value>.txt`; the companion plot compares
+the TLB flush counts for remote shootdown (`reason[1]`) and remote IPI send
+(`reason[4]`).
 
 **Machine time:** ~20 minutes &nbsp;|&nbsp; **Human time:** ~1 minute
 
@@ -61,7 +65,8 @@ under a NUMA-migration-heavy workload while sweeping values `{32, 64, 128, 256,
 The benchmark disables automatic NUMA balancing, creates high migration
 pressure with 24 query workers and 2 migration threads, and migrates an 8 GiB
 anonymous memory region from NUMA node 1 to NUMA node 0. The generated figure
-reports P50/P90/P95/P99 probe latency for each value.
+reports P50/P90/P95/P99 probe latency for each value, and the companion figure
+reports TLB shootdown-related flush counts collected by bpftrace.
 
 Representative results from 1 run on CloudLab c220g5 (kernel
 6.14.8-061408-generic, 5 repeats per value, averaged Probe Latency summary):
