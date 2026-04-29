@@ -31,6 +31,7 @@ XKTOOL="$PROJECT_ROOT/xkernel-tool"
 TUNE_SCRIPT="$SCRIPT_DIR/tune_nr_max_batched_migration.sh"
 BENCHMARK="$SCRIPT_DIR/bin/benchmark"
 BUILD_MARKER="$PROJECT_ROOT/bpf/stubs/figure11_nr_max_batched_migration.built"
+TLB_TRACE_SCRIPT="$SCRIPT_DIR/tlb_shootdown.bt"
 
 # Benchmark parameters (matching yltang's high-pressure config)
 PAGES=2097152          # 8 GiB
@@ -56,6 +57,8 @@ BASELINE_VALUE=512
 TUNED_VALUES=(32 64 128 256 1024)
 
 RESULT_DIR="$SCRIPT_DIR/results"
+TLB_RESULT_DIR="$RESULT_DIR/tlb_shootdown_count"
+TLB_TRACE_PID=""
 
 RED='\033[0;31m'; GREEN='\033[0;32m'; BOLD='\033[1m'; RST='\033[0m'
 log()         { echo -e "${BOLD}[$(date '+%H:%M:%S')]${RST} $*"; }
@@ -66,6 +69,8 @@ die()         { echo -e "${RED}[$(date '+%H:%M:%S')] ✗${RST} $*" >&2; exit 1; 
 # ── Preflight checks ────────────────────────────────────────────────
 [[ -x "$BENCHMARK" ]] || die "benchmark not found. Run: bash install_benchmark.sh"
 [[ -x "$XKTOOL" ]]    || die "xkernel-tool not found at $XKTOOL"
+[[ -f "$TLB_TRACE_SCRIPT" ]] || die "tlb_shootdown.bt not found at $TLB_TRACE_SCRIPT"
+command -v bpftrace >/dev/null 2>&1 || die "bpftrace not found. Install it before collecting TLB shootdown counts."
 command -v gcc-14 >/dev/null 2>&1 || die "gcc-14 not found. Install it with: sudo apt-get install -y gcc-14 g++-14"
 command -v g++-14 >/dev/null 2>&1 || die "g++-14 not found. Install it with: sudo apt-get install -y gcc-14 g++-14"
 
@@ -82,12 +87,17 @@ fi
 NUMA_NODES=$(numactl --hardware 2>/dev/null | grep "available:" | awk '{print $2}')
 [[ "$NUMA_NODES" -ge 2 ]] || die "Need at least 2 NUMA nodes (found: $NUMA_NODES)"
 
-mkdir -p "$RESULT_DIR"
+mkdir -p "$RESULT_DIR" "$TLB_RESULT_DIR"
 
 # ── Resume/idempotency helpers ───────────────────────────────────────
 result_file() {
     local batch_value="$1"
     echo "$RESULT_DIR/${batch_value}.txt"
+}
+
+tlb_result_file() {
+    local batch_value="$1"
+    echo "$TLB_RESULT_DIR/${batch_value}.txt"
 }
 
 raw_result_complete() {
@@ -105,16 +115,33 @@ result_summarized() {
     grep -Eq '^Probe La(n)?tency N=' "$outfile"
 }
 
+tlb_result_complete() {
+    local outfile="$1"
+    [[ -f "$outfile" ]] || return 1
+    grep -q '^=== TLB shootdown summary ===' "$outfile" || return 1
+    grep -Eq '@tlb_reason_cnt\[(1|4)\]:' "$outfile" || return 1
+}
+
 result_complete() {
     local outfile="$1"
     raw_result_complete "$outfile" && result_summarized "$outfile"
 }
 
+value_complete() {
+    local batch_value="$1"
+    result_complete "$(result_file "$batch_value")" && tlb_result_complete "$(tlb_result_file "$batch_value")"
+}
+
+benchmark_trace_complete() {
+    local batch_value="$1"
+    raw_result_complete "$(result_file "$batch_value")" && tlb_result_complete "$(tlb_result_file "$batch_value")"
+}
+
 all_results_complete() {
     local val
-    result_complete "$(result_file "$BASELINE_VALUE")" || return 1
+    value_complete "$BASELINE_VALUE" || return 1
     for val in "${TUNED_VALUES[@]}"; do
-        result_complete "$(result_file "$val")" || return 1
+        value_complete "$val" || return 1
     done
     return 0
 }
@@ -132,6 +159,22 @@ prepare_output_file() {
     sudo mv "$outfile" "$backup"
 }
 
+prepare_benchmark_trace_output() {
+    local batch_value="$1"
+    local outfile
+    local tlb_outfile
+    outfile=$(result_file "$batch_value")
+    tlb_outfile=$(tlb_result_file "$batch_value")
+
+    if raw_result_complete "$outfile" && ! tlb_result_complete "$tlb_outfile"; then
+        local backup="${outfile}.latency-only.$(date '+%Y%m%d-%H%M%S')"
+        log "Preserving latency-only result before TLB rerun: $outfile → $backup"
+        sudo mv "$outfile" "$backup"
+    fi
+
+    prepare_output_file "$outfile"
+}
+
 cleanup_stale_xkernel_state() {
     log_section "Clearing stale Xkernel runtime state"
     sudo "$XKTOOL" unload --all 2>/dev/null || true
@@ -143,7 +186,47 @@ clear_previous_results() {
     log_section "Clearing previous Figure 11 results"
     mkdir -p "$RESULT_DIR"
     sudo find "$RESULT_DIR" -mindepth 1 -maxdepth 1 -exec rm -rf -- {} +
+    mkdir -p "$TLB_RESULT_DIR"
     log_ok "previous results cleared"
+}
+
+start_tlb_trace() {
+    local batch_value="$1"
+    local outfile
+    outfile=$(tlb_result_file "$batch_value")
+
+    mkdir -p "$TLB_RESULT_DIR"
+    : > "$outfile"
+
+    log "  Starting TLB shootdown trace → $outfile"
+    sudo -E bpftrace "$TLB_TRACE_SCRIPT" > "$outfile" 2>&1 &
+    TLB_TRACE_PID=$!
+
+    sleep 2
+    if ! kill -0 "$TLB_TRACE_PID" 2>/dev/null; then
+        wait "$TLB_TRACE_PID" || true
+        TLB_TRACE_PID=""
+        die "Failed to start TLB shootdown trace: $outfile"
+    fi
+}
+
+stop_tlb_trace() {
+    local batch_value="$1"
+    local outfile
+    outfile=$(tlb_result_file "$batch_value")
+
+    if [[ -n "$TLB_TRACE_PID" ]] && kill -0 "$TLB_TRACE_PID" 2>/dev/null; then
+        log "  Stopping TLB shootdown trace ..."
+        sudo kill -INT "$TLB_TRACE_PID" 2>/dev/null || kill -INT "$TLB_TRACE_PID" 2>/dev/null || true
+        wait "$TLB_TRACE_PID" 2>/dev/null || true
+    fi
+    TLB_TRACE_PID=""
+
+    if tlb_result_complete "$outfile"; then
+        log_ok "  TLB shootdown trace saved → $outfile"
+    else
+        die "Incomplete TLB shootdown trace output: $outfile"
+    fi
 }
 
 xkernel_build_ready() {
@@ -172,14 +255,16 @@ run_benchmark() {
     local outfile
     outfile=$(result_file "$batch_value")
 
-    if raw_result_complete "$outfile"; then
-        log_ok "  Reusing existing benchmark output → $outfile"
+    if benchmark_trace_complete "$batch_value"; then
+        log_ok "  Reusing existing benchmark and TLB trace output → $outfile"
         return 0
     fi
 
-    prepare_output_file "$outfile"
+    prepare_benchmark_trace_output "$batch_value"
 
     log "Running benchmark (NR_MAX_BATCHED_MIGRATION=$batch_value, $REPEATS repeats) → $outfile"
+
+    start_tlb_trace "$batch_value"
 
     for i in $(seq 1 "$REPEATS"); do
         log "  Repeat $i/$REPEATS ..."
@@ -189,7 +274,7 @@ run_benchmark() {
         echo 3 | sudo tee /proc/sys/vm/drop_caches > /dev/null
         sleep 1
 
-        sudo "$BENCHMARK" \
+        if ! sudo "$BENCHMARK" \
             --pages "$PAGES" \
             --workers "$WORKERS" \
             --migrates "$MIGRATES" \
@@ -206,8 +291,13 @@ run_benchmark() {
             --qps-sample-ms "$QPS_SAMPLE_MS" \
             --probe "$PROBE_OPS" "$PROBE_PERIOD_MS" \
             --duration "$DURATION" \
-            >> "$outfile" 2>&1
+            >> "$outfile" 2>&1; then
+            stop_tlb_trace "$batch_value" || true
+            die "Benchmark failed for NR_MAX_BATCHED_MIGRATION=$batch_value → $outfile"
+        fi
     done
+
+    stop_tlb_trace "$batch_value"
 
     if raw_result_complete "$outfile"; then
         log_ok "  Results saved → $outfile"
@@ -259,6 +349,8 @@ save_log() {
         echo "REPEATS=$REPEATS"
         echo "BASELINE_VALUE=$BASELINE_VALUE"
         echo "TUNED_VALUES=${TUNED_VALUES[*]}"
+        echo "TLB_TRACE_SCRIPT=$TLB_TRACE_SCRIPT"
+        echo "TLB_RESULT_DIR=$TLB_RESULT_DIR"
     } >> "$RESULT_DIR/log.txt"
 }
 
@@ -289,7 +381,7 @@ summarize_results "$BASELINE_VALUE"
 
 # ── Tuned runs (patch BPF stub only — no kernel rebuild) ─────────────
 for val in "${TUNED_VALUES[@]}"; do
-    if result_complete "$(result_file "$val")"; then
+    if value_complete "$val"; then
         log_section "Skipping NR_MAX_BATCHED_MIGRATION = $val (complete result exists)"
         run_benchmark "$val"
         summarize_results "$val"
@@ -326,4 +418,4 @@ log "Results in: $RESULT_DIR/"
 ls -la "$RESULT_DIR/"
 log ""
 log "Next steps:"
-log "  python plot/plot.py       # → plot/figure11.pdf"
+log "  python plot/plot.py       # → plot/figure11.pdf and plot/figure11_tlb_shootdown_count.pdf"
