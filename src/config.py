@@ -9,18 +9,22 @@ Supports two formats:
 
 Safe-span resolution order (per tunable, first match wins):
   1. Inline [[safe_spans]] in the TOML
-  2. Fresh LLVM analysis via linux-analysis/scripts/ss-analysis.sh
-     (only when load_configs(..., run_analysis=True))
+  2. Fresh LLVM analysis via linux-analysis/scripts/ss-gen.sh
+     (only when load_configs(..., run_analysis=True)).
+     linux-analysis is located via the sibling-of-Xkernel convention
+     (../linux-analysis relative to this repo root).
 
 When both stages leave safe_spans=None, codegen.py's _populate_ss_raw()
 falls back to an auto-SS spanning the entire CS function (kcore-derived).
 """
 
 import glob
+import json
 import os
 import subprocess
 import tomllib
 from dataclasses import dataclass, replace
+from pathlib import Path
 from typing import List, Optional, Tuple
 
 # Kernel source directory resolution order:
@@ -132,8 +136,9 @@ def load_configs(path: str, *, run_analysis: bool = False) -> Tuple[str, List[Tu
 
     Safe-span resolution (per tunable, first match wins):
       1. Inline [[safe_spans]] in the TOML
-      2. LLVM analysis via linux-analysis/scripts/ss-analysis.sh
-         (only when run_analysis=True)
+      2. LLVM analysis via linux-analysis/scripts/ss-gen.sh
+         (only when run_analysis=True; linux-analysis is discovered via the
+         sibling-of-Xkernel convention).
 
     Args:
         path: Path to the TOML config file.
@@ -182,37 +187,63 @@ def load_configs(path: str, *, run_analysis: bool = False) -> Tuple[str, List[Tu
 # ---------------------------------------------------------------------------
 
 
+def _linux_analysis_root() -> Optional[Path]:
+    """Locate the linux-analysis checkout.
+
+    Resolution order:
+      1. Sibling-of-Xkernel convention: <xkernel_parent>/linux-analysis
+      2. In-tree fallback (development layout): <xkernel_root>/linux-analysis
+
+    Returns the first path whose `scripts/ss-gen.sh` exists, else None.
+    """
+    xkernel_root = Path(__file__).resolve().parents[1]
+    for candidate in (xkernel_root.parent / "linux-analysis",
+                      xkernel_root / "linux-analysis"):
+        if (candidate / "scripts" / "ss-gen.sh").is_file():
+            return candidate
+    return None
+
+
 def _backfill_safe_spans_from_analysis(
     configs: List[TunableConfig],
 ) -> List[TunableConfig]:
     """Run LLVM SS analysis (linux-analysis) for tunables missing safe_spans.
 
-    Looks for input files at $WORKDIR/linux-analysis/dataset/<name>/*.input.txt
-    and runs ss-analysis.sh on each, then ir_to_assembly.py to recover
-    assembly offsets. Results are deduplicated and stored in TunableConfig.
+    Discovers linux-analysis as a sibling directory of Xkernel
+    (../linux-analysis), then for each tunable without inline safe_spans
+    invokes `scripts/ss-gen.sh --tunable <NAME>` and reads the resulting
+    dataset/<NAME>/*.func_offset.json files. Existing JSON outputs are
+    reused (ss-gen.sh caches *.output.txt + *.func_offset.json on disk).
     """
     if all(c.safe_spans is not None for c in configs):
         return configs
 
-    workdir = os.environ.get('WORKDIR')
-    if not workdir:
-        raise RuntimeError(
-            "WORKDIR environment variable is not set. "
-            "Set it to the parent directory containing the linux-analysis checkout, e.g.:\n"
-            "  export WORKDIR=~"
+    la_root = _linux_analysis_root()
+    if la_root is None:
+        xkernel_root = Path(__file__).resolve().parents[1]
+        print(
+            f"  --run-analysis: no linux-analysis checkout at "
+            f"{xkernel_root.parent / 'linux-analysis'}, skipping. "
+            "Clone xkernel-org/linux-analysis as a sibling of Xkernel to enable."
         )
+        return configs
 
-    base = os.path.join(workdir, "linux-analysis")
-    ss_analysis_script = os.path.join(base, "scripts", "ss-analysis.sh")
-    ir_to_assembly_script = os.path.join(base, "scripts", "ir_to_assembly.py")
-    dataset_dir = os.path.join(base, "dataset")
+    ss_gen_script = la_root / "scripts" / "ss-gen.sh"
+    dataset_dir = la_root / "dataset"
 
-    for required in (ss_analysis_script, ir_to_assembly_script):
-        if not os.path.isfile(required):
-            raise FileNotFoundError(
-                f"linux-analysis script not found: {required}\n"
-                f"Check out https://github.com/xkernel-org/linux-analysis at $WORKDIR/linux-analysis."
-            )
+    # Optional flags forwarded to ss-gen.sh. Empty strings are dropped so the
+    # underlying script uses its own defaults (env vars / self-relative paths).
+    forwarded: List[str] = []
+    for flag, var in (
+        ("--linux-wllvm", "LINUX_WLLVM"),
+        ("--vmlinux-bc",  "VMLINUX_BC"),
+        ("--plugin",      "TAINT_TRACKER_PLUGIN"),
+        ("--vmlinux",     "VMLINUX"),
+        ("--modules-dir", "MODULES_DIR"),
+    ):
+        val = os.environ.get(var)
+        if val:
+            forwarded += [flag, val]
 
     resolved = []
     for config in configs:
@@ -221,24 +252,27 @@ def _backfill_safe_spans_from_analysis(
             continue
 
         ds_name = _toml_to_dataset_name.get(config.name, config.name)
-        tunable_dir = os.path.join(dataset_dir, ds_name)
-        if not os.path.isdir(tunable_dir):
+        tunable_dir = dataset_dir / ds_name
+        if not tunable_dir.is_dir():
             print(f"  {config.name}: no dataset at {tunable_dir}, skipping --run-analysis")
             resolved.append(config)
             continue
 
-        input_files = sorted(glob.glob(os.path.join(tunable_dir, "*.input.txt")))
-        if not input_files:
-            print(f"  {config.name}: no input files in {tunable_dir}, skipping --run-analysis")
+        print(f"  {config.name}: invoking ss-gen.sh --tunable {ds_name}")
+        result = subprocess.run(
+            ["bash", str(ss_gen_script), "--tunable", ds_name, *forwarded],
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
+        )
+        if result.returncode != 0:
+            print(result.stdout)
+            print(f"  {config.name}: ss-gen.sh failed (exit {result.returncode})")
             resolved.append(config)
             continue
 
-        print(f"  {config.name}: running analysis on {len(input_files)} input file(s)...")
         all_spans: List[Tuple[str, str, str]] = []
         seen: set = set()
-        for input_file in input_files:
-            spans = _run_ss_analysis(ss_analysis_script, ir_to_assembly_script, input_file)
-            for span in spans or []:
+        for json_file in sorted(tunable_dir.glob("*.func_offset.json")):
+            for span in _parse_func_offset_json(json_file):
                 if span not in seen:
                     seen.add(span)
                     all_spans.append(span)
@@ -254,51 +288,25 @@ def _backfill_safe_spans_from_analysis(
     return resolved
 
 
-def _run_ss_analysis(
-    ss_analysis_script: str, ir_to_assembly_script: str, input_file: str,
-) -> List[Tuple[str, str, str]]:
-    """Run ss-analysis.sh on one input file (with output caching), then
-    ir_to_assembly.py to translate IR locations to assembly offsets.
-
-    The .output.txt file is cached next to the .input.txt so re-runs are fast.
+def _parse_func_offset_json(path: Path) -> List[Tuple[str, str, str]]:
+    """Convert a *.func_offset.json file from linux-analysis into
+    (function, start_offset, end_offset) tuples. The `offset` field has
+    the form `"0xNN - 0xMM"`.
     """
-    output_file = input_file.replace(".input.txt", ".output.txt")
-
-    if not os.path.exists(output_file):
-        print(f"    Running: bash {ss_analysis_script} {input_file}")
-        result = subprocess.run(
-            ["bash", ss_analysis_script, input_file],
-            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
-        )
-        with open(output_file, "w") as f:
-            f.write(result.stdout)
-    else:
-        print(f"    Cached: {output_file}")
-
-    return _parse_analysis_output(ir_to_assembly_script, output_file)
-
-
-def _parse_analysis_output(
-    ir_to_assembly_script: str, output_file: str,
-) -> List[Tuple[str, str, str]]:
-    """Run ir_to_assembly.py and parse its 'SPAN, ...' stdout lines."""
-    print(f"    Running: python3 {ir_to_assembly_script} {output_file}")
-    result = subprocess.run(
-        ["python3", ir_to_assembly_script, output_file],
-        capture_output=True, text=True,
-    )
+    try:
+        entries = json.loads(path.read_text())
+    except (OSError, ValueError) as e:
+        print(f"    warning: cannot read {path}: {e}")
+        return []
 
     spans: List[Tuple[str, str, str]] = []
-    for line in result.stdout.splitlines():
-        line = line.strip()
-        if not line.startswith("SPAN, "):
+    for entry in entries:
+        func = entry.get("function")
+        offset = entry.get("offset", "")
+        if not func or " - " not in offset:
             continue
-        # SPAN, source_start, source_end, abs_start, abs_end, func, start_off, end_off
-        parts = [p.strip() for p in line.split(", ")]
-        if len(parts) == 8:
-            func, soff, eoff = parts[5], parts[6], parts[7]
-            if int(soff, 16) >= int(eoff, 16):
-                soff, eoff = eoff, soff
-            spans.append((func, soff, eoff))
-
+        soff, eoff = (s.strip() for s in offset.split(" - ", 1))
+        if int(soff, 16) >= int(eoff, 16):
+            soff, eoff = eoff, soff
+        spans.append((func, soff, eoff))
     return spans
