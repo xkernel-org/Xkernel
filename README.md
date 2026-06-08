@@ -141,7 +141,7 @@ values = [3, 5, 7]
 
 Each tunable provides three values `(V1, V2, V3)`. The pipeline recompiles the kernel twice (`V1→V2`, `V1→V3`), diffs the binary, and uses symbolic execution to derive the transformation relationship.
 
-The optional `safe_spans` field specifies Safe Span (SS) ranges as `(function, start_offset, end_offset)` entries. These ranges tell the consistency model where constant-derived values are still live. When omitted, CS ranges are used as a conservative approximation.
+The optional `safe_spans` field specifies Safe Span (SS) ranges as `(function, start_offset, end_offset)` entries. These ranges tell the consistency model where constant-derived values are still live. When omitted, Xkernel can either invoke an LLVM taint analysis (`--run-analysis`) or fall back to a conservative auto-SS that covers the entire CS function. See [`docs/ss-analysis.md`](docs/ss-analysis.md) for the full SS resolution flow.
 
 ### 2. Build + load (one step)
 
