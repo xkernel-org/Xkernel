@@ -92,7 +92,7 @@ None are required for normal use.
 A typical invocation in a freshly-set-up environment looks like:
 
 ```bash
-export LINUX_WLLVM=~/linux-analysis-workdir/linux-6.8.0-wllvm
+export LINUX_WLLVM=~/linux-6.8.0-wllvm
 ./xkernel-tool build tunables/my_const.toml --run-analysis
 ```
 
