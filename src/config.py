@@ -188,19 +188,15 @@ def load_configs(path: str, *, run_analysis: bool = False) -> Tuple[str, List[Tu
 
 
 def _linux_analysis_root() -> Optional[Path]:
-    """Locate the linux-analysis checkout.
+    """Locate the linux-analysis checkout via the sibling-of-Xkernel
+    convention: <xkernel_parent>/linux-analysis.
 
-    Resolution order:
-      1. Sibling-of-Xkernel convention: <xkernel_parent>/linux-analysis
-      2. In-tree fallback (development layout): <xkernel_root>/linux-analysis
-
-    Returns the first path whose `scripts/ss-gen.sh` exists, else None.
+    Returns the path if `scripts/ss-gen.sh` exists there, else None.
     """
     xkernel_root = Path(__file__).resolve().parents[1]
-    for candidate in (xkernel_root.parent / "linux-analysis",
-                      xkernel_root / "linux-analysis"):
-        if (candidate / "scripts" / "ss-gen.sh").is_file():
-            return candidate
+    candidate = xkernel_root.parent / "linux-analysis"
+    if (candidate / "scripts" / "ss-gen.sh").is_file():
+        return candidate
     return None
 
 

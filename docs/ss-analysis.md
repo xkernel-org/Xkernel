@@ -70,14 +70,10 @@ build dependency.
 
 ### Locating `linux-analysis`
 
-`_linux_analysis_root()` checks two paths in order and returns the first
-that contains `scripts/ss-gen.sh`:
-
-1. **Sibling-of-Xkernel** (preferred): `<xkernel_parent>/linux-analysis`
-2. **In-tree** (development convenience): `<xkernel_root>/linux-analysis`
-
-If neither exists, `--run-analysis` prints a diagnostic and the
-pipeline falls back to auto-SS.
+`_linux_analysis_root()` returns
+`<xkernel_parent>/linux-analysis` if it contains `scripts/ss-gen.sh`,
+otherwise `None`. If the checkout is missing, `--run-analysis` prints
+a diagnostic and the pipeline falls back to auto-SS.
 
 ### Optional environment variables
 
@@ -130,12 +126,12 @@ OCCURENCE=1
 
 `linux-analysis/dataset/source-occurrence-and-mutation.sh` is the
 canonical generator that derives these from a TOML mutation list. See
-the [`linux-analysis` README](../linux-analysis/README.md) for the
+the [`linux-analysis` README](../../linux-analysis/README.md) for the
 full workflow.
 
 ## Known stragglers
 
 A small number of tunables currently time out the LLVM pass on 6.8 IR
 (>55 minutes). These are documented in
-[`linux-analysis/dataset/UNSUCCESSFUL.md`](../linux-analysis/dataset/UNSUCCESSFUL.md)
+[`linux-analysis/dataset/UNSUCCESSFUL.md`](../../linux-analysis/dataset/UNSUCCESSFUL.md)
 and gracefully fall back to auto-SS when `--run-analysis` is requested.
