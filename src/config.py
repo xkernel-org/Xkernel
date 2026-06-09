@@ -32,15 +32,6 @@ from typing import List, Optional, Tuple
 #   2. kernel_dir field in the TOML config
 #   3. Error if neither is set
 
-# A few tunables in the linux-analysis dataset use ad-hoc names because the
-# perf-const is not a single macro/identifier. This translates the dataset
-# directory name to the TOML `name` used in xkernel.
-_dataset_to_toml_name = {
-    'tcp_min_rtt': 'tcp_recovery',
-    'ca__delay_min': 'tcp_cubic',
-}
-_toml_to_dataset_name = {v: k for k, v in _dataset_to_toml_name.items()}
-
 
 @dataclass(frozen=True)
 class TunableConfig:
@@ -247,16 +238,15 @@ def _backfill_safe_spans_from_analysis(
             resolved.append(config)
             continue
 
-        ds_name = _toml_to_dataset_name.get(config.name, config.name)
-        tunable_dir = dataset_dir / ds_name
+        tunable_dir = dataset_dir / config.name
         if not tunable_dir.is_dir():
             print(f"  {config.name}: no dataset at {tunable_dir}, skipping --run-analysis")
             resolved.append(config)
             continue
 
-        print(f"  {config.name}: invoking ss-gen.sh --tunable {ds_name}")
+        print(f"  {config.name}: invoking ss-gen.sh --tunable {config.name}")
         result = subprocess.run(
-            ["bash", str(ss_gen_script), "--tunable", ds_name, *forwarded],
+            ["bash", str(ss_gen_script), "--tunable", config.name, *forwarded],
             stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
         )
         if result.returncode != 0:
