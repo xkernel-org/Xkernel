@@ -101,9 +101,18 @@ start_offset = "0x10"           # Hex offset from function start
 end_offset = "0x90"             # Hex offset for span end
 ```
 
-**Finding Safe Spans**: Currently requires manual analysis using the LLVM thin
-slicing approach described in the paper. Track forward data dependencies from
-the CS to find where constant-derived values are last consumed.
+**Finding Safe Spans**: Two options.
+
+* Compute them yourself by tracing forward data dependencies from the CS
+  to where constant-derived values are last consumed (the LLVM thin-slicing
+  approach described in the paper), and paste the results inline.
+* Or run `./xkernel-tool build … --run-analysis` to invoke the LLVM
+  taint pass automatically. See [`ss-analysis.md`](./ss-analysis.md) for
+  details.
+
+When `safe_spans` is left out and `--run-analysis` is not used, Xkernel
+falls back to an auto-SS spanning the entire CS function (a conservative
+over-approximation).
 
 ## Step 4: Build
 

@@ -226,9 +226,10 @@ def cmd_build(args):
     project_root = get_project_root()
     skip_gen = '--skip-gen' in args
     verbose = '--verbose' in args or '-v' in args
+    run_analysis = '--run-analysis' in args
 
     # Separate flags from positional args
-    flags = {'--skip-gen', '--verbose', '-v'}
+    flags = {'--skip-gen', '--verbose', '-v', '--run-analysis'}
     positional = [a for a in args if a not in flags]
 
     # Detect TOML file
@@ -239,19 +240,21 @@ def cmd_build(args):
             toml_file = candidate
 
     if toml_file:
-        _cmd_build_single(toml_file, skip_gen, verbose, project_root)
+        _cmd_build_single(toml_file, skip_gen, verbose, run_analysis, project_root)
     else:
-        print("Usage: xkernel-tool build <config.toml> [--skip-gen] [--verbose/-v]")
+        print("Usage: xkernel-tool build <config.toml> [--skip-gen] [--run-analysis] [--verbose/-v]")
         print()
-        print("  <config.toml>  TOML config file (single or multi-tunable)")
-        print("  --skip-gen     Skip gen.py (only run codegen + compile)")
-        print("  --verbose/-v   Show detailed intermediate output")
+        print("  <config.toml>   TOML config file (single or multi-tunable)")
+        print("  --skip-gen      Skip gen.py (only run codegen + compile)")
+        print("  --run-analysis  Re-run linux-analysis SS analysis instead of using")
+        print("                  the precomputed ss/ss-addresses.csv")
+        print("  --verbose/-v    Show detailed intermediate output")
         print()
         print("Tip: Use 'xkernel-tool run <config.toml>' to build AND load in one step")
         sys.exit(1)
 
 
-def _cmd_build_single(toml_file, skip_gen, verbose, project_root):
+def _cmd_build_single(toml_file, skip_gen, verbose, run_analysis, project_root):
     """Build tunables from a TOML config file (single or multi-tunable)."""
     from src.config import load_configs
     from src.codegen import next_const_id, run_codegen_single
@@ -260,7 +263,7 @@ def _cmd_build_single(toml_file, skip_gen, verbose, project_root):
         print(f"Error: Config file not found: {toml_file}")
         sys.exit(1)
 
-    kernel_dir, configs = load_configs(toml_file)
+    kernel_dir, configs = load_configs(toml_file, run_analysis=run_analysis)
     if not configs:
         print(f"Error: No tunables found in {toml_file}")
         sys.exit(1)
@@ -380,7 +383,7 @@ def cmd_run(args):
     project_root = get_project_root()
 
     # Step 1: Build
-    _cmd_build_single(toml_file, skip_gen, verbose, project_root)
+    _cmd_build_single(toml_file, skip_gen, verbose, False, project_root)
 
     # Step 2: Read assigned ConstIDs from scope table
     if not os.path.exists(SCOPE_TABLE):

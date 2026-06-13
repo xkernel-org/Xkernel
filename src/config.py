@@ -6,11 +6,25 @@ TunableConfig dataclass instances compatible with the codegen pipeline.
 Supports two formats:
   1. Single-tunable file (top-level name/description/[source]/[[safe_spans]])
   2. Multi-tunable file ([[tunables]] array of tables)
+
+Safe-span resolution order (per tunable, first match wins):
+  1. Inline [[safe_spans]] in the TOML
+  2. Fresh LLVM analysis via linux-analysis/scripts/ss-gen.sh
+     (only when load_configs(..., run_analysis=True)).
+     linux-analysis is located via the sibling-of-Xkernel convention
+     (../linux-analysis relative to this repo root).
+
+When both stages leave safe_spans=None, codegen.py's _populate_ss_raw()
+falls back to an auto-SS spanning the entire CS function (kcore-derived).
 """
 
+import glob
+import json
 import os
+import subprocess
 import tomllib
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
+from pathlib import Path
 from typing import List, Optional, Tuple
 
 # Kernel source directory resolution order:
@@ -104,15 +118,23 @@ def load_config(path: str) -> Tuple[str, TunableConfig]:
     return kernel_dir, configs[0]
 
 
-def load_configs(path: str) -> Tuple[str, List[TunableConfig]]:
+def load_configs(path: str, *, run_analysis: bool = False) -> Tuple[str, List[TunableConfig]]:
     """Load all tunables from a TOML config file.
 
     Supports two formats:
       1. Single: top-level name/description/[source] -> returns [TunableConfig]
       2. Multi:  [[tunables]] array -> returns list of TunableConfig
 
+    Safe-span resolution (per tunable, first match wins):
+      1. Inline [[safe_spans]] in the TOML
+      2. LLVM analysis via linux-analysis/scripts/ss-gen.sh
+         (only when run_analysis=True; linux-analysis is discovered via the
+         sibling-of-Xkernel convention).
+
     Args:
         path: Path to the TOML config file.
+        run_analysis: If True, run the LLVM SS analysis for tunables that
+            do not already have inline safe_spans.
 
     Returns:
         (kernel_dir, list_of_TunableConfig) tuple.
@@ -140,7 +162,137 @@ def load_configs(path: str) -> Tuple[str, List[TunableConfig]]:
         configs = []
         for i, entry in enumerate(data['tunables']):
             configs.append(_parse_tunable(entry, f"{path} tunables[{i}]"))
-        return kernel_dir, configs
+    else:
+        # Single-tunable format: top-level fields
+        configs = [_parse_tunable(data, path)]
 
-    # Single-tunable format: top-level fields
-    return kernel_dir, [_parse_tunable(data, path)]
+    # Optional fresh LLVM analysis for tunables without inline safe_spans
+    if run_analysis:
+        configs = _backfill_safe_spans_from_analysis(configs)
+
+    return kernel_dir, configs
+
+
+# ---------------------------------------------------------------------------
+# Safe-span backfill via linux-analysis (--run-analysis)
+# ---------------------------------------------------------------------------
+
+
+def _linux_analysis_root() -> Optional[Path]:
+    """Locate the linux-analysis checkout via the sibling-of-Xkernel
+    convention: <xkernel_parent>/linux-analysis.
+
+    Returns the path if `scripts/ss-gen.sh` exists there, else None.
+    """
+    xkernel_root = Path(__file__).resolve().parents[1]
+    candidate = xkernel_root.parent / "linux-analysis"
+    if (candidate / "scripts" / "ss-gen.sh").is_file():
+        return candidate
+    return None
+
+
+def _backfill_safe_spans_from_analysis(
+    configs: List[TunableConfig],
+) -> List[TunableConfig]:
+    """Run LLVM SS analysis (linux-analysis) for tunables missing safe_spans.
+
+    Discovers linux-analysis as a sibling directory of Xkernel
+    (../linux-analysis), then for each tunable without inline safe_spans
+    invokes `scripts/ss-gen.sh --tunable <NAME>` and reads the resulting
+    dataset/<NAME>/*.func_offset.json files. Existing JSON outputs are
+    reused (ss-gen.sh caches *.output.txt + *.func_offset.json on disk).
+    """
+    if all(c.safe_spans is not None for c in configs):
+        return configs
+
+    la_root = _linux_analysis_root()
+    if la_root is None:
+        xkernel_root = Path(__file__).resolve().parents[1]
+        print(
+            f"  --run-analysis: no linux-analysis checkout at "
+            f"{xkernel_root.parent / 'linux-analysis'}, skipping. "
+            "Clone xkernel-org/linux-analysis as a sibling of Xkernel to enable."
+        )
+        return configs
+
+    ss_gen_script = la_root / "scripts" / "ss-gen.sh"
+    dataset_dir = la_root / "dataset"
+
+    # Optional flags forwarded to ss-gen.sh. Empty strings are dropped so the
+    # underlying script uses its own defaults (env vars / self-relative paths).
+    forwarded: List[str] = []
+    for flag, var in (
+        ("--linux-wllvm", "LINUX_WLLVM"),
+        ("--vmlinux-bc",  "VMLINUX_BC"),
+        ("--plugin",      "TAINT_TRACKER_PLUGIN"),
+        ("--vmlinux",     "VMLINUX"),
+        ("--modules-dir", "MODULES_DIR"),
+    ):
+        val = os.environ.get(var)
+        if val:
+            forwarded += [flag, val]
+
+    resolved = []
+    for config in configs:
+        if config.safe_spans is not None:
+            resolved.append(config)
+            continue
+
+        tunable_dir = dataset_dir / config.name
+        if not tunable_dir.is_dir():
+            print(f"  {config.name}: no dataset at {tunable_dir}, skipping --run-analysis")
+            resolved.append(config)
+            continue
+
+        print(f"  {config.name}: invoking ss-gen.sh --tunable {config.name}")
+        result = subprocess.run(
+            ["bash", str(ss_gen_script), "--tunable", config.name, *forwarded],
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
+        )
+        if result.returncode != 0:
+            print(result.stdout)
+            print(f"  {config.name}: ss-gen.sh failed (exit {result.returncode})")
+            resolved.append(config)
+            continue
+
+        all_spans: List[Tuple[str, str, str]] = []
+        seen: set = set()
+        for json_file in sorted(tunable_dir.glob("*.func_offset.json")):
+            for span in _parse_func_offset_json(json_file):
+                if span not in seen:
+                    seen.add(span)
+                    all_spans.append(span)
+
+        if all_spans:
+            config = replace(config, safe_spans=all_spans)
+            print(f"  {config.name}: analysis produced {len(all_spans)} span(s)")
+        else:
+            print(f"  {config.name}: analysis produced no spans")
+
+        resolved.append(config)
+
+    return resolved
+
+
+def _parse_func_offset_json(path: Path) -> List[Tuple[str, str, str]]:
+    """Convert a *.func_offset.json file from linux-analysis into
+    (function, start_offset, end_offset) tuples. The `offset` field has
+    the form `"0xNN - 0xMM"`.
+    """
+    try:
+        entries = json.loads(path.read_text())
+    except (OSError, ValueError) as e:
+        print(f"    warning: cannot read {path}: {e}")
+        return []
+
+    spans: List[Tuple[str, str, str]] = []
+    for entry in entries:
+        func = entry.get("function")
+        offset = entry.get("offset", "")
+        if not func or " - " not in offset:
+            continue
+        soff, eoff = (s.strip() for s in offset.split(" - ", 1))
+        if int(soff, 16) >= int(eoff, 16):
+            soff, eoff = eoff, soff
+        spans.append((func, soff, eoff))
+    return spans
