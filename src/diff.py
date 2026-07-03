@@ -1083,11 +1083,26 @@ def modify_file_with_sed(source_file, from_code, to_code):
     from_pattern = macro_to_pattern(from_code)
     to_code_stripped = to_code.strip()
     from_code_stripped = from_code.strip()
-    sed_expr = f"s|{from_pattern}|{to_code_stripped}|g"
-    
+
+    # When from_code is a bare identifier (e.g. a macro name like
+    # IO_COMPL_BATCH or an enum constant like RWB_UNKNOWN_BUMP), skip
+    # definition lines so that same-file definitions are preserved while
+    # use-sites are replaced.  Two patterns are skipped:
+    #   1. #define NAME ...          (preprocessor macro)
+    #   2. NAME  =                   (enum / static-const initialiser)
+    if re.match(r'^[A-Za-z_]\w*$', from_code_stripped):
+        esc = re.escape(from_code_stripped)
+        skip_define = (
+            rf'/^[[:space:]]*#[[:space:]]*define[[:space:]]+{esc}([[:space:]]|$)/b; '
+        )
+        skip_enum = rf'/^[[:space:]]*{esc}[[:space:]]*=/b; '
+        sed_expr = f"{skip_define}{skip_enum}s|{from_pattern}|{to_code_stripped}|g"
+    else:
+        sed_expr = f"s|{from_pattern}|{to_code_stripped}|g"
+
     if not run_command(["sed", "-i", "-E", sed_expr, str(source_file)], cwd=source_file.parent):
         raise RuntimeError("Failed to modify file using sed.")
-    
+
     sed_expr_for_restoring = f"s|{to_code_stripped}|{from_code_stripped}|g"
     return sed_expr_for_restoring, to_code_stripped, from_code_stripped
 
