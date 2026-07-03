@@ -1079,29 +1079,44 @@ def macro_to_pattern(line):
 
 
 def modify_file_with_sed(source_file, from_code, to_code):
-    """Modify file using sed and return restore expression."""
-    from_pattern = macro_to_pattern(from_code)
+    """Modify file using sed (for identifiers) or direct text replacement.
+
+    Three cases:
+      1. Bare C identifier (e.g. IO_COMPL_BATCH) -> sed with skip-define/enum
+      2. Source expression (e.g. "cache->nr > 128") -> Python str.replace for
+         exact, delimiter-safe literal matching
+      3. Full #define line -> handled by case 2 (Python replace)
+
+    Case 2 avoids sed regex-escaping pitfalls for operators like >, ->, etc.
+    """
     to_code_stripped = to_code.strip()
     from_code_stripped = from_code.strip()
 
-    # When from_code is a bare identifier (e.g. a macro name like
-    # IO_COMPL_BATCH or an enum constant like RWB_UNKNOWN_BUMP), skip
-    # definition lines so that same-file definitions are preserved while
-    # use-sites are replaced.  Two patterns are skipped:
-    #   1. #define NAME ...          (preprocessor macro)
-    #   2. NAME  =                   (enum / static-const initialiser)
     if re.match(r'^[A-Za-z_]\w*$', from_code_stripped):
+        # Case 1: bare identifier -- use sed with skip-define / skip-enum
+        from_pattern = macro_to_pattern(from_code)
         esc = re.escape(from_code_stripped)
         skip_define = (
             rf'/^[[:space:]]*#[[:space:]]*define[[:space:]]+{esc}([[:space:]]|$)/b; '
         )
         skip_enum = rf'/^[[:space:]]*{esc}[[:space:]]*=/b; '
         sed_expr = f"{skip_define}{skip_enum}s|{from_pattern}|{to_code_stripped}|g"
-    else:
-        sed_expr = f"s|{from_pattern}|{to_code_stripped}|g"
 
-    if not run_command(["sed", "-i", "-E", sed_expr, str(source_file)], cwd=source_file.parent):
-        raise RuntimeError("Failed to modify file using sed.")
+        if not run_command(["sed", "-i", "-E", sed_expr, str(source_file)],
+                           cwd=source_file.parent):
+            raise RuntimeError("Failed to modify file using sed.")
+    else:
+        # Case 2/3: source expression or #define line -- use Python text
+        # replacement for exact literal matching (safe with any C operators)
+        text = source_file.read_text()
+        new_text = text.replace(from_code_stripped, to_code_stripped)
+        if new_text == text:
+            raise RuntimeError(
+                f"Pattern not found in {source_file}: {from_code_stripped!r}"
+            )
+        count = text.count(from_code_stripped)
+        source_file.write_text(new_text)
+        print_color(f"   Replaced {count} occurrence(s) of pattern in file.", "green")
 
     sed_expr_for_restoring = f"s|{to_code_stripped}|{from_code_stripped}|g"
     return sed_expr_for_restoring, to_code_stripped, from_code_stripped
