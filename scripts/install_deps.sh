@@ -58,7 +58,7 @@ for arg in "$@"; do
             echo "  --libbpf       Only build & install libbpf from source"
             echo "  --vmlinux      Only generate bpf/vmlinux.h from running kernel BTF"
             echo "  --pytest       Only install pytest for running tests"
-            echo "  --kernel-src   Only download kernel source for the running kernel"
+            echo "  --kernel-src   Download and prepare kernel source for the running kernel"
             exit 0
             ;;
         *)
@@ -353,11 +353,8 @@ install_kernel_source() {
         info "Applied /boot/config-${kver} to source tree"
     fi
 
-    info "Compiling kernel (this will take a while)..."
-    /usr/bin/time -v make -j"$(nproc)" 2>&1 | tail -5
-    chmod +x ./debian/scripts/sign-module 2>/dev/null || true
-    make modules_install -j"$(nproc)" 2>&1 | tail -3
-    make install 2>&1 | tail -3
+    info "Preparing kernel source tree for Xkernel code generation..."
+    make prepare scripts 2>&1 | tail -5
     popd > /dev/null
 
     if [[ -n "${SUDO_USER:-}" ]]; then
