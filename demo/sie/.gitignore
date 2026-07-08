@@ -1,0 +1,14 @@
+# dependencies & build output
+node_modules/
+dist/
+
+# rendered frame dumps — regenerate via `node scripts/render.mjs`
+output/
+
+# tooling noise
+*.log
+.DS_Store
+vite.config.ts.timestamp-*
+
+# the final rendered demo GIF is committed on purpose
+!xkernel-sie.gif
