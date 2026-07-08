@@ -5,7 +5,10 @@
  */
 import {Renderer, Vector2} from '@motion-canvas/core';
 
-import project from './project';
+// The `?project` query makes the vite plugin bootstrap a full Project
+// (logger, meta, plugins) — a bare `./project` import is just the
+// makeProject description and cannot be rendered.
+import project from './project?project';
 
 declare global {
   interface Window {

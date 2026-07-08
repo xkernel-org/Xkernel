@@ -5,6 +5,8 @@ import {
   createSignal,
   easeInOutCubic,
   easeOutBack,
+  easeOutBounce,
+  easeOutCubic,
   makeRef,
   sequence,
   waitFor,
@@ -77,6 +79,9 @@ export default makeScene2D(function* (view) {
   const eaxVal = createSignal('—');
 
   // ---------- refs ----------
+  const devHdd = createRef<Node>();
+  const devNvme = createRef<Node>();
+  const devOther = createRef<Node>();
   const title = createRef<Txt>();
   const caption = createRef<Txt>();
   const mainGrp = createRef<Node>();
@@ -568,23 +573,28 @@ export default makeScene2D(function* (view) {
         <Line points={[[-260, -50], [-420, 90]]} stroke={PURPLE} lineWidth={4} endArrow arrowSize={13} />
         <Line points={[[0, -50], [0, 90]]} stroke={PURPLE} lineWidth={4} endArrow arrowSize={13} />
         <Line points={[[260, -50], [420, 90]]} stroke={'#B0B0B0'} lineWidth={4} endArrow arrowSize={13} />
-        {/* targets */}
-        <Rect width={260} height={84} position={[-420, 140]} fill={CREAM} stroke={'#C9BC94'} lineWidth={2} radius={10} />
-        <Txt text={'HDD'} fontFamily={SANS} fontSize={30} fontWeight={700} fill={INK} position={[-420, 140]} />
-        <Rect width={260} height={84} position={[0, 140]} fill={CREAM} stroke={'#C9BC94'} lineWidth={2} radius={10} />
-        <Txt text={'NVMe SSD'} fontFamily={SANS} fontSize={30} fontWeight={700} fill={INK} position={[0, 140]} />
-        <Rect width={300} height={84} position={[420, 140]} fill={'#F2F2F2'} stroke={'#BBBBBB'} lineWidth={2} radius={10} />
-        <Txt text={'other PIDs / devices'} fontFamily={SANS} fontSize={24} fill={GRAY} position={[420, 140]} />
-        {/* value badges */}
-        <Rect width={230} height={76} position={[-420, 256]} fill={'#E3D5F1'} stroke={PURPLE} lineWidth={3} radius={14} />
-        <Txt text={'128'} fontFamily={SANS} fontSize={34} fontWeight={700} fill={PURPLE} position={[-420, 244]} />
-        <Txt text={'used at runtime'} fontFamily={SANS} fontSize={19} fill={PURPLE} position={[-420, 276]} />
-        <Rect width={230} height={76} position={[0, 256]} fill={'#E3D5F1'} stroke={PURPLE} lineWidth={3} radius={14} />
-        <Txt text={'1'} fontFamily={SANS} fontSize={34} fontWeight={700} fill={PURPLE} position={[0, 244]} />
-        <Txt text={'used at runtime'} fontFamily={SANS} fontSize={19} fill={PURPLE} position={[0, 276]} />
-        <Rect width={230} height={76} position={[420, 256]} fill={'#EFEFEF'} stroke={'#999999'} lineWidth={3} radius={14} />
-        <Txt text={'default V'} fontFamily={SANS} fontSize={30} fontWeight={700} fill={GRAY} position={[420, 244]} />
-        <Txt text={'unchanged'} fontFamily={SANS} fontSize={19} fill={GRAY} position={[420, 276]} />
+        {/* targets + value badges — grouped per column so each can hop */}
+        <Node ref={devHdd}>
+          <Rect width={260} height={84} position={[-420, 140]} fill={CREAM} stroke={'#C9BC94'} lineWidth={2} radius={10} />
+          <Txt text={'HDD'} fontFamily={SANS} fontSize={30} fontWeight={700} fill={INK} position={[-420, 140]} />
+          <Rect width={230} height={76} position={[-420, 256]} fill={'#E3D5F1'} stroke={PURPLE} lineWidth={3} radius={14} />
+          <Txt text={'128'} fontFamily={SANS} fontSize={34} fontWeight={700} fill={PURPLE} position={[-420, 244]} />
+          <Txt text={'used at runtime'} fontFamily={SANS} fontSize={19} fill={PURPLE} position={[-420, 276]} />
+        </Node>
+        <Node ref={devNvme}>
+          <Rect width={260} height={84} position={[0, 140]} fill={CREAM} stroke={'#C9BC94'} lineWidth={2} radius={10} />
+          <Txt text={'NVMe SSD'} fontFamily={SANS} fontSize={30} fontWeight={700} fill={INK} position={[0, 140]} />
+          <Rect width={230} height={76} position={[0, 256]} fill={'#E3D5F1'} stroke={PURPLE} lineWidth={3} radius={14} />
+          <Txt text={'1'} fontFamily={SANS} fontSize={34} fontWeight={700} fill={PURPLE} position={[0, 244]} />
+          <Txt text={'used at runtime'} fontFamily={SANS} fontSize={19} fill={PURPLE} position={[0, 276]} />
+        </Node>
+        <Node ref={devOther}>
+          <Rect width={300} height={84} position={[420, 140]} fill={'#F2F2F2'} stroke={'#BBBBBB'} lineWidth={2} radius={10} />
+          <Txt text={'other PIDs / devices'} fontFamily={SANS} fontSize={24} fill={GRAY} position={[420, 140]} />
+          <Rect width={230} height={76} position={[420, 256]} fill={'#EFEFEF'} stroke={'#999999'} lineWidth={3} radius={14} />
+          <Txt text={'default V'} fontFamily={SANS} fontSize={30} fontWeight={700} fill={GRAY} position={[420, 244]} />
+          <Txt text={'unchanged'} fontFamily={SANS} fontSize={19} fill={GRAY} position={[420, 276]} />
+        </Node>
       </Node>
     </>,
   );
@@ -637,7 +647,7 @@ export default makeScene2D(function* (view) {
   yield* sequence(0.06, ...rowTxts.map(r => r.opacity(1, 0.25)));
   yield* sequence(0.12, ...links.map(l => l.end(1, 0.3)));
   yield* setCaption('A perf-const V = 5 is compiled into the kernel binary');
-  yield* waitFor(1);
+  yield* waitFor(1.5);
 
   // ============================================================
   // Phase 2 — symbolic execution recovers the math expression
@@ -682,14 +692,14 @@ export default makeScene2D(function* (view) {
   yield* all(csBand().opacity(1, 0.5), csBracket().end(1, 0.6), csLabel().opacity(1, 0.5));
   yield* all(seedLabel().opacity(0, 0.3), seedMark().opacity(0, 0.3));
   yield* setCaption('These instructions form the critical span (CS) — scope for the value update');
-  yield* waitFor(1);
+  yield* waitFor(1.5);
 
   // ============================================================
   // Phase 4 — a second scope: the safe span (SS), in another color
   // ============================================================
   yield* all(ssBracket().end(1, 0.7), ssBand().opacity(0.55, 0.6), ssLabel().opacity(1, 0.5));
   yield* setCaption('A larger scope, the safe span (SS): where enabling the update is side-effect free');
-  yield* waitFor(1.2);
+  yield* waitFor(1.5);
 
   // ============================================================
   // Phase 5 — x_set(V′) arrives: synthesize and attach the indirection, OFF
@@ -739,7 +749,7 @@ export default makeScene2D(function* (view) {
   yield* flash(toggleBg(), 2);
   yield* setCaption('The PC exited the SS — no side effects — switch the indirection ON');
   yield* all(ssExitLine().opacity(0, 0.4), ssExitTag().opacity(0, 0.4));
-  yield* waitFor(0.8);
+  yield* waitFor(1.5);
 
   // ============================================================
   // Phase 7 — next entry: the PC passes the indirection and it takes effect
@@ -775,5 +785,12 @@ export default makeScene2D(function* (view) {
   // ============================================================
   yield* all(mainGrp().opacity(0.06, 0.7), policyGrp().opacity(1, 0.7), policyGrp().scale(1, 0.7));
   yield* setCaption('Different values per PID / per device — everything else stays unchanged');
-  yield* waitFor(3);
+  yield* waitFor(1);
+  // each device column hops in turn
+  for (const grp of [devHdd(), devNvme(), devOther()]) {
+    yield* grp.position.y(-26, 0.22, easeOutCubic);
+    yield* grp.position.y(0, 0.55, easeOutBounce);
+    yield* waitFor(0.15);
+  }
+  yield* waitFor(2);
 });
