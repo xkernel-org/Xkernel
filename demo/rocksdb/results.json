@@ -1,0 +1,41 @@
+{
+  "note": "Real db_bench multireadrandom runs supplied in review (2026-07-07), matching paper Figure 1(b): io_uring MultiGet + Direct I/O on NVMe, BLK_MAX_REQUEST_COUNT 32 vs 1, 30 s fixed duration, batch_size 32 (histogram count x 32 = operations). Measured ratios: throughput 1.18x, P50 1.37x lower, P75 1.41x lower - matching the paper's claimed 1.2x / 1.37x / 1.41x. Side assignment by the data: the slower run (51,251 ops/sec, P50 678 us) is Vanilla V=32; the faster (60,589 ops/sec, P50 494 us) is tuned V=1. Both measured in separate real runs; the demo replays them side by side, time-compressed.",
+  "workload": {
+    "name": "RocksDB db_bench",
+    "benchmark": "multireadrandom",
+    "num_keys": 150000,
+    "key_size": 16,
+    "value_size": 2048,
+    "batch_size": 32,
+    "duration_s": 30
+  },
+  "baseline": {
+    "label": "Vanilla",
+    "value": 32,
+    "ops_per_sec": 51251,
+    "ops_total": 1537984,
+    "seconds": 30.008,
+    "mb_per_sec": 100.9,
+    "micros_per_op": 19.511,
+    "p50_us": 678.52,
+    "p75_us": 775.65,
+    "p99_us": 868.89
+  },
+  "tuned": {
+    "label": "Xkernel tuned",
+    "value": 1,
+    "ops_per_sec": 60589,
+    "ops_total": 1817984,
+    "seconds": 30.005,
+    "mb_per_sec": 119.3,
+    "micros_per_op": 16.504,
+    "p50_us": 494.21,
+    "p75_us": 551.32,
+    "p99_us": 852.32
+  },
+  "speedup": {
+    "throughput": 1.2,
+    "p50": 1.37,
+    "p75": 1.41
+  }
+}
