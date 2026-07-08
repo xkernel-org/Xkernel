@@ -20,6 +20,8 @@ export KERNEL_DIR=~/linux-6.8.0
 sudo ./xkernel-tool status
 ```
 
+![Xkernel demo: a compiled-in kernel constant is retuned live, then Vanilla vs Xkernel-tuned RocksDB db_bench run side by side](demo/rocksdb/xkernel-rocksdb.gif)
+
 ## How It Works
 
 Linux contains hundreds of performance constants (`BLK_MAX_REQUEST_COUNT=128`, `MAX_SOFTIRQ_RESTART=10`, etc.) baked into the binary at compile time. SIE modifies their effect at runtime through three steps:
