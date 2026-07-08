@@ -554,7 +554,7 @@ export default makeScene2D(function* (view) {
         {/* policy code */}
         <Rect width={800} height={150} position={[0, -130]} fill={'#F5EEFB'} stroke={PURPLE} lineWidth={3} radius={12} />
         <Txt
-          text={'if (pid == 1234 && HDD())      x_set(128);'}
+          text={'if (sequential_io() && HDD())  x_set(128);'}
           fontFamily={MONO}
           fontSize={27}
           fill={INK}
@@ -562,7 +562,7 @@ export default makeScene2D(function* (view) {
           position={[-370, -160]}
         />
         <Txt
-          text={'if (random_access() && NVMe()) x_set(1);'}
+          text={'if (random_access()  && NVMe()) x_set(1);'}
           fontFamily={MONO}
           fontSize={27}
           fill={INK}
@@ -570,30 +570,49 @@ export default makeScene2D(function* (view) {
           position={[-370, -105]}
         />
         {/* arrows to targets */}
-        <Line points={[[-260, -50], [-420, 90]]} stroke={PURPLE} lineWidth={4} endArrow arrowSize={13} />
-        <Line points={[[0, -50], [0, 90]]} stroke={PURPLE} lineWidth={4} endArrow arrowSize={13} />
-        <Line points={[[260, -50], [420, 90]]} stroke={'#B0B0B0'} lineWidth={4} endArrow arrowSize={13} />
-        {/* targets + value badges — grouped per column so each can hop */}
+        <Line points={[[-260, -50], [-420, 48]]} stroke={PURPLE} lineWidth={4} endArrow arrowSize={13} />
+        <Line points={[[0, -50], [0, 48]]} stroke={PURPLE} lineWidth={4} endArrow arrowSize={13} />
+        <Line points={[[260, -50], [420, 62]]} stroke={'#B0B0B0'} lineWidth={4} endArrow arrowSize={13} />
+        {/* per-column stacks: condition box → device box → value badge.
+            The condition + device pair sits inside a dashed enclosure:
+            these are the changeable tuning conditions from the program. */}
+        <Txt
+          text={'changeable tuning\nconditions'}
+          fontFamily={SANS}
+          fontSize={22}
+          fill={TEAL}
+          textAlign={'right'}
+          offset={[1, 0]}
+          position={[-600, 150]}
+        />
         <Node ref={devHdd}>
-          <Rect width={260} height={84} position={[-420, 140]} fill={CREAM} stroke={'#C9BC94'} lineWidth={2} radius={10} />
-          <Txt text={'HDD'} fontFamily={SANS} fontSize={30} fontWeight={700} fill={INK} position={[-420, 140]} />
-          <Rect width={230} height={76} position={[-420, 256]} fill={'#E3D5F1'} stroke={PURPLE} lineWidth={3} radius={14} />
-          <Txt text={'128'} fontFamily={SANS} fontSize={34} fontWeight={700} fill={PURPLE} position={[-420, 244]} />
-          <Txt text={'used at runtime'} fontFamily={SANS} fontSize={19} fill={PURPLE} position={[-420, 276]} />
+          <Rect width={292} height={180} position={[-420, 150]} stroke={TEAL} lineDash={[10, 8]} lineWidth={2.5} radius={16} />
+          <Rect width={260} height={62} position={[-420, 108]} fill={TEAL_FILL} stroke={TEAL} lineWidth={2} radius={10} />
+          <Txt text={'sequential_io()'} fontFamily={MONO} fontSize={23} fill={TEAL} position={[-420, 108]} />
+          <Rect width={260} height={62} position={[-420, 192]} fill={CREAM} stroke={'#C9BC94'} lineWidth={2} radius={10} />
+          <Txt text={'HDD'} fontFamily={SANS} fontSize={28} fontWeight={700} fill={INK} position={[-420, 192]} />
+          <Rect width={230} height={76} position={[-420, 300]} fill={'#E3D5F1'} stroke={PURPLE} lineWidth={3} radius={14} />
+          <Txt text={'128'} fontFamily={SANS} fontSize={34} fontWeight={700} fill={PURPLE} position={[-420, 288]} />
+          <Txt text={'used at runtime'} fontFamily={SANS} fontSize={19} fill={PURPLE} position={[-420, 320]} />
         </Node>
         <Node ref={devNvme}>
-          <Rect width={260} height={84} position={[0, 140]} fill={CREAM} stroke={'#C9BC94'} lineWidth={2} radius={10} />
-          <Txt text={'NVMe SSD'} fontFamily={SANS} fontSize={30} fontWeight={700} fill={INK} position={[0, 140]} />
-          <Rect width={230} height={76} position={[0, 256]} fill={'#E3D5F1'} stroke={PURPLE} lineWidth={3} radius={14} />
-          <Txt text={'1'} fontFamily={SANS} fontSize={34} fontWeight={700} fill={PURPLE} position={[0, 244]} />
-          <Txt text={'used at runtime'} fontFamily={SANS} fontSize={19} fill={PURPLE} position={[0, 276]} />
+          <Rect width={292} height={180} position={[0, 150]} stroke={TEAL} lineDash={[10, 8]} lineWidth={2.5} radius={16} />
+          <Rect width={260} height={62} position={[0, 108]} fill={TEAL_FILL} stroke={TEAL} lineWidth={2} radius={10} />
+          <Txt text={'random_access()'} fontFamily={MONO} fontSize={23} fill={TEAL} position={[0, 108]} />
+          <Rect width={260} height={62} position={[0, 192]} fill={CREAM} stroke={'#C9BC94'} lineWidth={2} radius={10} />
+          <Txt text={'NVMe SSD'} fontFamily={SANS} fontSize={28} fontWeight={700} fill={INK} position={[0, 192]} />
+          <Rect width={230} height={76} position={[0, 300]} fill={'#E3D5F1'} stroke={PURPLE} lineWidth={3} radius={14} />
+          <Txt text={'1'} fontFamily={SANS} fontSize={34} fontWeight={700} fill={PURPLE} position={[0, 288]} />
+          <Txt text={'used at runtime'} fontFamily={SANS} fontSize={19} fill={PURPLE} position={[0, 320]} />
         </Node>
         <Node ref={devOther}>
-          <Rect width={300} height={84} position={[420, 140]} fill={'#F2F2F2'} stroke={'#BBBBBB'} lineWidth={2} radius={10} />
-          <Txt text={'other PIDs / devices'} fontFamily={SANS} fontSize={24} fill={GRAY} position={[420, 140]} />
-          <Rect width={230} height={76} position={[420, 256]} fill={'#EFEFEF'} stroke={'#999999'} lineWidth={3} radius={14} />
-          <Txt text={'default V'} fontFamily={SANS} fontSize={30} fontWeight={700} fill={GRAY} position={[420, 244]} />
-          <Txt text={'unchanged'} fontFamily={SANS} fontSize={19} fill={GRAY} position={[420, 276]} />
+          <Rect width={260} height={62} position={[420, 108]} fill={'#F2F2F2'} stroke={'#BBBBBB'} lineWidth={2} radius={10} />
+          <Txt text={'otherwise'} fontFamily={MONO} fontSize={23} fill={GRAY} position={[420, 108]} />
+          <Rect width={260} height={62} position={[420, 192]} fill={'#F2F2F2'} stroke={'#BBBBBB'} lineWidth={2} radius={10} />
+          <Txt text={'other apps / devices'} fontFamily={SANS} fontSize={22} fill={GRAY} position={[420, 192]} />
+          <Rect width={230} height={76} position={[420, 300]} fill={'#EFEFEF'} stroke={'#999999'} lineWidth={3} radius={14} />
+          <Txt text={'default V'} fontFamily={SANS} fontSize={30} fontWeight={700} fill={GRAY} position={[420, 288]} />
+          <Txt text={'unchanged'} fontFamily={SANS} fontSize={19} fill={GRAY} position={[420, 320]} />
         </Node>
       </Node>
     </>,
@@ -784,7 +803,7 @@ export default makeScene2D(function* (view) {
   // Phase 8 — the tuning policy plane (finale)
   // ============================================================
   yield* all(mainGrp().opacity(0.06, 0.7), policyGrp().opacity(1, 0.7), policyGrp().scale(1, 0.7));
-  yield* setCaption('Different values per PID / per device — everything else stays unchanged');
+  yield* setCaption('The value follows the application workload + device — all else unchanged');
   yield* waitFor(1);
   // each device column hops in turn
   for (const grp of [devHdd(), devNvme(), devOther()]) {

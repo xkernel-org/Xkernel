@@ -7,6 +7,8 @@ import puppeteer from 'puppeteer';
 
 const fps = process.argv[2] ?? '30';
 const scale = process.argv[3] ?? '1';
+const start = process.argv[4] ?? '0';
+const end = process.argv[5] ?? '';
 
 const browser = await puppeteer.launch({
   headless: 'new',
@@ -22,7 +24,7 @@ const page = await browser.newPage();
 page.on('console', m => console.log('[page]', m.text()));
 page.on('pageerror', e => console.error('[pageerror]', e.message));
 
-await page.goto(`http://localhost:9000/render.html?fps=${fps}&scale=${scale}`, {
+await page.goto(`http://localhost:9000/render.html?fps=${fps}&scale=${scale}&start=${start}${end ? `&end=${end}` : ''}`, {
   waitUntil: 'networkidle2',
   timeout: 120000,
 });

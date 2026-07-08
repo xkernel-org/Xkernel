@@ -23,6 +23,9 @@ window.__error = null;
 const params = new URLSearchParams(location.search);
 const fps = Number(params.get('fps') ?? 15);
 const scale = Number(params.get('scale') ?? 0.5);
+// optional scene-time window (seconds) for quick partial previews
+const start = Number(params.get('start') ?? 0);
+const end = Number(params.get('end') ?? Infinity);
 
 (async () => {
   try {
@@ -32,6 +35,7 @@ const scale = Number(params.get('scale') ?? 0.5);
       ...project.meta.getFullRenderingSettings(),
       name: 'sie',
       fps,
+      range: [start, end],
       resolutionScale: scale,
       size: new Vector2(1920, 1080),
       background: '#FFFFFF',
