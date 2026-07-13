@@ -2,7 +2,7 @@
 
 **Xkernel** (KernelX) implements *Scoped Indirect Execution* (SIE) for runtime tuning of hardcoded performance constants in the Linux kernel — without recompilation or reboot.
 
-Paper: *Principled Performance Tunability in Operating System Kernels* ([arXiv 2512.12530](https://arxiv.org/abs/2512.12530))
+Paper: *Xkernel: Principled Performance Tunability of Operating System Kernels* ([OSDI'26]([https://arxiv.org/abs/2512.12530]([https://www.usenix.org/conference/osdi26/presentation/chen-zhongjie](https://www.usenix.org/system/files/osdi26-chen-zhongjie.pdf))))
 
 ## 30-Second Demo
 
